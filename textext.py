@@ -4,7 +4,9 @@
 import sys
 sys.path.append('/usr/share/inkscape/extensions/')
 
-import Tkinter as Tk
+import pygtk
+pygtk.require('2.0')
+import gtk
 
 import inkex
 import tempfile, traceback
@@ -14,35 +16,70 @@ import xml.dom.ext.reader.Sax2
 ######################################################################
 
 class AskText(object):
-    def __init__(self, text, preamble_file):
+    def __init__(self, text, preamble_file, scale_factor):
         self.text = text
         self.preamble_file = preamble_file
+        self.scale_factor = scale_factor
 
     def ask(self):
-        root = Tk.Tk()
-        #
-        self._frame = Tk.Frame(root)
-        self._frame.pack()
-        #
-        self._preamble = Tk.Entry(self._frame)
-        self._preamble.pack()
-        self._preamble.insert(Tk.END, self.preamble_file)
-        #
-        self._text = Tk.Text(self._frame)
-        self._text.pack()
-        self._text.insert(Tk.END, self.text)
-        #
-        self._btn = Tk.Button(self._frame, text="OK", command=self.cb_ok)
-        self._btn.pack()
-        #
-        root.mainloop()
+        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        window.set_title("TeX Text")
+        window.set_default_size(400, 200)
 
-        return self.text, self.preamble_file
+        label1 = gtk.Label(u"Preamble file:")
+        label2 = gtk.Label(u"Scale factor:")
+        label3 = gtk.Label(u"Text:")
+
+        self._preamble = gtk.Entry()
+        self._preamble.set_text(self.preamble_file)
+
+        self._scale_adj = gtk.Adjustment(value=self.scale_factor,
+                                         lower=0.01, upper=100,
+                                         step_incr=0.1, page_incr=1)
+        self._scale = gtk.SpinButton(self._scale_adj, digits=2)
+
+        self._text = gtk.TextView()
+        self._text.get_buffer().set_text(self.text)
+
+        ok = gtk.Button(stock=gtk.STOCK_OK)
+
+        # layout
+        table = gtk.Table(3, 2, False)
+        table.attach(label1,         0,1,0,1,xoptions=0,yoptions=gtk.FILL)
+        table.attach(self._preamble, 1,2,0,1,yoptions=gtk.FILL)
+        table.attach(label2,         0,1,1,2,xoptions=0,yoptions=gtk.FILL)
+        table.attach(self._scale,    1,2,1,2,yoptions=gtk.FILL)
+        table.attach(label3,         0,1,2,3,xoptions=0,yoptions=gtk.FILL)
+        table.attach(self._text,     1,2,2,3)
+
+        vbox = gtk.VBox(False, 5)
+        vbox.pack_start(table)
+        vbox.pack_end(ok, expand=False)
+
+        window.add(vbox)
+
+        # signals
+        window.connect("delete-event", self.cb_delete_event)
+        ok.connect("clicked", self.cb_ok)
+
+        # run
+        window.show_all()
+        gtk.main()
+
+        return self.text, self.preamble_file, self.scale_factor
+
+    def cb_delete_event(self, widget, event, data=None):
+        gtk.main_quit()
+        return False
     
-    def cb_ok(self):
-        self.text = self._text.get(1.0, Tk.END)
-        self.preamble_file = self._preamble.get()
-        self._frame.quit()
+    def cb_ok(self, widget, data=None):
+        buf = self._text.get_buffer()
+        self.text = buf.get_text(buf.get_start_iter(),
+                                 buf.get_end_iter())
+        self.preamble_file = self._preamble.get_text()
+        self.scale_factor = self._scale_adj.get_value()
+        gtk.main_quit()
+        return False
 
 class TexText(inkex.Effect):
     def __init__(self):
@@ -56,12 +93,12 @@ class TexText(inkex.Effect):
         root, text, preamble_file = self.get_tex_code()
         
         # Ask for TeX code
-        asker = AskText(text, preamble_file)
-        text, preamble_file = asker.ask()
+        asker = AskText(text, preamble_file, 56.0/10.0)
+        text, preamble_file, scale_factor = asker.ask()
 
         # Convert & read SVG
         try:
-            self.convert(root, text, preamble_file)
+            self.convert(root, text, preamble_file, scale_factor)
         except Exception, e:
             traceback.print_exc()
 
@@ -71,12 +108,19 @@ class TexText(inkex.Effect):
             if node.tagName == 'g' and node.hasAttribute('textext'):
                 return (node,
                         node.getAttribute('textext').decode('string-escape'),
-                        node.getAttribute('preamble').decode('string-escape'))
+                        node.getAttribute('texpreamble').decode('string-escape'))
         newone = self.document.createElement('g')
         self.document.documentElement.appendChild(newone)
         return newone, "", "header.inc"
 
-    def convert(self, root, latex_text, preamble_file):
+    def convert(self, root, latex_text, preamble_file, scale_factor):
+        if root.hasAttribute('x'):
+            transform = 'translate(%s, %s)' % (x_pos, y_pos)
+        elif root.hasAttribute('transform'):
+            transform = root.getAttribute('transform')
+        else:
+            transform = 'scale(%f,%f)' % (scale_factor, scale_factor)
+        
         parent = root.parentNode
         parent.removeChild(root)
 
@@ -84,10 +128,10 @@ class TexText(inkex.Effect):
         newgroup = self.document.createElement('svg:g')
 
         parent.appendChild(newgroup)
-        #newgroup.setAttribute('transform',
-        #                      'translate(%s, %s)'%(x_pos.value, y_pos.value))
+        if transform:
+            newgroup.setAttribute('transform', transform)
         newgroup.setAttribute('textext',latex_text.encode('string-escape'))
-        newgroup.setAttribute('preamble',preamble_file.encode('string-escape'))
+        newgroup.setAttribute('texpreamble',preamble_file.encode('string-escape'))
 
         for p in paths:
             if p.nodeType == p.ELEMENT_NODE:
@@ -99,8 +143,6 @@ class TexText(inkex.Effect):
                 newpath.setAttribute('d', attr_d.value)
 
     def tex_to_paths(self, latex_text, preamble_file):
-        # Set scale from size
-        scale = 56.0/10.0
         # Set use_times & use_sans
         text = latex_text
         preamble = ""
@@ -111,7 +153,7 @@ class TexText(inkex.Effect):
             f.close()
 
         # Create SVG file
-        svg_out = self.tex_svg(text, scale, preamble)
+        svg_out = self.tex_svg(text, preamble)
 
         # create xml parser for generated svg
         reader_tex = xml.dom.ext.reader.Sax2.Reader()
@@ -132,13 +174,12 @@ class TexText(inkex.Effect):
 
         return paths
 
-    def tex_svg(self, latex_text, scale, preamble):
+    def tex_svg(self, latex_text, preamble):
         """
         Create a SVG file from latex_text and returns filename of
         generated SVG file.
         latex_text: String that will pass to latex,
                     e.g., '$$\sum_{0 \leq k \leq n} x_k$$'
-        scale: Use (scale x 10) point fonts
         preamble: TeX going into preamble
         """
         # Options pass to LaTeX-related commands
@@ -146,8 +187,6 @@ class TexText(inkex.Effect):
     
         # Options for pstoedit command
         pstoeditOpts = '-dt -psarg "-r9600x9600"'
-        if scale != 1:
-            pstoeditOpts = pstoeditOpts + ' ' + '-xscale %s -yscale %s' % (scale, scale)
 
         texwrapper = r"""
         \documentclass[landscape,a3]{article}
@@ -162,7 +201,7 @@ class TexText(inkex.Effect):
         temppath = tempfile.gettempdir()
         file = tempfile.mktemp()
 
-        cm_exc = 'cm_exc'
+        cm_exc = RuntimeError
         msgs = ''
     
         try:
@@ -190,7 +229,7 @@ class TexText(inkex.Effect):
             msgs = msgs + '--skconvert--\n' + res
 
         except Exception, e:
-            traceback.print_exc(file=log)
+            traceback.print_exc()
 
         self.remove_temp_files(file)
         return '%s.svg' % file
@@ -232,8 +271,5 @@ class TexText(inkex.Effect):
                         tex_text = tex_text + txt.data
         return tex_text
 
-
-
 e = TexText()
 e.affect()
-
