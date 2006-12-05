@@ -1,0 +1,12 @@
+<inkscape-extension>
+  <_name>Tex Text</_name>
+  <id>org.ekips.filter.textext</id>
+  <dependency type="executable" location="extensions">textext.py</dependency>
+  <dependency type="executable" location="extensions">inkex.py</dependency>
+  <effect>
+    <object-type>all</object-type>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">textext.py</command>
+  </script>
+</inkscape-extension>
