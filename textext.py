@@ -272,6 +272,7 @@ class TexText(inkex.Effect):
                 raise RuntimeError("pstoedit", res)
 
             # Exec skconvert: sk -> svg
+            os.environ['LC_ALL'] = 'C'
             res = self.exec_command('skconvert %s.sk %s.svg' % (file, file))
             if not os.path.exists('%s.svg' % file):
                 raise RuntimeError("skconvert", res)
