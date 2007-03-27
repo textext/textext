@@ -32,7 +32,7 @@ Textext was initially based on InkLaTeX_ written by Toru Araki.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.1"
+__version__ = "0.1.1"
 __author__ = "Pauli Virtanen <pav@iki.fi>"
 __docformat__ = "restructuredtext en"
 
