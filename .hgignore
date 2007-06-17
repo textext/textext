@@ -1,2 +1,6 @@
 syntax:glob
 *~
+*.pyc
+*.orig
+*.rej
+*.tar.gz
