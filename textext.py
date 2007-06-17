@@ -5,7 +5,7 @@ textext
 =======
 
 :Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2006-12-06
+:Date: 2007-06-17
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -25,8 +25,10 @@ Textext was initially based on InkLaTeX_ written by Toru Araki.
    write asynchronous extensions for Inkscape.
 
 .. note::
-   Textext requires ``pdflatex``, ``pstoedit``, and ``skconvert``.
-   The last one is included in Skencil.
+   Textext requires ``pdflatex`` and ``pstoedit``.
+
+   If your ``pstoedit`` does not have support for the ``plot-svg`` back-end,
+   you also need to have Skencil installed.
 
 .. _Inkscape: http://www.inkscape.org/
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
@@ -321,6 +323,7 @@ class TexText(inkex.Effect):
                 raise RuntimeError("pstoedit didn't produce output")
 
             # Exec skconvert: sk -> svg
+            os.environ['LC_ALL'] = 'C'
             self.exec_command(['skconvert', sk, output])
             if not os.path.exists(output):
                 raise RuntimeError("skconvert didn't produce output")
