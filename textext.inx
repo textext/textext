@@ -5,7 +5,6 @@
   <dependency type="executable" location="extensions">inkex.py</dependency>
   <dependency type="executable">pdflatex</dependency>
   <dependency type="executable">pstoedit</dependency>
-  <dependency type="executable">skconvert</dependency>
   <effect>
     <object-type>all</object-type>
   </effect>

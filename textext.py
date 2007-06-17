@@ -32,7 +32,9 @@ Textext was initially based on InkLaTeX_ written by Toru Araki.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.1.1"
+#------------------------------------------------------------------------------
+
+__version__ = "0.2"
 __author__ = "Pauli Virtanen <pav@iki.fi>"
 __docformat__ = "restructuredtext en"
 
@@ -40,15 +42,16 @@ import sys
 sys.path.append('/usr/share/inkscape/extensions')
 
 import inkex
-import os, sys, tempfile, traceback
+import os, sys, tempfile, traceback, subprocess
 import xml.dom.ext.reader.Sax2
 
 import pygtk
 pygtk.require('2.0')
 import gtk
 
+NAMESPACEURI = "http://www.iki.fi/pav/software/textext/"
 
-######################################################################
+#------------------------------------------------------------------------------
 
 class AskText(object):
     """GUI for editing TexText objects"""
@@ -127,14 +130,14 @@ class TexText(inkex.Effect):
         root, text, preamble_file = self.get_old()
         
         # Ask for TeX code
-        asker = AskText(text, preamble_file, 56.0/10.0)
+        asker = AskText(text, preamble_file, 1.0)
         text, preamble_file, scale_factor = asker.ask()
 
+        if not text:
+            return
+
         # Convert & read SVG
-        try:
-            self.convert(root, text, preamble_file, scale_factor)
-        except Exception, e:
-            traceback.print_exc()
+        self.convert(root, text, preamble_file, scale_factor)
 
     def get_old(self):
         """
@@ -145,7 +148,15 @@ class TexText(inkex.Effect):
         """
         for i in self.options.ids:
             node = self.selected[i]
-            if node.tagName == 'g' and node.hasAttribute('textext'):
+            if node.tagName != 'g': continue
+
+            if node.hasAttributeNS(NAMESPACEURI, 'text'):
+                # starting from 0.2, use namespaces
+                return (node,
+                        node.getAttributeNS(NAMESPACEURI, 'text').decode('string-escape'),
+                        node.getAttributeNS(NAMESPACEURI, 'preamble').decode('string-escape'))
+            elif node.hasAttribute('textext'):
+                # < 0.2 backward compatibility
                 return (node,
                         node.getAttribute('textext').decode('string-escape'),
                         node.getAttribute('texpreamble').decode('string-escape'))
@@ -164,22 +175,28 @@ class TexText(inkex.Effect):
           - `scale_factor`: Scale factor to use if object doesn't have
                             a ``transform`` attribute.
         """
-        if root.hasAttribute('transform'):
-            transform = root.getAttribute('transform')
-        else:
-            transform = 'scale(%f,%f)' % (scale_factor, scale_factor)
-        
         parent = root.parentNode
         parent.removeChild(root)
 
         paths = self.tex_to_paths(latex_text, preamble_file)
         newgroup = self.document.createElement('svg:g')
 
+        if root.hasAttribute('transform'):
+            transform = root.getAttribute('transform')
+        elif self.has_plot_svg:
+            transform = ('matrix(%f,0,0,%f,%f,%f)'
+                         % (scale_factor, -scale_factor,
+                            -200 * scale_factor, 750 * scale_factor))
+        else:
+            transform = 'scale(%f,%f)' % (scale_factor, scale_factor)
+            
         parent.appendChild(newgroup)
         newgroup.setAttribute('transform', transform)
-        newgroup.setAttribute('textext', latex_text.encode('string-escape'))
-        newgroup.setAttribute('texpreamble',
-                              preamble_file.encode('string-escape'))
+        newgroup.setAttributeNS(NAMESPACEURI,
+                                'textext:text',
+                                latex_text.encode('string-escape'))
+        newgroup.setAttributeNS(NAMESPACEURI, 'textext:preamble',
+                                preamble_file.encode('string-escape'))
 
         for p in paths:
             if p.nodeType == p.ELEMENT_NODE:
@@ -230,11 +247,8 @@ class TexText(inkex.Effect):
         """
         
         # Options pass to LaTeX-related commands
-        latexOpts = '-interaction=nonstopmode'
+        latexOpts = ['-interaction=nonstopmode']
     
-        # Options for pstoedit command
-        pstoeditOpts = '-dt -psarg "-r9600x9600"'
-
         texwrapper = r"""
         \documentclass[landscape,a0]{article}
         %s
@@ -245,67 +259,97 @@ class TexText(inkex.Effect):
         \end{document}
         """ % (preamble, latex_text)
 
-        temppath = tempfile.gettempdir()
-        file = tempfile.mktemp()
+        path = tempfile.mkdtemp()
+        cwd = os.getcwd()
+        os.chdir(path)
+
+        def tmp(name):
+            return os.path.join(path, name)
 
         # Convert TeX to SVG
         svg_stream = None
         try:
             # Write tex
-            f_tex = open('%s.tex' % file, 'w')
-            f_tex.write(texwrapper)
-            f_tex.close()
-            if not os.path.exists('%s.tex' % file):
-                raise RuntimeError("LaTeX File\n",
-                                   "Can't create tempory file %s.tex" % file)
+            f_tex = open(tmp('x.tex'), 'w')
+            try:
+                f_tex.write(texwrapper)
+            finally:
+                f_tex.close()
 
             # Exec pdflatex: tex -> pdf
-            res = self.exec_command('cd %s; pdflatex %s %s </dev/null 2>&1' % (
-                temppath, latexOpts, file))
-            if not os.path.exists('%s.pdf' % file):
-                raise RuntimeError("pdfLaTeX\n", res)
+            self.exec_command(['pdflatex', tmp('x.tex')] + latexOpts)
+            if not os.path.exists(tmp('x.pdf')):
+                raise RuntimeError("pdflatex didn't produce output")
 
-            # Exec pstoedit: pdf -> sk
-            res = self.exec_command('pstoedit %s -f sk %s.pdf %s.sk 2>&1' % (
-                pstoeditOpts, file, file))
-            if not os.path.exists('%s.sk' % file):
-                raise RuntimeError("pstoedit", res)
-
-            # Exec skconvert: sk -> svg
-            os.environ['LC_ALL'] = 'C'
-            res = self.exec_command('skconvert %s.sk %s.svg' % (file, file))
-            if not os.path.exists('%s.svg' % file):
-                raise RuntimeError("skconvert", res)
+            self.pdf_to_svg(tmp('x.pdf'), tmp('x.svg'))
 
             # Read SVG to XML
-            svg_stream = open('%s.svg' % file, 'r')
+            svg_stream = open(tmp('x.svg'), 'r')
             reader_tex = xml.dom.ext.reader.Sax2.Reader()
             return reader_tex.fromStream(svg_stream)
         finally:
+            os.chdir(cwd)
             if svg_stream:
                 svg_stream.close()
-            self.remove_temp_files(file)
+            self.remove_temp_files(path)
 
-    def exec_command(self, command):
-        """Run given command in shell and return output as string"""
-        file = os.popen(command, 'r')
-        message = file.read()
-        file.close()
-        return message
+    def pdf_to_svg(self, input, output):
+        # Options for pstoedit command
+        pstoeditOpts = '-dt -ssp -psarg "-r9600x9600"'.split()
 
-    def remove_temp_files(self, filename):
+        # Check whether pstoedit has plot-svg available
+        p = subprocess.Popen(['pstoedit', '-f', 'help'],
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        self.has_plot_svg = 'plot-svg' in p.communicate()[0]
+
+        # Proceed
+        if self.has_plot_svg:
+            # Exec pstoedit: pdf -> svg
+            self.exec_command(['pstoedit', '-f', 'plot-svg',
+                               input, output]
+                              + pstoeditOpts)
+            if not os.path.exists(output):
+                raise RuntimeError("pstoedit didn't produce output")
+        else:
+            # Exec pstoedit: pdf -> sk
+            sk = input + '.sk'
+            self.exec_command(['pstoedit', '-f', 'sk', input, sk]
+                              + pstoeditOpts)
+            if not os.path.exists(sk):
+                raise RuntimeError("pstoedit didn't produce output")
+
+            # Exec skconvert: sk -> svg
+            self.exec_command(['skconvert', sk, output])
+            if not os.path.exists(output):
+                raise RuntimeError("skconvert didn't produce output")
+
+    def exec_command(self, cmd):
+        """Run given command, check return value"""
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            raise RuntimeError("Command %s failed (code %d): %s%s"
+                               % (' '.join(cmd), p.returncode, out, err))
+    
+    def remove_temp_files(self, path):
         """Remove files made in /tmp"""
-        self.try_remove(filename + '.tex')
-        self.try_remove(filename + '.log')
-        self.try_remove(filename + '.aux')
-        self.try_remove(filename + '.pdf')
-        self.try_remove(filename + '.sk')
-        self.try_remove(filename + '.svg')
+        for filename in ['x.tex', 'x.log', 'x.aux', 'x.pdf', 'x.svg',
+                         'x.pdf.sk']:
+            self.try_remove(os.path.join(path, filename))
+        self.try_remove(path)
 
     def try_remove(self, filename):
         """Try to remove given file, skipping if not exists."""
-        if os.path.exists(filename):
+        if os.path.isfile(filename):
             os.remove(filename)
+        elif os.path.isdir(filename):
+            os.rmdir(filename)
 
-e = TexText()
-e.affect()
+if __name__ == "__main__":
+    e = TexText()
+    e.affect()
