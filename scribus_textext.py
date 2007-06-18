@@ -47,6 +47,8 @@ except ImportError, err:
 #        created QWidget objects are deleted too early.
 main_widget = qApp.mainWidget()
 
+CWD = os.getcwd()
+
 #------------------------------------------------------------------------------
 
 class LatexDialog(QDialog):
@@ -57,12 +59,14 @@ class LatexDialog(QDialog):
         QDialog.__init__(self, parent)
         self.setCaption("TeX text object")
         
+        self.cwd      = QLineEdit(self)
         self.preamble = QLineEdit(self)
         self.scale    = QSpinBox(0.1, 10, 1, self)
         self.text     = QMultiLineEdit(self)
         self.ok       = QPushButton("OK", self)
         self.cancel   = QPushButton("Cancel", self)
         
+        self.cwd.setText(CWD)
         self.text.setText(text)
         self.preamble.setText(preamble_file)
         self.scale.setValue(scale_factor)
@@ -70,6 +74,7 @@ class LatexDialog(QDialog):
         layout = QVBoxLayout(self)
         layout_btn = QHBoxLayout(None)
         
+        layout.addWidget(self.cwd)
         layout.addWidget(self.preamble)
         layout.addWidget(self.scale)
         layout.addWidget(self.text)
@@ -87,7 +92,9 @@ class LatexDialog(QDialog):
         count = 0
         while True:
             name = 'latex-image-%d' % count
-            if not os.path.exists('%s.png' % name):
+            try:
+                scribus.getImageFile(name)
+            except scribus.NoValidObjectError:
                 return name
             count += 1
 
@@ -112,20 +119,24 @@ class LatexDialog(QDialog):
             return
 
     def slotOkClicked(self):
+        global CWD
+
         text = self.text.text()
         preamble = self.preamble.text()
         scale = self.scale.value()
+        CWD = self.cwd.text()
 
         DPI = 600.0
+        os.chdir(CWD)
 
         try:
             img = scribus.getSelectedObject()
-            img_file = scribus.getImageFile()
+            scribus.getImageFile(img)
         except scribus.NoValidObjectError:
-            
-            img = scribus.createImage(0, 0, 10, 10, self.get_new_image_name())
-            img_file = os.path.abspath('%s.png' % img)
+            img = self.get_new_image_name()
+            scribus.createImage(0, 0, 10, 10, img)
 
+        img_file = os.path.abspath('%s.png' % img)
         self.generate_latex(text, preamble, scale, img_file, DPI*scale)
 
         info = open(img_file + '.info', 'w')
@@ -138,6 +149,7 @@ class LatexDialog(QDialog):
         w, h = x.size
         del x
 
+        scribus.setUnit(scribus.UNIT_MILLIMETERS)
         scribus.loadImage(img_file, img)
         scribus.setScaleImageToFrame(True, True, img)
         x, y = scribus.getPosition(img)
@@ -223,6 +235,7 @@ class LatexDialog(QDialog):
             os.rmdir(filename)
 
 def cleanup_dead_images(self):
+    os.chdir(CWD)
     files = glob.glob('latex-image-*.png')
     for filename in files:
         imgname = filename[:-4]
