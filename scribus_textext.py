@@ -24,7 +24,7 @@ __docformat__ = "restructuredtext en"
 
 #------------------------------------------------------------------------------
 
-import os, sys, tempfile, traceback, subprocess, time, shutil, Image
+import os, sys, tempfile, traceback, subprocess, time, shutil, Image, glob
 
 try:
     import scribus
@@ -51,7 +51,7 @@ main_widget = qApp.mainWidget()
 
 class LatexDialog(QDialog):
     """GUI for editing TexText objects"""
-    
+
     def __init__(self, text, preamble_file, scale_factor,
                  parent=None, root=None):
         QDialog.__init__(self, parent)
@@ -83,6 +83,14 @@ class LatexDialog(QDialog):
 
         self.fetch_info()
 
+    def get_new_image_name(self):
+        count = 0
+        while True:
+            name = 'latex-image-%d' % count
+            if not os.path.exists('%s.png' % name):
+                return name
+            count += 1
+
     def fetch_info(self):
         try:
             name = scribus.getImageFile()
@@ -96,6 +104,7 @@ class LatexDialog(QDialog):
                     text = f.read()
 
                     self.text.setText(text)
+                    self.scale.setValue(scale)
                     self.preamble.setText(preamble)
                 finally:
                     f.close()
@@ -113,7 +122,8 @@ class LatexDialog(QDialog):
             img = scribus.getSelectedObject()
             img_file = scribus.getImageFile()
         except scribus.NoValidObjectError:
-            img = scribus.createImage(0, 0, 10, 10)
+            
+            img = scribus.createImage(0, 0, 10, 10, self.get_new_image_name())
             img_file = os.path.abspath('%s.png' % img)
 
         self.generate_latex(text, preamble, scale, img_file, DPI*scale)
@@ -212,6 +222,28 @@ class LatexDialog(QDialog):
         elif os.path.isdir(filename):
             os.rmdir(filename)
 
+def cleanup_dead_images(self):
+    files = glob.glob('latex-image-*.png')
+    for filename in files:
+        imgname = filename[:-4]
+        try:
+            img_file = scribus.getImageFile(imgname)
+            continue
+        except scribus.NoValidObjectError:
+            pass
+        
+        if os.path.exists(filename):
+            os.remove(filename)
+        if os.path.exists(filename + '.info'):
+            os.remove(filename + '.info')
+
+def insert_latex_object():
+    main_widget = qApp.mainWidget()
+    text = ""
+    preamble_file = "header.inc"
+    dlg = LatexDialog(text, preamble_file, 1.0, main_widget)
+    dlg.show()
+
 def get_extension_menu():
     main_widget = qApp.mainWidget()
     menus =  main_widget.queryList("QPopupMenu", "extensionsMenu")
@@ -227,16 +259,10 @@ def get_extension_menu():
         menu_bar.insertItem("Extensions", menu, -1, menu_bar.count()-1)
     return menu
 
-def activate():
-    main_widget = qApp.mainWidget()
-    text = ""
-    preamble_file = "header.inc"
-    dlg = LatexDialog(text, preamble_file, 1.0, main_widget)
-    dlg.show()
-
 def main(argv):
     menu = get_extension_menu()
-    menu.insertItem("Insert/modify LaTeX object", activate)
+    menu.insertItem("Insert/modify LaTeX object", insert_latex_object)
+    menu.insertItem("Clean up dead LaTeX images", cleanup_dead_images)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
