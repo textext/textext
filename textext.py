@@ -36,7 +36,7 @@ Textext was initially based on InkLaTeX_ written by Toru Araki.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.2"
+__version__ = "0.2.1"
 __author__ = "Pauli Virtanen <pav@iki.fi>"
 __docformat__ = "restructuredtext en"
 
@@ -177,12 +177,10 @@ class TexText(inkex.Effect):
           - `scale_factor`: Scale factor to use if object doesn't have
                             a ``transform`` attribute.
         """
-        parent = root.parentNode
-        parent.removeChild(root)
-
-        paths = self.tex_to_paths(latex_text, preamble_file)
-        newgroup = self.document.createElement('svg:g')
-
+        oldgroup = self.tex_to_group(latex_text, preamble_file)
+        if not oldgroup:
+            return
+        
         if root.hasAttribute('transform'):
             transform = root.getAttribute('transform')
         elif self.has_plot_svg:
@@ -192,24 +190,34 @@ class TexText(inkex.Effect):
         else:
             transform = 'scale(%f,%f)' % (scale_factor, scale_factor)
             
-        parent.appendChild(newgroup)
+        newgroup = self.document.importNode(oldgroup, True)
+        self.fix_xml_namespace(newgroup)
         newgroup.setAttribute('transform', transform)
         newgroup.setAttributeNS(NAMESPACEURI,
                                 'textext:text',
                                 latex_text.encode('string-escape'))
         newgroup.setAttributeNS(NAMESPACEURI, 'textext:preamble',
                                 preamble_file.encode('string-escape'))
+        
+        parent = root.parentNode
+        parent.removeChild(root)
+        parent.appendChild(newgroup)
 
-        for p in paths:
-            if p.nodeType == p.ELEMENT_NODE:
-                attr_style = p.getAttributeNode('style')
-                attr_d =  p.getAttributeNode('d')
-                newpath = self.document.createElement('svg:path')
-                newgroup.appendChild(newpath)
-                newpath.setAttribute('style', attr_style.value)
-                newpath.setAttribute('d', attr_d.value)
+    def fix_xml_namespace(self, node):
+        """
+        Set the default XML namespace to http://www.w3.org/2000/svg
+        for the given node and all its children.
 
-    def tex_to_paths(self, text, preamble_file):
+        This is needed since pstoedit plot-svg generates namespaceless
+        SVG files.
+        """
+        node.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns',
+                            'http://www.w3.org/2000/svg')
+        for c in node.childNodes:
+            if c.nodeType == c.ELEMENT_NODE:
+                self.fix_xml_namespace(c)
+
+    def tex_to_group(self, text, preamble_file):
         """
         Convert a LaTeX string + preamble file to a list of SVG nodes.
 
@@ -227,16 +235,13 @@ class TexText(inkex.Effect):
 
         # create xml.dom representation of the TeX file
         doc_tex = self.tex_svg(text, preamble)
-        
-        # get latex path from svg_out
-        path_element = doc_tex.documentElement.getElementsByTagName('path')
-        for path in path_element:
-            if path.parentNode.nodeName == 'g':
-                tex_group_node = path.parentNode
-                break
-        paths = tex_group_node.childNodes
+        docel = doc_tex.documentElement
 
-        return paths
+        # get latex paths from svg_out
+        try:
+            return docel.getElementsByTagName('g')[0]
+        except IndexError:
+            return None
 
     def tex_svg(self, latex_text, preamble):
         """
