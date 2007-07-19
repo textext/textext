@@ -242,31 +242,50 @@ class TexText(inkex.Effect):
 try:
     import subprocess
 
-    def exec_command(cmd, combine_error=False):
-        """Run given command, check return value"""
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             stdin=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode != 0 and not combine_error:
-            raise RuntimeError("Command %s failed (code %d): %s%s"
-                               % (' '.join(cmd), p.returncode, out, err))
-        if combine_error:
-            return out + err
-        else:
-            return out
-    
+    def exec_command(cmd, ok_return_value=0, combine_error=False):
+        """
+        Run given command, check return value, and return
+        concatenated stdout and stderr.
+        """
+        try:
+            p = subprocess.Popen(cmd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 stdin=subprocess.PIPE)
+            out, err = p.communicate()
+        except OSError, e:
+            raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+        
+        if ok_return_value is not None and p.returncode != ok_return_value:
+            raise RuntimeError("Command %s failed (code %d): %s"
+                               % (' '.join(cmd), p.returncode, out + err))
+        return out + err
+  
 except ImportError:
-    def exec_command(command, combine_error=False):
-        if combine_error:
-            command_str = ' '.join(command) + ' 2>&1'
-        else:
-            command_str = ' '.join(command)
-        file = os.popen(command_str, 'r')
-        message = file.read()
-        file.close()
-        return message
+
+    # Python < 2.4 ...
+    import popen2
+    
+    def exec_command(cmd, ok_return_value=0, combine_error=False):
+        """
+        Run given command, check return value, and return
+        concatenated stdout and stderr.
+        """
+        
+        # XXX: unix-only!
+
+        try:
+            p = popen2.Popen4(cmd, True)
+            p.tochild.close()
+            returncode = p.wait() >> 8
+            out = p.fromchild.read()
+        except OSError, e:
+            raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+        
+        if ok_return_value is not None and returncode != ok_return_value:
+            raise RuntimeError("Command %s failed (code %d): %s"
+                               % (' '.join(cmd), returncode, out))
+        return out
 
 
 class LatexConverterBase(object):
@@ -279,7 +298,6 @@ class LatexConverterBase(object):
     def __init__(self, document):
         self.tmp_path = tempfile.mkdtemp()
         self.tmp_base = 'tmp'
-        self.document = document
 
     def convert(self, latex_text, preamble_file, scale_factor):
         """
@@ -418,11 +436,6 @@ class PdfConverterBase(LatexConverterBase):
             return None
 
 class SkConvert(PdfConverterBase):
-    def available(cls):
-        """Check whether skconvert and pstoedit are available"""
-        return True
-    available = classmethod(available)
-
     def get_transform(self, scale_factor):
         return 'scale(%f,%f)' % (scale_factor, scale_factor)
 
@@ -443,13 +456,17 @@ class SkConvert(PdfConverterBase):
         if not os.path.exists(self.tmp('svg')):
             raise RuntimeError("skconvert didn't produce output")
 
-class PstoeditPlotSvg(PdfConverterBase):
     def available(cls):
-        """Check whether pstoedit has plot-svg available"""
-        out = exec_command(['pstoedit', '-help'], combine_error=True)
-        return 'plot-svg' in out
+        """Check whether skconvert and pstoedit are available"""
+        try:
+            exec_command(['pstoedit'], ok_return_value=1)
+            exec_command(['skconvert'], ok_return_value=1)
+            return True
+        except RuntimeError:
+            return False
     available = classmethod(available)
 
+class PstoeditPlotSvg(PdfConverterBase):
     def get_transform(self, scale_factor):
         return 'matrix(%f,0,0,%f,%f,%f)' % (
             scale_factor, -scale_factor,
@@ -466,21 +483,26 @@ class PstoeditPlotSvg(PdfConverterBase):
         if not os.path.exists(self.tmp('svg')):
             raise RuntimeError("pstoedit didn't produce output")
 
+    def available(cls):
+        """Check whether pstoedit has plot-svg available"""
+        try:
+            out = exec_command(['pstoedit', '-help'], ok_return_value=1)
+            return 'plot-svg' in out
+        except RuntimeError:
+            return False
+    available = classmethod(available)
+
 class Pdf2Svg(PdfConverterBase):
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
-        self.id_start = self.find_glyph_id_limits()
+        self.id_start = self.find_glyph_id_limits(document)
 
-    def available(cls):
-        return True
-    available = classmethod(available)
-
-    def find_glyph_id_limits(self):
+    def find_glyph_id_limits(self, document):
         """
-        Find the first free glyph id in the document.
+        Find the first free id in the document
         """
-        walker = self.document.createTreeWalker(self.document.documentElement,
-                                                NodeFilter.SHOW_ELEMENT, None, 0)
+        walker = document.createTreeWalker(document.documentElement,
+                                           NodeFilter.SHOW_ELEMENT, None, 0)
         startid = 0
 
         while True:
@@ -558,8 +580,16 @@ class Pdf2Svg(PdfConverterBase):
             master_group.appendChild(c)
         return master_group
 
-CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
+    def available(cls):
+        """Check whether pdf2svg is available"""
+        try:
+            exec_command(['pdf2svg'], ok_return_value=254)
+            return True
+        except RuntimeError:
+            return False
+    available = classmethod(available)
 
+CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
 
 #------------------------------------------------------------------------------
 
