@@ -4,3 +4,4 @@ syntax:glob
 *.orig
 *.rej
 *.tar.gz
+x
