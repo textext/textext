@@ -63,6 +63,8 @@ XLINK_NS = "http://www.w3.org/1999/xlink"
 ID_PREFIX = "textext-obj-"
 
 #------------------------------------------------------------------------------
+# Inkscape plugin functionality & GUI
+#------------------------------------------------------------------------------
 
 class AskText(object):
     """GUI for editing TexText objects"""
@@ -237,6 +239,8 @@ class TexText(inkex.Effect):
             parent.appendChild(new_node)
         
 
+#------------------------------------------------------------------------------
+# LaTeX converters
 #------------------------------------------------------------------------------
 
 try:
@@ -591,6 +595,8 @@ class Pdf2Svg(PdfConverterBase):
 
 CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
 
+#------------------------------------------------------------------------------
+# Entry point
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
