@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 =======
 textext
@@ -136,6 +137,15 @@ class AskText(object):
 class TexText(inkex.Effect):
     def __init__(self):
         inkex.Effect.__init__(self)
+        self.OptionParser.add_option(
+            "-t", "--text", action="store", type="str",
+            dest="text", default=None)
+        self.OptionParser.add_option(
+            "-p", "--preamble-file", action="store", type="str",
+            dest="preamble_file", default="header.inc")
+        self.OptionParser.add_option(
+            "-s", "--scale-factor", action="store", type="float",
+            dest="scale_factor", default=1.0)
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
@@ -155,9 +165,13 @@ class TexText(inkex.Effect):
         old_node, text, preamble_file = self.get_old()
         
         # Ask for TeX code
-        asker = AskText(text, preamble_file, 1.0)
-        text, preamble_file, scale_factor = asker.ask()
-        #text, preamble_file, scale_factor = "asd foo", "header.inc", 1.0
+        if self.options.text is None:
+            asker = AskText(text, preamble_file, 1.0)
+            text, preamble_file, scale_factor = asker.ask()
+        else:
+            text = self.options.text
+            preamble_file = self.options.preamble_file
+            scale_factor = self.options.scale_factor
 
         if not text:
             return
