@@ -3,21 +3,24 @@ Windows instructions
 
 These instructions have been tested with Inkscape 0.45.1 for Windows.
 
-1. Download the `tcl.zip`_ and copy the "tcl" folder inside it to
+1. Install a Latex distribution, eg. MikTex_
+
+2. Install Pstoedit_
+
+3. Install Ghostscript_
+
+4. Download the `tcl.zip`_ and copy the ''tcl'' folder inside it to
 
     c:\Program Files\Inkscape\python
 
-2. Copy textext.py and textext.inx to 
+5. Copy textext.py and textext.inx to
 
     c:\Program Files\Inkscape\share\extensions
 
-3. Install a Latex distribution, eg. MikTex_
+This will look quite ugly, and a black terminal window opens every time TexText is used.
+However, it should anyway Work(TM).
 
-4. Install Pstoedit_
-
-5. Install Ghostscript_
-
-.. _MikTex: http://www.miktex.org/
 .. _`tcl.zip`: tcl.zip
+.. _MikTex: http://www.miktex.org/
 .. _Pstoedit: http://www.pstoedit.net/pstoedit
 .. _Ghostscript: http://pages.cs.wisc.edu/~ghost/gsview/
