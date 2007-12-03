@@ -47,15 +47,28 @@ __docformat__ = "restructuredtext en"
 
 import sys
 sys.path.append('/usr/share/inkscape/extensions')
+sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 
 import inkex
 import os, sys, tempfile, traceback, glob, re
 import xml.dom.ext.reader.Sax2
 from xml.dom.NodeFilter import NodeFilter
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+USE_GTK = False
+try:
+    import pygtk
+    pygtk.require('2.0')
+    import gtk
+    USE_GTK = True
+except ImportError:
+    pass
+
+USE_TK = False
+try:
+    import Tkinter as Tk
+    USE_TK = True
+except ImportError:
+    pass
 
 TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
 SVG_NS = "http://www.w3.org/2000/svg"
@@ -67,72 +80,130 @@ ID_PREFIX = "textext-obj-"
 # Inkscape plugin functionality & GUI
 #------------------------------------------------------------------------------
 
-class AskText(object):
-    """GUI for editing TexText objects"""
-    def __init__(self, text, preamble_file, scale_factor):
-        self.text = text
-        self.preamble_file = preamble_file
-        self.scale_factor = scale_factor
-
-    def ask(self):
-        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        window.set_title("TeX Text")
-        window.set_default_size(400, 200)
-
-        label1 = gtk.Label(u"Preamble file:")
-        label2 = gtk.Label(u"Scale factor:")
-        label3 = gtk.Label(u"Text:")
-
-        self._preamble = gtk.Entry()
-        self._preamble.set_text(self.preamble_file)
-
-        self._scale_adj = gtk.Adjustment(value=self.scale_factor,
-                                         lower=0.01, upper=100,
-                                         step_incr=0.1, page_incr=1)
-        self._scale = gtk.SpinButton(self._scale_adj, digits=2)
-
-        self._text = gtk.TextView()
-        self._text.get_buffer().set_text(self.text)
-
-        ok = gtk.Button(stock=gtk.STOCK_OK)
-
-        # layout
-        table = gtk.Table(3, 2, False)
-        table.attach(label1,         0,1,0,1,xoptions=0,yoptions=gtk.FILL)
-        table.attach(self._preamble, 1,2,0,1,yoptions=gtk.FILL)
-        table.attach(label2,         0,1,1,2,xoptions=0,yoptions=gtk.FILL)
-        table.attach(self._scale,    1,2,1,2,yoptions=gtk.FILL)
-        table.attach(label3,         0,1,2,3,xoptions=0,yoptions=gtk.FILL)
-        table.attach(self._text,     1,2,2,3)
-
-        vbox = gtk.VBox(False, 5)
-        vbox.pack_start(table)
-        vbox.pack_end(ok, expand=False)
-
-        window.add(vbox)
-
-        # signals
-        window.connect("delete-event", self.cb_delete_event)
-        ok.connect("clicked", self.cb_ok)
-
-        # run
-        window.show_all()
-        gtk.main()
-
-        return self.text, self.preamble_file, self.scale_factor
-
-    def cb_delete_event(self, widget, event, data=None):
-        gtk.main_quit()
-        return False
+if USE_GTK:
+    class AskText(object):
+        """GUI for editing TexText objects"""
+        def __init__(self, text, preamble_file, scale_factor):
+            self.text = text
+            self.preamble_file = preamble_file
+            self.scale_factor = scale_factor
     
-    def cb_ok(self, widget, data=None):
-        buf = self._text.get_buffer()
-        self.text = buf.get_text(buf.get_start_iter(),
-                                 buf.get_end_iter())
-        self.preamble_file = self._preamble.get_text()
-        self.scale_factor = self._scale_adj.get_value()
-        gtk.main_quit()
-        return False
+        def ask(self):
+            window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            window.set_title("TeX Text")
+            window.set_default_size(400, 200)
+    
+            label1 = gtk.Label(u"Preamble file:")
+            label2 = gtk.Label(u"Scale factor:")
+            label3 = gtk.Label(u"Text:")
+    
+            self._preamble = gtk.Entry()
+            self._preamble.set_text(self.preamble_file)
+    
+            self._scale_adj = gtk.Adjustment(value=self.scale_factor,
+                                             lower=0.01, upper=100,
+                                             step_incr=0.1, page_incr=1)
+            self._scale = gtk.SpinButton(self._scale_adj, digits=2)
+    
+            self._text = gtk.TextView()
+            self._text.get_buffer().set_text(self.text)
+    
+            ok = gtk.Button(stock=gtk.STOCK_OK)
+    
+            # layout
+            table = gtk.Table(3, 2, False)
+            table.attach(label1,         0,1,0,1,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._preamble, 1,2,0,1,yoptions=gtk.FILL)
+            table.attach(label2,         0,1,1,2,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._scale,    1,2,1,2,yoptions=gtk.FILL)
+            table.attach(label3,         0,1,2,3,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._text,     1,2,2,3)
+    
+            vbox = gtk.VBox(False, 5)
+            vbox.pack_start(table)
+            vbox.pack_end(ok, expand=False)
+    
+            window.add(vbox)
+    
+            # signals
+            window.connect("delete-event", self.cb_delete_event)
+            ok.connect("clicked", self.cb_ok)
+    
+            # run
+            window.show_all()
+            gtk.main()
+    
+            return self.text, self.preamble_file, self.scale_factor
+    
+        def cb_delete_event(self, widget, event, data=None):
+            gtk.main_quit()
+            return False
+        
+        def cb_ok(self, widget, data=None):
+            buf = self._text.get_buffer()
+            self.text = buf.get_text(buf.get_start_iter(),
+                                     buf.get_end_iter())
+            self.preamble_file = self._preamble.get_text()
+            self.scale_factor = self._scale_adj.get_value()
+            gtk.main_quit()
+            return False
+
+elif USE_TK:
+    class AskText(object):
+        """GUI for editing TexText objects"""
+        def __init__(self, text, preamble_file, scale_factor):
+            self.text = text
+            self.preamble_file = preamble_file
+            self.scale_factor = scale_factor
+    
+        def ask(self):
+            root = Tk.Tk()
+            
+            self._frame = Tk.Frame(root)
+            self._frame.pack()
+            
+            box = Tk.Frame(self._frame)
+            label = Tk.Label(box, text="Preamble file:")
+            label.pack(pady=2, padx=5, side="left", anchor="w")
+            self._preamble = Tk.Entry(box)
+            self._preamble.pack(expand=True, fill="x", pady=2, padx=5, side="right")
+            self._preamble.insert(Tk.END, self.preamble_file)
+            box.pack(fill="x", expand=True)
+            
+            box = Tk.Frame(self._frame)
+            label = Tk.Label(box, text="Scale factor:")
+            label.pack(pady=2, padx=5, side="left", anchor="w")
+            self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
+            self._scale.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
+            self._scale.set(self.scale_factor)
+            box.pack(fill="x", expand=True)
+            
+            label = Tk.Label(self._frame, text="Text:")
+            label.pack(pady=2, padx=5, anchor="w")
+
+            self._text = Tk.Text(self._frame)
+            self._text.pack(expand=True, fill="both", pady=5, padx=5)
+            self._text.insert(Tk.END, self.text)
+            
+            self._btn = Tk.Button(self._frame, text="OK", command=self.cb_ok)
+            self._btn.pack(ipadx=30, ipady=4, pady=5, padx=5)
+            
+            root.mainloop()
+            
+            return self.text, self.preamble_file, self.scale_factor
+    
+        def cb_ok(self):
+            self.text = self._text.get(1.0, Tk.END)
+            self.preamble_file = self._preamble.get()
+            self.scale_factor = self._scale.get()
+            self._frame.quit()
+
+else:
+    raise RuntimeError("Neither pygtk nor Tkinter is available!")
+
+#------------------------------------------------------------------------------
+# Inkscape plugin functionality
+#------------------------------------------------------------------------------
 
 class TexText(inkex.Effect):
     def __init__(self):
