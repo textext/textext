@@ -339,7 +339,6 @@ try:
         concatenated stdout and stderr.
         """
         try:
-            print "RUN", cmd
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
