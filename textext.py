@@ -70,6 +70,8 @@ try:
 except ImportError:
     pass
 
+USE_WINDOWS = ('win' in sys.platform)
+
 TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
@@ -337,6 +339,7 @@ try:
         concatenated stdout and stderr.
         """
         try:
+            print "RUN", cmd
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
@@ -376,6 +379,16 @@ except ImportError:
                                % (' '.join(cmd), returncode, out))
         return out
 
+if USE_WINDOWS:
+    # Try to add some commonly needed paths to PATH
+    paths = os.environ.get('PATH', '').split(os.path.pathsep)
+
+    program_files = os.environ.get('PROGRAMFILES')
+    if program_files:
+        paths.append(os.path.join(program_files, 'pstoedit'))
+        paths.append(os.path.join(program_files, 'miktex 2.6', 'miktex', 'bin'))
+        
+    os.environ['PATH'] = os.path.pathsep.join(paths)
 
 class LatexConverterBase(object):
     """
@@ -533,6 +546,11 @@ class PdfConverterBase(LatexConverterBase):
         except IndexError:
             return None
 
+if USE_WINDOWS:
+    PSTOEDIT_OK_RETURNCODE = 0
+else:
+    PSTOEDIT_OK_RETURNCODE = 1
+            
 class SkConvert(PdfConverterBase):
     """
     Convert PDF -> SK -> SVG using pstoedit and skconvert
@@ -542,7 +560,7 @@ class SkConvert(PdfConverterBase):
 
     def pdf_to_svg(self):
         # Options for pstoedit command
-        pstoeditOpts = '-dt -ssp -psarg "-r9600x9600"'.split()
+        pstoeditOpts = '-dt -ssp -psarg -r9600x9600'.split()
 
         # Exec pstoedit: pdf -> sk
         exec_command(['pstoedit', '-f', 'sk',
@@ -560,7 +578,7 @@ class SkConvert(PdfConverterBase):
     def available(cls):
         """Check whether skconvert and pstoedit are available"""
         try:
-            exec_command(['pstoedit'], ok_return_value=1)
+            exec_command(['pstoedit'], ok_return_value=PSTOEDIT_OK_RETURNCODE)
             exec_command(['skconvert'], ok_return_value=1)
             return True
         except RuntimeError:
@@ -578,7 +596,7 @@ class PstoeditPlotSvg(PdfConverterBase):
     
     def pdf_to_svg(self):
         # Options for pstoedit command
-        pstoeditOpts = '-dt -ssp -psarg "-r9600x9600"'.split()
+        pstoeditOpts = '-dt -ssp -psarg -r9600x9600'.split()
 
         # Exec pstoedit: pdf -> svg
         exec_command(['pstoedit', '-f', 'plot-svg',
@@ -590,7 +608,7 @@ class PstoeditPlotSvg(PdfConverterBase):
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
         try:
-            out = exec_command(['pstoedit', '-help'], ok_return_value=1)
+            out = exec_command(['pstoedit', '-help'], ok_return_value=PSTOEDIT_OK_RETURNCODE)
             return 'plot-svg' in out
         except RuntimeError:
             return False
