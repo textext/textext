@@ -3,8 +3,6 @@
   <id>org.ekips.filter.textext</id>
   <dependency type="executable" location="extensions">textext.py</dependency>
   <dependency type="executable" location="extensions">inkex.py</dependency>
-  <dependency type="executable">pdflatex</dependency>
-  <dependency type="executable">pstoedit</dependency>
   <effect>
     <object-type>all</object-type>
   </effect>
