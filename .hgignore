@@ -4,4 +4,5 @@ syntax:glob
 *.orig
 *.rej
 *.tar.gz
+*.zip
 tests/out.svg
