@@ -45,10 +45,11 @@ __version__ = "0.3"
 __author__ = "Pauli Virtanen <pav@iki.fi>, Robert Szalai <szalai@mm.bme.hu>"
 __docformat__ = "restructuredtext en"
 
-import sys
+import sys, os
 sys.path.append('/usr/share/inkscape/extensions')
+sys.path.append(os.path.dirname(__file__))
 
-import inkex
+import inkex45 as inkex
 import os, sys, tempfile, traceback, glob, re
 import xml.dom.ext.reader.Sax2, xml.sax.handler
 from xml.dom.NodeFilter import NodeFilter
