@@ -152,14 +152,21 @@ class TexText(inkex.Effect):
         global CONVERTERS
 
         # Pick a converter
+        converter_errors = []
+        
         converter_cls = None
         for conv_cls in CONVERTERS:
-            if conv_cls.available():
+            try:
+                conv_cls.available()
                 converter_cls = conv_cls
                 break
-
+            except RuntimeError, e:
+                converter_errors.append("%s: %s" % (conv_cls.__name__,
+                                                    e.message))
+        
         if not converter_cls:
-            raise RuntimeError("No Latex -> SVG converter available")
+            raise RuntimeError("No Latex -> SVG converter available:\n%s"
+                               % ';\n'.join(converter_errors))
         
         # Find root element
         old_node, text, preamble_file = self.get_old()
@@ -339,9 +346,9 @@ class LatexConverterBase(object):
 
     def available(cls):
         """
-        :Returns: Whether this converter is available
+        :Returns: Check if converter is available, raise RuntimeError if not
         """
-        return False
+        pass
     available = classmethod(available)
 
     def finish(self):
@@ -488,12 +495,11 @@ class SkConvert(PdfConverterBase):
 
     def available(cls):
         """Check whether skconvert and pstoedit are available"""
-        try:
-            exec_command(['pstoedit'], ok_return_value=1)
-            exec_command(['skconvert'], ok_return_value=1)
-            return True
-        except RuntimeError:
-            return False
+        out = exec_command(['pstoedit'], ok_return_value=1)
+        if 'version 3.44' in out:
+            raise RuntimeError("Pstoedit version 3.44 found, but it "
+                               "contains too many bugs to be usable")
+        exec_command(['skconvert'], ok_return_value=1)
     available = classmethod(available)
 
 class PstoeditPlotSvg(PdfConverterBase):
@@ -518,11 +524,11 @@ class PstoeditPlotSvg(PdfConverterBase):
 
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
-        try:
-            out = exec_command(['pstoedit', '-help'], ok_return_value=1)
+        out = exec_command(['pstoedit', '-help'], ok_return_value=1)
+        if 'version 3.44' in out:
+            raise RuntimeError("Pstoedit version 3.44 found, but it "
+                               "contains too many bugs to be usable")
             return 'plot-svg' in out
-        except RuntimeError:
-            return False
     available = classmethod(available)
 
 class Pdf2Svg(PdfConverterBase):
@@ -617,12 +623,8 @@ class Pdf2Svg(PdfConverterBase):
         return master_group
 
     def available(cls):
-        """Check whether pdf2svg is available"""
-        try:
-            exec_command(['pdf2svg'], ok_return_value=254)
-            return True
-        except RuntimeError:
-            return False
+        """Check whether pdf2svg is available, raise RuntimeError if not"""
+        exec_command(['pdf2svg'], ok_return_value=254)
     available = classmethod(available)
 
 CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
