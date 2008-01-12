@@ -321,7 +321,7 @@ class TexText(inkex.Effect):
                 return (node,
                         node.getAttribute('textext').decode('string-escape'),
                         node.getAttribute('texpreamble').decode('string-escape'))
-        return None, "", "header.inc"
+        return None, "", ""
 
     def fix_xml_namespace(self, node):
         """
