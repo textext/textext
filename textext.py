@@ -41,7 +41,7 @@ but is now rewritten.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.3"
+__version__ = "0.3.1"
 __author__ = "Pauli Virtanen <pav@iki.fi>, Robert Szalai <szalai@mm.bme.hu>"
 __docformat__ = "restructuredtext en"
 
