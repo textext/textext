@@ -13,12 +13,11 @@ These instructions have been tested with Inkscape 0.45.1 for Windows.
 
     c:\Program Files\Inkscape\python
 
-5. Copy textext.py and textext.inx to
+5. Copy textext.py, inkex45.py and textext.inx to
 
     c:\Program Files\Inkscape\share\extensions
 
-This will look quite ugly, and a black terminal window opens every time TexText is used.
-However, it should anyway Work(TM).
+It will look quite ugly. However, it should anyway Work(TM).
 
 .. _`tcl.zip`: tcl.zip
 .. _MikTex: http://www.miktex.org/
