@@ -94,23 +94,34 @@ if USE_GTK:
         def ask(self):
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_title("TeX Text")
-            window.set_default_size(400, 200)
+            window.set_default_size(600, 600)
     
             label1 = gtk.Label(u"Preamble file:")
             label2 = gtk.Label(u"Scale factor:")
             label3 = gtk.Label(u"Text:")
-    
-            self._preamble = gtk.Entry()
-            self._preamble.set_text(self.preamble_file)
-    
+
+
+            if hasattr(gtk, 'FileChooserButton'):
+                self._preamble = gtk.FileChooserButton("...")
+                self._preamble.set_filename(self.preamble_file)
+                self._preamble.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
+            else:
+                self._preamble = gtk.Entry()
+                self._preamble.set_text(self.preamble_file)
+
             self._scale_adj = gtk.Adjustment(value=self.scale_factor,
                                              lower=0.01, upper=100,
                                              step_incr=0.1, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj, digits=2)
-    
+
             self._text = gtk.TextView()
             self._text.get_buffer().set_text(self.text)
-    
+
+            sw = gtk.ScrolledWindow()
+            sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            sw.set_shadow_type(gtk.SHADOW_IN)
+            sw.add(self._text)
+            
             ok = gtk.Button(stock=gtk.STOCK_OK)
     
             # layout
@@ -120,7 +131,7 @@ if USE_GTK:
             table.attach(label2,         0,1,1,2,xoptions=0,yoptions=gtk.FILL)
             table.attach(self._scale,    1,2,1,2,yoptions=gtk.FILL)
             table.attach(label3,         0,1,2,3,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._text,     1,2,2,3)
+            table.attach(sw,             1,2,2,3)
     
             vbox = gtk.VBox(False, 5)
             vbox.pack_start(table)
@@ -146,7 +157,13 @@ if USE_GTK:
             buf = self._text.get_buffer()
             self.text = buf.get_text(buf.get_start_iter(),
                                      buf.get_end_iter())
-            self.preamble_file = self._preamble.get_text()
+            if isinstance(self._preamble, gtk.FileChooser):
+                self.preamble_file = self._preamble.get_filename()
+                if not self.preamble_file:
+                    self.preamble_file = ""
+            else:
+                self.preamble_file = self._preamble.get_text()
+                
             self.scale_factor = self._scale_adj.get_value()
             gtk.main_quit()
             return False
