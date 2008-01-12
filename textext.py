@@ -50,7 +50,7 @@ sys.path.append('/usr/share/inkscape/extensions')
 
 import inkex
 import os, sys, tempfile, traceback, glob, re
-import xml.dom.ext.reader.Sax2
+import xml.dom.ext.reader.Sax2, xml.sax.handler
 from xml.dom.NodeFilter import NodeFilter
 
 import pygtk
@@ -446,6 +446,24 @@ class PdfConverterBase(LatexConverterBase):
         """Get a suitable default value for the transform attribute"""
         raise NotImplementedError
 
+    def parse_xml(self, fn):
+        svg_stream = open(fn, 'r')
+        try:
+            reader_tex = xml.dom.ext.reader.Sax2.Reader()
+
+            # Prevent internet connections
+            reader_tex.parser.setFeature(xml.sax.handler.feature_external_ges,
+                                         False)
+            reader_tex.parser.setFeature(xml.sax.handler.feature_external_pes,
+                                         False)
+            reader_tex.parser.setFeature(xml.sax.handler.feature_validation,
+                                         False)
+
+            # Parse
+            return reader_tex.fromStream(svg_stream)
+        finally:
+            svg_stream.close()
+
     def svg_to_group(self):
         """
         Convert the SVG file to an SVG group node.
@@ -454,13 +472,7 @@ class PdfConverterBase(LatexConverterBase):
         """
 
         # create xml.dom representation of the TeX file
-        svg_stream = open(self.tmp('svg'), 'r')
-        try:
-            reader_tex = xml.dom.ext.reader.Sax2.Reader()
-            doc_tex = reader_tex.fromStream(svg_stream)
-        finally:
-            svg_stream.close()
-
+        doc_tex = self.parse_xml(self.tmp('svg'))
         docel = doc_tex.documentElement
         
         # get latex paths from svg_out
@@ -569,16 +581,10 @@ class Pdf2Svg(PdfConverterBase):
 
     def svg_to_group(self):
         # create xml.dom representation of the TeX file
-        svg_stream = open(self.tmp('svg'), 'r')
-        try:
-            reader_tex = xml.dom.ext.reader.Sax2.Reader()
-            doc_tex = reader_tex.fromStream(svg_stream)
-        finally:
-            svg_stream.close()
+        doc_tex = self.parse_xml(self.tmp('svg'))
+        docel = doc_tex.documentElement
 
         href_map = {}
-
-        docel = doc_tex.documentElement
 
         # Map items to new ids
         walker = doc_tex.createTreeWalker(docel, NodeFilter.SHOW_ELEMENT, None, 0)
