@@ -614,8 +614,8 @@ class SkConvert(PdfConverterBase):
     def available(cls):
         """Check whether skconvert and pstoedit are available"""
         out = exec_command(['pstoedit'], ok_return_value=PSTOEDIT_OK_RETURNCODE)
-        if 'version 3.44' in out:
-            raise RuntimeError("Pstoedit version 3.44 found, but it "
+        if 'version 3.44' in out and 'Ubuntu' in out:
+            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
         exec_command(['skconvert'], ok_return_value=1)
     available = classmethod(available)
@@ -644,8 +644,8 @@ class PstoeditPlotSvg(PdfConverterBase):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'],
                            ok_return_value=PSTOEDIT_OK_RETURNCODE)
-        if 'version 3.44' in out:
-            raise RuntimeError("Pstoedit version 3.44 found, but it "
+        if 'version 3.44' in out and 'Ubuntu':
+            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
             return 'plot-svg' in out
     available = classmethod(available)
