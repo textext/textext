@@ -252,8 +252,7 @@ class TexText(inkex.Effect):
                 converter_cls = conv_cls
                 break
             except RuntimeError, e:
-                converter_errors.append("%s: %s" % (conv_cls.__name__,
-                                                    e.message))
+                converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
         
         if not converter_cls:
             raise RuntimeError("No Latex -> SVG converter available:\n%s"
