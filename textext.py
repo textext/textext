@@ -6,7 +6,7 @@ textext
 
 :Author: Pauli Virtanen <pav@iki.fi>
 :Author: Robert Szalai <szalai@mm.bme.hu>
-:Date: 2007-07-19
+:Date: 2008-01-19
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -41,7 +41,7 @@ but is now rewritten.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 __author__ = "Pauli Virtanen <pav@iki.fi>, Robert Szalai <szalai@mm.bme.hu>"
 __docformat__ = "restructuredtext en"
 
