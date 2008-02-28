@@ -71,7 +71,7 @@ try:
 except ImportError:
     pass
 
-USE_WINDOWS = ('win' in sys.platform)
+USE_WINDOWS = ('win' in sys.platform) and not ('darwin' in sys.platform)
 
 TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
 SVG_NS = "http://www.w3.org/2000/svg"
