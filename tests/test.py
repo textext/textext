@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, sys, unittest
-import xml.dom.ext
+from lxml import etree
 
 BASEDIR = os.path.dirname(__file__)
 TEST_FILE = os.path.join(BASEDIR, 'base.svg')
@@ -22,7 +22,7 @@ class EffectTester(textext.TexText):
     
     def output(self):
         f = open(TEST_OUTPUT, 'w')
-        xml.dom.ext.Print(self.document, f)
+        self.document.write(TEST_OUTPUT)
         f.close()
 
 def cmp_files(a, b):

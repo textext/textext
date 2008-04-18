@@ -5,7 +5,6 @@ textext
 =======
 
 :Author: Pauli Virtanen <pav@iki.fi>
-:Author: Robert Szalai <szalai@mm.bme.hu>
 :Date: 2008-01-19
 :License: BSD
 
@@ -17,6 +16,9 @@ This brings some of the power of TeX typesetting to Inkscape.
 
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
+
+Thanks to Robert Szalai, Rafal Kolanski and Brian Clarke for
+contributions.
 
 .. note::
    Unfortunately, the TeX input dialog is modal. That is, you cannot
@@ -42,7 +44,6 @@ but is now rewritten.
 #------------------------------------------------------------------------------
 
 __version__ = "0.3.3"
-__author__ = "Pauli Virtanen <pav@iki.fi>, Robert Szalai <szalai@mm.bme.hu>"
 __docformat__ = "restructuredtext en"
 
 import sys, os
@@ -50,10 +51,9 @@ sys.path.append('/usr/share/inkscape/extensions')
 sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
 
-import inkex45 as inkex
-import os, sys, tempfile, traceback, glob, re
-import xml.dom.ext.reader.Sax2, xml.sax.handler
-from xml.dom.NodeFilter import NodeFilter
+import inkex
+import os, sys, tempfile, traceback, glob, re, md5
+from lxml import etree
 
 USE_GTK = False
 try:
@@ -73,11 +73,17 @@ except ImportError:
 
 USE_WINDOWS = ('win' in sys.platform) and not ('darwin' in sys.platform)
 
-TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
-SVG_NS = "http://www.w3.org/2000/svg"
-XLINK_NS = "http://www.w3.org/1999/xlink"
+TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext"
+SVG_NS = u"http://www.w3.org/2000/svg"
+XLINK_NS = u"http://www.w3.org/1999/xlink"
 
-ID_PREFIX = "textext-obj-"
+ID_PREFIX = "textext-"
+
+NSS = {
+    u'textext': TEXTEXT_NS,
+    u'svg': SVG_NS,
+    u'xlink': XLINK_NS,
+}
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality & GUI
@@ -288,16 +294,14 @@ class TexText(inkex.Effect):
 
         # Insert into document
 
-        new_node.setAttributeNS(TEXTEXT_NS,
-                                'textext:text',
-                                text.encode('string-escape'))
-        
-        new_node.setAttributeNS(TEXTEXT_NS, 'textext:preamble',
-                                preamble_file.encode('string-escape'))
+        new_node.attrib['{%s}text'%TEXTEXT_NS] = text.encode('string-escape')
+        new_node.attrib['{%s}preamble'%TEXTEXT_NS] = \
+                                       preamble_file.encode('string-escape')
 
-        if old_node and old_node.hasAttribute('transform'):
-            new_node.setAttribute('transform',
-                                  old_node.getAttribute('transform'))
+        try:
+            new_node['{%s}transform'%SVG_NS] = old_node['{%s}transform'%SVG_NS]
+        except (AttributeError, TypeError):
+            pass
         
         self.replace_node(old_node, new_node)
 
@@ -311,46 +315,31 @@ class TexText(inkex.Effect):
 
         for i in self.options.ids:
             node = self.selected[i]
-            if node.tagName != 'g': continue
+            if node.tag != '{%s}g'%SVG_NS: continue
             
-            if node.hasAttributeNS(TEXTEXT_NS, 'text'):
+            if '{%s}text'%TEXTEXT_NS in node.attr:
                 # starting from 0.2, use namespaces
                 return (node,
-                        node.getAttributeNS(TEXTEXT_NS, 'text').decode('string-escape'),
-                        node.getAttributeNS(TEXTEXT_NS, 'preamble').decode('string-escape'))
-            elif node.hasAttribute('textext'):
+                        node.attr.get('{%s}text'%TEXTEXT_NS, '').decode('string-escape'),
+                        node.attr.get('{%s}preamble'%TEXTEXT_NS, '').decode('string-escape'))
+            elif '{%s}text'%SVG_NS in node.attr:
                 # < 0.2 backward compatibility
                 return (node,
-                        node.getAttribute('textext').decode('string-escape'),
-                        node.getAttribute('texpreamble').decode('string-escape'))
+                        node.attr.get('{%s}text'%SVG_NS, '').decode('string-escape'),
+                        node.attr.get('{%s}preamble'%SVG_NS, '').decode('string-escape'))
         return None, "", ""
-
-    def fix_xml_namespace(self, node):
-        """
-        Set the default XML namespace to http://www.w3.org/2000/svg
-        for the given node and all its children.
-
-        This is needed since pstoedit plot-svg generates namespaceless
-        SVG files.
-        """
-        node.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', SVG_NS)
-        for c in node.childNodes:
-            if c.nodeType == c.ELEMENT_NODE:
-                self.fix_xml_namespace(c)
 
     def replace_node(self, old_node, new_node):
         """
         Replace an XML node old_node with new_node
         in self.document.
         """
-        new_node = self.document.importNode(new_node, True)
-        self.fix_xml_namespace(new_node)
         if old_node is None:
-            self.document.documentElement.appendChild(new_node)
+            self.current_layer.append(new_node)
         else:
-            parent = old_node.parentNode
-            parent.removeChild(old_node)
-            parent.appendChild(new_node)
+            parent = old_node.getparent()
+            parent.remove(old_node)
+            parent.append(new_node)
         
 
 #------------------------------------------------------------------------------
@@ -538,7 +527,8 @@ class PdfConverterBase(LatexConverterBase):
         if not new_node:
             return None
         
-        new_node.setAttribute('transform', self.get_transform(scale_factor))
+        new_node.attrib['{%s}transform'%SVG_NS] = \
+                                                self.get_transform(scale_factor)
         return new_node
 
     def pdf_to_svg(self):
@@ -549,40 +539,33 @@ class PdfConverterBase(LatexConverterBase):
         """Get a suitable default value for the transform attribute"""
         raise NotImplementedError
 
-    def parse_xml(self, fn):
-        svg_stream = open(fn, 'r')
-        try:
-            reader_tex = xml.dom.ext.reader.Sax2.Reader()
-
-            # Prevent internet connections
-            reader_tex.parser.setFeature(xml.sax.handler.feature_external_ges,
-                                         False)
-            reader_tex.parser.setFeature(xml.sax.handler.feature_external_pes,
-                                         False)
-            reader_tex.parser.setFeature(xml.sax.handler.feature_validation,
-                                         False)
-
-            # Parse
-            return reader_tex.fromStream(svg_stream)
-        finally:
-            svg_stream.close()
-
     def svg_to_group(self):
         """
         Convert the SVG file to an SVG group node.
 
         :Returns: <svg:g> node
         """
-
-        # create xml.dom representation of the TeX file
-        doc_tex = self.parse_xml(self.tmp('svg'))
-        docel = doc_tex.documentElement
-        
-        # get latex paths from svg_out
+        f = open(self.tmp('svg'), 'r')
+        print f.read()
+        tree = etree.parse(self.tmp('svg'))
+        self.fix_xml_namespace(tree.getroot())
         try:
-            return docel.getElementsByTagName('g')[0]
+            return tree.getroot().xpath('svg:g', NSS)[0]
         except IndexError:
             return None
+
+    def fix_xml_namespace(self, node):
+        if '{' not in node.tag:
+            node.tag = '{%s}%s' % (SVG_NS, node.tag)
+        
+        for key in node.attrib.keys():
+            if '{' not in key:
+                node.attrib['{%s}%s' % (SVG_NS, key)] = node.attrib[key]
+                del node.attrib[key]
+        
+        for c in node:
+            self.fix_xml_namespace(c)
+    
 
 class SkConvert(PdfConverterBase):
     """
@@ -653,29 +636,12 @@ class Pdf2Svg(PdfConverterBase):
     """
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
-        self.id_start = self.find_glyph_id_limits(document)
+        self.hash = None
 
-    def find_glyph_id_limits(self, document):
-        """
-        Find the first free id in the document
-        """
-        walker = document.createTreeWalker(document.documentElement,
-                                           NodeFilter.SHOW_ELEMENT, None, 0)
-        startid = 0
-
-        while True:
-            if walker.currentNode.hasAttribute('id'):
-                curid = walker.currentNode.getAttribute('id')
-                if curid.startswith(ID_PREFIX):
-                    try:
-                        startid = max(startid, int(curid[len(ID_PREFIX):]))
-                    except ValueError:
-                        pass # not a glyph of ours, skip it
-
-            if not walker.nextNode():
-                break
-
-        return startid
+    def convert(self, *a, **kw):
+        # compute hash for generating unique ids for sub-elements
+        self.hash = md5.new('%s%s' % (a, kw)).hexdigest()[:8]
+        return PdfConverterBase.convert(self, *a, **kw)
 
     def pdf_to_svg(self):
         exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg'), '1'])
@@ -685,51 +651,39 @@ class Pdf2Svg(PdfConverterBase):
 
     def svg_to_group(self):
         # create xml.dom representation of the TeX file
-        doc_tex = self.parse_xml(self.tmp('svg'))
-        docel = doc_tex.documentElement
+        f = open(self.tmp('svg'), 'r')
+        print f.read()
+        tree = etree.parse(self.tmp('svg'))
+        root = tree.getroot()
 
         href_map = {}
 
         # Map items to new ids
-        walker = doc_tex.createTreeWalker(docel, NodeFilter.SHOW_ELEMENT, None, 0)
-        while True:
-            if walker.currentNode.hasAttribute('id'):
-                curid = walker.currentNode.getAttribute('id')
-
-                self.id_start += 1
-                new_id = "%s%d" % (ID_PREFIX, self.id_start)
-                
-                href_map['#' + curid] = '#' + new_id
-                walker.currentNode.setAttribute('id', new_id)
-
-            if not walker.nextNode():
-                break
+        for i, el in enumerate(root.xpath('//*[attribute::id]')):
+            cur_id = el.attrib['id']
+            new_id = "%s%s-%d" % (ID_PREFIX, self.hash, i)
+            href_map['#' + cur_id] = "#" + new_id
+            el.attrib['id'] = new_id
 
         # Replace hrefs
         url_re = re.compile('^url\((.*)\)$')
-        
-        walker = doc_tex.createTreeWalker(docel, NodeFilter.SHOW_ELEMENT, None, 0)
-        while True:
-            if walker.currentNode.hasAttributeNS(XLINK_NS, 'href'):
-                curid = walker.currentNode.getAttributeNS(XLINK_NS, 'href')
-                walker.currentNode.setAttributeNS(XLINK_NS, 'href',
-                                                  href_map.get(curid, curid))
 
-            if walker.currentNode.hasAttribute('clip-path'):
-                value = walker.currentNode.getAttribute('clip-path')
-                m = url_re.match(value)
-                if m:
-                    walker.currentNode.setAttribute(
-                        'clip-path',
-                        'url(%s)' % href_map.get(m.group(1), m.group(1)))
+        for el in root.xpath('//*[attribute::xlink:href]', NSS):
+            href = el.attrib['{%s}href'%XLINK_NS]
+            el.attrib['{%s}href'%XLINK_NS] = href_map.get(href, href)
 
-            if not walker.nextNode():
-                break
-        
+        for el in root.xpath('//*[attribute::svg:clip-path]', NSS):
+            value = el.attrib['{%s}clip-path'%SVG_NS]
+            m = url_re.match(value)
+            if m:
+                el.attrib['{%s}clip-path'%SVG_NS] = \
+                    'url(%s)' % href_map.get(m.group(1), m.group(1))
+
         # Bundle everything in a single group
-        master_group = doc_tex.createElementNS(SVG_NS, 'g')
-        for c in list(doc_tex.documentElement.childNodes):
-            master_group.appendChild(c)
+        master_group = etree.Element('{%s}g'%SVG_NS)
+        for c in root:
+            master_group.append(c)
+        
         return master_group
 
     def available(cls):
