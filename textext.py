@@ -674,15 +674,16 @@ class Pdf2Svg(PdfConverterBase):
         # create xml.dom representation of the TeX file
         tree = etree.parse(self.tmp('svg'))
         root = tree.getroot()
+        self.fix_xml_namespace(root)
 
         href_map = {}
 
         # Map items to new ids
         for i, el in enumerate(root.xpath('//*[attribute::id]')):
-            cur_id = el.attrib['id']
+            cur_id = el.attrib['{%s}id'%SVG_NS]
             new_id = "%s%s-%d" % (ID_PREFIX, self.hash, i)
             href_map['#' + cur_id] = "#" + new_id
-            el.attrib['id'] = new_id
+            el.attrib['{%s}id'%SVG_NS] = new_id
 
         # Replace hrefs
         url_re = re.compile('^url\((.*)\)$')
