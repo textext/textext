@@ -581,11 +581,6 @@ class PdfConverterBase(LatexConverterBase):
         except IndexError:
             return None
 
-if USE_WINDOWS:
-    PSTOEDIT_OK_RETURNCODE = 0
-else:
-    PSTOEDIT_OK_RETURNCODE = 1
-            
 class SkConvert(PdfConverterBase):
     """
     Convert PDF -> SK -> SVG using pstoedit and skconvert
@@ -612,7 +607,7 @@ class SkConvert(PdfConverterBase):
 
     def available(cls):
         """Check whether skconvert and pstoedit are available"""
-        out = exec_command(['pstoedit'], ok_return_value=PSTOEDIT_OK_RETURNCODE)
+        out = exec_command(['pstoedit'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
@@ -642,7 +637,7 @@ class PstoeditPlotSvg(PdfConverterBase):
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'],
-                           ok_return_value=PSTOEDIT_OK_RETURNCODE)
+                           ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu':
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
