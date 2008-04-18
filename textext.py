@@ -317,16 +317,16 @@ class TexText(inkex.Effect):
             node = self.selected[i]
             if node.tag != '{%s}g'%SVG_NS: continue
             
-            if '{%s}text'%TEXTEXT_NS in node.attr:
+            if '{%s}text'%TEXTEXT_NS in node.attrib:
                 # starting from 0.2, use namespaces
                 return (node,
-                        node.attr.get('{%s}text'%TEXTEXT_NS, '').decode('string-escape'),
-                        node.attr.get('{%s}preamble'%TEXTEXT_NS, '').decode('string-escape'))
-            elif '{%s}text'%SVG_NS in node.attr:
+                        node.attrib.get('{%s}text'%TEXTEXT_NS, '').decode('string-escape'),
+                        node.attrib.get('{%s}preamble'%TEXTEXT_NS, '').decode('string-escape'))
+            elif '{%s}text'%SVG_NS in node.attrib:
                 # < 0.2 backward compatibility
                 return (node,
-                        node.attr.get('{%s}text'%SVG_NS, '').decode('string-escape'),
-                        node.attr.get('{%s}preamble'%SVG_NS, '').decode('string-escape'))
+                        node.attrib.get('{%s}text'%SVG_NS, '').decode('string-escape'),
+                        node.attrib.get('{%s}preamble'%SVG_NS, '').decode('string-escape'))
         return None, "", ""
 
     def replace_node(self, old_node, new_node):
