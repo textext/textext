@@ -114,12 +114,17 @@ if USE_GTK:
             else:
                 self._preamble = gtk.Entry()
                 self._preamble.set_text(self.preamble_file)
-
-            self._scale_adj = gtk.Adjustment(value=self.scale_factor,
-                                             lower=0.01, upper=100,
+            
+            self._scale_adj = gtk.Adjustment(lower=0.01, upper=100,
                                              step_incr=0.1, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj, digits=2)
-
+            
+            if self.scale_factor is not None:
+                self._scale_adj.set_value(self.scale_factor)
+            else:
+                self._scale_adj.set_value(1.0)
+                self._scale.set_sensitive(False)
+            
             self._text = gtk.TextView()
             self._text.get_buffer().set_text(self.text)
 
@@ -128,7 +133,7 @@ if USE_GTK:
             sw.set_shadow_type(gtk.SHADOW_IN)
             sw.add(self._text)
             
-            ok = gtk.Button(stock=gtk.STOCK_OK)
+            self._ok = gtk.Button(stock=gtk.STOCK_OK)
     
             # layout
             table = gtk.Table(3, 2, False)
@@ -141,13 +146,14 @@ if USE_GTK:
     
             vbox = gtk.VBox(False, 5)
             vbox.pack_start(table)
-            vbox.pack_end(ok, expand=False)
+            vbox.pack_end(self._ok, expand=False)
     
             window.add(vbox)
     
             # signals
             window.connect("delete-event", self.cb_delete_event)
-            ok.connect("clicked", self.cb_ok)
+            window.connect("key-press-event", self.cb_key_press)
+            self._ok.connect("clicked", self.cb_ok)
     
             # show
             window.show_all()
@@ -160,6 +166,14 @@ if USE_GTK:
     
         def cb_delete_event(self, widget, event, data=None):
             gtk.main_quit()
+            return False
+
+        def cb_key_press(self, widget, event, data=None):
+            # ctrl+return clicks the ok button
+            if gtk.gdk.keyval_name(event.keyval) == 'Return' \
+                   and gtk.gdk.CONTROL_MASK & event.state:
+                self._ok.clicked()
+                return True
             return False
         
         def cb_ok(self, widget, data=None):
@@ -204,7 +218,10 @@ elif USE_TK:
             label.pack(pady=2, padx=5, side="left", anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
-            self._scale.set(self.scale_factor)
+            if self.scale_factor:
+                self._scale.set(self.scale_factor)
+            else:
+                self._scale.set(1.0)
             box.pack(fill="x", expand=True)
             
             label = Tk.Label(self._frame, text="Text:")
@@ -272,7 +289,13 @@ class TexText(inkex.Effect):
         
         # Ask for TeX code
         if self.options.text is None:
-            asker = AskText(text, preamble_file, 1.0)
+            # If there is a transform, scale in GUI will be ignored
+            if old_node:
+                scale_factor = None
+            else:
+                scale_factor = 1.0
+
+            asker = AskText(text, preamble_file, scale_factor)
             text, preamble_file, scale_factor = asker.ask()
         else:
             text = self.options.text
