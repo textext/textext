@@ -466,7 +466,7 @@ class LatexConverterBase(object):
         
         # Read preamble
         preamble = ""
-        if os.path.exists(preamble_file):
+        if os.path.isfile(preamble_file):
             f = open(preamble_file, 'r')
             preamble += f.read()
             f.close()
