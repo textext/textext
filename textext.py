@@ -143,8 +143,11 @@ if USE_GTK:
             window.connect("delete-event", self.cb_delete_event)
             ok.connect("clicked", self.cb_ok)
     
-            # run
+            # show
             window.show_all()
+            self._text.grab_focus()
+
+            # run
             gtk.main()
     
             return self.text, self.preamble_file, self.scale_factor
