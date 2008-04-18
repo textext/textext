@@ -52,7 +52,7 @@ sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
 
 import inkex
-import os, sys, tempfile, traceback, glob, re, md5
+import os, sys, tempfile, traceback, glob, re, md5, copy
 from lxml import etree
 
 USE_GTK = False
@@ -545,8 +545,6 @@ class PdfConverterBase(LatexConverterBase):
 
         :Returns: <svg:g> node
         """
-        f = open(self.tmp('svg'), 'r')
-        print f.read()
         tree = etree.parse(self.tmp('svg'))
         self.fix_xml_namespace(tree.getroot())
         try:
@@ -651,8 +649,6 @@ class Pdf2Svg(PdfConverterBase):
 
     def svg_to_group(self):
         # create xml.dom representation of the TeX file
-        f = open(self.tmp('svg'), 'r')
-        print f.read()
         tree = etree.parse(self.tmp('svg'))
         root = tree.getroot()
 
@@ -680,11 +676,12 @@ class Pdf2Svg(PdfConverterBase):
                     'url(%s)' % href_map.get(m.group(1), m.group(1))
 
         # Bundle everything in a single group
-        master_group = etree.Element('{%s}g'%SVG_NS)
+        master_group = etree.SubElement(root, '{%s}g'%SVG_NS)
         for c in root:
+            if c is master_group: continue
             master_group.append(c)
         
-        return master_group
+        return copy.copy(master_group)
 
     def available(cls):
         """Check whether pdf2svg is available, raise RuntimeError if not"""
