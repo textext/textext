@@ -379,8 +379,13 @@ class TexText(inkex.Effect):
                                        preamble_file.encode('string-escape')
 
         try:
-            new_node['{%s}transform'%SVG_NS] = old_node['{%s}transform'%SVG_NS]
-        except (AttributeError, TypeError):
+            new_node.attrib['{%s}transform'%SVG_NS] = old_node.attrib['transform']
+        except (KeyError, IndexError, TypeError):
+            pass
+
+        try:
+            new_node.attrib['{%s}transform'%SVG_NS] = old_node.attrib['{%s}transform'%SVG_NS]
+        except (KeyError, IndexError, TypeError):
             pass
         
         self.replace_node(old_node, new_node)
