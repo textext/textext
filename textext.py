@@ -276,12 +276,15 @@ elif USE_TK:
             self._text = Tk.Text(self._frame)
             self._text.pack(expand=True, fill="both", pady=5, padx=5)
             self._text.insert(Tk.END, self.text)
+           
+            box = Tk.Frame(self._frame)
+            self._btn = Tk.Button(box, text="OK", command=self.cb_ok)
+            self._btn.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
             
-            self._btn = Tk.Button(self._frame, text="OK", command=self.cb_ok)
-            self._btn.pack(ipadx=30, ipady=4, pady=5, padx=5)
-            
-            self._cancel = Tk.Button(self._frame, text="Cancel", command=self.cb_cancel)
+            self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
             self._cancel.pack(ipadx=30, ipady=4, pady=5, padx=5, side="right")
+
+            box.pack(expand=False)
             
             root.mainloop()
             
