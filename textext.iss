@@ -1,9 +1,9 @@
 [Setup]
 AppName=Textext Inkscape extension
 AppId=Textext
-AppVerName=Textext Inkscape extension 0.4
-AppVersion=0.4
-VersionInfoVersion=0.4
+AppVerName=Textext Inkscape extension 0.4.dev
+AppVersion=0.4.dev
+VersionInfoVersion=0.4.dev
 
 DefaultDirName={pf}\Inkscape
 DirExistsWarning=no
