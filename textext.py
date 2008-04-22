@@ -109,7 +109,8 @@ if USE_GTK:
 
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble = gtk.FileChooserButton("...")
-                self._preamble.set_filename(self.preamble_file)
+                if os.path.exists(self.preamble_file):
+                    self._preamble.set_filename(self.preamble_file)
                 self._preamble.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
             else:
                 self._preamble = gtk.Entry()
