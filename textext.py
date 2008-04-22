@@ -5,7 +5,7 @@ textext
 =======
 
 :Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2008-04-18
+:Date: 2008-04-22
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -43,10 +43,10 @@ contributions.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.3.3.dev"
+__version__ = "0.4"
 __docformat__ = "restructuredtext en"
 
-import sys, os
+import sys, os, glob, traceback
 sys.path.append('/usr/share/inkscape/extensions')
 sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
@@ -96,11 +96,14 @@ if USE_GTK:
             self.text = text
             self.preamble_file = preamble_file
             self.scale_factor = scale_factor
+            self.callback = None
     
-        def ask(self):
+        def ask(self, callback):
+            self.callback = callback
+            
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_title("TeX Text")
-            window.set_default_size(600, 600)
+            window.set_default_size(600, 400)
     
             label1 = gtk.Label(u"Preamble file:")
             label2 = gtk.Label(u"Scale factor:")
@@ -135,6 +138,7 @@ if USE_GTK:
             sw.add(self._text)
             
             self._ok = gtk.Button(stock=gtk.STOCK_OK)
+            self._cancel = gtk.Button(stock=gtk.STOCK_CANCEL)
     
             # layout
             table = gtk.Table(3, 2, False)
@@ -147,7 +151,13 @@ if USE_GTK:
     
             vbox = gtk.VBox(False, 5)
             vbox.pack_start(table)
-            vbox.pack_end(self._ok, expand=False)
+            
+            hbox = gtk.HButtonBox()
+            hbox.add(self._ok)
+            hbox.add(self._cancel)
+            hbox.set_layout(gtk.BUTTONBOX_SPREAD)
+            
+            vbox.pack_end(hbox, expand=False, fill=False)
     
             window.add(vbox)
     
@@ -155,12 +165,14 @@ if USE_GTK:
             window.connect("delete-event", self.cb_delete_event)
             window.connect("key-press-event", self.cb_key_press)
             self._ok.connect("clicked", self.cb_ok)
+            self._cancel.connect("clicked", self.cb_cancel)
     
             # show
             window.show_all()
             self._text.grab_focus()
 
             # run
+            self._window = window
             gtk.main()
     
             return self.text, self.preamble_file, self.scale_factor
@@ -177,6 +189,9 @@ if USE_GTK:
                 return True
             return False
         
+        def cb_cancel(self, widget, data=None):
+            raise SystemExit(1)
+        
         def cb_ok(self, widget, data=None):
             buf = self._text.get_buffer()
             self.text = buf.get_text(buf.get_start_iter(),
@@ -189,6 +204,33 @@ if USE_GTK:
                 self.preamble_file = self._preamble.get_text()
                 
             self.scale_factor = self._scale_adj.get_value()
+            
+            try:
+                self.callback(self.text, self.preamble_file, self.scale_factor)
+            except RuntimeError, e:
+                err_msg = traceback.format_exc()
+                dlg = gtk.Dialog("Textext Error", self._window, 
+                                 gtk.DIALOG_MODAL)
+                dlg.set_default_size(600, 400)
+                btn = dlg.add_button(gtk.STOCK_OK, gtk.RESPONSE_CLOSE)
+                btn.connect("clicked", lambda w, d=None: dlg.destroy())
+                msg = gtk.Label()
+                msg.set_markup("<b>Error occurred while converting text from Latex to SVG:</b>")
+                
+                txtw = gtk.ScrolledWindow()
+                txtw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+                txtw.set_shadow_type(gtk.SHADOW_IN)
+                txt = gtk.TextView()
+                txt.set_editable(False)
+                txt.get_buffer().set_text(err_msg)
+                txtw.add(txt)
+                
+                dlg.vbox.pack_start(msg, expand=False, fill=True)
+                dlg.vbox.pack_start(txtw, expand=True, fill=True)
+                dlg.show_all()
+                dlg.run()
+                return False
+            
             gtk.main_quit()
             return False
 
@@ -199,8 +241,11 @@ elif USE_TK:
             self.text = text
             self.preamble_file = preamble_file
             self.scale_factor = scale_factor
+            self.callback = None
     
-        def ask(self):
+        def ask(self, callback):
+            self.callback = callback
+            
             root = Tk.Tk()
             
             self._frame = Tk.Frame(root)
@@ -235,9 +280,16 @@ elif USE_TK:
             self._btn = Tk.Button(self._frame, text="OK", command=self.cb_ok)
             self._btn.pack(ipadx=30, ipady=4, pady=5, padx=5)
             
+            self._cancel = Tk.Button(self._frame, text="Cancel", command=self.cb_cancel)
+            self._cancel.pack(ipadx=30, ipady=4, pady=5, padx=5, side="right")
+            
             root.mainloop()
             
+            self.callback(self.text, self.preamble_file, self.scale_factor)
             return self.text, self.preamble_file, self.scale_factor
+
+        def cb_cancel(self):
+            raise SystemExit(1)
     
         def cb_ok(self):
             self.text = self._text.get(1.0, Tk.END)
@@ -295,14 +347,15 @@ class TexText(inkex.Effect):
                 scale_factor = None
             else:
                 scale_factor = 1.0
-
+            
             asker = AskText(text, preamble_file, scale_factor)
-            text, preamble_file, scale_factor = asker.ask()
+            asker.ask(lambda t, p, s: self.do_convert(t, p, s, converter_cls, old_node))
         else:
-            text = self.options.text
-            preamble_file = self.options.preamble_file
-            scale_factor = self.options.scale_factor
-
+            self.do_convert(self.options.text,
+                            self.options.preamble_file,
+                            self.options.scale_factor, converter_cls, old_node)
+    
+    def do_convert(self, text, preamble_file, scale_factor, converter_cls, old_node):
         if not text:
             return
 
@@ -424,8 +477,9 @@ if USE_WINDOWS:
 
     program_files = os.environ.get('PROGRAMFILES')
     if program_files:
-        paths.append(os.path.join(program_files, 'pstoedit'))
-        paths.append(os.path.join(program_files, 'miktex 2.6', 'miktex', 'bin'))
+        paths += glob.glob(os.path.join(program_files, 'gs/gs*/bin'))
+        paths += glob.glob(os.path.join(program_files, 'pstoedit*'))
+        paths += glob.glob(os.path.join(program_files, 'miktex*/miktex/bin'))
         
     os.environ['PATH'] = os.path.pathsep.join(paths)
 
