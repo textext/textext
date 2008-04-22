@@ -6,3 +6,5 @@ syntax:glob
 *.tar.gz
 *.zip
 tests/out.svg
+site-packages
+*.exe

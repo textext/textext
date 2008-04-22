@@ -1,0 +1,79 @@
+[Setup]
+AppName=Textext Inkscape extension
+AppId=Textext
+AppVerName=Textext Inkscape extension 0.4
+AppVersion=0.4
+VersionInfoVersion=0.4
+
+DefaultDirName={pf}\Inkscape
+DirExistsWarning=no
+
+PrivilegesRequired=admin
+
+OutputDir=.
+OutputBaseFilename=Textext 0.4
+
+[Files]
+Source: textext.py; DestDir: "{app}\share\extensions"
+Source: textext.inx; DestDir: "{app}\share\extensions"
+Source: site-packages\*; DestDir: "{app}\python\Lib\site-packages"; Flags: recursesubdirs
+
+[Messages]
+SelectDirLabel3=Please choose the folder where Inkscape was installed. Typically this is C:\Program Files\Inkscape
+
+[Code]
+
+(* Check for uninstaller executable name *)
+function GetPathInstalled( AppID: String ): String;
+var
+  sPrevPath: String;
+begin
+  sPrevPath := '';
+  if not RegQueryStringValue(HKLM,'Software\Microsoft\Windows\CurrentVersion\Uninstall\'+AppID+'_is1', 
+                            'UninstallString', sPrevpath) then
+    RegQueryStringValue(HKCU,'Software\Microsoft\Windows\CurrentVersion\Uninstall\'+AppID+'_is1',
+                        'UninstallString', sPrevpath);
+  Result := sPrevPath;
+end;
+
+(* Check if a old version is installed, and uninstall it if it is. *)
+function checkForOldVersion(): Boolean;
+var
+  sPrevPath: String;
+  sPrevID: String;
+  msg: String;
+  resultcode: Integer;
+begin
+  while true do
+  begin
+    sPrevID := 'Textext';
+    sPrevPath := GetPathInstalled( sprevID );
+    msg := 'A previous version of ' + sPrevID + ' is already installed. ' +
+           'It is recommended that you uninstall the existing version ' +
+           'before running this setup. ' +
+           'Click OK to uninstall the old version, or Cancel to abort.';
+  
+    if (Length(sPrevPath) > 0) then
+    begin
+      if MsgBox(msg, mbInformation, MB_okcancel) = idok then
+        Result := ShellExec('open', sPrevPath, '', '', 0,
+                            ewWaitUntilTerminated, resultcode)
+      else
+      begin
+        Result := false;
+        exit;
+      end;
+    end
+    else
+    begin
+      Result := true;
+      exit;
+    end;
+  end;
+end;
+ 
+function InitializeSetup(): Boolean;
+begin
+  Result := checkForOldVersion();
+  if (not Result) then exit;
+end;

@@ -12,17 +12,11 @@ These instructions have been tested with Inkscape 0.46 for Windows.
 
 3. Install Ghostscript_
 
-4. Download the `pygtk-inkscape46.zip`_ and copy all files and folders inside it to
+4. Download and run `Textext installer`_
 
-    c:\Program Files\Inkscape\python\Lib\site-packages
+(Sorry about the blank terminal window that opens while the extension runs, it is forced by Inkscape.)
 
-5. Copy ``textext.py`` and ``textext.inx`` from Textext (0.4 or newer) to
-
-    c:\Program Files\Inkscape\share\extensions
-
-(Sorry about the blank terminal window that opens while the extension runs.)
-
-.. _`pygtk-inkscape46.zip`: pygtk-inkscape46.zip
+.. _`Textext installer`: Textext-0.4.exe
 
 
 Inkscape 0.45.1
