@@ -11,7 +11,7 @@ DirExistsWarning=no
 PrivilegesRequired=admin
 
 OutputDir=.
-OutputBaseFilename=Textext 0.4
+OutputBaseFilename=textext-0.4.dev
 
 [Files]
 Source: textext.py; DestDir: "{app}\share\extensions"
