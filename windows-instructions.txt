@@ -1,6 +1,33 @@
 Windows instructions
 ====================
 
+Inkscape 0.46
+-------------
+
+These instructions have been tested with Inkscape 0.46 for Windows.
+
+1. Install a Latex distribution, eg. MikTex_
+
+2. Install Pstoedit_
+
+3. Install Ghostscript_
+
+4. Download the `pygtk-inkscape46.zip`_ and copy all files and folders inside it to
+
+    c:\Program Files\Inkscape\python\Lib\site-packages
+
+5. Copy ``textext.py`` and ``textext.inx`` from Textext (0.4 or newer) to
+
+    c:\Program Files\Inkscape\share\extensions
+
+(Sorry about the blank terminal window that opens while the extension runs.)
+
+.. _`pygtk-inkscape46.zip`: pygtk-inkscape46.zip
+
+
+Inkscape 0.45.1
+---------------
+
 These instructions have been tested with Inkscape 0.45.1 for Windows.
 
 1. Install a Latex distribution, eg. MikTex_
@@ -13,7 +40,7 @@ These instructions have been tested with Inkscape 0.45.1 for Windows.
 
     c:\Program Files\Inkscape\python
 
-5. Copy textext.py, inkex45.py and textext.inx to
+5. Copy textext.py, inkex45.py and textext.inx from Textext (no newer than 0.3.3!) to
 
     c:\Program Files\Inkscape\share\extensions
 
