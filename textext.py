@@ -711,7 +711,7 @@ class PstoeditPlotSvg(PdfConverterBase):
         if 'version 3.44' in out and 'Ubuntu':
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
-            return 'plot-svg' in out
+        return 'plot-svg' in out
     available = classmethod(available)
 
 class Pdf2Svg(PdfConverterBase):
