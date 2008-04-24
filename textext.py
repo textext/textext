@@ -571,24 +571,19 @@ class LatexConverterBase(object):
         \end{document}
         """ % (preamble, latex_text)
         
-        cwd = os.getcwd()
-        os.chdir(self.tmp_path)
-        
         # Convert TeX to PDF
+
+        # Write tex
+        f_tex = open(self.tmp('tex'), 'w')
         try:
-            # Write tex
-            f_tex = open(self.tmp('tex'), 'w')
-            try:
-                f_tex.write(texwrapper)
-            finally:
-                f_tex.close()
-            
-            # Exec pdflatex: tex -> pdf
-            exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
-            if not os.path.exists(self.tmp('pdf')):
-                raise RuntimeError("pdflatex didn't produce output")
+            f_tex.write(texwrapper)
         finally:
-            os.chdir(cwd)
+            f_tex.close()
+            
+        # Exec pdflatex: tex -> pdf
+        exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
+        if not os.path.exists(self.tmp('pdf')):
+            raise RuntimeError("pdflatex didn't produce output")
 
     def remove_temp_files(self):
         """Remove temporary files"""
@@ -606,8 +601,13 @@ class LatexConverterBase(object):
 
 class PdfConverterBase(LatexConverterBase):
     def convert(self, latex_text, preamble_file, scale_factor):
-        self.tex_to_pdf(latex_text, preamble_file)
-        self.pdf_to_svg()
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.tmp_path)
+            self.tex_to_pdf(latex_text, preamble_file)
+            self.pdf_to_svg()
+        finally:
+            os.chdir(cwd)
         
         new_node = self.svg_to_group()
         if not new_node:
