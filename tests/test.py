@@ -2,7 +2,7 @@
 import os, sys, unittest
 from lxml import etree
 
-BASEDIR = os.path.dirname(__file__)
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 TEST_FILE = os.path.join(BASEDIR, 'base.svg')
 TEST_OUTPUT = os.path.join(BASEDIR, 'out.svg')
 
@@ -35,6 +35,17 @@ def cmp_files(a, b):
         fb.close()
 
 class TestConverterOutput(unittest.TestCase):
+    def setUp(self):
+        self.cwd = os.getcwd()
+        try: 
+            os.chdir('/')
+            os.chdir('/usr/share')
+        except:
+            pass
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+
     def test_pdf2svg(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.Pdf2Svg]
@@ -58,3 +69,4 @@ class TestConverterOutput(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
