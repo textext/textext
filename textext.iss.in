@@ -1,9 +1,9 @@
 [Setup]
 AppName=Textext Inkscape extension
 AppId=Textext
-AppVerName=Textext Inkscape extension @VERSION
+AppVerName=Textext Inkscape extension @VERSION@
 AppVersion=@VERSION@
-VersionInfoVersion=@VERSION
+VersionInfoVersion=@VERSION@
 OutputBaseFilename=textext-@VERSION@
 
 DefaultDirName={pf}\Inkscape
