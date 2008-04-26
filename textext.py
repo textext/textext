@@ -5,7 +5,7 @@ textext
 =======
 
 :Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2008-04-22
+:Date: 2008-04-26
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -43,7 +43,7 @@ contributions.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.4.dev"
+__version__ = "0.4.1"
 __docformat__ = "restructuredtext en"
 
 import sys, os, glob, traceback
