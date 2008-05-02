@@ -73,7 +73,7 @@ except ImportError:
 
 USE_WINDOWS = ('win' in sys.platform) and not ('darwin' in sys.platform)
 
-TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext"
+TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
 XLINK_NS = u"http://www.w3.org/1999/xlink"
 
