@@ -610,7 +610,7 @@ class PdfConverterBase(LatexConverterBase):
             os.chdir(cwd)
         
         new_node = self.svg_to_group()
-        if not new_node:
+        if new_node is None:
             return None
         
         new_node.attrib['{%s}transform'%SVG_NS] = \
@@ -634,7 +634,7 @@ class PdfConverterBase(LatexConverterBase):
         tree = etree.parse(self.tmp('svg'))
         self.fix_xml_namespace(tree.getroot())
         try:
-            return tree.getroot().xpath('svg:g', NSS)[0]
+            return tree.getroot().xpath('svg:g', namespaces=NSS)[0]
         except IndexError:
             return None
 
@@ -751,11 +751,11 @@ class Pdf2Svg(PdfConverterBase):
         # Replace hrefs
         url_re = re.compile('^url\((.*)\)$')
 
-        for el in root.xpath('//*[attribute::xlink:href]', NSS):
+        for el in root.xpath('//*[attribute::xlink:href]', namespaces=NSS):
             href = el.attrib['{%s}href'%XLINK_NS]
             el.attrib['{%s}href'%XLINK_NS] = href_map.get(href, href)
 
-        for el in root.xpath('//*[attribute::svg:clip-path]', NSS):
+        for el in root.xpath('//*[attribute::svg:clip-path]', namespaces=NSS):
             value = el.attrib['{%s}clip-path'%SVG_NS]
             m = url_re.match(value)
             if m:
