@@ -8,3 +8,4 @@ textext.iss: textext.iss.in
 	sed -e 's/@VERSION@/$(VERSION)/' < textext.iss.in > textext.iss
 
 
+.PHONY: dist
