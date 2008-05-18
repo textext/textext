@@ -311,10 +311,10 @@ class TexText(inkex.Effect):
     def __init__(self):
         inkex.Effect.__init__(self)
         self.OptionParser.add_option(
-            "-t", "--text", action="store", type="str",
+            "-t", "--text", action="store", type="string",
             dest="text", default=None)
         self.OptionParser.add_option(
-            "-p", "--preamble-file", action="store", type="str",
+            "-p", "--preamble-file", action="store", type="string",
             dest="preamble_file", default="header.inc")
         self.OptionParser.add_option(
             "-s", "--scale-factor", action="store", type="float",
