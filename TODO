@@ -2,4 +2,6 @@
 - remember settings across runs
 - style specification (hg bundle from N.N.)
 - N.N.'s problems: no output ...
+- Behave sensibly when image doesn't have any layers.
+  There may be some problems with Pdf2svg backend there?
 
