@@ -383,7 +383,7 @@ class TexText(inkex.Effect):
             #       This caused some problems as Inkscape couldn't properly
             #       handle both svg: and prefixless entries in the same file
             #       in some cases.
-            new_node.attrib['transform'] = old_node.attrib['{%s}transform'%SVG_NS]
+            new_node.attrib['transform'] = old_node.attrib['transform']
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
 
