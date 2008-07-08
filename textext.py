@@ -379,12 +379,16 @@ class TexText(inkex.Effect):
                                        preamble_file.encode('string-escape')
 
         try:
-            new_node.attrib['transform'] = old_node.attrib['transform']
+            # Note: the new node does *not* have the SVG namespace prefixes!
+            #       This caused some problems as Inkscape couldn't properly
+            #       handle both svg: and prefixless entries in the same file
+            #       in some cases.
+            new_node.attrib['transform'] = old_node.attrib['{%s}transform'%SVG_NS]
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
 
         try:
-            new_node.attrib['transform'] = old_node.attrib['transform']
+            new_node.attrib['transform'] = old_node.attrib['{%s}transform'%SVG_NS]
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
         
