@@ -379,12 +379,12 @@ class TexText(inkex.Effect):
                                        preamble_file.encode('string-escape')
 
         try:
-            new_node.attrib['{%s}transform'%SVG_NS] = old_node.attrib['transform']
+            new_node.attrib['transform'] = old_node.attrib['transform']
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
 
         try:
-            new_node.attrib['{%s}transform'%SVG_NS] = old_node.attrib['{%s}transform'%SVG_NS]
+            new_node.attrib['transform'] = old_node.attrib['transform']
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
         
@@ -400,18 +400,18 @@ class TexText(inkex.Effect):
 
         for i in self.options.ids:
             node = self.selected[i]
-            if node.tag != '{%s}g'%SVG_NS: continue
+            if node.tag != 'g': continue
             
             if '{%s}text'%TEXTEXT_NS in node.attrib:
                 # starting from 0.2, use namespaces
                 return (node,
                         node.attrib.get('{%s}text'%TEXTEXT_NS, '').decode('string-escape'),
                         node.attrib.get('{%s}preamble'%TEXTEXT_NS, '').decode('string-escape'))
-            elif '{%s}text'%SVG_NS in node.attrib:
+            elif 'text' in node.attrib:
                 # < 0.2 backward compatibility
                 return (node,
-                        node.attrib.get('{%s}text'%SVG_NS, '').decode('string-escape'),
-                        node.attrib.get('{%s}preamble'%SVG_NS, '').decode('string-escape'))
+                        node.attrib.get('text', '').decode('string-escape'),
+                        node.attrib.get('preamble', '').decode('string-escape'))
         return None, "", ""
 
     def replace_node(self, old_node, new_node):
@@ -613,8 +613,7 @@ class PdfConverterBase(LatexConverterBase):
         if new_node is None:
             return None
         
-        new_node.attrib['{%s}transform'%SVG_NS] = \
-                                                self.get_transform(scale_factor)
+        new_node.attrib['transform'] = self.get_transform(scale_factor)
         return new_node
 
     def pdf_to_svg(self):
@@ -634,17 +633,20 @@ class PdfConverterBase(LatexConverterBase):
         tree = etree.parse(self.tmp('svg'))
         self.fix_xml_namespace(tree.getroot())
         try:
-            return tree.getroot().xpath('svg:g', namespaces=NSS)[0]
+            return copy.copy(tree.getroot().xpath('g')[0])
         except IndexError:
             return None
 
     def fix_xml_namespace(self, node):
-        if '{' not in node.tag:
-            node.tag = '{%s}%s' % (SVG_NS, node.tag)
+        svg = '{%s}' % SVG_NS
+        
+        if node.tag.startswith(svg):
+            node.tag = node.tag[len(svg):]
         
         for key in node.attrib.keys():
-            if '{' not in key:
-                node.attrib['{%s}%s' % (SVG_NS, key)] = node.attrib[key]
+            if key.startswith(svg):
+                new_key = key[len(svg):]
+                node.attrib[new_key] = node.attrib[key]
                 del node.attrib[key]
         
         for c in node:
@@ -743,10 +745,10 @@ class Pdf2Svg(PdfConverterBase):
 
         # Map items to new ids
         for i, el in enumerate(root.xpath('//*[attribute::id]')):
-            cur_id = el.attrib['{%s}id'%SVG_NS]
+            cur_id = el.attrib['id']
             new_id = "%s%s-%d" % (ID_PREFIX, self.hash, i)
             href_map['#' + cur_id] = "#" + new_id
-            el.attrib['{%s}id'%SVG_NS] = new_id
+            el.attrib['id'] = new_id
 
         # Replace hrefs
         url_re = re.compile('^url\((.*)\)$')
@@ -756,18 +758,18 @@ class Pdf2Svg(PdfConverterBase):
             el.attrib['{%s}href'%XLINK_NS] = href_map.get(href, href)
 
         for el in root.xpath('//*[attribute::svg:clip-path]', namespaces=NSS):
-            value = el.attrib['{%s}clip-path'%SVG_NS]
+            value = el.attrib['clip-path']
             m = url_re.match(value)
             if m:
-                el.attrib['{%s}clip-path'%SVG_NS] = \
+                el.attrib['clip-path'] = \
                     'url(%s)' % href_map.get(m.group(1), m.group(1))
 
         # Bundle everything in a single group
-        master_group = etree.SubElement(root, '{%s}g'%SVG_NS)
+        master_group = etree.SubElement(root, 'g')
         for c in root:
             if c is master_group: continue
             master_group.append(c)
-        
+
         return copy.copy(master_group)
 
     def available(cls):
