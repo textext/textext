@@ -49,21 +49,21 @@ class TestConverterOutput(unittest.TestCase):
     def test_pdf2svg(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.Pdf2Svg]
-        test.affect(['--text=test'])
+        test.affect(['--text=test', '-p', '', '-s', '1'])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-pdf2svg.svg'))
 
     def test_skconvert(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.SkConvert]
-        test.affect(['--text=test'])
+        test.affect(['--text=test', '-p', '', '-s', '1'])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-skconvert.svg'))
 
     def test_plotsvg(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.PstoeditPlotSvg]
-        test.affect(['--text=test'])
+        test.affect(['--text=test', '-p', '', '-s', '1'])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-plotsvg.svg'))
 
