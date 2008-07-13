@@ -17,8 +17,8 @@ This brings some of the power of TeX typesetting to Inkscape.
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
 
-Thanks to Robert Szalai, Rafal Kolanski and Brian Clarke for
-contributions.
+Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, and Florent Becker
+for contributions.
 
 .. note::
    Unfortunately, the TeX input dialog is modal. That is, you cannot
@@ -377,10 +377,12 @@ class TexText(inkex.Effect):
 
         # Insert into document
 
+        # -- Set textext attribs
         new_node.attrib['{%s}text'%TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble'%TEXTEXT_NS] = \
                                        preamble_file.encode('string-escape')
 
+        # -- Copy transform
         try:
             # Note: the new node does *not* have the SVG namespace prefixes!
             #       This caused some problems as Inkscape couldn't properly
@@ -394,7 +396,15 @@ class TexText(inkex.Effect):
             new_node.attrib['transform'] = old_node.attrib['{%s}transform'%SVG_NS]
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
-        
+
+        # -- Copy style
+        self.strip_attrib(new_node)
+        try:
+            new_node.attrib['style'] = old_node.attrib['style']
+        except (KeyError, IndexError, TypeError, AttributeError):
+            new_node.attrib['style'] = 'fill:#000000;fill-opacity:1;stroke:none;'
+
+        # -- Replace
         self.replace_node(old_node, new_node)
 
     def get_old(self):
@@ -432,6 +442,24 @@ class TexText(inkex.Effect):
             parent = old_node.getparent()
             parent.remove(old_node)
             parent.append(new_node)
+
+
+    STYLE_ATTRS = ['fill','fill-opacity','fill-rule',
+                   'font-size-adjust','font-stretch',
+                   'font-style','font-variant',
+                   'font-weight','letter-spacing',
+                   'stroke','stroke-dasharray',
+                   'stroke-linecap','stroke-linejoin',
+                   'stroke-miterlimit','stroke-opacity',
+                   'text-anchor','word-spacing','style']
+    
+    def strip_attrib(self, node, attrib=STYLE_ATTRS):
+        for k in node.attrib.keys():
+            if k in attrib:
+                del node.attrib[k]
+        for c in node:
+            self.strip_attrib(c, attrib)
+
         
 
 #------------------------------------------------------------------------------
