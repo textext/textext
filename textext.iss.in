@@ -16,7 +16,7 @@ OutputDir=.
 [Files]
 Source: textext.py; DestDir: "{app}\share\extensions"
 Source: textext.inx; DestDir: "{app}\share\extensions"
-Source: LICENSE.txt; DestDir: "{app}\share\extensions"; FileName: "textext-license.txt"
+Source: LICENSE.txt; DestDir: "{app}\share\extensions"; DestName: "textext-license.txt"
 Source: site-packages\*; DestDir: "{app}\python\Lib\site-packages"; Flags: recursesubdirs
 
 [Messages]
