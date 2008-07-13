@@ -414,12 +414,9 @@ class TexText(inkex.Effect):
             pass
 
         # -- Copy style
-        self.strip_attrib(new_node)
-        try:
-            new_node.attrib['style'] = old_node.attrib['style']
-        except (KeyError, IndexError, TypeError, AttributeError):
-            new_node.attrib['style'] = 'fill:#000000;fill-opacity:1;stroke:none;'
-
+        if old_node is not None:
+            self.copy_style(old_node, new_node)
+        
         # -- Replace
         self.replace_node(old_node, new_node)
 
@@ -476,14 +473,20 @@ class TexText(inkex.Effect):
                    'stroke-miterlimit','stroke-opacity',
                    'text-anchor','word-spacing','style']
     
-    def strip_attrib(self, node, attrib=STYLE_ATTRS):
-        for k in node.attrib.keys():
-            if k in attrib:
-                del node.attrib[k]
-        for c in node:
-            self.strip_attrib(c, attrib)
-
-        
+    def copy_style(self, old_node, new_node):
+        # XXX: Needs work...
+        #
+        #      We could try traversing the node tree downwards and
+        #      removing color-alteration from the attributes.
+        #      Not straightforward, need to read the SVG spec...
+        #
+        #      Removing style attributes does not work in general, because
+        #      at least pdf2svg relies on preserving the stroke attrs.
+        #
+        try:
+            new_node.attrib['style'] = old_node.attrib['style']
+        except (KeyError, IndexError, TypeError, AttributeError):
+            pass
 
 #------------------------------------------------------------------------------
 # Settings backend
