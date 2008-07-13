@@ -346,7 +346,7 @@ class TexText(inkex.Effect):
         # Ask for TeX code
         if self.options.text is None:
             # If there is a transform, scale in GUI will be ignored
-            if old_node:
+            if old_node is not None:
                 scale_factor = None
             else:
                 scale_factor = 1.0
