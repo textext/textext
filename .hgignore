@@ -9,3 +9,4 @@ tests/out.svg
 site-packages
 pygtk-inkscape46
 *.exe
+*.iss
