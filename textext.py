@@ -362,6 +362,9 @@ class TexText(inkex.Effect):
         if not text:
             return
 
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
+        
         # Convert
         converter = converter_cls(self.document)
         try:
