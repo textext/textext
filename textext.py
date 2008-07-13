@@ -360,6 +360,9 @@ class TexText(inkex.Effect):
 
             if not preamble_file:
                 preamble_file = self.options.preamble_file
+
+            if not os.path.isfile(preamble_file):
+                preamble_file = ""
             
             asker = AskText(text, preamble_file, scale_factor)
             asker.ask(lambda t, p, s: self.do_convert(t, p, s,
