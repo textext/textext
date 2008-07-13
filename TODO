@@ -1,2 +1,4 @@
 Things to do:
+- Preserve styles (color?) when re-editing.
+  Strip color-changing attrs from children?
 
