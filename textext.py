@@ -46,7 +46,7 @@ for contributions.
 __version__ = "0.4.2.dev"
 __docformat__ = "restructuredtext en"
 
-import sys, os, glob, traceback
+import sys, os, glob, traceback, platform
 sys.path.append('/usr/share/inkscape/extensions')
 sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
@@ -71,7 +71,7 @@ try:
 except ImportError:
     pass
 
-USE_WINDOWS = ('win' in sys.platform) and not ('darwin' in sys.platform)
+USE_WINDOWS = (platform.system() == "Windows")
 
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
@@ -86,7 +86,7 @@ NSS = {
 }
 
 #------------------------------------------------------------------------------
-# Inkscape plugin functionality & GUI
+# GUI
 #------------------------------------------------------------------------------
 
 if USE_GTK:
@@ -202,8 +202,9 @@ if USE_GTK:
                     self.preamble_file = ""
             else:
                 self.preamble_file = self._preamble.get_text()
-                
-            self.scale_factor = self._scale_adj.get_value()
+
+            if self.scale_factor is not None:
+                self.scale_factor = self._scale_adj.get_value()
             
             try:
                 self.callback(self.text, self.preamble_file, self.scale_factor)
@@ -264,7 +265,7 @@ elif USE_TK:
             label.pack(pady=2, padx=5, side="left", anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
-            if self.scale_factor:
+            if self.scale_factor is not None:
                 self._scale.set(self.scale_factor)
             else:
                 self._scale.set(1.0)
@@ -297,7 +298,8 @@ elif USE_TK:
         def cb_ok(self):
             self.text = self._text.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
-            self.scale_factor = self._scale.get()
+            if self.scale_factor is not None:
+                self.scale_factor = self._scale.get()
             self._frame.quit()
 
 else:
@@ -310,16 +312,21 @@ else:
 class TexText(inkex.Effect):
     def __init__(self):
         inkex.Effect.__init__(self)
+
+        self.settings = Settings()
+        
         self.OptionParser.add_option(
             "-t", "--text", action="store", type="string",
             dest="text", default=None)
         self.OptionParser.add_option(
             "-p", "--preamble-file", action="store", type="string",
-            dest="preamble_file", default="header.inc")
+            dest="preamble_file",
+            default=self.settings.get('preamble', str, ""))
         self.OptionParser.add_option(
             "-s", "--scale-factor", action="store", type="float",
-            dest="scale_factor", default=1.0)
-
+            dest="scale_factor",
+            default=self.settings.get('scale', float, 1.0))
+    
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
         global CONVERTERS
@@ -349,16 +356,22 @@ class TexText(inkex.Effect):
             if old_node is not None:
                 scale_factor = None
             else:
-                scale_factor = 1.0
+                scale_factor = self.options.scale_factor
+
+            if not preamble_file:
+                preamble_file = self.options.preamble_file
             
             asker = AskText(text, preamble_file, scale_factor)
-            asker.ask(lambda t, p, s: self.do_convert(t, p, s, converter_cls, old_node))
+            asker.ask(lambda t, p, s: self.do_convert(t, p, s,
+                                                      converter_cls, old_node))
         else:
             self.do_convert(self.options.text,
                             self.options.preamble_file,
                             self.options.scale_factor, converter_cls, old_node)
-    
-    def do_convert(self, text, preamble_file, scale_factor, converter_cls, old_node):
+
+    def do_convert(self, text, preamble_file, scale_factor, converter_cls,
+                   old_node):
+        
         if not text:
             return
 
@@ -407,6 +420,13 @@ class TexText(inkex.Effect):
         # -- Replace
         self.replace_node(old_node, new_node)
 
+        # -- Save settings
+        if os.path.isfile(preamble_file):
+            self.settings.set('preamble', preamble_file)
+        if scale_factor is not None:
+            self.settings.set('scale', scale_factor)
+        self.settings.save()
+    
     def get_old(self):
         """
         Dig out LaTeX code and name of preamble file from old
@@ -461,6 +481,88 @@ class TexText(inkex.Effect):
             self.strip_attrib(c, attrib)
 
         
+
+#------------------------------------------------------------------------------
+# Settings backend
+#------------------------------------------------------------------------------
+
+class Settings(object):
+    def __init__(self):
+        self.values = {}
+        
+        if USE_WINDOWS:
+            self.keyname = r"Software\TexText\TexText"
+        else:
+            self.filename = os.path.expanduser("~/.inkscape/textextrc")
+
+        self.load()
+    
+    def load(self):
+        if USE_WINDOWS:
+            import _winreg
+            try:
+                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname)
+            except:
+                return
+            try:
+                self.values = {}
+                for j in range(1000):
+                    try:
+                        name, data, dtype = _winreg.EnumValue(key, j)
+                    except EnvironmentError:
+                        break
+                    self.values[name] = str(data)
+            finally:
+                key.Close()
+        else:
+            try:
+                f = open(self.filename, 'r')
+            except (IOError, OSError):
+                return
+            try:
+                self.values = {}
+                for line in f.read().split("\n"):
+                    if not '=' in line: continue
+                    k, v = line.split("=", 1)
+                    self.values[k.strip()] = v.strip()
+            finally:
+                f.close()
+    
+    def save(self):
+        if USE_WINDOWS:
+            import _winreg
+            try:
+                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname,
+                                      sam=_winreg.KEY_SET_VALUE | _winreg.KEY_WRITE)
+            except:
+                key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, self.keyname)
+            try:
+                for k, v in self.values.iteritems():
+                    _winreg.SetValueEx(key, str(k), 0, _winreg.REG_SZ, str(v))
+            finally:
+                key.Close()
+        else:
+            d = os.path.dirname(self.filename)
+            if not os.path.isdir(d):
+                os.makedirs(d)
+            
+            f = open(self.filename, 'w')
+            try:
+                data = '\n'.join(["%s=%s" % (k,v)
+                                  for k,v in self.values.iteritems()])
+                f.write(data)
+            finally:
+                f.close()
+    
+    def get(self, key, typecast, default=None):
+        try:
+            return typecast(self.values[key])
+        except (KeyError, ValueError, TypeError):
+            return default
+
+    def set(self, key, value):
+        self.values[key] = str(value)
+
 
 #------------------------------------------------------------------------------
 # LaTeX converters
@@ -647,8 +749,9 @@ class PdfConverterBase(LatexConverterBase):
         new_node = self.svg_to_group()
         if new_node is None:
             return None
-        
-        new_node.attrib['transform'] = self.get_transform(scale_factor)
+
+        if scale_factor is not None:
+            new_node.attrib['transform'] = self.get_transform(scale_factor)
         return new_node
 
     def pdf_to_svg(self):
