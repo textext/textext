@@ -9,3 +9,6 @@ Things to do:
 
 - pstoedit problems; temp files and permissions on win32?
 
+- substitute ${PATH} with the directory where the processed file is in.
+  OR, instruct pdflatex to look stuff in a directory...
+
