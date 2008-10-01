@@ -208,7 +208,7 @@ if USE_GTK:
             
             try:
                 self.callback(self.text, self.preamble_file, self.scale_factor)
-            except RuntimeError, e:
+            except StandardError, e:
                 err_msg = traceback.format_exc()
                 dlg = gtk.Dialog("Textext Error", self._window, 
                                  gtk.DIALOG_MODAL)
@@ -340,7 +340,7 @@ class TexText(inkex.Effect):
                 conv_cls.available()
                 converter_cls = conv_cls
                 break
-            except RuntimeError, e:
+            except StandardError, e:
                 converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
         
         if not converter_cls:
