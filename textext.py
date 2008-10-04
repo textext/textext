@@ -854,10 +854,11 @@ class PstoeditPlotSvg(PdfConverterBase):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'],
                            ok_return_value=None)
-        if 'version 3.44' in out and 'Ubuntu':
+        if 'version 3.44' in out and 'Ubuntu' in out:
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
-        return 'plot-svg' in out
+        if 'plot-svg' not in out:
+            raise RuntimeError("Pstoedit not compiled with plot-svg support")
     available = classmethod(available)
 
 class Pdf2Svg(PdfConverterBase):
