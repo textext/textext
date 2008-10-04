@@ -43,7 +43,7 @@ for contributions.
 
 #------------------------------------------------------------------------------
 
-__version__ = "0.4.3.dev"
+__version__ = "0.4.4"
 __docformat__ = "restructuredtext en"
 
 import sys, os, glob, traceback, platform
