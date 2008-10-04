@@ -45,7 +45,7 @@ __version__ = "0.3.4"
 __author__ = "Pauli Virtanen <pav@iki.fi>, Robert Szalai <szalai@mm.bme.hu>"
 __docformat__ = "restructuredtext en"
 
-import sys, os
+import sys, os, platform
 sys.path.append('/usr/share/inkscape/extensions')
 sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
