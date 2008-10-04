@@ -71,13 +71,13 @@ try:
 except ImportError:
     pass
 
-USE_WINDOWS = ('win' in sys.platform)
+USE_WINDOWS = (platform.system() == "Windows")
 
 TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
 
-ID_PREFIX = "textext-obj-"
+ID_PREFIX = "textext-"
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality & GUI
@@ -251,7 +251,7 @@ class TexText(inkex.Effect):
                 conv_cls.available()
                 converter_cls = conv_cls
                 break
-            except RuntimeError, e:
+            except StandardError, e:
                 converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
         
         if not converter_cls:
@@ -612,7 +612,7 @@ class SkConvert(PdfConverterBase):
 
     def available(cls):
         """Check whether skconvert and pstoedit are available"""
-        out = exec_command(['pstoedit'], ok_return_value=PSTOEDIT_OK_RETURNCODE)
+        out = exec_command(['pstoedit'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
@@ -642,11 +642,12 @@ class PstoeditPlotSvg(PdfConverterBase):
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'],
-                           ok_return_value=PSTOEDIT_OK_RETURNCODE)
-        if 'version 3.44' in out and 'Ubuntu':
+                           ok_return_value=None)
+        if 'version 3.44' in out and 'Ubuntu' in out:
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
-            return 'plot-svg' in out
+        if 'plot-svg' not in out:
+            raise RuntimeError("Pstoedit not compiled with plot-svg support")
     available = classmethod(available)
 
 class Pdf2Svg(PdfConverterBase):
