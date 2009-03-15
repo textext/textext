@@ -52,8 +52,13 @@ sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
 
 import inkex
-import os, sys, tempfile, traceback, glob, re, md5, copy
+import os, sys, tempfile, traceback, glob, re, copy
 from lxml import etree
+
+try:
+    import hashlib
+except ImportError:
+    import md5 as hashlib
 
 USE_GTK = False
 try:
@@ -871,7 +876,7 @@ class Pdf2Svg(PdfConverterBase):
 
     def convert(self, *a, **kw):
         # compute hash for generating unique ids for sub-elements
-        self.hash = md5.new('%s%s' % (a, kw)).hexdigest()[:8]
+        self.hash = hashlib.md5('%s%s' % (a, kw)).hexdigest()[:8]
         return PdfConverterBase.convert(self, *a, **kw)
 
     def pdf_to_svg(self):
