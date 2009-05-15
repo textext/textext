@@ -264,7 +264,7 @@ class TexText(inkex.Effect):
         
         # Ask for TeX code
         if self.options.text is None:
-            asker = AskText(text, preamble_file, 1.0)
+            asker = AskText(text, preamble_file, self.options.scale_factor)
             text, preamble_file, scale_factor = asker.ask()
         else:
             text = self.options.text
