@@ -293,6 +293,17 @@ class TexText(inkex.Effect):
         new_node.setAttributeNS(TEXTEXT_NS, 'textext:preamble',
                                 preamble_file.encode('string-escape'))
 
+        # Work around probably bugs in several viewers that don't handle
+        # "stroke-width: 0;" style properly.
+        style = 'stroke-width: 0.0000001'
+        if new_node.hasAttribute('style'):
+            xstyle = new_node.getAttribute('style')
+            if 'stroke-width' not in xstyle:
+                style = xstyle + ';' + style
+            else:
+                style = xstyle
+        new_node.setAttribute('style', style)
+
         if old_node and old_node.hasAttribute('transform'):
             new_node.setAttribute('transform',
                                   old_node.getAttribute('transform'))
