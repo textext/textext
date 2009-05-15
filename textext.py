@@ -939,6 +939,8 @@ class SkConvert(PdfConverterBase):
     Convert PDF -> SK -> SVG using pstoedit and skconvert
     """
     def get_transform(self, scale_factor):
+        # Correct for SVG units -> points scaling
+        scale_factor *= 1.25
         return 'scale(%f,%f)' % (scale_factor, scale_factor)
 
     def pdf_to_svg(self):
@@ -972,9 +974,11 @@ class PstoeditPlotSvg(PdfConverterBase):
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
     def get_transform(self, scale_factor):
+        # Correct for SVG units -> points scaling
+        scale_factor *= 1.25
         return 'matrix(%f,0,0,%f,%f,%f)' % (
             scale_factor, -scale_factor,
-            -200*scale_factor, 750*scale_factor)
+            -200*scale_factor/1.25, 750*scale_factor/1.25)
     
     def pdf_to_svg(self):
         # Options for pstoedit command
@@ -1015,6 +1019,8 @@ class Pdf2Svg(PdfConverterBase):
         exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg'), '1'])
 
     def get_transform(self, scale_factor):
+        # Correct for SVG units -> points scaling
+        scale_factor *= 1.25
         return 'scale(%f,%f)' % (scale_factor, scale_factor)
 
     def svg_to_group(self):
