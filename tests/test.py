@@ -14,7 +14,7 @@ class EffectTester(textext.TexText):
         self._args = args
         return textext.TexText.affect(self)
     
-    def getoptions(self):
+    def getoptions(self, args):
         return textext.TexText.getoptions(self, self._args)
     
     def parse(self, file=None):
@@ -49,21 +49,21 @@ class TestConverterOutput(unittest.TestCase):
     def test_pdf2svg(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.Pdf2Svg]
-        test.affect(['--text=test', '-p', '', '-s', '1'])
+        test.affect(['--text=test', '-p', '', '-s', '1', '-w', ''])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-pdf2svg.svg'))
 
     def test_skconvert(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.SkConvert]
-        test.affect(['--text=test', '-p', '', '-s', '1'])
+        test.affect(['--text=test', '-p', '', '-s', '1', '-w', ''])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-skconvert.svg'))
 
     def test_plotsvg(self):
         test = EffectTester()
         textext.CONVERTERS = [textext.PstoeditPlotSvg]
-        test.affect(['--text=test', '-p', '', '-s', '1'])
+        test.affect(['--text=test', '-p', '', '-s', '1', '-w', ''])
         assert cmp_files(TEST_OUTPUT,
                          os.path.join(BASEDIR, 'out-plotsvg.svg'))
 

@@ -90,6 +90,91 @@ NSS = {
     u'xlink': XLINK_NS,
 }
 
+
+class ConvertInfo(object):
+    def __init__(self):
+        self.text = None
+        self.preamble_file = None
+        self.page_width = None
+        self.scale_factor = None
+        self.has_node = False
+
+    #--------------- Getters ----------------------
+
+    def get_text_encoded(self):
+        text = self.text
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
+        return text
+        
+
+    #--------------- Serialization ----------------------
+
+    def load_from_settings(self, settings):
+        self.preamble_file = settings.get("preamble_file", str, "")
+        self.scale_factor = settings.get("scale_factor", float, 1.0)
+        self.page_width = settings.get("page_width", str, "10cm")
+
+    def load_from_node(self, node):
+        self.has_node = True
+        if '{%s}text'%TEXTEXT_NS in node.attrib:
+            # starting from 0.2, use namespaces
+            self.load_from_node_ns(node, TEXTEXT_NS)
+
+        elif '{%s}text'%SVG_NS in node.attrib:
+            # < 0.2 backward compatibility
+            self.load_from_node_ns(node, SVG_NS)
+
+        else:
+            raise RuntimeError("Node %s has no textext text" % node)
+
+    def load_from_node_ns(self, node, ns):
+        self.has_node = True
+        self.text = node.attrib.get('{%s}text'%ns, '').decode('string-escape')
+        self.preamble_file = node.attrib.get('{%s}preamble'%ns, '').decode('string-escape')
+        self.page_width = node.attrib.get('{%s}page_width'%ns, '').decode('string-escape')
+
+    def load_from_options(self, options):
+        #Set from option if option is given
+        def get_opt(name):
+            if not getattr(options,name) is None:
+                setattr(self,name,getattr(options,name))
+        get_opt("text")
+        get_opt("preamble_file")
+        get_opt("page_width")
+        get_opt("scale_factor")
+
+        if self.text is None:
+            self.text = ""
+        
+        if not os.path.isfile(self.preamble_file):
+            self.preamble_file = ""
+
+    def save_to_node(self, node):
+        node.attrib['{%s}text'%TEXTEXT_NS] = self.text.encode('string-escape')
+        node.attrib['{%s}preamble'%TEXTEXT_NS] = \
+                                       self.preamble_file.encode('string-escape')
+        node.attrib['{%s}page_width'%TEXTEXT_NS] = \
+                                       self.page_width.encode('string-escape')
+
+
+    def save_to_settings(self, settings):
+        if os.path.isfile(self.preamble_file):
+            settings.set('preamble', self.preamble_file)
+        if self.scale_factor is not None:
+            settings.set('scale', self.scale_factor)
+        if self.page_width is not None:
+            settings.set('page_width', self.page_width)
+        settings.save()
+ 
+    def __str__(self):
+        return "%s %s %s %s" % (
+                 self.text,
+                 self.scale_factor,
+                 self.preamble_file,
+                 self.page_width,
+            )
+
 #------------------------------------------------------------------------------
 # GUI
 #------------------------------------------------------------------------------
@@ -97,10 +182,8 @@ NSS = {
 if USE_GTK:
     class AskText(object):
         """GUI for editing TexText objects"""
-        def __init__(self, text, preamble_file, scale_factor):
-            self.text = text
-            self.preamble_file = preamble_file
-            self.scale_factor = scale_factor
+        def __init__(self, info):
+            self.info = info
             self.callback = None
     
         def ask(self, callback):
@@ -113,29 +196,33 @@ if USE_GTK:
             label1 = gtk.Label(u"Preamble file:")
             label2 = gtk.Label(u"Scale factor:")
             label3 = gtk.Label(u"Text:")
+            label4 = gtk.Label(u"LaTeX page width:") 
 
 
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble = gtk.FileChooserButton("...")
-                if os.path.exists(self.preamble_file):
-                    self._preamble.set_filename(self.preamble_file)
+                if os.path.exists(self.info.preamble_file):
+                    self._preamble.set_filename(self.info.preamble_file)
                 self._preamble.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
             else:
                 self._preamble = gtk.Entry()
-                self._preamble.set_text(self.preamble_file)
+                self._preamble.set_text(self.info.preamble_file)
             
             self._scale_adj = gtk.Adjustment(lower=0.01, upper=100,
                                              step_incr=0.1, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj, digits=2)
             
-            if self.scale_factor is not None:
-                self._scale_adj.set_value(self.scale_factor)
+            if not self.info.has_node:
+                self._scale_adj.set_value(self.info.scale_factor)
             else:
                 self._scale_adj.set_value(1.0)
                 self._scale.set_sensitive(False)
+
+            self._page_width = gtk.Entry()
+            self._page_width.set_text(self.info.page_width)
             
             self._text = gtk.TextView()
-            self._text.get_buffer().set_text(self.text)
+            self._text.get_buffer().set_text(self.info.text)
 
             sw = gtk.ScrolledWindow()
             sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -146,13 +233,15 @@ if USE_GTK:
             self._cancel = gtk.Button(stock=gtk.STOCK_CANCEL)
     
             # layout
-            table = gtk.Table(3, 2, False)
-            table.attach(label1,         0,1,0,1,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._preamble, 1,2,0,1,yoptions=gtk.FILL)
-            table.attach(label2,         0,1,1,2,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._scale,    1,2,1,2,yoptions=gtk.FILL)
-            table.attach(label3,         0,1,2,3,xoptions=0,yoptions=gtk.FILL)
-            table.attach(sw,             1,2,2,3)
+            table = gtk.Table(3, 3, False)
+            table.attach(label1,          0,1,0,1,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._preamble,  1,2,0,1,yoptions=gtk.FILL)
+            table.attach(label4,          0,1,1,2,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._page_width,1,2,1,2,yoptions=gtk.FILL)
+            table.attach(label2,          0,1,2,3,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._scale,     1,2,2,3,yoptions=gtk.FILL)
+            table.attach(label3,          0,1,3,4,xoptions=0,yoptions=gtk.FILL)
+            table.attach(sw,              1,2,3,4)
     
             vbox = gtk.VBox(False, 5)
             vbox.pack_start(table)
@@ -180,8 +269,6 @@ if USE_GTK:
             self._window = window
             gtk.main()
     
-            return self.text, self.preamble_file, self.scale_factor
-    
         def cb_delete_event(self, widget, event, data=None):
             gtk.main_quit()
             return False
@@ -199,20 +286,23 @@ if USE_GTK:
         
         def cb_ok(self, widget, data=None):
             buf = self._text.get_buffer()
-            self.text = buf.get_text(buf.get_start_iter(),
+            self.info.text = buf.get_text(buf.get_start_iter(),
                                      buf.get_end_iter())
             if isinstance(self._preamble, gtk.FileChooser):
-                self.preamble_file = self._preamble.get_filename()
-                if not self.preamble_file:
-                    self.preamble_file = ""
+                self.info.preamble_file = self._preamble.get_filename()
+                if not self.info.preamble_file:
+                    self.info.preamble_file = ""
             else:
-                self.preamble_file = self._preamble.get_text()
+                self.info.preamble_file = self._preamble.get_text()
 
-            if self.scale_factor is not None:
-                self.scale_factor = self._scale_adj.get_value()
+            self.info.page_width = self._page_width.get_text() 
+
+            if not self.info.has_node:
+                self.info.scale_factor = self._scale_adj.get_value()
             
             try:
-                self.callback(self.text, self.preamble_file, self.scale_factor)
+                self.callback()
+
             except StandardError, e:
                 err_msg = traceback.format_exc()
                 dlg = gtk.Dialog("Textext Error", self._window, 
@@ -243,10 +333,8 @@ if USE_GTK:
 elif USE_TK:
     class AskText(object):
         """GUI for editing TexText objects"""
-        def __init__(self, text, preamble_file, scale_factor):
-            self.text = text
-            self.preamble_file = preamble_file
-            self.scale_factor = scale_factor
+        def __init__(self, info):
+            self.info = info
             self.callback = None
     
         def ask(self, callback):
@@ -262,16 +350,24 @@ elif USE_TK:
             label.pack(pady=2, padx=5, side="left", anchor="w")
             self._preamble = Tk.Entry(box)
             self._preamble.pack(expand=True, fill="x", pady=2, padx=5, side="right")
-            self._preamble.insert(Tk.END, self.preamble_file)
+            self._preamble.insert(Tk.END, self.info.preamble_file)
             box.pack(fill="x", expand=True)
-            
+
+            box = Tk.Frame(self._frame)
+            label = Tk.Label(box, text="LaTeX page width:")
+            label.pack(pady=2, padx=5, side="left", anchor="w")
+            self._page_width = Tk.Entry(box)
+            self._page_width.pack(expand=True, fill="x", pady=2, padx=5, side="right")
+            self._page_width.insert(Tk.END, self.info.page_width)
+            box.pack(fill="x", expand=True)
+ 
             box = Tk.Frame(self._frame)
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, side="left", anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
-            if self.scale_factor is not None:
-                self._scale.set(self.scale_factor)
+            if not self.info.has_node:
+                self._scale.set(self.info.scale_factor)
             else:
                 self._scale.set(1.0)
             box.pack(fill="x", expand=True)
@@ -281,7 +377,7 @@ elif USE_TK:
 
             self._text = Tk.Text(self._frame)
             self._text.pack(expand=True, fill="both", pady=5, padx=5)
-            self._text.insert(Tk.END, self.text)
+            self._text.insert(Tk.END, self.info.text)
            
             box = Tk.Frame(self._frame)
             self._btn = Tk.Button(box, text="OK", command=self.cb_ok)
@@ -294,17 +390,17 @@ elif USE_TK:
             
             root.mainloop()
             
-            self.callback(self.text, self.preamble_file, self.scale_factor)
-            return self.text, self.preamble_file, self.scale_factor
+            self.callback()
 
         def cb_cancel(self):
             raise SystemExit(1)
     
         def cb_ok(self):
-            self.text = self._text.get(1.0, Tk.END)
-            self.preamble_file = self._preamble.get()
-            if self.scale_factor is not None:
-                self.scale_factor = self._scale.get()
+            self.info.text = self._text.get(1.0, Tk.END)
+            self.info.preamble_file = self._preamble.get()
+            self.info.page_width = self._page_width.get()
+            if not self.info.has_node:
+                self.info.scale_factor = self._scale.get()
             self._frame.quit()
 
 else:
@@ -325,12 +421,13 @@ class TexText(inkex.Effect):
             dest="text", default=None)
         self.OptionParser.add_option(
             "-p", "--preamble-file", action="store", type="string",
-            dest="preamble_file",
-            default=self.settings.get('preamble', str, ""))
+            dest="preamble_file", default=None)
+        self.OptionParser.add_option(
+            "-w", "--page-width", action="store", type="string",
+            dest="page_width", default=None)
         self.OptionParser.add_option(
             "-s", "--scale-factor", action="store", type="float",
-            dest="scale_factor",
-            default=self.settings.get('scale', float, 1.0))
+            dest="scale_factor", default=None)
     
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
@@ -351,45 +448,37 @@ class TexText(inkex.Effect):
         if not converter_cls:
             raise RuntimeError("No Latex -> SVG converter available:\n%s"
                                % ';\n'.join(converter_errors))
-        
+       
+        #load default convert-info from settings
+        info = ConvertInfo()
+        info.load_from_settings(self.settings)
+
         # Find root element
-        old_node, text, preamble_file = self.get_old()
+        old_node = self.get_old()
+
+        #load convert info from old node
+        if not old_node is None:
+            info.load_from_node(old_node)
         
-        # Ask for TeX code
+        #override info with command line options
+        info.load_from_options(self.options)
+
+        #update convert info from GUI (if we're not supplied with text from cmd)
         if self.options.text is None:
-            # If there is a transform, scale in GUI will be ignored
-            if old_node is not None:
-                scale_factor = None
-            else:
-                scale_factor = self.options.scale_factor
-
-            if not preamble_file:
-                preamble_file = self.options.preamble_file
-
-            if not os.path.isfile(preamble_file):
-                preamble_file = ""
-            
-            asker = AskText(text, preamble_file, scale_factor)
-            asker.ask(lambda t, p, s: self.do_convert(t, p, s,
-                                                      converter_cls, old_node))
+            asker = AskText(info)
+            asker.ask(lambda: self.do_convert(info, converter_cls, old_node))
         else:
-            self.do_convert(self.options.text,
-                            self.options.preamble_file,
-                            self.options.scale_factor, converter_cls, old_node)
+            self.do_convert(info, converter_cls, old_node)
 
-    def do_convert(self, text, preamble_file, scale_factor, converter_cls,
-                   old_node):
-        
-        if not text:
+    def do_convert(self, info, converter_cls, old_node):
+        #must be some text to convert        
+        if not info.text:
             return
 
-        if isinstance(text, unicode):
-            text = text.encode('utf-8')
-        
         # Convert
         converter = converter_cls(self.document)
         try:
-            new_node = converter.convert(text, preamble_file, scale_factor)
+            new_node = converter.convert(info)
         finally:
             converter.finish()
         
@@ -399,9 +488,7 @@ class TexText(inkex.Effect):
         # Insert into document
 
         # -- Set textext attribs
-        new_node.attrib['{%s}text'%TEXTEXT_NS] = text.encode('string-escape')
-        new_node.attrib['{%s}preamble'%TEXTEXT_NS] = \
-                                       preamble_file.encode('string-escape')
+        info.save_to_node(new_node)
 
         # -- Copy transform
         try:
@@ -426,35 +513,30 @@ class TexText(inkex.Effect):
         self.replace_node(old_node, new_node)
 
         # -- Save settings
-        if os.path.isfile(preamble_file):
-            self.settings.set('preamble', preamble_file)
-        if scale_factor is not None:
-            self.settings.set('scale', scale_factor)
-        self.settings.save()
-    
+        info.save_to_settings(self.settings)
+   
     def get_old(self):
         """
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :Returns: (old_node, latex_text, preamble_file_name)
+        :Returns: (old_node, ConvertInfo)
         """
-
+        
+        info = ConvertInfo()
         for i in self.options.ids:
             node = self.selected[i]
             if node.tag != '{%s}g' % SVG_NS: continue
             
             if '{%s}text'%TEXTEXT_NS in node.attrib:
                 # starting from 0.2, use namespaces
-                return (node,
-                        node.attrib.get('{%s}text'%TEXTEXT_NS, '').decode('string-escape'),
-                        node.attrib.get('{%s}preamble'%TEXTEXT_NS, '').decode('string-escape'))
+                return node
+
             elif '{%s}text'%SVG_NS in node.attrib:
                 # < 0.2 backward compatibility
-                return (node,
-                        node.attrib.get('{%s}text'%SVG_NS, '').decode('string-escape'),
-                        node.attrib.get('{%s}preamble'%SVG_NS, '').decode('string-escape'))
-        return None, "", ""
+                return node
+
+        return None
 
     def replace_node(self, old_node, new_node):
         """
@@ -656,16 +738,17 @@ class LatexConverterBase(object):
         self.tmp_path = tempfile.mkdtemp()
         self.tmp_base = 'tmp'
 
-    def convert(self, latex_text, preamble_file, scale_factor):
+    def convert(self, info):
         """
         Return an XML node containing latex text
 
         :Parameters:
-          - `latex_text`: Latex code to use
-          - `preamble_file`: Name of a preamble file to include
-          - `scale_factor`: Scale factor to use if object doesn't have
-                            a ``transform`` attribute.
-
+            - info ConvertInfo object containing
+              - `latex_text`: Latex code to use
+              - `preamble_file`: Name of a preamble file to include
+              - `scale_factor`: Scale factor to use if object doesn't have
+                                a ``transform`` attribute.
+    
         :Returns: XML DOM node
         """
         raise NotImplementedError
@@ -693,33 +776,58 @@ class LatexConverterBase(object):
         return os.path.join(self.tmp_path,
                             self.tmp_base + '.' + suffix)
 
-    def tex_to_pdf(self, latex_text, preamble_file):
+    def tex_to_pdf(self, info):
         """
         Create a PDF file from latex text
         """
         
         # Read preamble
         preamble = ""
-        if os.path.isfile(preamble_file):
-            f = open(preamble_file, 'r')
+        if os.path.isfile(info.preamble_file):
+            f = open(info.preamble_file, 'r')
             preamble += f.read()
             f.close()
-        
+
+        latex_text = info.text
+        #if latex_text is a file, use the file content instead
+        if os.path.isfile(latex_text):
+            f = open(latex_text, 'r')
+            latex_text = f.read()
+            f.close()
+
+        width = info.page_width
+        height = "400cm" # probably large enough
+
         # Options pass to LaTeX-related commands
         latexOpts = ['-interaction=nonstopmode',
                      '-halt-on-error']
-        
+      
+        geometryStr = ""
+        documentClassAttrs = "[a0paper,landscape]"
+        if len(str(width)) > 0:
+            documentClassAttrs = ""
+            geometryStr = """\usepackage[
+                                left=0cm,
+                                top=0cm,
+                                right=0cm,
+                                nohead,
+                                nofoot,
+                                papersize={%s,%s}
+                                ]{geometry}""" % (width, height)
+
         texwrapper = r"""
-        \documentclass[landscape,a0]{article}
+        \documentclass%s{article}
+        %s
         %s
         \pagestyle{empty}
         \begin{document}
         \noindent
         %s
         \end{document}
-        """ % (preamble, latex_text)
-        
+        """ % (documentClassAttrs, geometryStr, preamble, latex_text)
+
         # Convert TeX to PDF
+        #print texwrapper
 
         # Write tex
         f_tex = open(self.tmp('tex'), 'w')
@@ -748,11 +856,11 @@ class LatexConverterBase(object):
             os.rmdir(filename)
 
 class PdfConverterBase(LatexConverterBase):
-    def convert(self, latex_text, preamble_file, scale_factor):
+    def convert(self, info):
         cwd = os.getcwd()
         try:
             os.chdir(self.tmp_path)
-            self.tex_to_pdf(latex_text, preamble_file)
+            self.tex_to_pdf(info)
             self.pdf_to_svg()
         finally:
             os.chdir(cwd)
@@ -761,8 +869,8 @@ class PdfConverterBase(LatexConverterBase):
         if new_node is None:
             return None
 
-        if scale_factor is not None:
-            new_node.attrib['transform'] = self.get_transform(scale_factor)
+        if info.scale_factor is not None:
+            new_node.attrib['transform'] = self.get_transform(info.scale_factor)
         return new_node
 
     def pdf_to_svg(self):
