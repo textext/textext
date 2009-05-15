@@ -424,6 +424,23 @@ class TexText(inkex.Effect):
         if old_node is not None:
             self.copy_style(old_node, new_node)
         
+        # -- Work around probable bugs in several viewers that don't handle
+        #    "stroke-width: 0;" style properly.
+        style = 'stroke-width: 0.0000001'
+        try:
+            xstyle = new_node.attrib['style']
+        except KeyError:
+            try:
+                xstyle = new_node.attrib['{%s}style'%SVG_NS]
+                del new_node.attrib['{%s}style'%SVG_NS]
+            except KeyError:
+                xstyle = ""
+        if 'stroke-width' not in xstyle:
+            style = xstyle + ';' + style
+        else:
+            style = xstyle
+        new_node.attrib['style'] = style
+
         # -- Replace
         self.replace_node(old_node, new_node)
 
