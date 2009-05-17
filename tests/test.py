@@ -13,8 +13,8 @@ class EffectTester(textext.TexText):
     def affect(self, args):
         self._args = args
         return textext.TexText.affect(self)
-    
-    def getoptions(self, args):
+
+    def getoptions(self, args=sys.argv[1:]):
         return textext.TexText.getoptions(self, self._args)
     
     def parse(self, file=None):
