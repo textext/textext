@@ -90,91 +90,6 @@ NSS = {
     u'xlink': XLINK_NS,
 }
 
-
-class ConvertInfo(object):
-    def __init__(self):
-        self.text = None
-        self.preamble_file = None
-        self.page_width = None
-        self.scale_factor = None
-        self.has_node = False
-
-    #--------------- Getters ----------------------
-
-    def get_text_encoded(self):
-        text = self.text
-        if isinstance(text, unicode):
-            text = text.encode('utf-8')
-        return text
-        
-
-    #--------------- Serialization ----------------------
-
-    def load_from_settings(self, settings):
-        self.preamble_file = settings.get("preamble_file", str, "")
-        self.scale_factor = settings.get("scale_factor", float, 1.0)
-        self.page_width = settings.get("page_width", str, "10cm")
-
-    def load_from_node(self, node):
-        self.has_node = True
-        if '{%s}text'%TEXTEXT_NS in node.attrib:
-            # starting from 0.2, use namespaces
-            self.load_from_node_ns(node, TEXTEXT_NS)
-
-        elif '{%s}text'%SVG_NS in node.attrib:
-            # < 0.2 backward compatibility
-            self.load_from_node_ns(node, SVG_NS)
-
-        else:
-            raise RuntimeError("Node %s has no textext text" % node)
-
-    def load_from_node_ns(self, node, ns):
-        self.has_node = True
-        self.text = node.attrib.get('{%s}text'%ns, '').decode('string-escape')
-        self.preamble_file = node.attrib.get('{%s}preamble'%ns, '').decode('string-escape')
-        self.page_width = node.attrib.get('{%s}page_width'%ns, '').decode('string-escape')
-
-    def load_from_options(self, options):
-        #Set from option if option is given
-        def get_opt(name):
-            if not getattr(options,name) is None:
-                setattr(self,name,getattr(options,name))
-        get_opt("text")
-        get_opt("preamble_file")
-        get_opt("page_width")
-        get_opt("scale_factor")
-
-        if self.text is None:
-            self.text = ""
-        
-        if not os.path.isfile(self.preamble_file):
-            self.preamble_file = ""
-
-    def save_to_node(self, node):
-        node.attrib['{%s}text'%TEXTEXT_NS] = self.text.encode('string-escape')
-        node.attrib['{%s}preamble'%TEXTEXT_NS] = \
-                                       self.preamble_file.encode('string-escape')
-        node.attrib['{%s}page_width'%TEXTEXT_NS] = \
-                                       self.page_width.encode('string-escape')
-
-
-    def save_to_settings(self, settings):
-        if os.path.isfile(self.preamble_file):
-            settings.set('preamble', self.preamble_file)
-        if self.scale_factor is not None:
-            settings.set('scale', self.scale_factor)
-        if self.page_width is not None:
-            settings.set('page_width', self.page_width)
-        settings.save()
- 
-    def __str__(self):
-        return "%s %s %s %s" % (
-                 self.text,
-                 self.scale_factor,
-                 self.preamble_file,
-                 self.page_width,
-            )
-
 #------------------------------------------------------------------------------
 # GUI
 #------------------------------------------------------------------------------
@@ -721,6 +636,98 @@ if USE_WINDOWS:
         
     os.environ['PATH'] = os.path.pathsep.join(paths)
 
+
+class ConvertInfo(object):
+    def __init__(self):
+        self.text = None
+        self.preamble_file = None
+        self.page_width = None
+        self.scale_factor = None
+        self.has_node = False
+
+    def hash(self):
+        s = "%s\n%s\n%s\n%s" % (
+            self.text, self.preamble_file,
+            self.page_width, self.scale_factor)
+        return hashlib.md5(s).hexdigest()[:8]
+
+    #--------------- Getters ----------------------
+
+    def get_text_encoded(self):
+        text = self.text
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
+        return text
+        
+
+    #--------------- Serialization ----------------------
+
+    def load_from_settings(self, settings):
+        self.preamble_file = settings.get("preamble_file", str, "")
+        self.scale_factor = settings.get("scale_factor", float, 1.0)
+        self.page_width = settings.get("page_width", str, "10cm")
+
+    def load_from_node(self, node):
+        self.has_node = True
+        if '{%s}text'%TEXTEXT_NS in node.attrib:
+            # starting from 0.2, use namespaces
+            self.load_from_node_ns(node, TEXTEXT_NS)
+
+        elif '{%s}text'%SVG_NS in node.attrib:
+            # < 0.2 backward compatibility
+            self.load_from_node_ns(node, SVG_NS)
+
+        else:
+            raise RuntimeError("Node %s has no textext text" % node)
+
+    def load_from_node_ns(self, node, ns):
+        self.has_node = True
+        self.text = node.attrib.get('{%s}text'%ns, '').decode('string-escape')
+        self.preamble_file = node.attrib.get('{%s}preamble'%ns, '').decode('string-escape')
+        self.page_width = node.attrib.get('{%s}page_width'%ns, '').decode('string-escape')
+
+    def load_from_options(self, options):
+        #Set from option if option is given
+        def get_opt(name):
+            if not getattr(options,name) is None:
+                setattr(self,name,getattr(options,name))
+        get_opt("text")
+        get_opt("preamble_file")
+        get_opt("page_width")
+        get_opt("scale_factor")
+
+        if self.text is None:
+            self.text = ""
+        
+        if not os.path.isfile(self.preamble_file):
+            self.preamble_file = ""
+
+    def save_to_node(self, node):
+        node.attrib['{%s}text'%TEXTEXT_NS] = self.text.encode('string-escape')
+        node.attrib['{%s}preamble'%TEXTEXT_NS] = \
+                                       self.preamble_file.encode('string-escape')
+        node.attrib['{%s}page_width'%TEXTEXT_NS] = \
+                                       self.page_width.encode('string-escape')
+
+
+    def save_to_settings(self, settings):
+        if os.path.isfile(self.preamble_file):
+            settings.set('preamble', self.preamble_file)
+        if self.scale_factor is not None:
+            settings.set('scale', self.scale_factor)
+        if self.page_width is not None:
+            settings.set('page_width', self.page_width)
+        settings.save()
+ 
+    def __str__(self):
+        return "%s %s %s %s" % (
+                 self.text,
+                 self.scale_factor,
+                 self.preamble_file,
+                 self.page_width,
+            )
+
+
 class LatexConverterBase(object):
     """
     Base class for Latex -> SVG converters
@@ -982,10 +989,10 @@ class Pdf2Svg(PdfConverterBase):
         PdfConverterBase.__init__(self, document)
         self.hash = None
 
-    def convert(self, *a, **kw):
+    def convert(self, info):
         # compute hash for generating unique ids for sub-elements
-        self.hash = hashlib.md5('%s%s' % (a, kw)).hexdigest()[:8]
-        return PdfConverterBase.convert(self, *a, **kw)
+        self.hash = info.hash()
+        return PdfConverterBase.convert(self, info)
 
     def pdf_to_svg(self):
         exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg'), '1'])
