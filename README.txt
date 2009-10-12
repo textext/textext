@@ -25,6 +25,9 @@ LaTeX code. The dialog has two additional fields:
 
 - Whether to do text-to-path conversion.
 
+  Note that if you want to have real text objects in your SVG files, you need
+  to have Truetype/OTF/etc. versions of the Latex font set installed.
+
 Afterwards, the object can be re-edited by selecting it and choosing Effects ->
 Tex Text again.
 
@@ -40,9 +43,9 @@ Installation
 On Linux, you'll need to have pdflatex and one of the following installed:
 
 - Inkscape >= 0.47
+- Pdf2svg (the one by David Barton & Matthew Flaschen, not the one by PDFtron)
 - Pstoedit with its plot-svg back-end compiled in, or,
 - Pstoedit and Skconvert, or,
-- Pdf2svg (the one by David Barton & Matthew Flaschen, not the one by PDFtron)
 
 Unpack the newest version of the Textext package and copy its files to
 ``~/.config/inkscape/extensions/``. If you are using Inkscape version earlier than
