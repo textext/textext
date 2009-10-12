@@ -489,7 +489,8 @@ class TexText(inkex.Effect):
             except KeyError:
                 xstyle = ""
         if 'stroke-width' not in xstyle:
-            style = xstyle + ';' + style
+            if xstyle.strip():
+                style = xstyle + ';' + style
         else:
             style = xstyle
         new_node.attrib['style'] = style
