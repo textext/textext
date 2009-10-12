@@ -647,10 +647,18 @@ if USE_WINDOWS:
 
     program_files = os.environ.get('PROGRAMFILES')
     if program_files:
+        # Guess some paths
         paths += glob.glob(os.path.join(program_files, 'gs/gs*/bin'))
         paths += glob.glob(os.path.join(program_files, 'pstoedit*'))
         paths += glob.glob(os.path.join(program_files, 'miktex*/miktex/bin'))
-        
+
+        # FIXME: a better solution would be to look them up from the registry
+
+    # The path where Inkscape is likely to be
+    paths += [os.path.join(os.abspath(os.dirname(sys.argv[0])),
+                           '..', '..', '..', 'bin')]
+
+    # Set the paths
     os.environ['PATH'] = os.path.pathsep.join(paths)
 
 
