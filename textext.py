@@ -716,8 +716,7 @@ if USE_WINDOWS:
         # FIXME: a better solution would be to look them up from the registry
 
     # The path where Inkscape is likely to be
-    paths += [os.path.join(os.abspath(os.dirname(sys.argv[0])),
-                           '..', '..', '..', 'bin')]
+    paths += [os.path.join(os.abspath(os.dirname(sys.argv[0])), '..', '..')]
 
     # Set the paths
     os.environ['PATH'] = os.path.pathsep.join(paths)
