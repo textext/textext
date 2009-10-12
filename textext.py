@@ -47,13 +47,14 @@ __version__ = "0.4.dev"
 __docformat__ = "restructuredtext en"
 
 import sys, os, glob, traceback, platform
+import shutil, tempfile, re, copy
+
 sys.path.append('/usr/share/inkscape/extensions')
 sys.path.append(r'c:/Program Files/Inkscape/share/extensions')
 sys.path.append(os.path.dirname(__file__))
 
-import inkex
-import os, sys, tempfile, traceback, glob, re, copy
 from lxml import etree
+import inkex
 
 try:
     import hashlib
@@ -100,7 +101,7 @@ if USE_GTK:
         def __init__(self, info):
             self.info = info
             self.callback = None
-    
+
         def ask(self, callback):
             self.callback = callback
             
@@ -108,11 +109,11 @@ if USE_GTK:
             window.set_title("TeX Text")
             window.set_default_size(600, 400)
     
-            label1 = gtk.Label(u"Preamble file:")
-            label2 = gtk.Label(u"Scale factor:")
-            label3 = gtk.Label(u"Text:")
-            label4 = gtk.Label(u"LaTeX page width:") 
-
+            label_preamble = gtk.Label(u"Preamble file:")
+            label_scale = gtk.Label(u"Scale factor:")
+            label_text = gtk.Label(u"Text:")
+            label_text_to_path = gtk.Label(u"Text to path:")
+            label_page_width = gtk.Label(u"LaTeX page width:")
 
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble = gtk.FileChooserButton("...")
@@ -135,7 +136,10 @@ if USE_GTK:
 
             self._page_width = gtk.Entry()
             self._page_width.set_text(self.info.page_width)
-            
+
+            self._text_to_path = gtk.CheckButton()
+            self._text_to_path.set_active(self.info.text_to_path)
+
             self._text = gtk.TextView()
             self._text.get_buffer().set_text(self.info.text)
 
@@ -148,16 +152,23 @@ if USE_GTK:
             self._cancel = gtk.Button(stock=gtk.STOCK_CANCEL)
     
             # layout
-            table = gtk.Table(3, 3, False)
-            table.attach(label1,          0,1,0,1,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._preamble,  1,2,0,1,yoptions=gtk.FILL)
-            table.attach(label4,          0,1,1,2,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._page_width,1,2,1,2,yoptions=gtk.FILL)
-            table.attach(label2,          0,1,2,3,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._scale,     1,2,2,3,yoptions=gtk.FILL)
-            table.attach(label3,          0,1,3,4,xoptions=0,yoptions=gtk.FILL)
-            table.attach(sw,              1,2,3,4)
-    
+            table = gtk.Table(5, 2, False)
+
+            table.attach(label_preamble,     0,1,0,1,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._preamble,     1,2,0,1,yoptions=gtk.FILL)
+
+            table.attach(label_scale,        0,1,1,2,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._scale,        1,2,1,2,yoptions=gtk.FILL)
+
+            table.attach(label_page_width,   0,1,2,3,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._page_width,   1,2,2,3,yoptions=gtk.FILL)
+
+            table.attach(label_text_to_path, 0,1,3,4,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._text_to_path, 1,2,3,4,yoptions=gtk.FILL)
+
+            table.attach(label_text,         0,1,4,5,xoptions=0,yoptions=gtk.FILL)
+            table.attach(sw,                 1,2,4,5)
+
             vbox = gtk.VBox(False, 5)
             vbox.pack_start(table)
             
@@ -210,7 +221,8 @@ if USE_GTK:
             else:
                 self.info.preamble_file = self._preamble.get_text()
 
-            self.info.page_width = self._page_width.get_text() 
+            self.info.page_width = self._page_width.get_text()
+            self.info.text_to_path = self._text_to_path.get_active()
 
             if not self.info.has_node:
                 self.info.scale_factor = self._scale_adj.get_value()
@@ -287,12 +299,30 @@ elif USE_TK:
                 self._scale.set(1.0)
             box.pack(fill="x", expand=True)
             
+            box = Tk.Frame(self._frame)
+            label = Tk.Label(box, text="Text to path:")
+            label.pack(pady=2, padx=5, side="left", anchor="w")
+            self._text_to_path = Tk.IntVar(int(self.info.text_to_path))
+            btn = Tk.Checkbutton(box, variable=self._text_to_path)
+            btn.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
+            box.pack(fill="x", expand=True)
+
             label = Tk.Label(self._frame, text="Text:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            self._text = Tk.Text(self._frame)
-            self._text.pack(expand=True, fill="both", pady=5, padx=5)
+
+            box = Tk.Frame(self._frame)
+            scrollbar = Tk.Scrollbar(box)
+            scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+
+            self._text = Tk.Text(box)
+            self._text.pack(expand=True, side=Tk.LEFT, fill="both", pady=5, padx=5)
             self._text.insert(Tk.END, self.info.text)
+
+            self._text.config(yscrollcommand=scrollbar.set)
+            scrollbar.config(command=self._text.yview)
+
+            box.pack(fill="x", expand=True)
            
             box = Tk.Frame(self._frame)
             self._btn = Tk.Button(box, text="OK", command=self.cb_ok)
@@ -301,19 +331,51 @@ elif USE_TK:
             self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
             self._cancel.pack(ipadx=30, ipady=4, pady=5, padx=5, side="right")
 
-            box.pack(expand=False)
-            
-            root.mainloop()
-            
-            self.callback()
+            box.pack(expand=True)
+
+            while True:
+                root.mainloop()
+                try:
+                    self.callback()
+                    return
+                except StandardError, e:
+                    err = traceback.format_exc()
+
+                    dlg = Tk.Toplevel()
+                    dlg.title("Error")
+
+                    msg = Tk.Message(dlg, text=u"Error occurred while converting text from Latex to SVG:")
+                    msg.pack(expand=True, fill=Tk.X, padx=5)
+
+                    box = Tk.Frame(dlg)
+                    scrollbar = Tk.Scrollbar(box)
+                    scrollbar.pack(side=Tk.RIGHT, fill=Tk.Y)
+                    txt = Tk.Text(box)
+                    txt.pack(expand=True, fill="both", pady=5, padx=5)
+                    txt.insert(Tk.END, err)
+                    txt.config(yscrollcommand=scrollbar.set)
+                    scrollbar.config(command=txt.yview)
+                    box.pack()
+
+                    btn = Tk.Button(dlg, text="OK", command=dlg.destroy)
+                    btn.pack()
+                    dlg.mainloop()
 
         def cb_cancel(self):
             raise SystemExit(1)
     
         def cb_ok(self):
-            self.info.text = self._text.get(1.0, Tk.END)
-            self.info.preamble_file = self._preamble.get()
-            self.info.page_width = self._page_width.get()
+            def stru(s):
+                if isinstance(s, unicode):
+                    return s.encode('utf-8')
+                else:
+                    return s
+
+            self.info.text = stru(self._text.get(1.0, Tk.END))
+            self.info.preamble_file = stru(self._preamble.get())
+            self.info.page_width = stru(self._page_width.get())
+            self.info.text_to_path = bool(self._text_to_path.get())
+
             if not self.info.has_node:
                 self.info.scale_factor = self._scale.get()
             self._frame.quit()
@@ -343,60 +405,51 @@ class TexText(inkex.Effect):
         self.OptionParser.add_option(
             "-s", "--scale-factor", action="store", type="float",
             dest="scale_factor", default=None)
-    
+        self.OptionParser.add_option(
+            "-T", "--text-to-path", action="store_true",
+            dest="text_to_path", default=None)
+        self.OptionParser.add_option(
+            "--no-text-to-path", action="store_false",
+            dest="text_to_path", default=None)
+
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        global CONVERTERS
-
-        # Pick a converter
-        converter_errors = []
-        
-        converter_cls = None
-        for conv_cls in CONVERTERS:
-            try:
-                conv_cls.available()
-                converter_cls = conv_cls
-                break
-            except StandardError, e:
-                converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
-        
-        if not converter_cls:
-            raise RuntimeError("No Latex -> SVG converter available:\n%s"
-                               % ';\n'.join(converter_errors))
-       
-        #load default convert-info from settings
+        # Load default convert info from settings
         info = ConvertInfo()
         info.load_from_settings(self.settings)
 
         # Find root element
         old_node = self.get_old()
 
-        #load convert info from old node
+        # Load convert info from old node
         if not old_node is None:
             info.load_from_node(old_node)
-        
-        #override info with command line options
+
+        # Override info with command line options
         info.load_from_options(self.options)
 
-        #update convert info from GUI (if we're not supplied with text from cmd)
+        # Update convert info from GUI (if we're not supplied with text from cmd)
         if self.options.text is None:
             asker = AskText(info)
-            asker.ask(lambda: self.do_convert(info, converter_cls, old_node))
+            asker.ask(lambda: self.do_convert(info, old_node))
         else:
-            self.do_convert(info, converter_cls, old_node)
+            self.do_convert(info, old_node)
 
-    def do_convert(self, info, converter_cls, old_node):
-        #must be some text to convert        
+    def do_convert(self, info, old_node):
+        # Must have some text to convert
         if not info.text:
             return
 
         # Convert
-        converter = converter_cls(self.document)
+        converter = None
         try:
+            converter_cls = info.get_converter_cls()
+            converter = converter_cls(self.document)
             new_node = converter.convert(info)
         finally:
-            converter.finish()
-        
+            if converter is not None:
+                converter.finish()
+
         if new_node is None:
             return # noop
 
@@ -521,7 +574,7 @@ class Settings(object):
             self.filename = os.path.expanduser("~/.inkscape/textextrc")
 
         self.load()
-    
+
     def load(self):
         if USE_WINDOWS:
             import _winreg
@@ -552,7 +605,7 @@ class Settings(object):
                     self.values[k.strip()] = v.strip()
             finally:
                 f.close()
-    
+
     def save(self):
         if USE_WINDOWS:
             import _winreg
@@ -573,8 +626,9 @@ class Settings(object):
             
             f = open(self.filename, 'w')
             try:
-                data = '\n'.join(["%s=%s" % (k,v)
-                                  for k,v in self.values.iteritems()])
+                data = '\n'.join(["%s = %s" % (k, v)
+                                  for k, v in self.values.iteritems()])
+                data += '\n'
                 f.write(data)
             finally:
                 f.close()
@@ -669,39 +723,63 @@ class ConvertInfo(object):
         self.page_width = None
         self.scale_factor = None
         self.has_node = False
+        self.text_to_path = False
+        self.available_converters = []
+
+        self._find_converters()
+
+    def _find_converters(self):
+        converter_errors = []
+        for conv_cls in CONVERTERS:
+            try:
+                conv_cls.available()
+                self.available_converters.append(conv_cls)
+            except StandardError, e:
+                converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
+
+        if not self.available_converters:
+            raise RuntimeError(("No Latex -> SVG converter available:\n%s\n\n"
+                                "TexText does not work without one.")
+                               % ';\n'.join(converter_errors))
+
+    def get_converter_cls(self):
+        for cls in self.available_converters:
+            if cls.text_to_path == self.text_to_path:
+                return cls
+        raise RuntimeError("No converter supporting the chosen 'Text to path' setting "
+                           "was found. Toggle the option and try again.")
 
     def hash(self):
-        s = "%s\n%s\n%s\n%s" % (
+        s = "%s\n%s\n%s\n%s\n%d" % (
             self.text, self.preamble_file,
-            self.page_width, self.scale_factor)
+            self.page_width, self.scale_factor,
+            self.text_to_path)
         return hashlib.md5(s).hexdigest()[:8]
 
-    #--------------- Getters ----------------------
+    #-- Getters
 
     def get_text_encoded(self):
         text = self.text
         if isinstance(text, unicode):
             text = text.encode('utf-8')
         return text
-        
 
-    #--------------- Serialization ----------------------
+    #-- Serialization
 
     def load_from_settings(self, settings):
         self.preamble_file = settings.get("preamble_file", str, "")
         self.scale_factor = settings.get("scale_factor", float, 1.0)
         self.page_width = settings.get("page_width", str, "10cm")
+        self.text_to_path = settings.get("text_to_path", bool, False)
 
     def load_from_node(self, node):
         self.has_node = True
-        if '{%s}text'%TEXTEXT_NS in node.attrib:
+        if '{%s}text' % TEXTEXT_NS in node.attrib:
             # starting from 0.2, use namespaces
             self.load_from_node_ns(node, TEXTEXT_NS)
-
-        elif '{%s}text'%SVG_NS in node.attrib:
+        elif '{%s}text' % SVG_NS in node.attrib:
             # < 0.2 backward compatibility
             self.load_from_node_ns(node, SVG_NS)
-
         else:
             raise RuntimeError("Node %s has no textext text" % node)
 
@@ -712,14 +790,16 @@ class ConvertInfo(object):
         self.page_width = node.attrib.get('{%s}page_width'%ns, '').decode('string-escape')
 
     def load_from_options(self, options):
-        #Set from option if option is given
+        # Set from option if option is given
         def get_opt(name):
-            if not getattr(options,name) is None:
-                setattr(self,name,getattr(options,name))
+            if not getattr(options, name) is None:
+                setattr(self, name, getattr(options, name))
+
         get_opt("text")
         get_opt("preamble_file")
         get_opt("page_width")
         get_opt("scale_factor")
+        get_opt("text_to_path")
 
         if self.text is None:
             self.text = ""
@@ -734,7 +814,6 @@ class ConvertInfo(object):
         node.attrib['{%s}page_width'%TEXTEXT_NS] = \
                                        self.page_width.encode('string-escape')
 
-
     def save_to_settings(self, settings):
         if os.path.isfile(self.preamble_file):
             settings.set('preamble', self.preamble_file)
@@ -742,15 +821,17 @@ class ConvertInfo(object):
             settings.set('scale', self.scale_factor)
         if self.page_width is not None:
             settings.set('page_width', self.page_width)
+        if self.text_to_path is not None:
+            settings.set('text_to_path', self.text_to_path)
         settings.save()
  
     def __str__(self):
-        return "%s %s %s %s" % (
+        return "%s %s %s %s %s" % (
                  self.text,
                  self.scale_factor,
                  self.preamble_file,
                  self.page_width,
-            )
+                 self.text_to_path)
 
 
 class LatexConverterBase(object):
@@ -888,6 +969,9 @@ class LatexConverterBase(object):
             os.rmdir(filename)
 
 class PdfConverterBase(LatexConverterBase):
+
+    text_to_path = True
+
     def convert(self, info):
         cwd = os.getcwd()
         try:
@@ -1082,14 +1166,15 @@ class Inkscape(PdfConverterBase):
     Convert PDF -> SVG using Inkscape
     """
 
+    text_to_path = False
+
     INKSCAPE = os.environ.get('INKSCAPE', 'inkscape')
 
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
 
     def pdf_to_svg(self):
-        exec_command([self.INKSCAPE,
-                      '--export-plain-svg=%s' % self.tmp('svg'),
+        exec_command([self.INKSCAPE, '--export-plain-svg=%s' % self.tmp('svg'),
                       self.tmp('pdf')])
 
     def get_transform(self, scale_factor):
@@ -1099,24 +1184,51 @@ class Inkscape(PdfConverterBase):
                 scale_factor, scale_factor,
                 0, 11328.62*scale_factor)
 
-    def available(cls):
-        """Check whether inkscape is sufficiently new and found"""
-        out = exec_command([cls.INKSCAPE, '--version'], ok_return_value=None)
+    def _get_version(cls):
+        out = exec_command([cls.INKSCAPE, '--version'])
         m = re.search(r'(\d+)\.(\d+)', out)
         if m:
             major = int(m.group(1))
             minor = int(m.group(2))
             dev = '+devel' in out
-
-            if major > 0 or major == 0 and (minor >= 47 or minor >= 46 and dev):
-                return
-
-            raise RuntimeError('Inkscape %d.%d found, but it is too old' % (major, minor))
+            return major, minor, dev
         raise RuntimeError('Inkscape could not be located')
+    _get_version = classmethod(_get_version)
+
+    def available(cls):
+        """Check whether inkscape is sufficiently new and found"""
+        major, minor, dev = cls._get_version()
+        if major > 0 or major == 0 and (minor >= 47 or minor >= 46 and dev):
+            return
+        raise RuntimeError('Inkscape %d.%d found, but it is too old' % (major, minor))
     available = classmethod(available)
 
+class InkscapePath(Inkscape):
+    """
+    Convert PDF -> SVG using Inkscape, with text-to-path applied first
 
-CONVERTERS = [Inkscape, Pdf2Svg, PstoeditPlotSvg, SkConvert]
+    This is currently quite slow, as we invoke Inkscape twice.
+    """
+
+    text_to_path = True
+
+    def pdf_to_svg(self):
+        # FIXME: inkscape bug #168616 prevents us from doing
+        #    inkscape -z --verb=EditSelectAll --verb=ObjectToPath --verb FileSave
+        # so we need to invoke inkscape twice
+        shutil.move(self.tmp('pdf'), self.tmp('2.pdf'))
+        exec_command([self.INKSCAPE, '-T',
+                      '--export-pdf=%s' % self.tmp('pdf'),
+                      self.tmp('2.pdf')])
+        Inkscape.pdf_to_svg(self)
+
+CONVERTERS = [
+    # Using fonts:
+    Inkscape,
+
+    # Doing text-to-path:
+    Pdf2Svg, PstoeditPlotSvg, SkConvert, InkscapePath
+]
 
 #------------------------------------------------------------------------------
 # Entry point
