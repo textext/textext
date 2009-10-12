@@ -773,10 +773,21 @@ class ConvertInfo(object):
     #-- Serialization
 
     def load_from_settings(self, settings):
+        def str_to_bool(x):
+            try:
+                return bool(int(x))
+            except ValueError:
+                pass
+            if x.lower() in ('true', 'yes'):
+                return True
+            elif x.lower() ('false', 'no'):
+                return False
+            raise ValueError(x)
+
         self.preamble_file = settings.get("preamble_file", str, "")
         self.scale_factor = settings.get("scale_factor", float, 1.0)
         self.page_width = settings.get("page_width", str, "10cm")
-        self.text_to_path = settings.get("text_to_path", bool, False)
+        self.text_to_path = settings.get("text_to_path", str_to_bool, False)
 
     def load_from_node(self, node):
         self.has_node = True
