@@ -946,6 +946,7 @@ class SkConvert(PdfConverterBase):
     """
     Convert PDF -> SK -> SVG using pstoedit and skconvert
     """
+
     def get_transform(self, scale_factor):
         # Correct for SVG units -> points scaling
         scale_factor *= 1.25
@@ -981,13 +982,14 @@ class PstoeditPlotSvg(PdfConverterBase):
     """
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
+
     def get_transform(self, scale_factor):
         # Correct for SVG units -> points scaling
         scale_factor *= 1.25
         return 'matrix(%f,0,0,%f,%f,%f)' % (
             scale_factor, -scale_factor,
             -200*scale_factor/1.25, 750*scale_factor/1.25)
-    
+
     def pdf_to_svg(self):
         # Options for pstoedit command
         pstoeditOpts = '-dt -ssp -psarg -r9600x9600'.split()
@@ -1014,6 +1016,7 @@ class Pdf2Svg(PdfConverterBase):
     """
     Convert PDF -> SVG using pdf2svg
     """
+
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
         self.hash = None
@@ -1073,7 +1076,43 @@ class Pdf2Svg(PdfConverterBase):
         exec_command(['pdf2svg'], ok_return_value=254)
     available = classmethod(available)
 
-CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
+
+class Inkscape(PdfConverterBase):
+    """
+    Convert PDF -> SVG using Inkscape
+    """
+
+    def __init__(self, document):
+        PdfConverterBase.__init__(self, document)
+        self.inkscape = os.environ.get('INKSCAPE', 'inkscape')
+
+    def pdf_to_svg(self):
+        exec_command([self.inkscape,
+                      '--export-area-drawing', '--export-text-to-path',
+                      '--export-plain-svg=%s' % self.tmp.svg,
+                      self.tmp('pdf')])
+
+    def get_transform(self, scale_factor):
+        return 'scale(%f,%f)' % (scale_factor, scale_factor)
+
+    def available(cls):
+        """Check whether inkscape is sufficiently new and found"""
+        out = exec_command([self.inkscape, '--version'], ok_return_value=None)
+        m = re.match(r'(\d+)\.(\d+)', out)
+        if m:
+            major = int(m.group(1))
+            minor = int(m.group(2))
+            dev = '+devel' in out
+
+            if major > 0 or (major == 0 and minor >= 46):
+                return
+
+            raise RuntimeError('Inkscape %d.%d found, but it is too old' % (major, minor))
+        raise RuntimeError('Inkscape could not be located')
+    available = classmethod(available)
+
+
+CONVERTERS = [Inkscape, Pdf2Svg, PstoeditPlotSvg, SkConvert]
 
 #------------------------------------------------------------------------------
 # Entry point
