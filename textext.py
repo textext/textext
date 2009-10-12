@@ -1082,29 +1082,33 @@ class Inkscape(PdfConverterBase):
     Convert PDF -> SVG using Inkscape
     """
 
+    INKSCAPE = os.environ.get('INKSCAPE', 'inkscape')
+
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
-        self.inkscape = os.environ.get('INKSCAPE', 'inkscape')
 
     def pdf_to_svg(self):
-        exec_command([self.inkscape,
-                      '--export-area-drawing', '--export-text-to-path',
-                      '--export-plain-svg=%s' % self.tmp.svg,
+        exec_command([self.INKSCAPE,
+                      '--export-plain-svg=%s' % self.tmp('svg'),
                       self.tmp('pdf')])
 
     def get_transform(self, scale_factor):
-        return 'scale(%f,%f)' % (scale_factor, scale_factor)
+        # Correct for SVG units -> points scaling
+        scale_factor *= 1.25
+        return 'matrix(%f,0,0,-%f,%f,%f)' % (
+                scale_factor, scale_factor,
+                0, 11328.62*scale_factor)
 
     def available(cls):
         """Check whether inkscape is sufficiently new and found"""
-        out = exec_command([self.inkscape, '--version'], ok_return_value=None)
-        m = re.match(r'(\d+)\.(\d+)', out)
+        out = exec_command([cls.INKSCAPE, '--version'], ok_return_value=None)
+        m = re.search(r'(\d+)\.(\d+)', out)
         if m:
             major = int(m.group(1))
             minor = int(m.group(2))
             dev = '+devel' in out
 
-            if major > 0 or (major == 0 and minor >= 46):
+            if major > 0 or major == 0 and (minor >= 47 or minor >= 46 and dev):
                 return
 
             raise RuntimeError('Inkscape %d.%d found, but it is too old' % (major, minor))
