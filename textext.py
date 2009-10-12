@@ -567,11 +567,17 @@ class TexText(inkex.Effect):
 class Settings(object):
     def __init__(self):
         self.values = {}
-        
+
+        dir_1 = os.path.expanduser("~/.config/inkscape")
+        dir_2 = os.path.expanduser("~/.inkscape")
+
         if USE_WINDOWS:
             self.keyname = r"Software\TexText\TexText"
+        elif os.path.isdir(dir_1):
+            # Since Inkscape 0.47
+            self.filename = os.path.join(dir_1, "textextrc")
         else:
-            self.filename = os.path.expanduser("~/.inkscape/textextrc")
+            self.filename = os.path.join(dir_2, "textextrc")
 
         self.load()
 
