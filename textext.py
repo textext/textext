@@ -489,7 +489,8 @@ class TexText(inkex.Effect):
             except KeyError:
                 xstyle = ""
         if 'stroke-width' not in xstyle:
-            style = xstyle + ';' + style
+            if xstyle.strip():
+                style = xstyle + ';' + style
         else:
             style = xstyle
         new_node.attrib['style'] = style
@@ -715,8 +716,7 @@ if USE_WINDOWS:
         # FIXME: a better solution would be to look them up from the registry
 
     # The path where Inkscape is likely to be
-    paths += [os.path.join(os.abspath(os.dirname(sys.argv[0])),
-                           '..', '..', '..', 'bin')]
+    paths += [os.path.join(os.abspath(os.dirname(sys.argv[0])), '..', '..')]
 
     # Set the paths
     os.environ['PATH'] = os.path.pathsep.join(paths)
