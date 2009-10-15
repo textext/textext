@@ -910,7 +910,7 @@ class LatexConverterBase(object):
         """
         Create a PDF file from latex text
         """
-        
+
         # Read preamble
         preamble = ""
         if os.path.isfile(info.preamble_file):
@@ -918,58 +918,52 @@ class LatexConverterBase(object):
             preamble += f.read()
             f.close()
 
+        # If latex_text is a file, use the file content instead
         latex_text = info.text
-        #if latex_text is a file, use the file content instead
         if os.path.isfile(latex_text):
             f = open(latex_text, 'r')
             latex_text = f.read()
             f.close()
 
+        # Geometry and document class
         width = info.page_width
         height = "400cm" # probably large enough
+        geometry = ""
+        document_class = r"\documentclass[a0paper,landscape]{article}"
+        if width:
+            document_class = r"\documentclass{article}"
+            geometry = (("\usepackage[left=0cm, top=0cm, right=0cm, nohead, "
+                         "nofoot, papersize={%s,%s} ]{geometry}") 
+                        % (width, height))
 
-        # Options pass to LaTeX-related commands
-        latexOpts = ['-interaction=nonstopmode',
-                     '-halt-on-error']
-      
-        geometryStr = ""
-        documentClassAttrs = "[a0paper,landscape]"
-        if len(str(width)) > 0:
-            documentClassAttrs = ""
-            geometryStr = """\usepackage[
-                                left=0cm,
-                                top=0cm,
-                                right=0cm,
-                                nohead,
-                                nofoot,
-                                papersize={%s,%s}
-                                ]{geometry}""" % (width, height)
+        if r"\documentclass" in preamble:
+            document_class = ""
 
+        # Write the template to a file
         texwrapper = r"""
-        \documentclass%s{article}
-        %s
-        %s
+        %(document_class)s
+        %(preamble)s
+        %(geometry)s
         \pagestyle{empty}
         \begin{document}
         \noindent
-        %s
+        %(latex_text)s
         \end{document}
-        """ % (documentClassAttrs, geometryStr, preamble, latex_text)
+        """ % locals()
 
-        # Convert TeX to PDF
-        #print texwrapper
-
-        # Write tex
         f_tex = open(self.tmp('tex'), 'w')
         try:
             f_tex.write(texwrapper)
         finally:
             f_tex.close()
-            
+
+        # Options pass to LaTeX-related commands
+        latex_opts = ['-interaction=nonstopmode', '-halt-on-error']
+
         # Exec pdflatex: tex -> pdf
-        exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
+        out = exec_command(['pdflatex', self.tmp('tex')] + latex_opts)
         if not os.path.exists(self.tmp('pdf')):
-            raise RuntimeError("pdflatex didn't produce output")
+            raise RuntimeError("pdflatex didn't produce output:\n\n" + out)
 
     def remove_temp_files(self):
         """Remove temporary files"""
