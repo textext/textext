@@ -116,8 +116,8 @@ if USE_GTK:
             label_page_width = gtk.Label(u"LaTeX page width:")
 
             if hasattr(gtk, 'FileChooserButton'):
-                self._preamble = gtk.FileChooserButton("...")
-                if os.path.exists(self.info.preamble_file):
+                self._preamble = gtk.FileChooserButton("Preamble file")
+                if os.path.isfile(self.info.preamble_file):
                     self._preamble.set_filename(self.info.preamble_file)
                 self._preamble.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
             else:
@@ -784,8 +784,8 @@ class ConvertInfo(object):
                 return False
             raise ValueError(x)
 
-        self.preamble_file = settings.get("preamble_file", str, "")
-        self.scale_factor = settings.get("scale_factor", float, 1.0)
+        self.preamble_file = settings.get("preamble", str, "")
+        self.scale_factor = settings.get("scale", float, 1.0)
         self.page_width = settings.get("page_width", str, "10cm")
         self.text_to_path = settings.get("text_to_path", str_to_bool, False)
 
@@ -833,13 +833,13 @@ class ConvertInfo(object):
 
     def save_to_settings(self, settings):
         if os.path.isfile(self.preamble_file):
-            settings.set('preamble', self.preamble_file)
+            settings.set("preamble", self.preamble_file)
         if self.scale_factor is not None:
-            settings.set('scale', self.scale_factor)
+            settings.set("scale", self.scale_factor)
         if self.page_width is not None:
-            settings.set('page_width', self.page_width)
+            settings.set("page_width", self.page_width)
         if self.text_to_path is not None:
-            settings.set('text_to_path', self.text_to_path)
+            settings.set("text_to_path", self.text_to_path)
         settings.save()
  
     def __str__(self):
