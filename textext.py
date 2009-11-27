@@ -430,6 +430,9 @@ class TexText(inkex.Effect):
         self.OptionParser.add_option(
             "--no-text-to-path", action="store_false",
             dest="text_to_path", default=None)
+        self.OptionParser.add_option(
+            "-c", "--converter", action="store", type="string",
+            dest="selected_converter", default=None)
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
@@ -749,9 +752,10 @@ class ConvertInfo(object):
         self.scale_factor = None
         self.has_node = False
         self.text_to_path = False
+        self.selected_converter = None
+
         self.available_converters = []
         self.unavailable_converters = []
-        self.selected_converter = None
 
         self._find_converters()
 
@@ -817,6 +821,7 @@ class ConvertInfo(object):
         self.scale_factor = settings.get("scale", float, 1.0)
         self.page_width = settings.get("page_width", str, "10cm")
         self.text_to_path = settings.get("text_to_path", str_to_bool, False)
+        self.selected_converter = settings.get("selected_converter", str, "")
 
     def load_from_node(self, node):
         self.has_node = True
@@ -846,6 +851,7 @@ class ConvertInfo(object):
         get_opt("page_width")
         get_opt("scale_factor")
         get_opt("text_to_path")
+        get_opt("selected_converter")
 
         if self.text is None:
             self.text = ""
@@ -869,15 +875,18 @@ class ConvertInfo(object):
             settings.set("page_width", self.page_width)
         if self.text_to_path is not None:
             settings.set("text_to_path", self.text_to_path)
+        if self.selected_converter is not None:
+            settings.set("selected_converter", self.selected_converter)
         settings.save()
  
     def __str__(self):
-        return "%s %s %s %s %s" % (
+        return "%s %s %s %s %s %s" % (
                  self.text,
                  self.scale_factor,
                  self.preamble_file,
                  self.page_width,
-                 self.text_to_path)
+                 self.text_to_path,
+                 self.selected_converter)
 
 
 class LatexConverterBase(object):
