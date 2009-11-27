@@ -1307,7 +1307,8 @@ class MatplotlibSVG(PdfConverterBase):
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
-        fig.text(0., 0., self._get_text(info), ha='left', va='top')
+        fig.patch.set_visible(False)
+        fig.text(0., 1., self._get_text(info), ha='left', va='top')
         plt.savefig(self.tmp('svg'))
 
     def get_transform(self, scale_factor):
