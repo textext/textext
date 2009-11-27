@@ -738,7 +738,7 @@ class ConvertInfo(object):
         converter_errors = []
         for conv_cls in CONVERTERS:
             try:
-                conv_cls.available()
+                conv_cls.check_available()
                 self.available_converters.append(conv_cls)
             except StandardError, e:
                 converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
@@ -883,12 +883,12 @@ class LatexConverterBase(object):
         """
         raise NotImplementedError
 
-    def available(cls):
+    def check_available(cls):
         """
         :Returns: Check if converter is available, raise RuntimeError if not
         """
         pass
-    available = classmethod(available)
+    check_available = classmethod(check_available)
 
     def finish(self):
         """
@@ -1064,14 +1064,14 @@ class SkConvert(PdfConverterBase):
         if not os.path.exists(self.tmp('svg')):
             raise RuntimeError("skconvert didn't produce output")
 
-    def available(cls):
+    def check_available(cls):
         """Check whether skconvert and pstoedit are available"""
         out = exec_command(['pstoedit'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
             raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
                                "contains too many bugs to be usable")
         exec_command(['skconvert'], ok_return_value=1)
-    available = classmethod(available)
+    check_available = classmethod(check_available)
 
 class PstoeditPlotSvg(PdfConverterBase):
     """
@@ -1096,7 +1096,7 @@ class PstoeditPlotSvg(PdfConverterBase):
         if not os.path.exists(self.tmp('svg')):
             raise RuntimeError("pstoedit didn't produce output")
 
-    def available(cls):
+    def check_available(cls):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'],
                            ok_return_value=None)
@@ -1105,7 +1105,7 @@ class PstoeditPlotSvg(PdfConverterBase):
                                "contains too many bugs to be usable")
         if 'plot-svg' not in out:
             raise RuntimeError("Pstoedit not compiled with plot-svg support")
-    available = classmethod(available)
+    check_available = classmethod(check_available)
 
 class Pdf2Svg(PdfConverterBase):
     """
@@ -1166,10 +1166,10 @@ class Pdf2Svg(PdfConverterBase):
 
         return copy.copy(master_group)
 
-    def available(cls):
+    def check_available(cls):
         """Check whether pdf2svg is available, raise RuntimeError if not"""
         exec_command(['pdf2svg'], ok_return_value=254)
-    available = classmethod(available)
+    check_available = classmethod(check_available)
 
 
 class Inkscape(PdfConverterBase):
@@ -1206,13 +1206,13 @@ class Inkscape(PdfConverterBase):
         raise RuntimeError('Inkscape could not be located')
     _get_version = classmethod(_get_version)
 
-    def available(cls):
+    def check_available(cls):
         """Check whether inkscape is sufficiently new and found"""
         major, minor, dev = cls._get_version()
         if major > 0 or major == 0 and (minor >= 47 or minor >= 46 and dev):
             return
         raise RuntimeError('Inkscape %d.%d found, but it is too old' % (major, minor))
-    available = classmethod(available)
+    check_available = classmethod(check_available)
 
 class InkscapePath(Inkscape):
     """
