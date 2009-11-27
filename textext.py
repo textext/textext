@@ -112,7 +112,7 @@ if USE_GTK:
             label_preamble = gtk.Label(u"Preamble file:")
             label_scale = gtk.Label(u"Scale factor:")
             label_text = gtk.Label(u"Text:")
-            label_text_to_path = gtk.Label(u"Text to path:")
+            label_converter = gtk.Label(u"Converter:")
             label_page_width = gtk.Label(u"LaTeX page width:")
 
             if hasattr(gtk, 'FileChooserButton'):
@@ -137,8 +137,17 @@ if USE_GTK:
             self._page_width = gtk.Entry()
             self._page_width.set_text(self.info.page_width)
 
-            self._text_to_path = gtk.CheckButton()
-            self._text_to_path.set_active(self.info.text_to_path)
+            self._converter = gtk.combo_box_new_text()
+            for conv in self.info.available_converters:
+                self._converter.append_text(conv.name)
+            for conv in self.info.unavailable_converters:
+                self._converter.append_text(conv.name
+                                            + ' [NOT AVAILABLE CURRENTLY]')
+            self._converter.set_active(0)
+            for j, conv in enumerate(self.info.available_converters):
+                if conv.name == self.info.selected_converter:
+                    self._converter.set_active(j)
+                    break
 
             self._text = gtk.TextView()
             self._text.get_buffer().set_text(self.info.text)
@@ -163,8 +172,8 @@ if USE_GTK:
             table.attach(label_page_width,   0,1,2,3,xoptions=0,yoptions=gtk.FILL)
             table.attach(self._page_width,   1,2,2,3,yoptions=gtk.FILL)
 
-            table.attach(label_text_to_path, 0,1,3,4,xoptions=0,yoptions=gtk.FILL)
-            table.attach(self._text_to_path, 1,2,3,4,yoptions=gtk.FILL)
+            table.attach(label_converter,    0,1,3,4,xoptions=0,yoptions=gtk.FILL)
+            table.attach(self._converter,    1,2,3,4,yoptions=gtk.FILL)
 
             table.attach(label_text,         0,1,4,5,xoptions=0,yoptions=gtk.FILL)
             table.attach(sw,                 1,2,4,5)
@@ -222,7 +231,13 @@ if USE_GTK:
                 self.info.preamble_file = self._preamble.get_text()
 
             self.info.page_width = self._page_width.get_text()
-            self.info.text_to_path = self._text_to_path.get_active()
+
+            j = self._converter.get_active()
+            try:
+                self.info.selected_converter = \
+                    self.info.available_converters[j].name
+            except IndexError:
+                self.info.selected_converter = None
 
             if not self.info.has_node:
                 self.info.scale_factor = self._scale_adj.get_value()
@@ -300,11 +315,15 @@ elif USE_TK:
             box.pack(fill="x", expand=True)
             
             box = Tk.Frame(self._frame)
-            label = Tk.Label(box, text="Text to path:")
+            label = Tk.Label(box, text="Converter:")
             label.pack(pady=2, padx=5, side="left", anchor="w")
-            self._text_to_path = Tk.IntVar(int(self.info.text_to_path))
-            btn = Tk.Checkbutton(box, variable=self._text_to_path)
-            btn.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
+            cvs = ([conv.name for conv in self.info.available_converters]
+                   + [conv.name + " [NOT AVAILABLE CURRENTLY]"
+                      for conv in self.info.unavailable_converters])
+            self._converter = Tk.StringVar()
+            self._converter.set(cvs[0])
+            opt = Tk.OptionMenu(box, self._converter, *cvs)
+            opt.pack(expand=True, fill="x", pady=2, padx=5, anchor="e")
             box.pack(fill="x", expand=True)
 
             label = Tk.Label(self._frame, text="Text:")
@@ -374,7 +393,7 @@ elif USE_TK:
             self.info.text = stru(self._text.get(1.0, Tk.END))
             self.info.preamble_file = stru(self._preamble.get())
             self.info.page_width = stru(self._page_width.get())
-            self.info.text_to_path = bool(self._text_to_path.get())
+            self.info.selected_converter = bool(self._converter.get())
 
             if not self.info.has_node:
                 self.info.scale_factor = self._scale.get()
@@ -731,6 +750,8 @@ class ConvertInfo(object):
         self.has_node = False
         self.text_to_path = False
         self.available_converters = []
+        self.unavailable_converters = []
+        self.selected_converter = None
 
         self._find_converters()
 
@@ -741,6 +762,7 @@ class ConvertInfo(object):
                 conv_cls.check_available()
                 self.available_converters.append(conv_cls)
             except StandardError, e:
+                self.unavailable_converters.append(conv_cls)
                 converter_errors.append("%s: %s" % (conv_cls.__name__, str(e)))
 
         if not self.available_converters:
@@ -749,9 +771,16 @@ class ConvertInfo(object):
                                % ';\n'.join(converter_errors))
 
     def get_converter_cls(self):
+        # Try to find the selected one
+        for cls in self.available_converters:
+            if cls.name == self.selected_converter:
+                return cls
+
+        # Try to use one conforming to the chosen text-to-path setting
         for cls in self.available_converters:
             if cls.text_to_path == self.text_to_path:
                 return cls
+
         raise RuntimeError("No converter supporting the chosen 'Text to path' setting "
                            "was found. Toggle the option and try again.")
 
@@ -890,6 +919,14 @@ class LatexConverterBase(object):
         pass
     check_available = classmethod(check_available)
 
+    def is_available(cls):
+        try:
+            cls.check_available()
+            return True
+        except StandardError:
+            return False
+    is_available = classmethod(is_available)
+
     def finish(self):
         """
         Clean up any temporary files
@@ -906,6 +943,14 @@ class LatexConverterBase(object):
         return os.path.join(self.tmp_path,
                             self.tmp_base + '.' + suffix)
 
+    def _get_text(self, info):
+        latex_text = info.text
+        if os.path.isfile(latex_text):
+            f = open(latex_text, 'r')
+            latex_text = f.read()
+            f.close()
+        return latex_text
+
     def tex_to_pdf(self, info):
         """
         Create a PDF file from latex text
@@ -919,11 +964,7 @@ class LatexConverterBase(object):
             f.close()
 
         # If latex_text is a file, use the file content instead
-        latex_text = info.text
-        if os.path.isfile(latex_text):
-            f = open(latex_text, 'r')
-            latex_text = f.read()
-            f.close()
+        latex_text = self._get_text(info)
 
         # Geometry and document class
         width = info.page_width
@@ -977,7 +1018,10 @@ class LatexConverterBase(object):
         if os.path.isfile(filename):
             os.remove(filename)
         elif os.path.isdir(filename):
-            os.rmdir(filename)
+            try:
+                os.rmdir(filename)
+            except OSError:
+                pass
 
 class PdfConverterBase(LatexConverterBase):
 
@@ -1042,6 +1086,9 @@ class SkConvert(PdfConverterBase):
     Convert PDF -> SK -> SVG using pstoedit and skconvert
     """
 
+    name = "Skconvert"
+    text_to_path = True
+
     def get_transform(self, scale_factor):
         # Correct for SVG units -> points scaling
         scale_factor *= 1.25
@@ -1078,6 +1125,9 @@ class PstoeditPlotSvg(PdfConverterBase):
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
 
+    name = "Pstoedit"
+    text_to_path = True
+
     def get_transform(self, scale_factor):
         # Correct for SVG units -> points scaling
         scale_factor *= 1.25
@@ -1111,6 +1161,9 @@ class Pdf2Svg(PdfConverterBase):
     """
     Convert PDF -> SVG using pdf2svg
     """
+
+    name = "Pdf2Svg"
+    text_to_path = True
 
     def __init__(self, document):
         PdfConverterBase.__init__(self, document)
@@ -1177,6 +1230,7 @@ class Inkscape(PdfConverterBase):
     Convert PDF -> SVG using Inkscape
     """
 
+    name = "Inkscape"
     text_to_path = False
 
     INKSCAPE = os.environ.get('INKSCAPE', 'inkscape')
@@ -1221,6 +1275,7 @@ class InkscapePath(Inkscape):
     This is currently quite slow, as we invoke Inkscape twice.
     """
 
+    name = "Inkscape (+ text-to-path)"
     text_to_path = True
 
     def pdf_to_svg(self):
@@ -1233,12 +1288,37 @@ class InkscapePath(Inkscape):
                       self.tmp('2.pdf')])
         Inkscape.pdf_to_svg(self)
 
-CONVERTERS = [
-    # Using fonts:
-    Inkscape,
+class MatplotlibSVG(PdfConverterBase):
+    name = "Matplotlib"
+    text_to_path = False
 
-    # Doing text-to-path:
-    Pdf2Svg, PstoeditPlotSvg, SkConvert, InkscapePath
+    def tex_to_pdf(self, info):
+        import matplotlib as mpl
+        mpl.use('svg')
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure()
+        fig.text(0., 0., self._get_text(info), ha='left', va='top')
+        plt.savefig(self.tmp('svg'))
+
+    def get_transform(self, scale_factor):
+        # Correct for SVG units -> points scaling
+        scale_factor *= 1.25
+        return 'scale(%f,%f)' % (scale_factor, scale_factor)
+
+    def pdf_to_svg(self):
+        pass
+
+    def check_available(cls):
+        try:
+            import matplotlib
+        except ImportError:
+            raise RuntimeError("Matplotlib not available.")
+    check_available = classmethod(check_available)
+
+CONVERTERS = [
+    Pdf2Svg, PstoeditPlotSvg, Inkscape, SkConvert, InkscapePath,
+    MatplotlibSVG,
 ]
 
 #------------------------------------------------------------------------------
