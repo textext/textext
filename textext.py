@@ -48,6 +48,7 @@ import sys
 import os
 import glob
 import platform
+import re
 
 DEBUG = False
 
@@ -116,9 +117,6 @@ def show_log():
     if not DEBUG:
         filtered_messages = filter(lambda (m, l): l != LOG_LEVEL_DEBUG, filtered_messages)
 
-    for dict in filtered_messages:
-        add_log_message("dict: %s" % str(dict), LOG_LEVEL_ERROR)
-
     if len(filtered_messages) > 0:
         rendered_messages = map(render_message, filtered_messages)
         inkex.errormsg("\n".join(rendered_messages))
@@ -133,9 +131,9 @@ def add_log_message(message, level):
     messages.append((message, level))
 
 
-def render_message(message, level):
+def render_message((message, level)):
     if level == LOG_LEVEL_DEBUG:
-        prefix = "(W)"
+        prefix = "(D)"
     elif level == LOG_LEVEL_ERROR:
         prefix = "(E)"
     else:
@@ -241,11 +239,22 @@ class TexText(inkex.Effect):
             converter.tex_to_pdf(text, preamble_file)
             # convert resulting pdf to png
 
+        except OSError, WindowsError:
+            pass
+        finally:
             # delete tmp files
             converter.finish()
 
-        except OSError, WindowsError:
-            pass
+        return
+
+    def translate_node(self, node, width, height):
+        transform = node.attrib['transform']
+        transform = transform.split('(', 1)[1].split(')')[0]
+        a, b, c, d, x, y = transform.split(',')
+        x = float(x) + width / 2
+        y = float(y) + height / 2
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, x, y)
+        node.attrib['transform'] = transform
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
         """
@@ -268,7 +277,8 @@ class TexText(inkex.Effect):
         try:
             new_node = converter.convert(text, preamble_file, scale_factor)
         finally:
-            converter.finish()
+            # converter.finish()
+            pass
 
         if new_node is None:
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
@@ -287,10 +297,6 @@ class TexText(inkex.Effect):
             #       handle both svg: and prefixless entries in the same file
             #       in some cases.
             new_node.attrib['transform'] = old_node.attrib['transform']
-        except (KeyError, IndexError, TypeError, AttributeError):
-            pass
-
-        try:
             new_node.attrib['transform'] = old_node.attrib['{%s}transform' % SVG_NS]
         except (KeyError, IndexError, TypeError, AttributeError):
             pass
@@ -298,6 +304,17 @@ class TexText(inkex.Effect):
         # -- Copy style
         if old_node is None:
             self.set_node_color(new_node, "black")
+
+            root = self.document.getroot()
+            width = inkex.unittouu(root.get('width'))
+            height = inkex.unittouu(root.get('height'))
+
+            attributes = ""
+            for attrib in new_node.keys():
+                attributes = attributes + "   " + attrib
+
+            w, h = self.get_node_size(new_node, scale_factor)
+            self.translate_node(new_node, width - w, height + (h / 2))
             self.current_layer.append(new_node)
         else:
             self.replace_node(old_node, new_node)
@@ -388,6 +405,35 @@ class TexText(inkex.Effect):
         for child in node.iterchildren():
             child.attrib["fill"] = color
 
+    def get_node_size(self, node, scale):
+        text = ""
+        pattern = re.compile(r"\d+\.\d+,\d+\.\d+")
+
+        for child in node.iterchildren():
+            d = child.attrib['d']
+            text = text + " " + d
+
+        points = re.findall(pattern, text)
+
+        xValues = []
+        yValues = []
+
+        for point in points:
+            x, y = point.split(",", 1)
+            xValues.append(float(x))
+            yValues.append(float(y))
+
+        minX = min(xValues)
+        maxX = max(xValues)
+
+        minY = min(yValues)
+        maxY = max(yValues)
+
+        width = (maxX - minX) * scale
+        height = (maxY - minY) * scale
+
+        return width, height
+
 
 class Settings(object):
     def __init__(self):
@@ -477,7 +523,7 @@ class Settings(object):
 try:
     import subprocess
 
-    def exec_command(cmd, ok_return_value=0, combine_error=False):
+    def exec_command(cmd, ok_return_value=0):
         """
         Run given command, check return value, and return
         concatenated stdout and stderr.
@@ -511,7 +557,7 @@ except ImportError:
     # Python < 2.4 ...
     import popen2
 
-    def exec_command(cmd, ok_return_value=0, combine_error=False):
+    def exec_command(cmd, ok_return_value=0):
         """
         Run given command, check return value, and return
         concatenated stdout and stderr.
@@ -564,13 +610,11 @@ class LatexConverterBase(object):
         """
         Return an XML node containing latex text
 
-        :Parameters:
-          - `latex_text`: Latex code to use
-          - `preamble_file`: Name of a preamble file to include
-          - `scale_factor`: Scale factor to use if object doesn't have
-                            a ``transform`` attribute.
+        :param latex_text: Latex code to use
+        :param preamble_file: Name of a preamble file to include
+        :param scale_factor: Scale factor to use if object doesn't have a ``transform`` attribute.
 
-        :Returns: XML DOM node
+        :return: XML DOM node
         """
         raise NotImplementedError
 
@@ -612,7 +656,7 @@ class LatexConverterBase(object):
                      '-halt-on-error']
 
         texwrapper = r"""
-        \documentclass[landscape]{article}
+        \documentclass{standalone}
         %s
         \pagestyle{empty}
         \begin{document}
@@ -636,7 +680,8 @@ class LatexConverterBase(object):
             exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
         except RuntimeError as error:
             parsed_log = self.parse_pdf_log(self.tmp('log'))
-            raise RuntimeError("pdflatex found errors:\n{errors}".format(errors=parsed_log))
+            add_log_message(parsed_log, LOG_LEVEL_ERROR)
+            raise RuntimeError("Your LaTeX code has problems:\n\n{errors}".format(errors=parsed_log))
 
         if not os.path.exists(self.tmp('pdf')):
             add_log_message("pdflatex didn't produce output %s" % self.tmp('pdf'), LOG_LEVEL_ERROR)
@@ -655,6 +700,11 @@ class LatexConverterBase(object):
 
         typesetter = Typesetter(self.tmp('tex'))
         typesetter.halt_on_errors = False
+
+        handlers = typesetter.logger.handlers
+        for handler in handlers:
+            typesetter.logger.removeHandler(handler)
+
         typesetter.logger.addHandler(log_handler)
         typesetter.process_log(logfile)
 
@@ -746,7 +796,7 @@ class PstoeditPlotSvg(PdfConverterBase):
     def get_transform(self, scale_factor):
         return 'matrix(%f,0,0,%f,%f,%f)' % (
             scale_factor, -scale_factor,
-            -200 * scale_factor, 750 * scale_factor)
+            0, 0)
 
     def pdf_to_svg(self):
         # Options for pstoedit command

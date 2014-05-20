@@ -12,16 +12,15 @@ Its used uniformly from textext.py via the factory (AskerFactory) and only the "
 """
 
 DEBUG = True
-debug_text = r"""
-$$
-F(x,y)=0 ~~\mbox{and}~~
-\left| \begin{array}{ccc}
-  F''_{xx} & F''_{xy} &  F'_x \\
-  F''_{yx} & F''_{yy} &  F'_y \\
-  F'_x     & F'_y     & 0
-  \end{array}\right| = 0
-$$
-"""
+debug_text = r"""$
+\left(
+   \begin{array}{ccc}
+     a_{11} & \cdots & a_{1n} \\
+     \vdots & \ddots & \vdots \\
+     a_{m1} & \cdots & a_{mn}
+   \end{array}
+\right)
+$"""
 
 WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 
@@ -158,6 +157,7 @@ class AskText(object):
         """
         Present the GUI for entering LaTeX code and setting some options
         :param callback: A callback function (basically, what to do with the values from the GUI)
+        :param preview_callback: A callback function to run to create a preview rendering
         """
         pass
 
@@ -182,7 +182,7 @@ if TOOLKIT == TK:
             super(AskTextTK, self).__init__(text, preamble_file, scale_factor)
             self._frame = None
 
-        def ask(self, callback):
+        def ask(self, callback, preview_callback=None):
             self.callback = callback
 
             root = Tk.Tk()
@@ -248,7 +248,7 @@ if TOOLKIT == GTK:
             self._scale_adj = None
             self._scale = None
 
-        def ask(self, callback):
+        def ask(self, callback, preview_callback=None):
             self.callback = callback
 
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -390,8 +390,9 @@ if TOOLKIT == GTKSOURCEVIEW:
 
             self.toggle_actions = [
                 (
-                'ShowNumbers', None, 'Show _Line Numbers', None, 'Toggle visibility of line numbers in the left margin',
-                self.numbers_toggled_cb, False),
+                    'ShowNumbers', None, 'Show _Line Numbers', None,
+                    'Toggle visibility of line numbers in the left margin',
+                    self.numbers_toggled_cb, False),
                 ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
                  self.auto_indent_toggled_cb, False),
                 ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
@@ -573,7 +574,6 @@ if TOOLKIT == GTKSOURCEVIEW:
             try:
                 self.callback(self.text, self.preamble_file, self.scale_factor)
             except StandardError, error:
-                import traceback
                 error_dialog(self._window,
                              "TexText Error",
                              "<b>Error occurred while converting text from Latex to SVG:</b>",
@@ -602,23 +602,30 @@ if TOOLKIT == GTKSOURCEVIEW:
                 else:
                     preamble = self._preamble.get_text()
 
-                #self.preview_callback(text, preamble)
+                try:
+                    self.preview_callback(text, preamble)
+                except StandardError, error:
+                    error_dialog(self._window,
+                                 "TexText Error",
+                                 "<b>Error occurred while converting text from Latex to SVG:</b>",
+                                 str(error))
+                    return False
 
 
-                #RADIUS = 150
-                #
-                #filename = "test"
-                #
-                #surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 2*RADIUS, 2*RADIUS)
-                #cr = pangocairo.CairoContext(cairo.Context(surface))
-                #cr.set_source_rgb(1.0, 1.0, 1.0)
-                #cr.rectangle(0, 0, 2*RADIUS, 2*RADIUS)
-                #cr.fill()
-                #
-                #surface.write_to_png(filename + ".png")
-                #surface.finish()
-                #
-                #self.error_dialog(self._window, "Bla")
+                    #RADIUS = 150
+                    #
+                    #filename = "test"
+                    #
+                    #surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 2*RADIUS, 2*RADIUS)
+                    #cr = pangocairo.CairoContext(cairo.Context(surface))
+                    #cr.set_source_rgb(1.0, 1.0, 1.0)
+                    #cr.rectangle(0, 0, 2*RADIUS, 2*RADIUS)
+                    #cr.fill()
+                    #
+                    #surface.write_to_png(filename + ".png")
+                    #surface.finish()
+                    #
+                    #self.error_dialog(self._window, "Bla")
 
         # ---------- Actions & UI definition
 
@@ -766,7 +773,6 @@ if TOOLKIT == GTKSOURCEVIEW:
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
             text_buffer.connect('changed', self.update_position_label, source_view)
-            text_buffer.connect('changed', self.update_preview)
             window.connect('delete-event', self.window_deleted_cb, source_view)
             text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
 
