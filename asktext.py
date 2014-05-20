@@ -11,8 +11,8 @@ This is the GUI part of TexText, handling several more or less sophisticated dia
 Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
 """
 
-debugValues = True
-debugText = r"""
+DEBUG = False
+debug_text = r"""
 $$
 F(x,y)=0 ~~\mbox{and}~~
 \left| \begin{array}{ccc}
@@ -85,8 +85,11 @@ class AskText(object):
     def __init__(self, text, preamble_file, scale_factor):
         if len(text) > 0:
             self.text = text
-        elif debugValues:
-            self.text = debugText
+        else:
+            if DEBUG:
+                self.text = debug_text
+            else:
+                self.text = ""
 
         self.callback = None
         self.scale_factor = scale_factor
@@ -373,7 +376,7 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         load_file(text_buffer, path)
 
-    # ---------- Action callbacks
+    # These are the action callbacks for the menu items
     def numbers_toggled_cb(action, sourceview):
         sourceview.set_show_line_numbers(action.get_active())
 
@@ -568,7 +571,12 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         # ---------- Create main window
         def create_window(self, text_buffer):
+            """
+            Set up the window with all its widgets
 
+            :param text_buffer: The text buffer that ends up in the GTKSourceView
+            :return: the created window
+            """
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_border_width(0)
             window.set_title('Enter LaTeX Formula - TexText')

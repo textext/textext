@@ -49,7 +49,7 @@ import os
 import glob
 import platform
 
-DEBUG = True
+DEBUG = False
 
 MAC = "Mac OS"
 WINDOWS = "Windows"
@@ -177,7 +177,15 @@ class TexText(inkex.Effect):
             show_warnings()
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
+        """
+        Does the conversion using the selected converter.
 
+        :param text:
+        :param preamble_file:
+        :param scale_factor:
+        :param converter_class:
+        :param old_node:
+        """
         if not text:
             return
 
@@ -217,11 +225,9 @@ class TexText(inkex.Effect):
             pass
 
         # -- Copy style
-        add_warning_message("New Node: %s" % new_node)
         if old_node is None:
             self.current_layer.append(new_node)
         else:
-            add_warning_message("Old Node: %s" % old_node)
             self.replace_node(old_node, new_node)
 
         # -- Save settings
@@ -257,8 +263,7 @@ class TexText(inkex.Effect):
 
     def replace_node(self, old_node, new_node):
         """
-        Replace an XML node old_node with new_node
-        in self.document.
+        Replace an XML node old_node with new_node in self.document.
         """
         parent = old_node.getparent()
         parent.remove(old_node)
@@ -266,6 +271,11 @@ class TexText(inkex.Effect):
         self.copy_style(old_node, new_node)
 
     def copy_style(self, old_node, new_node):
+        """
+        Copy all style attributes from the old to the new node, including the children, since TexText nodes are groups.
+        :param old_node:
+        :param new_node:
+        """
         style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
                    'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
                    'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
