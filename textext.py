@@ -163,7 +163,7 @@ class TexText(inkex.Effect):
         self.OptionParser.add_option(
             "-p", "--preamble-file", action="store", type="string",
             dest="preamble_file",
-            default=self.settings.get('preamble', str, ""))
+            default=self.settings.get('preamble', str, "default_packages.tex"))
         self.OptionParser.add_option(
             "-s", "--scale-factor", action="store", type="float",
             dest="scale_factor",
@@ -301,8 +301,8 @@ class TexText(inkex.Effect):
             height = inkex.unittouu(root.get('height'))
 
             w, h = self.get_node_size(new_node, scale_factor)
-
             self.translate_node(new_node, (width - w) / 2, (height + h) / 2)
+
             self.current_layer.append(new_node)
         else:
             # copy old transform but apply the current scale factor
@@ -316,9 +316,10 @@ class TexText(inkex.Effect):
             except (KeyError, IndexError, TypeError, AttributeError):
                 pass
 
-            self.set_node_scale_factor(new_node, scale_factor)
-
+            # calculate the size difference between the old and new node and translate the new node to keep it centered
             old_scale = self.get_node_scale_factor(old_node)
+
+            self.set_node_scale_factor(new_node, scale_factor)
 
             w_old, h_old = self.get_node_size(old_node, old_scale)
             w_new, h_new = self.get_node_size(new_node, scale_factor)
@@ -345,7 +346,7 @@ class TexText(inkex.Effect):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :Returns: (old_node, latex_text, preamble_file_name)
+        :return: (old_node, latex_text, preamble_file_name)
         """
 
         for i in self.options.ids:
@@ -721,11 +722,10 @@ class LatexConverterBase(object):
                      '-halt-on-error']
 
         texwrapper = r"""
-        \documentclass{standalone}
+        \documentclass[preview]{standalone}
         %s
         \pagestyle{empty}
         \begin{document}
-        \noindent
         %s
         \end{document}
         """ % (preamble, latex_text)
@@ -755,6 +755,11 @@ class LatexConverterBase(object):
         return
 
     def parse_pdf_log(self, logfile):
+        """
+        Strip down pdflatex output to only the warnings, errors etc. and discard all the noise
+        :param logfile:
+        :return: string
+        """
         import logging
         from StringIO import StringIO
 
@@ -782,7 +787,6 @@ class LatexConverterBase(object):
 
     def remove_temp_files(self):
         """Remove temporary files"""
-        add_log_message("removing temp files", LOG_LEVEL_DEBUG)
         base = os.path.join(self.tmp_path, self.tmp_base)
         for filename in glob.glob(base + '*'):
             self.try_remove(filename)
@@ -790,7 +794,7 @@ class LatexConverterBase(object):
 
     @staticmethod
     def try_remove(filename):
-        """Try to remove given file, skipping if not exists."""
+        """Try to remove given file, skipping if it doesn't exist"""
         if os.path.isfile(filename):
             os.remove(filename)
         elif os.path.isdir(filename):
@@ -800,7 +804,6 @@ class LatexConverterBase(object):
 class PdfConverterBase(LatexConverterBase):
     def convert(self, latex_text, preamble_file, scale_factor):
         cwd = os.getcwd()
-        add_log_message("temp path: %s" % self.tmp_path, LOG_LEVEL_DEBUG)
         try:
             os.chdir(self.tmp_path)
             self.tex_to_pdf(latex_text, preamble_file)

@@ -11,7 +11,7 @@ This is the GUI part of TexText, handling several more or less sophisticated dia
 Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
 """
 
-DEBUG = True
+DEBUG = False
 debug_text = r"""$
 \left(
    \begin{array}{ccc}
@@ -366,10 +366,6 @@ if TOOLKIT == GTK:
             return False
 
 if TOOLKIT == GTKSOURCEVIEW:
-
-    import pangocairo
-    import cairo
-
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
@@ -651,11 +647,11 @@ if TOOLKIT == GTKSOURCEVIEW:
 
             return button_box
 
-        def clear_preamble(self, unused):
+        def clear_preamble(self, unused=None):
             """
             Clear the preamble file setting
             """
-            self.preamble_file = "..."
+            self.preamble_file = "default_packages.tex"
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble.set_filename(self.preamble_file)
             else:
@@ -676,12 +672,11 @@ if TOOLKIT == GTKSOURCEVIEW:
             # File chooser and Scale Adjustment
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble = gtk.FileChooserButton("...")
-                if os.path.exists(self.preamble_file):
-                    self._preamble.set_filename(self.preamble_file)
                 self._preamble.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
             else:
                 self._preamble = gtk.Entry()
-                self._preamble.set_text(self.preamble_file)
+
+            self.clear_preamble()
 
             preamble_delete = gtk.Button(label="Clear")
             preamble_delete.connect('clicked', self.clear_preamble)
