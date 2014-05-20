@@ -93,6 +93,11 @@ from asktext import AskerFactory
 
 
 def die(message=""):
+    """
+    Terminate the program with an optional error message while also emitting all accumulated warnings.
+    :param message: Optional error message.
+    :raise SystemExit:
+    """
     if message:
         add_warning_message("ERROR: " + message)
     show_warnings()
@@ -164,9 +169,10 @@ class TexText(inkex.Effect):
 
             asker = AskerFactory().asker(text, preamble_file, scale_factor)
             try:
-                asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
-            except RuntimeError as error:
-                die(str(error))
+                asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node),
+                          lambda t, p: self.preview_convert(t, p, usable_converter_class))
+            except RuntimeError:
+                raise
 
         else:
             self.do_convert(self.options.text,
@@ -175,6 +181,33 @@ class TexText(inkex.Effect):
 
         if DEBUG:
             show_warnings()
+
+    def preview_convert(self, text, preamble_file, converter_class):
+        """
+        Previews the LaTeX output using the selected converter.
+
+        :param text:
+        :param preamble_file:
+        :param scale_factor:
+        :param converter_class:
+        """
+        if not text:
+            return
+
+        if isinstance(text, unicode):
+            text = text.encode('utf-8')
+
+        # Convert
+        try:
+            converter = converter_class(self.document)
+            converter.tex_to_pdf(text, preamble_file)
+            # convert resulting pdf to png
+
+            # delete tmp files
+            converter.finish()
+
+        except OSError, WindowsError:
+            pass
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
         """
@@ -406,12 +439,11 @@ try:
             out, err = p.communicate()
         except OSError, e:
             add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
-            raise RuntimeError
-            return
+            raise RuntimeError(warning_messages[-1])
 
         if ok_return_value is not None and p.returncode != ok_return_value:
             add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
-            raise RuntimeError
+            raise RuntimeError(warning_messages[-1])
         return out + err
 
 except ImportError:
@@ -433,11 +465,11 @@ except ImportError:
             out = p.fromchild.read()
         except OSError, e:
             add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
-            raise RuntimeError
+            raise RuntimeError(warning_messages[-1])
 
         if ok_return_value is not None and returncode != ok_return_value:
             add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
-            raise RuntimeError
+            raise RuntimeError(warning_messages[-1])
         return out
 
 if PLATFORM == WINDOWS:
@@ -536,6 +568,7 @@ class LatexConverterBase(object):
         # Convert TeX to PDF
 
         # Write tex
+        os.chdir(self.tmp_path)
         f_tex = open(self.tmp('tex'), 'w')
         try:
             f_tex.write(texwrapper)
@@ -545,10 +578,14 @@ class LatexConverterBase(object):
         # Exec pdflatex: tex -> pdf
         exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
         if not os.path.exists(self.tmp('pdf')):
-            die("pdflatex didn't produce output")
+            add_warning_message("pdflatex didn't produce output %s" % self.tmp('pdf'))
+            raise RuntimeError(warning_messages[-1])
+
+        return
 
     def remove_temp_files(self):
         """Remove temporary files"""
+        add_warning_message("removing temp files")
         base = os.path.join(self.tmp_path, self.tmp_base)
         for filename in glob.glob(base + '*'):
             self.try_remove(filename)
@@ -565,6 +602,7 @@ class LatexConverterBase(object):
 class PdfConverterBase(LatexConverterBase):
     def convert(self, latex_text, preamble_file, scale_factor):
         cwd = os.getcwd()
+        add_warning_message("temp path: %s" % self.tmp_path)
         try:
             os.chdir(self.tmp_path)
             self.tex_to_pdf(latex_text, preamble_file)
@@ -636,7 +674,7 @@ class PstoeditPlotSvg(PdfConverterBase):
                       self.tmp('pdf'), self.tmp('svg')]
                      + pstoeditOpts)
         if not os.path.exists(self.tmp('svg')):
-            die("pstoedit didn't produce output")
+            raise RuntimeError("pstoedit didn't produce output")
 
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
