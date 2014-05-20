@@ -317,8 +317,71 @@ class AskTextGTK(AskText):
         return False
 
 
-import gtksourceview2
 import pango
+
+
+def load_file(text_buffer, path):
+    """
+    Load text from a file into a text buffer
+    :param text_buffer: the GTK text buffer
+    :param path: where to load the file from
+    :return: True, if successful
+    """
+    text_buffer.begin_not_undoable_action()
+    try:
+        text = open(path).read()
+    except IOError:
+        print("Couldn't load file: %s", path)
+        return False
+    text_buffer.set_text(text)
+    text_buffer.set_data('filename', path)
+    text_buffer.end_not_undoable_action()
+
+    text_buffer.set_modified(False)
+    text_buffer.place_cursor(text_buffer.get_start_iter())
+    return True
+
+
+def open_file(text_buffer, filename):
+    """
+    Open a text file via its name
+    :param text_buffer: Where to put the loaded text
+    :param filename: File name
+    """
+
+    if os.path.isabs(filename):
+        path = filename
+    else:
+        path = os.path.abspath(filename)
+
+    # try to figure out the (code) language of the text in the file
+    manager = text_buffer.get_data('languages-manager')
+    language = manager.guess_language(filename)
+    if language:
+        text_buffer.set_highlight_syntax(True)
+        text_buffer.set_language(language)
+    else:
+        print("No language found for file \"%s\"" % filename)
+        text_buffer.set_highlight_syntax(False)
+
+    load_file(text_buffer, path)
+
+
+# ---------- Action callbacks
+def numbers_toggled_cb(action, sourceview):
+        sourceview.set_show_line_numbers(action.get_active())
+
+
+def auto_indent_toggled_cb(action, sourceview):
+    sourceview.set_auto_indent(action.get_active())
+
+
+def insert_spaces_toggled_cb(action, sourceview):
+    sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
+
+
+def tabs_toggled_cb(action, current, sourceview):
+    sourceview.set_tab_width(action.get_current_value())
 
 
 class AskTextGTKSource(AskText):
@@ -342,68 +405,6 @@ class AskTextGTKSource(AskText):
                                    msg)
         dialog.run()
         dialog.destroy()
-
-    def load_file(self, text_buffer, path):
-        """
-        Load text from a file into a text buffer
-        :param text_buffer: the GTK text buffer
-        :param path: where to load the file from
-        :return: True, if successful
-        """
-        text_buffer.begin_not_undoable_action()
-        try:
-            text = open(path).read()
-        except IOError:
-            print("Couldn't load file: %s", path)
-            return False
-        text_buffer.set_text(text)
-        text_buffer.set_data('filename', path)
-        text_buffer.end_not_undoable_action()
-
-        text_buffer.set_modified(False)
-        text_buffer.place_cursor(text_buffer.get_start_iter())
-        return True
-
-    def open_file(self, text_buffer, filename):
-        """
-        Open a text file via its name
-        :param text_buffer: Where to put the loaded text
-        :param filename: File name
-        """
-
-        if os.path.isabs(filename):
-            path = filename
-        else:
-            path = os.path.abspath(filename)
-
-        # try to figure out the (code) language of the text in the file
-        manager = text_buffer.get_data('languages-manager')
-        language = manager.guess_language(filename)
-        if language:
-            text_buffer.set_highlight_syntax(True)
-            text_buffer.set_language(language)
-        else:
-            print("No language found for file \"%s\"" % filename)
-            text_buffer.set_highlight_syntax(False)
-
-        self.load_file(text_buffer, path)
-
-    # ---------- Action callbacks
-    def numbers_toggled_cb(self, action, sourceview=None):
-        if sourceview:
-            sourceview.set_show_line_numbers(action.get_active())
-
-    def auto_indent_toggled_cb(self, action, sourceview=None):
-        if sourceview:
-            sourceview.set_auto_indent(action.get_active())
-
-    def insert_spaces_toggled_cb(self, action, sourceview=None):
-        if sourceview:
-            sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
-
-    def tabs_toggled_cb(self, action, action2, sourceview=None):
-        if sourceview:
-            sourceview.set_tab_width(action.get_current_value())
 
     def cb_key_press(self, widget, event, data=None):
         # ctrl+return clicks the ok button
@@ -438,7 +439,7 @@ class AskTextGTKSource(AskText):
         return False
 
     # ---------- Buffer action callbacks
-    def open_file_cb(self, action, text_buffer):
+    def open_file_cb(self, text_buffer):
         chooser = gtk.FileChooserDialog('Open file...', None,
                                         gtk.FILE_CHOOSER_ACTION_OPEN,
                                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
@@ -447,7 +448,7 @@ class AskTextGTKSource(AskText):
         if response == gtk.RESPONSE_OK:
             filename = chooser.get_filename()
             if filename:
-                self.open_file(text_buffer, filename)
+                open_file(text_buffer, filename)
         chooser.destroy()
 
     def update_cursor_position(self, text_buffer, view):
@@ -477,8 +478,7 @@ class AskTextGTKSource(AskText):
     # ---------- Actions & UI definition
 
     buffer_actions = [
-        ('Open', gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', open_file_cb),
-        ('Quit', gtk.STOCK_QUIT, '_Quit', '<control>Q', 'Exit the application', gtk.main_quit)
+        ('Open', gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', open_file_cb)
     ]
 
     view_actions = [
@@ -509,17 +509,14 @@ class AskTextGTKSource(AskText):
     <ui>
       <menubar name='MainMenu'>
         <menu action='FileMenu'>
-          <placeholder name="FileMenuAdditions"/>
-          <separator/>
+          <menuitem action='Open'/>
         </menu>
         <menu action='ViewMenu'>
-          <separator/>
           <menuitem action='ShowNumbers'/>
-          <separator/>
           <menuitem action='AutoIndent'/>
           <menuitem action='InsertSpaces'/>
-          <separator/>
           <menu action='TabsWidth'>
+            <menuitem action='TabsWidth2'/>
             <menuitem action='TabsWidth4'/>
             <menuitem action='TabsWidth6'/>
             <menuitem action='TabsWidth8'/>
@@ -582,7 +579,7 @@ class AskTextGTKSource(AskText):
         self._scale_adj = gtk.Adjustment(lower=0.01, upper=100, step_incr=0.1, page_incr=1)
         self._scale = gtk.HScale(self._scale_adj)
         self._scale.set_digits(2)
-        self._scale_adj.set_value(1.0 if not self.scale_factor else self.scale_factor)
+        self._scale_adj.set_value(self.scale_factor if self.scale_factor else 1.0)
         scale_box.pack_start(self._scale, True, True, 2)
 
         # Scrolling Window with Source View inside
@@ -600,8 +597,9 @@ class AskTextGTKSource(AskText):
         # Action group and UI manager
         action_group = gtk.ActionGroup('ViewActions')
         action_group.add_actions(self.view_actions, source_view)
+        action_group.add_actions(self.buffer_actions, text_buffer)
         action_group.add_toggle_actions(self.toggle_actions, source_view)
-        action_group.add_radio_actions(self.radio_actions, -1, self.tabs_toggled_cb, source_view)
+        action_group.add_radio_actions(self.radio_actions, -1, tabs_toggled_cb, source_view)
 
         ui_manager = gtk.UIManager()
         ui_manager.insert_action_group(action_group, 0)
@@ -622,7 +620,8 @@ class AskTextGTKSource(AskText):
 
         vbox.pack_start(menu, False, False, 0)
         vbox.pack_start(preamble_box, False, False, 0)
-        vbox.pack_start(scale_box, False, False, 0)
+        if self.scale_factor:
+            vbox.pack_start(scale_box, False, False, 0)
         vbox.pack_start(scroll_window, True, True, 0)
         vbox.pack_start(pos_label, False, False, 0)
         vbox.pack_start(self.create_buttons(), False, False, 0)
@@ -639,7 +638,7 @@ class AskTextGTKSource(AskText):
         action.set_active(True)
         action = action_group.get_action('InsertSpaces')
         action.set_active(True)
-        action = action_group.get_action('TabsWidth8')
+        action = action_group.get_action('TabsWidth4')
         action.set_active(True)
 
         # Connect event callbacks
