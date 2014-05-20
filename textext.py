@@ -125,6 +125,10 @@ def add_log_message(message, level):
 
 
 def render_message((message, level)):
+    """
+    Render message tuple to output string
+    :return: string
+    """
     if level == LOG_LEVEL_DEBUG:
         prefix = "(D)"
     elif level == LOG_LEVEL_ERROR:
@@ -235,6 +239,7 @@ class TexText(inkex.Effect):
 
                 if PLATFORM == WINDOWS:
                     import _winreg
+
                     key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\ImageMagick\Current")
                     path = _winreg.QueryValueEx(key, "LibPath")[0]
                     exec_command([path + '\\' + 'convert'] + options)
@@ -292,8 +297,8 @@ class TexText(inkex.Effect):
             width = inkex.unittouu(root.get('width'))
             height = inkex.unittouu(root.get('height'))
 
-            w, h = self.get_node_size(new_node, scale_factor)
-            self.translate_node(new_node, (width - w) / 2, (height + h) / 2)
+            x, y, w, h = self.get_node_frame(new_node, scale_factor)
+            self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
 
             self.current_layer.append(new_node)
         else:
@@ -313,13 +318,16 @@ class TexText(inkex.Effect):
 
             self.set_node_scale_factor(new_node, scale_factor)
 
-            w_old, h_old = self.get_node_size(old_node, old_scale)
-            w_new, h_new = self.get_node_size(new_node, scale_factor)
+            x_old, y_old, w_old, h_old = self.get_node_frame(old_node, old_scale)
+            x_new, y_new, w_new, h_new = self.get_node_frame(new_node, scale_factor)
 
             w_diff = w_old - w_new
             h_diff = h_old - h_new
 
-            self.translate_node(new_node, w_diff / 2, -h_diff / 2)
+            x_diff = x_old - x_new
+            y_diff = y_old - y_new
+
+            self.translate_node(new_node, w_diff / 2.0 + x_diff, -h_diff / 2.0 - y_diff)
 
             self.replace_node(old_node, new_node)
 
@@ -410,44 +418,108 @@ class TexText(inkex.Effect):
         for child in node.iterchildren():
             child.attrib["fill"] = color
 
-    def get_node_size(self, node, scale):
+    def get_node_frame(self, node, scale):
         """
-        Determine the node's size
+        Determine the node's size and position
 
-        It's a good approximation, accounting for the coordinates of all paths in the node's children.
-        Somehow the height isn't exact, but good enough.
+        It's accounting for the coordinates of all paths in the node's children.
 
         :param node:
         :param scale: The scale factor to take into account
-        :return: width, height
+        :return: x, y, width, height
         """
+
+        # match coordinates in SVG path data (see: http://www.w3.org/TR/SVG/paths.html#PathData)
+        # 1. zero or more letters
+        # 2. zero or more spaces
+        # 3. optional minus sign
+        # 4. at least one digit + optional dot + optional digits
+        # 5. optional comma
+        # 6. optional minus sign
+        # 7. at least one digit + optional dot + optional digits
+        # This matches stuff like:
+        #   "L152.47,698.78"
+        #   "C151.82,703.7"
+        #   "151,701.63"
+        #   "500.01"
+        #   "54"
+        #   "c 35,45.0"
+        # etc.
+        pattern = re.compile(r"[a-zA-Z]*\s*\-*\d+\.*\d*,*\-*\d+\.*\d*")
         text = ""
-        pattern = re.compile(r"\d+\.\d+,\d+\.\d+")
 
         for child in node.iterchildren():
             d = child.attrib['d']
-            text = text + " " + d
+            text = text + "  " + d
 
         points = re.findall(pattern, text)
 
-        xValues = []
-        yValues = []
+        x_values = []
+        y_values = []
 
-        for point in points:
-            x, y = point.split(",", 1)
-            xValues.append(float(x))
-            yValues.append(float(y))
+        if points[0][0] == "m":
+            absolute = False
+        elif points[0][0] == "M":
+            absolute = True
+        else:
+            # Guessing
+            absolute = True
 
-        minX = min(xValues)
-        maxX = max(xValues)
+        current_x, current_y = 0, 0
+        x, y = 0, 0
 
-        minY = min(yValues)
-        maxY = max(yValues)
+        if absolute:
+            for point in points:
+                first_letter = point[0]
 
-        width = (maxX - minX) * float(scale)
-        height = (maxY - minY) * float(scale)
+                if first_letter.isdigit():
+                    x, y = point.split(",", 1)
+                else:
+                    point = point[1:]
+                    if first_letter in "MLC":  # Move, Line, Cubic Curve
+                        x, y = point.split(",", 1)
+                    elif first_letter == "H":  # Horizontal (just one coordinate part)
+                        x, y = point, current_x
+                    elif first_letter == "V":  # Vertical (just one coordinate part)
+                        x, y = current_x, point
+                current_x = float(x)
+                current_y = float(y)
+                x_values.append(current_x)
+                y_values.append(current_y)
+        else:
+            for point in points:
+                point = point.lstrip()
+                first_letter = point[0]
 
-        return width, height
+                if first_letter.isdigit() or first_letter == "-":
+                    x, y = point.split(",", 1)
+                else:
+                    point = point[1:].lstrip()
+
+                    if first_letter in "mlc":  # move, line, coordinate
+                        if first_letter == "m":
+                            current_x, current_x = 0, 0  # reset base coordinate for new path (i.e. 'm' is found)
+                        x, y = point.split(",", 1)
+                    elif first_letter == "h":  # horizontal (only one coordinate part)
+                        x, y = point, 0
+                    elif first_letter == "v":  # vertical (only one coordinate part)
+                        x, y = 0, point
+
+                current_x += float(x)
+                current_y += float(y)
+                x_values.append(current_x)
+                y_values.append(current_y)
+
+        scale = float(scale)
+        min_x = min(x_values) * scale
+        max_x = max(x_values) * scale
+        min_y = min(y_values) * scale
+        max_y = max(y_values) * scale
+
+        width = (max_x - min_x)
+        height = (max_y - min_y)
+
+        return min_x, min_y, width, height
 
     def get_node_scale_factor(self, node):
         """
@@ -716,7 +788,7 @@ class LatexConverterBase(object):
                      '-halt-on-error']
 
         texwrapper = r"""
-        \documentclass[preview]{standalone}
+        \documentclass{article}
         %s
         \pagestyle{empty}
         \begin{document}
@@ -881,6 +953,7 @@ class PstoeditPlotSvg(PdfConverterBase):
                             LOG_LEVEL_DEBUG)
         if 'plot-svg' not in out:
             add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
+
 
 CONVERTERS = [PstoeditPlotSvg]
 
