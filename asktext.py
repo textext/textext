@@ -77,7 +77,11 @@ class AskText(object):
     """GUI for editing TexText objects"""
 
     def __init__(self, text, preamble_file, scale_factor):
-        self.text = debugText if debugValues else text
+        if len(text) > 0:
+            self.text = text
+        elif debugValues:
+            self.text = debugText
+
         self.callback = None
         self.scale_factor = scale_factor
         self.preamble_file = preamble_file
@@ -651,9 +655,7 @@ class AskTextGTKSource(AskText):
 
         lm = gtksourceview2.LanguageManager()
         text_buffer = gtksourceview2.Buffer()
-
-        if debugValues:
-            text_buffer.set_text(debugText)
+        text_buffer.set_text(self.text)
 
         # set LaTeX as highlighting language, so that pasted text is also highlighted as such
         latex_language = lm.get_language("latex")
