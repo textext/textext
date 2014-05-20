@@ -95,7 +95,8 @@ class TexText(inkex.Effect):
 
         self.OptionParser.add_option(
             "-t", "--text", action="store", type="string",
-            dest="text", default=None)
+            dest="text",
+            default=None)
         self.OptionParser.add_option(
             "-p", "--preamble-file", action="store", type="string",
             dest="preamble_file",
@@ -122,8 +123,7 @@ class TexText(inkex.Effect):
                 converter_errors.append("%s: %s" % (converter_class.__name__, str(e)))
 
         if not usable_converter_class:
-            raise RuntimeError("No Latex -> SVG converter available:\n%s"
-                               % ';\n'.join(converter_errors))
+            raise RuntimeError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
         # Find root element
         old_node, text, preamble_file = self.get_old()
@@ -143,16 +143,14 @@ class TexText(inkex.Effect):
                 preamble_file = ""
 
             asker = AskerFactory().asker(text, preamble_file, scale_factor)
-            asker.ask(lambda t, p, s: self.do_convert(t, p, s,
-                                                      usable_converter_class, old_node))
+            asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
 
         else:
             self.do_convert(self.options.text,
                             self.options.preamble_file,
                             self.options.scale_factor, usable_converter_class, old_node)
 
-    def do_convert(self, text, preamble_file, scale_factor, converter_class,
-                   old_node):
+    def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
 
         if not text:
             return
@@ -174,8 +172,7 @@ class TexText(inkex.Effect):
 
         # -- Set textext attribs
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
-        new_node.attrib['{%s}preamble' % TEXTEXT_NS] = \
-            preamble_file.encode('string-escape')
+        new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
 
         # -- Copy transform
         try:
@@ -217,20 +214,14 @@ class TexText(inkex.Effect):
         for i in self.options.ids:
             node = self.selected[i]
             # ignore, if node tag has SVG_NS Namespace
-            if node.tag != '{%s}g' % SVG_NS: continue
+            if node.tag != '{%s}g' % SVG_NS:
+                continue
 
             # otherwise, check for TEXTEXT_NS in attrib
-            # TODO maybe just drop backward compatibility??
             if '{%s}text' % TEXTEXT_NS in node.attrib:
-                # starting from 0.2, use namespaces
                 return (node,
                         node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape'),
                         node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape'))
-            elif '{%s}text' % SVG_NS in node.attrib:
-                # < 0.2 backward compatibility
-                return (node,
-                        node.attrib.get('{%s}text' % SVG_NS, '').decode('string-escape'),
-                        node.attrib.get('{%s}preamble' % SVG_NS, '').decode('string-escape'))
         return None, "", ""
 
     def replace_node(self, old_node, new_node):
@@ -245,17 +236,12 @@ class TexText(inkex.Effect):
             parent.remove(old_node)
             parent.append(new_node)
 
-    STYLE_ATTRS = ['fill', 'fill-opacity', 'fill-rule',
-                   'font-size-adjust', 'font-stretch',
-                   'font-style', 'font-variant',
-                   'font-weight', 'letter-spacing',
-                   'stroke', 'stroke-dasharray',
-                   'stroke-linecap', 'stroke-linejoin',
-                   'stroke-miterlimit', 'stroke-opacity',
-                   'text-anchor', 'word-spacing', 'style']
+    STYLE_ATTRS = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
+                   'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
+                   'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
 
     def copy_style(self, old_node, new_node):
-        # XXX: Needs work...
+        # TODO: Needs work...
         #
         #      We could try traversing the node tree downwards and
         #      removing color-alteration from the attributes.
@@ -290,7 +276,7 @@ class Settings(object):
 
             try:
                 key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname)
-            except:
+            except WindowsError:
                 return
             try:
                 self.values = {}
@@ -310,7 +296,8 @@ class Settings(object):
             try:
                 self.values = {}
                 for line in f.read().split("\n"):
-                    if not '=' in line: continue
+                    if not '=' in line:
+                        continue
                     k, v = line.split("=", 1)
                     self.values[k.strip()] = v.strip()
             finally:
@@ -337,8 +324,7 @@ class Settings(object):
 
             f = open(self.filename, 'w')
             try:
-                data = '\n'.join(["%s=%s" % (k, v)
-                                  for k, v in self.values.iteritems()])
+                data = '\n'.join(["%s=%s" % (k, v) for k, v in self.values.iteritems()])
                 f.write(data)
             finally:
                 f.close()
@@ -374,8 +360,7 @@ try:
             raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and p.returncode != ok_return_value:
-            raise RuntimeError("Command %s failed (code %d): %s"
-                               % (' '.join(cmd), p.returncode, out + err))
+            raise RuntimeError("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
         return out + err
 
 except ImportError:
@@ -400,8 +385,7 @@ except ImportError:
             raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and returncode != ok_return_value:
-            raise RuntimeError("Command %s failed (code %d): %s"
-                               % (' '.join(cmd), returncode, out))
+            raise RuntimeError("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
         return out
 
 if PLATFORM == WINDOWS:
@@ -469,8 +453,7 @@ class LatexConverterBase(object):
         Return a file name corresponding to given file suffix,
         and residing in the temporary directory.
         """
-        return os.path.join(self.tmp_path,
-                            self.tmp_base + '.' + suffix)
+        return os.path.join(self.tmp_path, self.tmp_base + '.' + suffix)
 
     def tex_to_pdf(self, latex_text, preamble_file):
         """
@@ -611,8 +594,7 @@ class SkConvert(PdfConverterBase):
         """Check whether skconvert and pstoedit are available"""
         out = exec_command(['pstoedit'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
-            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
-                               "contains too many bugs to be usable")
+            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
         exec_command(['skconvert'], ok_return_value=1)
 
     available = classmethod(available)
@@ -641,11 +623,9 @@ class PstoeditPlotSvg(PdfConverterBase):
 
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
-        out = exec_command(['pstoedit', '-help'],
-                           ok_return_value=None)
+        out = exec_command(['pstoedit', '-help'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
-            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it "
-                               "contains too many bugs to be usable")
+            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
         if 'plot-svg' not in out:
             raise RuntimeError("Pstoedit not compiled with plot-svg support")
 
@@ -666,8 +646,6 @@ class Pdf2Svg(PdfConverterBase):
         m = hashlib.md5()
         m.update('%s%s' % (a, kw))
         self.hash = m.hexdigest()[:8]
-        return PdfConverterBase.convert(self, *a, **kw)
-        self.hash = md5.new('%s%s' % (a, kw)).hexdigest()[:8]
         return PdfConverterBase.convert(self, *a, **kw)
 
     def pdf_to_svg(self):
