@@ -172,7 +172,7 @@ class TexText(inkex.Effect):
         usable_converter_class = None
         for converter_class in CONVERTERS:
             try:
-                converter_class.available()
+                converter_class.check_available()
                 usable_converter_class = converter_class
                 break
             except StandardError, err:
@@ -679,7 +679,7 @@ class LatexConverterBase(object):
         raise NotImplementedError
 
     @classmethod
-    def available(cls):
+    def check_available(cls):
         """
         :Returns: Check if converter is available, raise RuntimeError if not
         """
@@ -873,8 +873,8 @@ class PstoeditPlotSvg(PdfConverterBase):
             raise RuntimeError(latest_message())
 
     @classmethod
-    def available(cls):
-        """Check whether pstoedit has plot-svg available"""
+    def check_available(cls):
+        """Check whether pstoedit has plot-svg"""
         out = exec_command(['pstoedit', '-help'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
             add_log_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable",
