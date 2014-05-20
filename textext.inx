@@ -3,6 +3,7 @@
   <id>org.ekips.filter.textext</id>
   <dependency type="executable" location="extensions">textext.py</dependency>
   <dependency type="executable" location="extensions">inkex.py</dependency>
+  <dependency type="executable" location="extensions">asktext.py</dependency>
   <effect>
     <object-type>all</object-type>
   </effect>
