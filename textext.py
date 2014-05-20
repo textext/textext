@@ -49,6 +49,8 @@ import os
 import glob
 import platform
 
+DEBUG = True
+
 MAC = "Mac OS"
 WINDOWS = "Windows"
 PLATFORM = platform.system()
@@ -169,7 +171,8 @@ class TexText(inkex.Effect):
                             self.options.preamble_file,
                             self.options.scale_factor, usable_converter_class, old_node)
 
-        show_warnings()
+        if DEBUG:
+            show_warnings()
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
 
@@ -264,7 +267,14 @@ class TexText(inkex.Effect):
 
         for attribute_name in style_attrs:
             try:
-                old_attribute = old_node.attrib[attribute_name]
+                if attribute_name in old_node.keys():
+                    old_attribute = old_node.attrib[attribute_name]
+                else:
+                    continue
+
+                if attribute_name == "fill" and old_attribute == "none":
+                    old_attribute = "black"
+
                 new_node.attrib[attribute_name] = old_attribute
 
                 for child in new_node.iterchildren():
