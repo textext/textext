@@ -235,7 +235,7 @@ class TexText(inkex.Effect):
 
             # convert resulting pdf to png using ImageMagick's 'convert'
             try:
-                options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'), converter.tmp('png')]
+                options = ['-density', '200', '-background', 'transparent', '-trim', converter.tmp('pdf'), converter.tmp('png')]
 
                 if PLATFORM == WINDOWS:
                     import _winreg
@@ -479,7 +479,7 @@ class TexText(inkex.Effect):
                     if first_letter in "MLC":  # Move, Line, Cubic Curve
                         x, y = point.split(",", 1)
                     elif first_letter == "H":  # Horizontal (just one coordinate part)
-                        x, y = point, current_x
+                        x, y = point, current_y
                     elif first_letter == "V":  # Vertical (just one coordinate part)
                         x, y = current_x, point
                 current_x = float(x)
@@ -498,7 +498,7 @@ class TexText(inkex.Effect):
 
                     if first_letter in "mlc":  # move, line, coordinate
                         if first_letter == "m":
-                            current_x, current_x = 0, 0  # reset base coordinate for new path (i.e. 'm' is found)
+                            current_x, current_y = 0, 0  # reset base coordinate for new path (i.e. 'm' is found)
                         x, y = point.split(",", 1)
                     elif first_letter == "h":  # horizontal (only one coordinate part)
                         x, y = point, 0
