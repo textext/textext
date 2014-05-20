@@ -1,6 +1,6 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in this repository named "Readme-Linux.pdf" and "Readme-Windows.pdf".*
+*Note: There are more sophisticated instructions, including pictures in this repository named [Readme-Linux.pdf](https://bitbucket.org/leberwurstsaft/textext/raw/tip/Readme-Linux.pdf) and [Readme-Windows.pdf](https://bitbucket.org/leberwurstsaft/textext/raw/tip/Readme-Windows.pdf).*
 
 ## Prerequisites
 
@@ -8,7 +8,7 @@
 - You need Inkscape, of course
 
 
-## Installation for Linux [(or for Windows &#8617;)](#windows_installation).
+## Installation for Linux [(or for Windows...)](#windows_installation).
 
 ### Tex Text Extension
 
@@ -26,7 +26,7 @@ Finally, to enable the preview feature of *Tex Text*, you need to install `Image
 
 *(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)*
 
-### Congratulations, you're done! [Show Usage &#8617;](#usage)
+### Congratulations, you're done! [Show Usage...](#usage)
 
 <a name="windows_installation"></a> 
 ## Installation for Windows
