@@ -1,67 +1,50 @@
-=======
-textext
-=======
+# Tex Text - A LaTeX extension for Inkscape
 
-Inkscape is a great program. But if you try to make a conference poster with
-it, you'll see that what is missing is scientific typesetting.
+## Prerequisites
 
-Some solutions, such as Inklatex, have been written, but generally these do not
-allow editing the generated objects afterwards. Textext aims to cover this
-need, by adding re-editable LaTeX objects to Inkscape's repertoire.
+- A LaTeX distribution (e.g. Texlive) has to be installed, especially `pdflatex` is needed
+- You need Inkscape, of course
 
 
-Usage
-=====
+## Installation
 
-To create a new LaTeX object, choose Effects -> Tex Text, and type in your
-LaTeX code. The dialog has two additional fields:
+### Tex Text Extension
 
-- Preamble file: name of a LaTeX preamble file, where you can put common definitions.
+To install *Tex Text*, simply run `python setup.py` in your terminal.
+All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory to `~/.config/inkscape/extensions/`.
 
-- Scale factor: this affects how much a newly created LaTeX object is
-  magnified. You can later change/reset this via Object -> Transform -> Matrix.
+### Additional required software
 
-- Page width.
+You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*.
+This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings.
 
-- Whether to do text-to-path conversion.
+Next, please install `pstoedit`.
 
-  Note that if you want to have real text objects in your SVG files, you need
-  to have Truetype/OTF/etc. versions of the Latex font set installed.
+Finally, to enable the preview feature of *Tex Text*, you need to install `ImageMagick`.
 
-Afterwards, the object can be re-edited by selecting it and choosing Effects ->
-Tex Text again.
+*(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)*
 
-Note: for Inkscape versions earlier than 0.46, Inkscape's user interface
-freezes while you are editing the LaTeX object. This is a limitation of the
-Inkscape extension model. (If you know better, please inform me how it should
-be done ;)
+### Congratulations, you're done!
 
+## Usage
 
-Installation
-============
+The extension menu in Inkscape will now contain a new entry named *Tex Text*.
 
-On Linux, you'll need to have pdflatex and one of the following installed:
+When you select it, a dialog will appear that lets you enter any LaTeX code you want (presumably your formula). It will highlight the syntax with colors, show you line numbers and more. Above the text field you can choose a scale factor between 0.1 and 10 in increments of 0.1. You can also choose a preamble file from your disk which shall be used for rendering your LaTeX code.
 
-- Inkscape >= 0.47
-- Pdf2svg (the one by David Barton & Matthew Flaschen, not the one by PDFtron)
-- Pstoedit with its plot-svg back-end compiled in, or,
-- Pstoedit and Skconvert, or,
+Basically, your LaTeX code will be inserted into this environment:
 
-Unpack the newest version of the Textext package and copy its files to
-``~/.config/inkscape/extensions/``. If you are using Inkscape version earlier than
-0.47 then the correct place is ``~/.inkscape/extensions/``.
+> \documentclass[preview]{standalone}  
+> ***preamble file content***  
+> \pagestyle{empty}  
+> \begin{document}  
+> ***Your code***  
+> \end{document}  
 
-Note that Textext (starting from version 0.4), like the other Inkscape 0.46
-extensions, requires that lxml is installed. (On Ubuntu, this is in the
-python-lxml package.) Textext 0.4 requires Inkscape 0.46, so if you are using
-an older version of Inkscape, stick with Textext 0.3.4.
+This will be typeset and the result converted to SVG and inserted in your Inkscape document.
 
-On Windows with Inkscape 0.46, the easiest way is to get the installer from the
-Textext home page. Note that you can "Upgrade" to newer Textext versions from older
-ones, just by finding the "textext.py" file and replacing it with a newer one!
+Your LaTeX code you and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the *Tex Text* extension (which will then show the dialog containing the saved values).
 
-On Mac OS X, you will need to install a working version of pstoedit (apparently
-Fink and MacPorts offer binaries). After that, you may be lucky and get Textext
-to work on Inkscape 0.46 by copying textext.py and textext.inx to the
-extensions folder under the Inkscape folder; but I haven't tested this.
+Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 
+There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)
