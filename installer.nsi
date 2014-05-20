@@ -5,7 +5,7 @@
 !define PRODUCT_NAME "TexText for Inkscape"
 !define PRODUCT_VERSION "0.5"
 !define PRODUCT_PUBLISHER "Pit Garbe"
-!define PRODUCT_WEB_SITE "http://www.et.tu-dresden.de"
+!define PRODUCT_WEB_SITE "http://www.et.tu-dresden.de/rst/"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"
 
 !define PYTHONCORE "SOFTWARE\Python\PythonCore\2.6"
@@ -46,6 +46,9 @@ Section "TexText" -SEC01
   File "textext.py"
   File "asktext.py"
   File "textext.inx"
+  File "typesetter.py"
+  File "latexlogparser.py"
+  File "default_packages.tex"
   WriteRegStr HKLM "${PYTHONCORE}\InstallPath\InstallGroup" "" "Python 2.6"
   WriteRegStr HKLM "${PYTHONCORE}\PythonPath" "" "$PROGRAMFILES\Inkscape\python\Lib;$PROGRAMFILES\Inkscape\python\DLLs;$PROGRAMFILES\Inkscape\python\Lib\site-packages"
 SectionEnd
