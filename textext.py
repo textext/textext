@@ -162,7 +162,7 @@ class TexText(inkex.Effect):
             try:
                 asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
             except RuntimeError as error:
-                die(error)
+                die(str(error))
 
         else:
             self.do_convert(self.options.text,

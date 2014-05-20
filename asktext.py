@@ -90,17 +90,27 @@ class AskText(object):
         self._window = None
 
     def ask(self, callback):
+        """
+        Present the GUI for entering LaTeX code and some options
+        :param callback: A callback function (basically, what to do with the values from the GUI)
+        """
         pass
 
     def cb_cancel(self, widget=None, data=None):
+        """
+        Callback for Cancel button
+        """
         raise SystemExit(1)
 
     def cb_ok(self, widget=None, data=None):
+        """
+        Callback for OK / Save button
+        """
         pass
 
 
 class AskTextTK(AskText):
-    """GUI for editing TexText objects"""
+    """TK GUI for editing TexText objects"""
 
     def ask(self, callback):
         self.callback = callback
@@ -163,7 +173,7 @@ import traceback
 
 
 class AskTextGTK(AskText):
-    """GUI for editing TexText objects"""
+    """GTK GUI for editing TexText objects"""
 
     def __init__(self, text, preamble_file, scale_factor):
         super(AskTextGTK, self).__init__(text, preamble_file, scale_factor)
@@ -308,11 +318,19 @@ import pango
 
 
 class AskTextGTKSource(AskText):
+    """GTK + Source Highlighting for editing TexText objects"""
+
     def __init__(self, text, preamble_file, scale_factor):
         super(AskTextGTKSource, self).__init__(text, preamble_file, scale_factor)
+        self._scale_adj = None
 
     # ---------- Error dialog
     def error_dialog(self, parent, msg):
+        """
+        Present an error dialog
+        :param parent: The parent window
+        :param msg:  The message (can have HTML)
+        """
         dialog = gtk.MessageDialog(parent,
                                    gtk.DIALOG_DESTROY_WITH_PARENT,
                                    gtk.MESSAGE_ERROR,
@@ -321,8 +339,13 @@ class AskTextGTKSource(AskText):
         dialog.run()
         dialog.destroy()
 
-    # ---------- File loading
     def load_file(self, text_buffer, path):
+        """
+        Load text from a file into a text buffer
+        :param text_buffer: the GTK text buffer
+        :param path: where to load the file from
+        :return: True, if successful
+        """
         text_buffer.begin_not_undoable_action()
         try:
             text = open(path).read()
@@ -337,25 +360,29 @@ class AskTextGTKSource(AskText):
         text_buffer.place_cursor(text_buffer.get_start_iter())
         return True
 
-    # ---------- Buffer creation
     def open_file(self, text_buffer, filename):
-        # get the new language for the file mimetype
-        manager = text_buffer.get_data('languages-manager')
+        """
+        Open a text file via its name
+        :param text_buffer: Where to put the loaded text
+        :param filename: File name
+        """
 
         if os.path.isabs(filename):
             path = filename
         else:
             path = os.path.abspath(filename)
 
+        # try to figure out the (code) language of the text in the file
+        manager = text_buffer.get_data('languages-manager')
         language = manager.guess_language(filename)
         if language:
             text_buffer.set_highlight_syntax(True)
             text_buffer.set_language(language)
         else:
-            print 'No language found for file "%s"' % filename
+            print("No language found for file \"%s\"" % filename)
             text_buffer.set_highlight_syntax(False)
 
-            self.load_file(text_buffer, path)
+        self.load_file(text_buffer, path)
 
     # ---------- Action callbacks
     def numbers_toggled_cb(self, action, sourceview=None):
@@ -444,6 +471,7 @@ class AskTextGTKSource(AskText):
         return True
 
     # ---------- Actions & UI definition
+
     buffer_actions = [
         ('Open', gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', open_file_cb),
         ('Quit', gtk.STOCK_QUIT, '_Quit', '<control>Q', 'Exit the application', gtk.main_quit)
@@ -499,24 +527,9 @@ class AskTextGTKSource(AskText):
     </ui>
     """
 
-    buffer_ui_description = """
-    <ui>
-      <menubar name='MainMenu'>
-        <menu action='FileMenu'>
-          <placeholder name="FileMenuAdditions">
-            <menuitem action='Open'/>
-          </placeholder>
-          <separator/>
-          <menuitem action='Quit'/>
-        </menu>
-        <menu action='ViewMenu'>
-        </menu>
-      </menubar>
-    </ui>
-    """
-
     # ---------- create view window
     def create_buttons(self):
+        """Creates and connects the Save and Cancel buttons"""
         layout = gtk.BUTTONBOX_EDGE
         spacing = 0
 
@@ -537,43 +550,14 @@ class AskTextGTKSource(AskText):
 
         return button_box
 
-    def create_view_window(self, text_buffer, parent_view=None):
+    # ---------- Create main window
+    def create_window(self, text_buffer):
         # window
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         window.set_border_width(0)
         window.set_title('Enter LaTeX Formula - TexText')
 
-        # view
-        source_view = gtksourceview2.View(text_buffer)
-        text_buffer.connect('changed', self.update_cursor_position, source_view)
-        window.connect('delete-event', self.window_deleted_cb, source_view)
-
-        # action group and UI manager
-        action_group = gtk.ActionGroup('ViewActions')
-        action_group.add_actions(self.view_actions, source_view)
-        action_group.add_toggle_actions(self.toggle_actions, source_view)
-        action_group.add_radio_actions(self.radio_actions, -1, self.tabs_toggled_cb, source_view)
-
-        ui_manager = gtk.UIManager()
-        ui_manager.insert_action_group(action_group, 0)
-        # save a reference to the ui manager in the window for later use
-        window.set_data('ui_manager', ui_manager)
-        accel_group = ui_manager.get_accel_group()
-        window.add_accel_group(accel_group)
-        ui_manager.add_ui_from_string(self.view_ui_description)
-
-        # misc widgets
-        vbox = gtk.VBox(0, False)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        pos_label = gtk.Label('Position')
-        source_view.set_data('pos_label', pos_label)
-        menu = ui_manager.get_widget('/MainMenu')
-
-        # layout widgets
-        window.add(vbox)
-        vbox.pack_start(menu, False, False, 0)
-
+        # File chooser and Scale Adjustment
         if hasattr(gtk, 'FileChooserButton'):
             self._preamble = gtk.FileChooserButton("...")
             if os.path.exists(self.preamble_file):
@@ -587,55 +571,59 @@ class AskTextGTKSource(AskText):
         preamble_label = gtk.Label("Preamble File")
         preamble_box.pack_start(preamble_label, False, False, 2)
         preamble_box.pack_start(self._preamble, True, True, 2)
-        vbox.pack_start(preamble_box, False, False, 0)
 
         scale_box = gtk.HBox(homogeneous=False, spacing=2)
         scale_label = gtk.Label("Scale Factor")
         scale_box.pack_start(scale_label, False, False, 2)
-        self._scale_adj = gtk.Adjustment(lower=0.01, upper=100,
-                                         step_incr=0.1, page_incr=1)
+        self._scale_adj = gtk.Adjustment(lower=0.01, upper=100, step_incr=0.1, page_incr=1)
         self._scale = gtk.HScale(self._scale_adj)
         self._scale.set_digits(2)
+        self._scale_adj.set_value(1.0 if not self.scale_factor else self.scale_factor)
         scale_box.pack_start(self._scale, True, True, 2)
-        vbox.pack_start(scale_box, False, False, 0)
 
-        vbox.pack_start(sw, True, True, 0)
-        sw.add(source_view)
-        vbox.pack_start(pos_label, False, False, 0)
-        vbox.pack_start(self.create_buttons(), False, False, 0)
+        # Scrolling Window with Source View inside
+        scroll_window = gtk.ScrolledWindow()
+        scroll_window.set_shadow_type(gtk.SHADOW_IN)
 
+        # Source code view
+        source_view = gtksourceview2.View(text_buffer)
+        scroll_window.add(source_view)
         # set monospace font
         font_desc = pango.FontDescription('monospace 11')
         if font_desc:
             source_view.modify_font(font_desc)
 
-        # change view attributes to match those of sourceview
-        if parent_view:
-            action = action_group.get_action('ShowNumbers')
-            action.set_active(parent_view.get_show_line_numbers())
-            action = action_group.get_action('AutoIndent')
-            action.set_active(parent_view.get_auto_indent())
-            action = action_group.get_action('InsertSpaces')
-            action.set_active(parent_view.get_insert_spaces_instead_of_tabs())
-            action = action_group.get_action('TabsWidth%d' % parent_view.get_tab_width())
-            if action:
-                action.set_active(True)
+        # Action group and UI manager
+        action_group = gtk.ActionGroup('ViewActions')
+        action_group.add_actions(self.view_actions, source_view)
+        action_group.add_toggle_actions(self.toggle_actions, source_view)
+        action_group.add_radio_actions(self.radio_actions, -1, self.tabs_toggled_cb, source_view)
+
+        ui_manager = gtk.UIManager()
+        ui_manager.insert_action_group(action_group, 0)
+        accel_group = ui_manager.get_accel_group()
+        window.add_accel_group(accel_group)
+        ui_manager.add_ui_from_string(self.view_ui_description)
+
+        # Menu
+        menu = ui_manager.get_widget('/MainMenu')
+
+        # Cursor position label
+        pos_label = gtk.Label('Position')
+        source_view.set_data('pos_label', pos_label)
+
+        # Vertical Layout
+        vbox = gtk.VBox(0, False)
+        window.add(vbox)
+
+        vbox.pack_start(menu, False, False, 0)
+        vbox.pack_start(preamble_box, False, False, 0)
+        vbox.pack_start(scale_box, False, False, 0)
+        vbox.pack_start(scroll_window, True, True, 0)
+        vbox.pack_start(pos_label, False, False, 0)
+        vbox.pack_start(self.create_buttons(), False, False, 0)
 
         vbox.show_all()
-
-        return window
-
-    # ---------- Create main window
-    def create_main_window(self, text_buffer):
-        window = self.create_view_window(text_buffer)
-        ui_manager = window.get_data('ui_manager')
-
-        # buffer action group
-        action_group = gtk.ActionGroup('BufferActions')
-        action_group.add_actions(self.buffer_actions, text_buffer)
-        ui_manager.insert_action_group(action_group, 1)
-        # merge buffer ui
-        ui_manager.add_ui_from_string(self.buffer_ui_description)
 
         # preselect menu check items
         groups = ui_manager.get_action_groups()
@@ -650,7 +638,11 @@ class AskTextGTKSource(AskText):
         action = action_group.get_action('TabsWidth8')
         action.set_active(True)
 
+        # Connect event callbacks
         window.connect("key-press-event", self.cb_key_press)
+        text_buffer.connect('changed', self.update_cursor_position, source_view)
+        window.connect('delete-event', self.window_deleted_cb, source_view)
+        text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
 
         return window
 
@@ -670,7 +662,7 @@ class AskTextGTKSource(AskText):
         text_buffer.set_data('languages-manager', lm)
 
         # create first window
-        window = self.create_main_window(text_buffer)
+        window = self.create_window(text_buffer)
         window.set_default_size(500, 500)
         window.show()
 
