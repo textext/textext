@@ -31,12 +31,9 @@ for contributions.
    write asynchronous extensions for Inkscape.
 
 .. note::
-   Textext requires Pdflatex and one of the following
-     - Pdf2svg_
-     - Pstoedit_ compiled with the ``plot-svg`` back-end
+   Textext requires Pdflatex and Pstoedit_ compiled with the ``plot-svg`` back-end
 
 .. _Pstoedit: http://www.pstoedit.net/pstoedit
-.. _Pdf2svg: http://www.cityinthesky.co.uk/pdf2svg.html
 .. _Inkscape: http://www.inkscape.org/
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
@@ -69,7 +66,6 @@ import inkex
 import tempfile
 import re
 import copy
-import hashlib
 from lxml import etree
 
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -281,7 +277,6 @@ class TexText(inkex.Effect):
             new_node = converter.convert(text, preamble_file, scale_factor)
         finally:
             converter.finish()
-            pass
 
         if new_node is None:
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
@@ -599,9 +594,11 @@ try:
 
         try:
             # hides the command window for cli tools that are run (in Windows)
-            info = subprocess.STARTUPINFO()
-            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            info.wShowWindow = subprocess.SW_HIDE
+            info = None
+            if PLATFORM == WINDOWS:
+                info = subprocess.STARTUPINFO()
+                info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                info.wShowWindow = subprocess.SW_HIDE
 
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
@@ -888,73 +885,7 @@ class PstoeditPlotSvg(PdfConverterBase):
         if 'plot-svg' not in out:
             add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
 
-
-class Pdf2Svg(PdfConverterBase):
-    """
-    Convert PDF -> SVG using pdf2svg
-    """
-
-    def __init__(self):
-        PdfConverterBase.__init__(self)
-        self.hash = None
-
-    def convert(self, *a, **kw):
-        # compute hash for generating unique ids for sub-elements
-        m = hashlib.md5()
-        m.update('%s%s' % (a, kw))
-        self.hash = m.hexdigest()[:8]
-        return PdfConverterBase.convert(self, *a, **kw)
-
-    def pdf_to_svg(self):
-        exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg'), '1'])
-
-    def get_transform(self, scale_factor):
-        return 'scale(%f,%f)' % (scale_factor, scale_factor)
-
-    def svg_to_group(self):
-        # create xml.dom representation of the TeX file
-        tree = etree.parse(self.tmp('svg'))
-        root = tree.getroot()
-        self.fix_xml_namespace(root)
-
-        href_map = {}
-
-        # Map items to new ids
-        for i, el in enumerate(root.xpath('//*[attribute::id]')):
-            cur_id = el.attrib['id']
-            new_id = "%s%s-%d" % (ID_PREFIX, self.hash, i)
-            href_map['#' + cur_id] = "#" + new_id
-            el.attrib['id'] = new_id
-
-        # Replace hrefs
-        url_re = re.compile('^url\((.*)\)$')
-
-        for el in root.xpath('//*[attribute::xlink:href]', namespaces=NSS):
-            href = el.attrib['{%s}href' % XLINK_NS]
-            el.attrib['{%s}href' % XLINK_NS] = href_map.get(href, href)
-
-        for el in root.xpath('//*[attribute::svg:clip-path]', namespaces=NSS):
-            value = el.attrib['clip-path']
-            m = url_re.match(value)
-            if m:
-                el.attrib['clip-path'] = \
-                    'url(%s)' % href_map.get(m.group(1), m.group(1))
-
-        # Bundle everything in a single group
-        master_group = etree.SubElement(root, 'g')
-        for c in root:
-            if c is master_group: continue
-            master_group.append(c)
-
-        return copy.copy(master_group)
-
-    @classmethod
-    def available(cls):
-        """Check whether pdf2svg is available, raise RuntimeError if not"""
-        exec_command(['pdf2svg'], ok_return_value=254)
-
-
-CONVERTERS = [Pdf2Svg, PstoeditPlotSvg]
+CONVERTERS = [PstoeditPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
