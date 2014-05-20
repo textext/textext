@@ -88,13 +88,18 @@ from asktext import *
 #------------------------------------------------------------------------------
 
 
-def die(errormessage):
-    add_error_message("ERROR: " + errormessage)
-    inkex.errormsg("\n".join(warning_messages))
+def die(message=""):
+    if message:
+        add_warning_message("ERROR: " + message)
+    show_warnings()
     raise SystemExit(1)
 
 
-def add_error_message(message):
+def show_warnings():
+    inkex.errormsg("\n".join(warning_messages))
+
+
+def add_warning_message(message):
     warning_messages.append(message)
 
 
@@ -157,12 +162,14 @@ class TexText(inkex.Effect):
             try:
                 asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
             except RuntimeError as error:
-                die(error.message)
+                die(error)
 
         else:
             self.do_convert(self.options.text,
                             self.options.preamble_file,
                             self.options.scale_factor, usable_converter_class, old_node)
+
+        show_warnings()
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
 
@@ -180,6 +187,7 @@ class TexText(inkex.Effect):
             converter.finish()
 
         if new_node is None:
+            add_warning_message("No new Node!")
             return
 
         # Insert into document
@@ -204,11 +212,12 @@ class TexText(inkex.Effect):
             pass
 
         # -- Copy style
-        if old_node is not None:
-            self.copy_style(old_node, new_node)
-
-        # -- Replace
-        self.replace_node(old_node, new_node)
+        add_warning_message("New Node: %s" % new_node)
+        if old_node is None:
+            self.current_layer.append(new_node)
+        else:
+            add_warning_message("Old Node: %s" % old_node)
+            self.replace_node(old_node, new_node)
 
         # -- Save settings
         if os.path.isfile(preamble_file):
@@ -243,31 +252,26 @@ class TexText(inkex.Effect):
         Replace an XML node old_node with new_node
         in self.document.
         """
-        if old_node is None:
-            self.current_layer.append(new_node)
-        else:
-            parent = old_node.getparent()
-            parent.remove(old_node)
-            parent.append(new_node)
+        parent = old_node.getparent()
+        parent.remove(old_node)
+        parent.append(new_node)
+        self.copy_style(old_node, new_node)
 
-    STYLE_ATTRS = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
+    def copy_style(self, old_node, new_node):
+        style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
                    'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
                    'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
 
-    def copy_style(self, old_node, new_node):
-        # TODO: Needs work...
-        #
-        #      We could try traversing the node tree downwards and
-        #      removing color-alteration from the attributes.
-        #      Not straightforward, need to read the SVG spec...
-        #
-        #      Removing style attributes does not work in general, because
-        #      at least pdf2svg relies on preserving the stroke attrs.
-        #
-        try:
-            new_node.attrib['style'] = old_node.attrib['style']
-        except (KeyError, IndexError, TypeError, AttributeError):
-            pass
+        for attribute_name in style_attrs:
+            try:
+                old_attribute = old_node.attrib[attribute_name]
+                new_node.attrib[attribute_name] = old_attribute
+
+                for child in new_node.iterchildren():
+                    child.attrib[attribute_name] = old_attribute
+
+            except (KeyError, IndexError, TypeError, AttributeError):
+                add_warning_message("Problem setting attribute %s" % attribute_name)
 
 #------------------------------------------------------------------------------
 # Settings backend
@@ -371,10 +375,10 @@ try:
                                  stdin=subprocess.PIPE)
             out, err = p.communicate()
         except OSError, e:
-            add_error_message("Command %s failed: %s" % (' '.join(cmd), e))
+            add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and p.returncode != ok_return_value:
-            add_error_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
+            add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
         return out + err
 
 except ImportError:
@@ -396,10 +400,10 @@ except ImportError:
             returncode = p.wait() >> 8
             out = p.fromchild.read()
         except OSError, e:
-            add_error_message("Command %s failed: %s" % (' '.join(cmd), e))
+            add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and returncode != ok_return_value:
-            add_error_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
+            add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
         return out
 
 if PLATFORM == WINDOWS:
@@ -604,9 +608,9 @@ class PstoeditPlotSvg(PdfConverterBase):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
-            add_error_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
+            add_warning_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
         if 'plot-svg' not in out:
-            add_error_message("Pstoedit not compiled with plot-svg support")
+            add_warning_message("Pstoedit not compiled with plot-svg support")
 
     available = classmethod(available)
 
