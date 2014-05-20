@@ -45,7 +45,6 @@ import sys
 import os
 import glob
 import platform
-import re
 
 DEBUG = False
 
@@ -57,8 +56,6 @@ if PLATFORM == MAC:
     sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
     sys.path.append('/usr/local/lib/python2.7/site-packages')
     sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
-elif PLATFORM == WINDOWS:
-    sys.path.append(r'C:/Program Files/Inkscape/share/extensions')
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -201,8 +198,8 @@ class TexText(inkex.Effect):
             try:
                 asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node),
                           lambda t, p, c: self.preview_convert(t, p, usable_converter_class, c))
-            except RuntimeError:
-                raise
+            finally:
+                pass
 
         else:
             self.do_convert(self.options.text,
@@ -211,14 +208,14 @@ class TexText(inkex.Effect):
 
         show_log()
 
-    def preview_convert(self, text, preamble_file, converter_class, image_setter_callback):
+    def preview_convert(self, text, preamble_file, converter_class, image_setter):
         """
         Generates a preview PNG of the LaTeX output using the selected converter.
 
         :param text:
         :param preamble_file:
         :param converter_class:
-        :param image_setter_callback: A callback to execute with the file path of the generated PNG
+        :param image_setter: A callback to execute with the file path of the generated PNG
         """
         if not text:
             return
@@ -232,7 +229,7 @@ class TexText(inkex.Effect):
         try:
             converter.tex_to_pdf(text, preamble_file)
 
-            # convert resulting pdf to png
+            # convert resulting pdf to png using ImageMagick's 'convert'
             try:
                 options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'), converter.tmp('png')]
 
@@ -244,7 +241,7 @@ class TexText(inkex.Effect):
                 else:
                     exec_command(['convert'] + options)
 
-                image_setter_callback(converter.tmp('png'))
+                image_setter(converter.tmp('png'))
             except RuntimeError:
                 add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.",
                                 LOG_LEVEL_ERROR)

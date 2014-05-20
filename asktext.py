@@ -371,9 +371,9 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         def __init__(self, text, preamble_file, scale_factor):
             super(AskTextGTKSource, self).__init__(text, preamble_file, scale_factor)
-            self.preview = None
+            self._preview = None
             self._scale_adj = None
-            self.preview_callback = None
+            self._preview_callback = None
             self._text_view = None
 
             self.buffer_actions = [
@@ -589,7 +589,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             return True
 
         def update_preview(self, widget):
-            if self.preview_callback:
+            if self._preview_callback:
                 text = self._text_box.get_text(self._text_box.get_start_iter(),
                                                self._text_box.get_end_iter())
 
@@ -601,7 +601,7 @@ if TOOLKIT == GTKSOURCEVIEW:
                     preamble = self._preamble.get_text()
 
                 try:
-                    self.preview_callback(text, preamble, self.set_preview_image_from_file)
+                    self._preview_callback(text, preamble, self.set_preview_image_from_file)
 
                 except StandardError, error:
                     error_dialog(self._window,
@@ -612,10 +612,21 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         def set_preview_image_from_file(self, path):
             """
-            Set the preview image in the GUI
+            Set the preview image in the GUI, scaled to the text view's width
             :param path: the path of the image
             """
-            self.preview.set_from_file(path)
+            textview_width = self._text_view.get_allocation().width
+
+            pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            image_width = pixbuf.get_width()
+            image_height = pixbuf.get_height()
+
+            if image_width > textview_width:
+                ratio = float(image_height) / image_width
+                pixbuf = pixbuf.scale_simple(textview_width, int(textview_width * ratio),
+                                             gtk.gdk.INTERP_BILINEAR)
+
+            self._preview.set_from_pixbuf(pixbuf)
 
         # ---------- create view window
         def create_buttons(self):
@@ -730,7 +741,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             source_view.set_data('pos_label', pos_label)
 
             # latex preview
-            self.preview = gtk.Image()
+            self._preview = gtk.Image()
 
             # Vertical Layout
             vbox = gtk.VBox(0, False)
@@ -742,7 +753,7 @@ if TOOLKIT == GTKSOURCEVIEW:
                 vbox.pack_start(scale_box, False, False, 0)
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
-            vbox.pack_start(self.preview, False, False, 0)
+            vbox.pack_start(self._preview, False, False, 0)
             vbox.pack_start(self.create_buttons(), False, False, 0)
 
             vbox.show_all()
@@ -770,17 +781,17 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         def ask(self, callback, preview_callback=None):
             self.callback = callback
-            self.preview_callback = preview_callback
+            self._preview_callback = preview_callback
 
-            lm = gtksourceview2.LanguageManager()
             text_buffer = gtksourceview2.Buffer()
             text_buffer.set_text(self.text)
 
             # set LaTeX as highlighting language, so that pasted text is also highlighted as such
-            latex_language = lm.get_language("latex")
+            lang_manager = gtksourceview2.LanguageManager()
+            latex_language = lang_manager.get_language("latex")
             text_buffer.set_language(latex_language)
 
-            text_buffer.set_data('languages-manager', lm)
+            text_buffer.set_data('languages-manager', lang_manager)
 
             # create first window
             window = self.create_window(text_buffer)
