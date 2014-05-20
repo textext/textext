@@ -18,23 +18,30 @@ def main():
     success = green.format(success)
     failure = red.format(failure)
 
-    path = os.path.join(__file__, "extension")
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extension")
     destination = os.path.expanduser("~/.config/inkscape/extensions")
 
-    try:
-        for (dirpath, dirnames, filenames) in os.walk(path):
-            for filename in filenames:
-                filepath = os.path.join(path, filename)
-                try:
-                    os.makedirs(destination)
-                except StandardError:
-                    pass
+    num_copied_files = 0
 
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        for filename in filenames:
+            filepath = os.path.join(path, filename)
+            try:
+                os.makedirs(destination)
+            except StandardError:
+                pass
+
+            try:
                 shutil.copy(filepath, destination)
-            # we only care for the top directory level
-            break
+                num_copied_files += 1
+            except StandardError:
+                print failure
+                SystemExit(1)
+        # we only care for the top directory level
+        break
+    if num_copied_files > 0:
         print success
-    except StandardError:
+    else:
         print failure
 
 if __name__ == "__main__":
