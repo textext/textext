@@ -83,7 +83,10 @@ NSS = {
     u'xlink': XLINK_NS,
 }
 
-warning_messages = []
+messages = []
+
+LOG_LEVEL_ERROR = "Error Log Level"
+LOG_LEVEL_DEBUG = "Debug Log Level"
 
 from asktext import AskerFactory
 
@@ -99,17 +102,54 @@ def die(message=""):
     :raise SystemExit:
     """
     if message:
-        add_warning_message("ERROR: " + message)
-    show_warnings()
+        add_log_message(message, LOG_LEVEL_ERROR)
+    show_log()
     raise SystemExit(1)
 
 
-def show_warnings():
-    inkex.errormsg("\n".join(warning_messages))
+def show_log():
+    """
+    Show log in popup, if there are error messages.
+    Include debug messages as well, when there are some.
+    """
+    filtered_messages = messages
+    if not DEBUG:
+        filtered_messages = filter(lambda (m, l): l != LOG_LEVEL_DEBUG, filtered_messages)
+
+    for dict in filtered_messages:
+        add_log_message("dict: %s" % str(dict), LOG_LEVEL_ERROR)
+
+    if len(filtered_messages) > 0:
+        rendered_messages = map(render_message, filtered_messages)
+        inkex.errormsg("\n".join(rendered_messages))
 
 
-def add_warning_message(message):
-    warning_messages.append(message)
+def add_log_message(message, level):
+    """
+    Insert a log message and its log level
+    :param message: Text
+    :param level: log level, can be LOG_LEVEL_DEBUG or LOG_LEVEL_ERROR
+    """
+    messages.append((message, level))
+
+
+def render_message(message, level):
+    if level == LOG_LEVEL_DEBUG:
+        prefix = "(W)"
+    elif level == LOG_LEVEL_ERROR:
+        prefix = "(E)"
+    else:
+        prefix = "(Invalid Log Level - {level})".format(level=level)
+
+    return "{prefix}: {message}".format(prefix=prefix, message=message)
+
+
+def latest_message():
+    """
+    Return the latest message from the log, without indication of log level.
+    :return: The message text
+    """
+    return messages[-1][0]
 
 
 class TexText(inkex.Effect):
@@ -144,8 +184,8 @@ class TexText(inkex.Effect):
                 converter_class.available()
                 usable_converter_class = converter_class
                 break
-            except StandardError, e:
-                converter_errors.append("%s: %s" % (converter_class.__name__, str(e)))
+            except StandardError, err:
+                converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
 
         if not usable_converter_class:
             die("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
@@ -179,8 +219,7 @@ class TexText(inkex.Effect):
                             self.options.preamble_file,
                             self.options.scale_factor, usable_converter_class, old_node)
 
-        if DEBUG:
-            show_warnings()
+        show_log()
 
     def preview_convert(self, text, preamble_file, converter_class):
         """
@@ -188,7 +227,6 @@ class TexText(inkex.Effect):
 
         :param text:
         :param preamble_file:
-        :param scale_factor:
         :param converter_class:
         """
         if not text:
@@ -233,7 +271,7 @@ class TexText(inkex.Effect):
             converter.finish()
 
         if new_node is None:
-            add_warning_message("No new Node!")
+            add_log_message("No new Node!", LOG_LEVEL_DEBUG)
             return
 
         # Insert into document
@@ -310,8 +348,8 @@ class TexText(inkex.Effect):
         :param new_node:
         """
         style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
-                   'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
-                   'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
+                       'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
+                       'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
 
         for attribute_name in style_attrs:
             try:
@@ -329,7 +367,7 @@ class TexText(inkex.Effect):
                     child.attrib[attribute_name] = old_attribute
 
             except (KeyError, IndexError, TypeError, AttributeError):
-                add_warning_message("Problem setting attribute %s" % attribute_name)
+                add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
 
 
 class Settings(object):
@@ -381,9 +419,11 @@ class Settings(object):
             import _winreg
 
             try:
-                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname,
-                                      sam=_winreg.KEY_SET_VALUE | _winreg.KEY_WRITE)
-            except:
+                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER,
+                                      self.keyname,
+                                      0,
+                                      _winreg.KEY_SET_VALUE | _winreg.KEY_WRITE)
+            except WindowsError:
                 key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, self.keyname)
             try:
                 for k, v in self.values.iteritems():
@@ -427,6 +467,7 @@ try:
         """
 
         try:
+            # hides the command window for cli tools that are run (in Windows)
             info = subprocess.STARTUPINFO()
             info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             info.wShowWindow = subprocess.SW_HIDE
@@ -437,13 +478,14 @@ try:
                                  stdin=subprocess.PIPE,
                                  startupinfo=info)
             out, err = p.communicate()
-        except OSError, e:
-            add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
-            raise RuntimeError(warning_messages[-1])
+        except OSError, err:
+            add_log_message("Command %s failed: %s" % (' '.join(cmd), err), LOG_LEVEL_DEBUG)
+            raise RuntimeError(latest_message())
 
         if ok_return_value is not None and p.returncode != ok_return_value:
-            add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
-            raise RuntimeError(warning_messages[-1])
+            add_log_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err),
+                            LOG_LEVEL_DEBUG)
+            raise RuntimeError(latest_message())
         return out + err
 
 except ImportError:
@@ -463,13 +505,13 @@ except ImportError:
             p.tochild.close()
             returncode = p.wait() >> 8
             out = p.fromchild.read()
-        except OSError, e:
-            add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
-            raise RuntimeError(warning_messages[-1])
+        except OSError, err:
+            add_log_message("Command %s failed: %s" % (' '.join(cmd), err), LOG_LEVEL_DEBUG)
+            raise RuntimeError(latest_message())
 
         if ok_return_value is not None and returncode != ok_return_value:
-            add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
-            raise RuntimeError(warning_messages[-1])
+            add_log_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out), LOG_LEVEL_DEBUG)
+            raise RuntimeError(latest_message())
         return out
 
 if PLATFORM == WINDOWS:
@@ -516,13 +558,12 @@ class LatexConverterBase(object):
         """
         raise NotImplementedError
 
+    @classmethod
     def available(cls):
         """
         :Returns: Check if converter is available, raise RuntimeError if not
         """
         pass
-
-    available = classmethod(available)
 
     def finish(self):
         """
@@ -531,7 +572,6 @@ class LatexConverterBase(object):
         self.remove_temp_files()
 
     # --- Internal
-
     def tmp(self, suffix):
         """
         Return a file name corresponding to given file suffix,
@@ -556,7 +596,7 @@ class LatexConverterBase(object):
                      '-halt-on-error']
 
         texwrapper = r"""
-        \documentclass[landscape,a0]{article}
+        \documentclass[landscape]{article}
         %s
         \pagestyle{empty}
         \begin{document}
@@ -576,33 +616,60 @@ class LatexConverterBase(object):
             f_tex.close()
 
         # Exec pdflatex: tex -> pdf
-        exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
+        try:
+            exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
+        except RuntimeError as error:
+            parsed_log = self.parse_pdf_log(self.tmp('log'))
+            raise RuntimeError("pdflatex found errors:\n{errors}".format(errors=parsed_log))
+
         if not os.path.exists(self.tmp('pdf')):
-            add_warning_message("pdflatex didn't produce output %s" % self.tmp('pdf'))
-            raise RuntimeError(warning_messages[-1])
+            add_log_message("pdflatex didn't produce output %s" % self.tmp('pdf'), LOG_LEVEL_ERROR)
+            raise RuntimeError(latest_message())
 
         return
 
     def remove_temp_files(self):
         """Remove temporary files"""
-        add_warning_message("removing temp files")
+        add_log_message("removing temp files", LOG_LEVEL_DEBUG)
         base = os.path.join(self.tmp_path, self.tmp_base)
         for filename in glob.glob(base + '*'):
             self.try_remove(filename)
         self.try_remove(self.tmp_path)
 
-    def try_remove(self, filename):
+    @staticmethod
+    def try_remove(filename):
         """Try to remove given file, skipping if not exists."""
         if os.path.isfile(filename):
             os.remove(filename)
         elif os.path.isdir(filename):
             os.rmdir(filename)
 
+    def parse_pdf_log(self, logfile):
+        import logging
+        from StringIO import StringIO
+
+        log_buffer = StringIO()
+        log_handler = logging.StreamHandler(log_buffer)
+
+        from typesetter import Typesetter
+        typesetter = Typesetter(self.tmp('tex'))
+        typesetter.halt_on_errors = False
+        typesetter.logger.addHandler(log_handler)
+        typesetter.process_log(logfile)
+
+
+        typesetter.logger.removeHandler(log_handler)
+
+        log_handler.flush()
+        log_buffer.flush()
+
+        return log_buffer.getvalue()
+
 
 class PdfConverterBase(LatexConverterBase):
     def convert(self, latex_text, preamble_file, scale_factor):
         cwd = os.getcwd()
-        add_warning_message("temp path: %s" % self.tmp_path)
+        add_log_message("temp path: %s" % self.tmp_path, LOG_LEVEL_DEBUG)
         try:
             os.chdir(self.tmp_path)
             self.tex_to_pdf(latex_text, preamble_file)
@@ -674,17 +741,18 @@ class PstoeditPlotSvg(PdfConverterBase):
                       self.tmp('pdf'), self.tmp('svg')]
                      + pstoeditOpts)
         if not os.path.exists(self.tmp('svg')):
-            raise RuntimeError("pstoedit didn't produce output")
+            add_log_message("pstoedit didn't produce output", LOG_LEVEL_ERROR)
+            raise RuntimeError(latest_message())
 
+    @classmethod
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
-            add_warning_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
+            add_log_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable",
+                            LOG_LEVEL_DEBUG)
         if 'plot-svg' not in out:
-            add_warning_message("Pstoedit not compiled with plot-svg support")
-
-    available = classmethod(available)
+            add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
 
 
 class Pdf2Svg(PdfConverterBase):
@@ -746,11 +814,10 @@ class Pdf2Svg(PdfConverterBase):
 
         return copy.copy(master_group)
 
+    @classmethod
     def available(cls):
         """Check whether pdf2svg is available, raise RuntimeError if not"""
         exec_command(['pdf2svg'], ok_return_value=254)
-
-    available = classmethod(available)
 
 
 CONVERTERS = [Pdf2Svg, PstoeditPlotSvg]

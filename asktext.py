@@ -370,11 +370,6 @@ if TOOLKIT == GTKSOURCEVIEW:
     import pangocairo
     import cairo
 
-
-
-    # These are the action callbacks for the menu items
-
-
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
