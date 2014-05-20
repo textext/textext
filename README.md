@@ -8,7 +8,7 @@
 - You need Inkscape, of course
 
 
-## Installation for Linux [(or for Windows...)](#windows_installation).
+## Installation for Linux [(or for Windows...)](#markdown-header-installation-for-windows).
 
 ### Tex Text Extension
 
@@ -26,9 +26,9 @@ Finally, to enable the preview feature of *Tex Text*, you need to install `Image
 
 *(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)*
 
-### Congratulations, you're done! [Show Usage...](#usage)
+### Congratulations, you're done! [Show Usage...](#markdown-header-usage)
 
-<a name="windows_installation"></a> 
+
 ## Installation for Windows
 
 ### Tex Text Extension
@@ -58,7 +58,6 @@ If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed 
 
 ### Congratulations, you're done!
 
-<a name="usage"></a>
 ## Usage
 
 The extension menu in Inkscape will now contain a new entry named *Tex Text*.
