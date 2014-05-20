@@ -81,11 +81,24 @@ NSS = {
     u'xlink': XLINK_NS,
 }
 
+warning_messages = []
+
 from asktext import *
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality
 #------------------------------------------------------------------------------
+
+
+def die(errormessage):
+    add_error_message("ERROR: " + errormessage)
+    inkex.errormsg("\n".join(warning_messages))
+    raise SystemExit(1)
+
+
+def add_error_message(message):
+    warning_messages.append(message)
+
 
 class TexText(inkex.Effect):
     def __init__(self):
@@ -123,7 +136,7 @@ class TexText(inkex.Effect):
                 converter_errors.append("%s: %s" % (converter_class.__name__, str(e)))
 
         if not usable_converter_class:
-            raise RuntimeError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
+            die("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
         # Find root element
         old_node, text, preamble_file = self.get_old()
@@ -143,7 +156,10 @@ class TexText(inkex.Effect):
                 preamble_file = ""
 
             asker = AskerFactory().asker(text, preamble_file, scale_factor)
-            asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
+            try:
+                asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node))
+            except RuntimeError as error:
+                die(error.message)
 
         else:
             self.do_convert(self.options.text,
@@ -357,10 +373,10 @@ try:
                                  stdin=subprocess.PIPE)
             out, err = p.communicate()
         except OSError, e:
-            raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+            add_error_message("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and p.returncode != ok_return_value:
-            raise RuntimeError("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
+            add_error_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
         return out + err
 
 except ImportError:
@@ -382,10 +398,10 @@ except ImportError:
             returncode = p.wait() >> 8
             out = p.fromchild.read()
         except OSError, e:
-            raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+            add_error_message("Command %s failed: %s" % (' '.join(cmd), e))
 
         if ok_return_value is not None and returncode != ok_return_value:
-            raise RuntimeError("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
+            add_error_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
         return out
 
 if PLATFORM == WINDOWS:
@@ -493,7 +509,7 @@ class LatexConverterBase(object):
         # Exec pdflatex: tex -> pdf
         exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
         if not os.path.exists(self.tmp('pdf')):
-            raise RuntimeError("pdflatex didn't produce output")
+            die("pdflatex didn't produce output")
 
     def remove_temp_files(self):
         """Remove temporary files"""
@@ -565,41 +581,6 @@ class PdfConverterBase(LatexConverterBase):
             self.fix_xml_namespace(c)
 
 
-class SkConvert(PdfConverterBase):
-    """
-    Convert PDF -> SK -> SVG using pstoedit and skconvert
-    """
-
-    def get_transform(self, scale_factor):
-        return 'scale(%f,%f)' % (scale_factor, scale_factor)
-
-    def pdf_to_svg(self):
-        # Options for pstoedit command
-        pstoeditOpts = '-dt -ssp -psarg -r9600x9600'.split()
-
-        # Exec pstoedit: pdf -> sk
-        exec_command(['pstoedit', '-f', 'sk',
-                      self.tmp('pdf'), self.tmp('sk')]
-                     + pstoeditOpts)
-        if not os.path.exists(self.tmp('sk')):
-            raise RuntimeError("pstoedit didn't produce output")
-
-        # Exec skconvert: sk -> svg
-        os.environ['LC_ALL'] = 'C'
-        exec_command(['skconvert', self.tmp('sk'), self.tmp('svg')])
-        if not os.path.exists(self.tmp('svg')):
-            raise RuntimeError("skconvert didn't produce output")
-
-    def available(cls):
-        """Check whether skconvert and pstoedit are available"""
-        out = exec_command(['pstoedit'], ok_return_value=None)
-        if 'version 3.44' in out and 'Ubuntu' in out:
-            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
-        exec_command(['skconvert'], ok_return_value=1)
-
-    available = classmethod(available)
-
-
 class PstoeditPlotSvg(PdfConverterBase):
     """
     Convert PDF -> SVG using pstoedit's plot-svg backend
@@ -619,15 +600,15 @@ class PstoeditPlotSvg(PdfConverterBase):
                       self.tmp('pdf'), self.tmp('svg')]
                      + pstoeditOpts)
         if not os.path.exists(self.tmp('svg')):
-            raise RuntimeError("pstoedit didn't produce output")
+            die("pstoedit didn't produce output")
 
     def available(cls):
         """Check whether pstoedit has plot-svg available"""
         out = exec_command(['pstoedit', '-help'], ok_return_value=None)
         if 'version 3.44' in out and 'Ubuntu' in out:
-            raise RuntimeError("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
+            add_error_message("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
         if 'plot-svg' not in out:
-            raise RuntimeError("Pstoedit not compiled with plot-svg support")
+            add_error_message("Pstoedit not compiled with plot-svg support")
 
     available = classmethod(available)
 
@@ -698,7 +679,7 @@ class Pdf2Svg(PdfConverterBase):
     available = classmethod(available)
 
 
-CONVERTERS = [Pdf2Svg, PstoeditPlotSvg, SkConvert]
+CONVERTERS = [Pdf2Svg, PstoeditPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point

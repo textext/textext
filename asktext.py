@@ -1,3 +1,16 @@
+"""
+:Author: Pauli Virtanen <pav@iki.fi>
+:Date: 2008-04-26
+:Author: Pit Garbe <piiit@gmx.de>
+:Date: 2014-02-03
+:License: BSD
+
+This is the GUI part of TexText, handling several more or less sophisticated dialog windows
+ depending on the installed tools.
+
+Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
+"""
+
 debugValues = True
 debugText = r"""
 $$
@@ -9,6 +22,7 @@ F(x,y)=0 ~~\mbox{and}~~
   \end{array}\right| = 0
 $$
 """
+
 
 WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 
