@@ -389,7 +389,10 @@ try:
         """
         Run given command, check return value, and return
         concatenated stdout and stderr.
+        :param cmd: Command to execute
+        :param ok_return_value: The expected return value after successful completion
         """
+
         try:
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
@@ -398,9 +401,12 @@ try:
             out, err = p.communicate()
         except OSError, e:
             add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
+            raise RuntimeError
+            return
 
         if ok_return_value is not None and p.returncode != ok_return_value:
             add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
+            raise RuntimeError
         return out + err
 
 except ImportError:
@@ -423,9 +429,11 @@ except ImportError:
             out = p.fromchild.read()
         except OSError, e:
             add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
+            raise RuntimeError
 
         if ok_return_value is not None and returncode != ok_return_value:
             add_warning_message("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
+            raise RuntimeError
         return out
 
 if PLATFORM == WINDOWS:
