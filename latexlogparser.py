@@ -1,3 +1,4 @@
+# coding=utf-8
 # This file is part of Rubber and thus covered by the GPL
 # (c) Emmanuel Beffara, 2002--2006
 # Modified by Olivier Verdier <olivier.verdier@gmail.com>
