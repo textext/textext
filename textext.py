@@ -34,10 +34,8 @@ for contributions.
    Textext requires Pdflatex and one of the following
      - Pdf2svg_
      - Pstoedit_ compiled with the ``plot-svg`` back-end
-     - Pstoedit_ and Skconvert_
 
 .. _Pstoedit: http://www.pstoedit.net/pstoedit
-.. _Skconvert: http://www.skencil.org/
 .. _Pdf2svg: http://www.cityinthesky.co.uk/pdf2svg.html
 .. _Inkscape: http://www.inkscape.org/
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
