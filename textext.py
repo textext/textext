@@ -57,6 +57,8 @@ PLATFORM = platform.system()
 
 if PLATFORM == MAC:
     sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
+    sys.path.append('/usr/local/lib/python2.7/site-packages')
+    sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
 elif PLATFORM == WINDOWS:
     sys.path.append(r'C:/Program Files/Inkscape/share/extensions')
 
@@ -83,7 +85,7 @@ NSS = {
 
 warning_messages = []
 
-from asktext import *
+from asktext import AskerFactory
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality
@@ -225,6 +227,9 @@ class TexText(inkex.Effect):
         # -- Save settings
         if os.path.isfile(preamble_file):
             self.settings.set('preamble', preamble_file)
+        else:
+            self.settings.set('preamble', '')
+
         if scale_factor is not None:
             self.settings.set('scale', scale_factor)
         self.settings.save()
@@ -283,9 +288,6 @@ class TexText(inkex.Effect):
             except (KeyError, IndexError, TypeError, AttributeError):
                 add_warning_message("Problem setting attribute %s" % attribute_name)
 
-#------------------------------------------------------------------------------
-# Settings backend
-#------------------------------------------------------------------------------
 
 class Settings(object):
     def __init__(self):

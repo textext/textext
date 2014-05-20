@@ -413,6 +413,12 @@ if TOOLKIT == GTKSOURCEVIEW:
             if gtk.gdk.keyval_name(event.keyval) == 'Return' and gtk.gdk.CONTROL_MASK & event.state:
                 self._ok_button.clicked()
                 return True
+
+            # escape cancels the dialog
+            if gtk.gdk.keyval_name(event.keyval) == 'Escape':
+                self._cancel_button.clicked()
+                return True
+
             return False
 
         def cb_ok(self, widget=None, data=None):
@@ -553,9 +559,16 @@ if TOOLKIT == GTKSOURCEVIEW:
 
             return button_box
 
+        def clear_preamble(self, unused):
+            self.preamble_file = "..."
+            if hasattr(gtk, 'FileChooserButton'):
+                self._preamble.set_filename(self.preamble_file)
+            else:
+                self._preamble.set_text(self.preamble_file)
+
         # ---------- Create main window
         def create_window(self, text_buffer):
-            # window
+
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_border_width(0)
             window.set_title('Enter LaTeX Formula - TexText')
@@ -570,10 +583,14 @@ if TOOLKIT == GTKSOURCEVIEW:
                 self._preamble = gtk.Entry()
                 self._preamble.set_text(self.preamble_file)
 
+            preamble_delete = gtk.Button(label="Clear")
+            preamble_delete.connect('clicked', self.clear_preamble)
+
             preamble_box = gtk.HBox(homogeneous=False, spacing=2)
             preamble_label = gtk.Label("Preamble File")
             preamble_box.pack_start(preamble_label, False, False, 2)
             preamble_box.pack_start(self._preamble, True, True, 2)
+            preamble_box.pack_start(preamble_delete, False, False, 2)
 
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
             scale_label = gtk.Label("Scale Factor")
