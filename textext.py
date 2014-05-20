@@ -394,10 +394,15 @@ try:
         """
 
         try:
+            info = subprocess.STARTUPINFO()
+            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            info.wShowWindow = subprocess.SW_HIDE
+
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
-                                 stdin=subprocess.PIPE)
+                                 stdin=subprocess.PIPE,
+                                 startupinfo=info)
             out, err = p.communicate()
         except OSError, e:
             add_warning_message("Command %s failed: %s" % (' '.join(cmd), e))
@@ -410,7 +415,6 @@ try:
         return out + err
 
 except ImportError:
-
     # Python < 2.4 ...
     import popen2
 
