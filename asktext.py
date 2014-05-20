@@ -375,8 +375,10 @@ if TOOLKIT == GTKSOURCEVIEW:
 
         def __init__(self, text, preamble_file, scale_factor):
             super(AskTextGTKSource, self).__init__(text, preamble_file, scale_factor)
+            self.preview = None
             self._scale_adj = None
             self.preview_callback = None
+            self._text_view = None
 
             self.buffer_actions = [
                 ('Open', gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
@@ -603,33 +605,21 @@ if TOOLKIT == GTKSOURCEVIEW:
                     preamble = self._preamble.get_text()
 
                 try:
-                    self.preview_callback(text, preamble)
+                    self.preview_callback(text, preamble, self.set_preview_image_from_file)
+
                 except StandardError, error:
                     error_dialog(self._window,
                                  "TexText Error",
-                                 "<b>Error occurred while converting text from Latex to SVG:</b>",
+                                 "<b>Error occurred while generating preview:</b>",
                                  str(error))
                     return False
 
-
-                    #RADIUS = 150
-                    #
-                    #filename = "test"
-                    #
-                    #surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 2*RADIUS, 2*RADIUS)
-                    #cr = pangocairo.CairoContext(cairo.Context(surface))
-                    #cr.set_source_rgb(1.0, 1.0, 1.0)
-                    #cr.rectangle(0, 0, 2*RADIUS, 2*RADIUS)
-                    #cr.fill()
-                    #
-                    #surface.write_to_png(filename + ".png")
-                    #surface.finish()
-                    #
-                    #self.error_dialog(self._window, "Bla")
-
-        # ---------- Actions & UI definition
-
-
+        def set_preview_image_from_file(self, path):
+            """
+            Set the preview image in the GUI
+            :param path: the path of the image
+            """
+            self.preview.set_from_file(path)
 
         # ---------- create view window
         def create_buttons(self):
@@ -644,12 +634,15 @@ if TOOLKIT == GTKSOURCEVIEW:
             button_box.set_spacing(spacing)
 
             self._cancel_button = gtk.Button(stock=gtk.STOCK_CANCEL)
+            self._cancel_button.set_tooltip_text("Don't save changes")
             button_box.add(self._cancel_button)
 
             preview_button = gtk.Button(label="Preview")
+            preview_button.set_tooltip_text("You need ImageMagick for previews to work")
             button_box.add(preview_button)
 
             self._ok_button = gtk.Button(stock=gtk.STOCK_SAVE)
+            self._ok_button.set_tooltip_text("Update or create new LaTeX output")
             button_box.add(self._ok_button)
 
             self._cancel_button.connect("clicked", self.cb_cancel)
@@ -692,6 +685,7 @@ if TOOLKIT == GTKSOURCEVIEW:
 
             preamble_delete = gtk.Button(label="Clear")
             preamble_delete.connect('clicked', self.clear_preamble)
+            preamble_delete.set_tooltip_text("Clear the preamble file setting")
 
             preamble_box = gtk.HBox(homogeneous=False, spacing=2)
             preamble_label = gtk.Label("Preamble File")
@@ -706,6 +700,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             self._scale = gtk.HScale(self._scale_adj)
             self._scale.set_digits(1)
             self._scale_adj.set_value(self.scale_factor if self.scale_factor else 1.0)
+            self._scale.set_tooltip_text("Change the scale of the LaTeX output")
             scale_box.pack_start(self._scale, True, True, 2)
 
             # Scrolling Window with Source View inside
@@ -715,6 +710,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             # Source code view
             source_view = gtksourceview2.View(text_buffer)
             scroll_window.add(source_view)
+            self._text_view = source_view
 
             set_monospace_font(source_view)
 
@@ -739,8 +735,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             source_view.set_data('pos_label', pos_label)
 
             # latex preview
-            preview = gtk.Image()
-            preview.set_from_file("test.png")
+            self.preview = gtk.Image()
 
             # Vertical Layout
             vbox = gtk.VBox(0, False)
@@ -752,7 +747,7 @@ if TOOLKIT == GTKSOURCEVIEW:
                 vbox.pack_start(scale_box, False, False, 0)
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
-            vbox.pack_start(preview, False, False, 0)
+            vbox.pack_start(self.preview, False, False, 0)
             vbox.pack_start(self.create_buttons(), False, False, 0)
 
             vbox.show_all()
@@ -800,5 +795,7 @@ if TOOLKIT == GTKSOURCEVIEW:
             # main loop
             self._window = window
             self._text_box = text_buffer
+            self._window.set_focus(self._text_view)
+
             gtk.main()
             return self.text, self.preamble_file, self.scale_factor

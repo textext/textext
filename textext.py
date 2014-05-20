@@ -204,7 +204,7 @@ class TexText(inkex.Effect):
             asker = AskerFactory().asker(text, preamble_file, scale_factor)
             try:
                 asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node),
-                          lambda t, p: self.preview_convert(t, p, usable_converter_class))
+                          lambda t, p, c: self.preview_convert(t, p, usable_converter_class, c))
             except RuntimeError:
                 raise
 
@@ -215,13 +215,14 @@ class TexText(inkex.Effect):
 
         show_log()
 
-    def preview_convert(self, text, preamble_file, converter_class):
+    def preview_convert(self, text, preamble_file, converter_class, image_setter_callback):
         """
-        Generates a preview of the LaTeX output using the selected converter.
+        Generates a preview PNG of the LaTeX output using the selected converter.
 
         :param text:
         :param preamble_file:
         :param converter_class:
+        :param image_setter_callback: A callback to execute with the file path of the generated PNG
         """
         if not text:
             return
@@ -230,17 +231,33 @@ class TexText(inkex.Effect):
             text = text.encode('utf-8')
 
         converter = converter_class()
+
+        cwd = os.getcwd()
         try:
             converter.tex_to_pdf(text, preamble_file)
-            # convert resulting pdf to png
 
+            # convert resulting pdf to png
+            try:
+                options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'), converter.tmp('png')]
+
+                if PLATFORM == WINDOWS:
+                    import _winreg
+                    key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\ImageMagick\Current")
+                    path = _winreg.QueryValueEx(key, "LibPath")[0]
+                    exec_command([path + '\\' + 'convert'] + options)
+                else:
+                    exec_command(['convert'] + options)
+
+                image_setter_callback(converter.tmp('png'))
+            except RuntimeError:
+                add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.",
+                                LOG_LEVEL_ERROR)
+                raise RuntimeError(latest_message())
         except OSError, WindowsError:
             pass
         finally:
-            # delete tmp files
+            os.chdir(cwd)
             converter.finish()
-
-        return
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
         """
