@@ -193,11 +193,7 @@ class TexText(inkex.Effect):
 
         # Ask for TeX code
         if self.options.text is None:
-            # If there is a transform, scale in GUI will be ignored
-            if old_node is not None:
-                scale_factor = None
-            else:
-                scale_factor = self.options.scale_factor
+            scale_factor = self.options.scale_factor
 
             if not preamble_file:
                 preamble_file = self.options.preamble_file
@@ -221,7 +217,7 @@ class TexText(inkex.Effect):
 
     def preview_convert(self, text, preamble_file, converter_class):
         """
-        Previews the LaTeX output using the selected converter.
+        Generates a preview of the LaTeX output using the selected converter.
 
         :param text:
         :param preamble_file:
@@ -233,9 +229,8 @@ class TexText(inkex.Effect):
         if isinstance(text, unicode):
             text = text.encode('utf-8')
 
-        # Convert
+        converter = converter_class()
         try:
-            converter = converter_class()
             converter.tex_to_pdf(text, preamble_file)
             # convert resulting pdf to png
 
@@ -246,15 +241,6 @@ class TexText(inkex.Effect):
             converter.finish()
 
         return
-
-    def translate_node(self, node, width, height):
-        transform = node.attrib['transform']
-        transform = transform.split('(', 1)[1].split(')')[0]
-        a, b, c, d, x, y = transform.split(',')
-        x = float(x) + width / 2
-        y = float(y) + height / 2
-        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, x, y)
-        node.attrib['transform'] = transform
 
     def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
         """
@@ -277,29 +263,17 @@ class TexText(inkex.Effect):
         try:
             new_node = converter.convert(text, preamble_file, scale_factor)
         finally:
-            # converter.finish()
+            converter.finish()
             pass
 
         if new_node is None:
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
             return
 
-        # Insert into document
 
         # -- Set textext attribs
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
-
-        # -- Copy transform
-        try:
-            # Note: the new node does *not* have the SVG namespace prefixes!
-            #       This caused some problems as Inkscape couldn't properly
-            #       handle both svg: and prefixless entries in the same file
-            #       in some cases.
-            new_node.attrib['transform'] = old_node.attrib['transform']
-            new_node.attrib['transform'] = old_node.attrib['{%s}transform' % SVG_NS]
-        except (KeyError, IndexError, TypeError, AttributeError):
-            pass
 
         # -- Copy style
         if old_node is None:
@@ -309,14 +283,34 @@ class TexText(inkex.Effect):
             width = inkex.unittouu(root.get('width'))
             height = inkex.unittouu(root.get('height'))
 
-            attributes = ""
-            for attrib in new_node.keys():
-                attributes = attributes + "   " + attrib
-
             w, h = self.get_node_size(new_node, scale_factor)
-            self.translate_node(new_node, width - w, height + (h / 2))
+
+            self.translate_node(new_node, (width - w) / 2, (height + h) / 2)
             self.current_layer.append(new_node)
         else:
+            # copy old transform but apply the current scale factor
+            try:
+                new_node.attrib['transform'] = old_node.attrib['transform']
+            except (KeyError, IndexError, TypeError, AttributeError):
+                pass
+
+            try:
+                new_node.attrib['transform'] = old_node.attrib['{%s}transform' % SVG_NS]
+            except (KeyError, IndexError, TypeError, AttributeError):
+                pass
+
+            self.set_node_scale_factor(new_node, scale_factor)
+
+            old_scale = self.get_node_scale_factor(old_node)
+
+            w_old, h_old = self.get_node_size(old_node, old_scale)
+            w_new, h_new = self.get_node_size(new_node, scale_factor)
+
+            w_diff = w_old - w_new
+            h_diff = h_old - h_new
+
+            self.translate_node(new_node, w_diff / 2, -h_diff / 2)
+
             self.replace_node(old_node, new_node)
 
         # -- Save settings
@@ -394,6 +388,7 @@ class TexText(inkex.Effect):
         if not old_node_has_fill_color:
             TexText.set_node_color(new_node, "black")
 
+    # ------ SVG Node utilities
     @staticmethod
     def set_node_color(node, color):
         """
@@ -406,6 +401,16 @@ class TexText(inkex.Effect):
             child.attrib["fill"] = color
 
     def get_node_size(self, node, scale):
+        """
+        Determine the node's size
+
+        It's a good approximation, accounting for the coordinates of all paths in the node's children.
+        Somehow the height isn't exact, but good enough.
+
+        :param node:
+        :param scale: The scale factor to take into account
+        :return: width, height
+        """
         text = ""
         pattern = re.compile(r"\d+\.\d+,\d+\.\d+")
 
@@ -429,10 +434,53 @@ class TexText(inkex.Effect):
         minY = min(yValues)
         maxY = max(yValues)
 
-        width = (maxX - minX) * scale
-        height = (maxY - minY) * scale
+        width = (maxX - minX) * float(scale)
+        height = (maxY - minY) * float(scale)
 
         return width, height
+
+    def get_node_scale_factor(self, node):
+        """
+        Extract the scale factor from the node's transform attribute
+        :param node:
+        :return: scale factor
+        """
+        a, b, c, d, e, f = self.get_node_transform(node)
+        return a
+
+    def set_node_scale_factor(self, node, scale):
+        """
+        Set the node's scale factor (keeps the rest of the transform matrix)
+        :param node:
+        :param scale: the new scale factor
+        """
+        a, b, c, d, e, f = self.get_node_transform(node)
+        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
+        node.attrib['transform'] = transform
+
+    def translate_node(self, node, x, y):
+        """
+        Translate the node
+        :param node:
+        :param x: horizontal translation
+        :param y: vertical translation
+        """
+        a, b, c, d, old_x, old_y = self.get_node_transform(node)
+        new_x = float(old_x) + x
+        new_y = float(old_y) + y
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
+        node.attrib['transform'] = transform
+
+    def get_node_transform(self, node):
+        """
+        Gets the matrix values form the node's transform attribute
+        :param node:
+        :return: a, b, c, d, e, f   (the values of the transform matrix)
+        """
+        transform = node.attrib['transform']
+        transform = transform.split('(', 1)[1].split(')')[0]
+        a, b, c, d, e, f = transform.split(',')
+        return a, b, c, d, e, f
 
 
 class Settings(object):
@@ -893,5 +941,5 @@ CONVERTERS = [Pdf2Svg, PstoeditPlotSvg]
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    e = TexText()
-    e.affect()
+    effect = TexText()
+    effect.affect()
