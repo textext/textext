@@ -400,7 +400,7 @@ class AskTextGTKSource(AskText):
             self.callback(self.text, self.preamble_file, self.scale_factor)
         except StandardError, error:
             self.error_dialog(self._window,
-                              "Textext Error. Error occurred while converting text from Latex to SVG. \n\n%s", error)
+                              "Textext Error. Error occurred while converting text from Latex to SVG. \n\n%s" % error)
             return False
 
         gtk.main_quit()
