@@ -237,7 +237,7 @@ class TexText(inkex.Effect):
 
         # Convert
         try:
-            converter = converter_class(self.document)
+            converter = converter_class()
             converter.tex_to_pdf(text, preamble_file)
             # convert resulting pdf to png
 
@@ -264,7 +264,7 @@ class TexText(inkex.Effect):
             text = text.encode('utf-8')
 
         # Convert
-        converter = converter_class(self.document)
+        converter = converter_class()
         try:
             new_node = converter.convert(text, preamble_file, scale_factor)
         finally:
@@ -297,6 +297,7 @@ class TexText(inkex.Effect):
 
         # -- Copy style
         if old_node is None:
+            self.set_node_color(new_node, "black")
             self.current_layer.append(new_node)
         else:
             self.replace_node(old_node, new_node)
@@ -334,14 +335,15 @@ class TexText(inkex.Effect):
 
     def replace_node(self, old_node, new_node):
         """
-        Replace an XML node old_node with new_node in self.document.
+        Replace an XML node old_node with new_node
         """
         parent = old_node.getparent()
         parent.remove(old_node)
         parent.append(new_node)
         self.copy_style(old_node, new_node)
 
-    def copy_style(self, old_node, new_node):
+    @staticmethod
+    def copy_style(old_node, new_node):
         """
         Copy all style attributes from the old to the new node, including the children, since TexText nodes are groups.
         :param old_node:
@@ -358,9 +360,6 @@ class TexText(inkex.Effect):
                 else:
                     continue
 
-                if attribute_name == "fill" and old_attribute == "none":
-                    old_attribute = "black"
-
                 new_node.attrib[attribute_name] = old_attribute
 
                 for child in new_node.iterchildren():
@@ -368,6 +367,26 @@ class TexText(inkex.Effect):
 
             except (KeyError, IndexError, TypeError, AttributeError):
                 add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
+
+        old_node_has_fill_color = False
+        if "fill" in old_node.keys():
+            old_fill = old_node.attrib["fill"]
+            if old_fill != "none" and old_fill is not None and old_fill != "":
+                old_node_has_fill_color = True
+
+        if not old_node_has_fill_color:
+            TexText.set_node_color(new_node, "black")
+
+    @staticmethod
+    def set_node_color(node, color):
+        """
+        Set a nodes fill color
+        :param node: which node
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+        """
+        node.attrib["fill"] = color
+        for child in node.iterchildren():
+            child.attrib["fill"] = color
 
 
 class Settings(object):
@@ -534,12 +553,9 @@ class LatexConverterBase(object):
 
     # --- Public api
 
-    def __init__(self, document):
+    def __init__(self):
         """
         Initialize Latex -> SVG converter.
-
-        :Parameters:
-          - `document`: Document where the result is to be embedded (read-only)
         """
         self.tmp_path = tempfile.mkdtemp()
         self.tmp_base = 'tmp'
@@ -628,6 +644,27 @@ class LatexConverterBase(object):
 
         return
 
+    def parse_pdf_log(self, logfile):
+        import logging
+        from StringIO import StringIO
+
+        log_buffer = StringIO()
+        log_handler = logging.StreamHandler(log_buffer)
+
+        from typesetter import Typesetter
+
+        typesetter = Typesetter(self.tmp('tex'))
+        typesetter.halt_on_errors = False
+        typesetter.logger.addHandler(log_handler)
+        typesetter.process_log(logfile)
+
+        typesetter.logger.removeHandler(log_handler)
+
+        log_handler.flush()
+        log_buffer.flush()
+
+        return log_buffer.getvalue()
+
     def remove_temp_files(self):
         """Remove temporary files"""
         add_log_message("removing temp files", LOG_LEVEL_DEBUG)
@@ -643,27 +680,6 @@ class LatexConverterBase(object):
             os.remove(filename)
         elif os.path.isdir(filename):
             os.rmdir(filename)
-
-    def parse_pdf_log(self, logfile):
-        import logging
-        from StringIO import StringIO
-
-        log_buffer = StringIO()
-        log_handler = logging.StreamHandler(log_buffer)
-
-        from typesetter import Typesetter
-        typesetter = Typesetter(self.tmp('tex'))
-        typesetter.halt_on_errors = False
-        typesetter.logger.addHandler(log_handler)
-        typesetter.process_log(logfile)
-
-
-        typesetter.logger.removeHandler(log_handler)
-
-        log_handler.flush()
-        log_buffer.flush()
-
-        return log_buffer.getvalue()
 
 
 class PdfConverterBase(LatexConverterBase):
@@ -760,8 +776,8 @@ class Pdf2Svg(PdfConverterBase):
     Convert PDF -> SVG using pdf2svg
     """
 
-    def __init__(self, document):
-        PdfConverterBase.__init__(self, document)
+    def __init__(self):
+        PdfConverterBase.__init__(self)
         self.hash = None
 
     def convert(self, *a, **kw):

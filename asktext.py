@@ -156,7 +156,7 @@ class AskText(object):
 
     def ask(self, callback, preview_callback=None):
         """
-        Present the GUI for entering LaTeX code and some options
+        Present the GUI for entering LaTeX code and setting some options
         :param callback: A callback function (basically, what to do with the values from the GUI)
         """
         pass
