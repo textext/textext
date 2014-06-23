@@ -1,6 +1,6 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in this repository named [Readme-Linux.pdf](https://bitbucket.org/leberwurstsaft/textext/raw/tip/Readme-Linux.pdf) and [Readme-Windows.pdf](https://bitbucket.org/leberwurstsaft/textext/raw/tip/Readme-Windows.pdf).*
+*Note: There are more sophisticated instructions, including pictures in this repository named [Readme-Linux.pdf](https://bitbucket.org/pitgarbe/textext/raw/tip/Readme-Linux.pdf) and [Readme-Windows.pdf](https://bitbucket.org/pitgarbe/textext/raw/tip/Readme-Windows.pdf).*
 
 ## Prerequisites
 
