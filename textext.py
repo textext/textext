@@ -487,18 +487,20 @@ class TexText(inkex.Effect):
 
         if absolute:
             for point in points:
+                point = point.lstrip()
                 first_letter = point[0]
 
-                if first_letter.isdigit():
+                if not first_letter.isdigit() and not first_letter == "-":
+                    command = first_letter
+                    point = point[1:].lstrip()
+
+                if command in "MLC":  # Move, Line, Cubic Curve
                     x, y = point.split(",", 1)
-                else:
-                    point = point[1:]
-                    if first_letter in "MLC":  # Move, Line, Cubic Curve
-                        x, y = point.split(",", 1)
-                    elif first_letter == "H":  # Horizontal (just one coordinate part)
-                        x, y = point, current_y
-                    elif first_letter == "V":  # Vertical (just one coordinate part)
-                        x, y = current_x, point
+                elif command == "H":  # Horizontal (just one coordinate part)
+                    x, y = point, current_y
+                elif command == "V":  # Vertical (just one coordinate part)
+                    x, y = current_x, point
+
                 current_x = float(x)
                 current_y = float(y)
                 x_values.append(current_x)
@@ -508,19 +510,19 @@ class TexText(inkex.Effect):
                 point = point.lstrip()
                 first_letter = point[0]
 
-                if first_letter.isdigit() or first_letter == "-":
-                    x, y = point.split(",", 1)
-                else:
+                if not first_letter.isdigit() and not first_letter == "-":
+                    command = first_letter
                     point = point[1:].lstrip()
 
-                    if first_letter in "mlc":  # move, line, coordinate
-                        if first_letter == "m":
-                            current_x, current_y = 0, 0  # reset base coordinate for new path (i.e. 'm' is found)
-                        x, y = point.split(",", 1)
-                    elif first_letter == "h":  # horizontal (only one coordinate part)
-                        x, y = point, 0
-                    elif first_letter == "v":  # vertical (only one coordinate part)
-                        x, y = 0, point
+                    if command == "m":
+                        current_x, current_y = 0, 0  # reset base coordinate ('m' at the beginning of path is absolute)
+
+                if command in "mlc":  # move, line, cubic curve
+                    x, y = point.split(",", 1)
+                elif command in "h":  # horizontal (only one coordinate part)
+                    x, y = point, 0
+                elif command in "v":  # vertical (only one coordinate part)
+                    x, y = 0, point
 
                 current_x += float(x)
                 current_y += float(y)
