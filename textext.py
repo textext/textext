@@ -251,7 +251,7 @@ class TexText(inkex.Effect):
                 add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.",
                                 LOG_LEVEL_ERROR)
                 raise RuntimeError(latest_message())
-        except OSError, WindowsError:
+        except (OSError, WindowsError):
             pass
         finally:
             os.chdir(cwd)

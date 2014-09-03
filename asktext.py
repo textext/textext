@@ -353,7 +353,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             Load text from a file into a text buffer
             :param text_buffer: the GTK text buffer
             :param path: where to load the file from
-            :return: True, if successful
+            :returns: True, if successful
             """
 
             try:
@@ -447,10 +447,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             try:
                 self.callback(self.text, self.preamble_file, self.scale_factor)
             except StandardError, error:
+                import traceback
+
                 error_dialog(self._window,
                              "TexText Error",
                              "<b>Error occurred while converting text from Latex to SVG:</b>",
-                             str(error))
+                             str(error) + "\n" + traceback.format_exc())
                 return False
 
             gtk.main_quit()
