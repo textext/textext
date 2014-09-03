@@ -235,7 +235,8 @@ class TexText(inkex.Effect):
 
             # convert resulting pdf to png using ImageMagick's 'convert'
             try:
-                options = ['-density', '200', '-background', 'transparent', '-trim', converter.tmp('pdf'), converter.tmp('png')]
+                options = ['-density', '200', '-background', 'transparent', '-trim', converter.tmp('pdf'),
+                           converter.tmp('png')]
 
                 if PLATFORM == WINDOWS:
                     import _winreg
@@ -448,9 +449,16 @@ class TexText(inkex.Effect):
         pattern = re.compile(r"[a-zA-Z]*\s*\-*\d+\.*\d*,*\-*\d+\.*\d*")
         text = ""
 
-        for child in node.iterchildren():
+        for child in node.iterchildren("path"):
             d = child.attrib['d']
             text = text + "  " + d
+
+        for child in node.iterchildren("line"):
+            line = 'M{x1},{y1} L{x2},{y2}'.format(x1=child.attrib['x1'],
+                                                  x2=child.attrib['x2'],
+                                                  y1=child.attrib['y1'],
+                                                  y2=child.attrib['y2'])
+            text = text + line
 
         points = re.findall(pattern, text)
 
