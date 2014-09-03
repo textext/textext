@@ -419,6 +419,23 @@ class TexText(inkex.Effect):
         for child in node.iterchildren():
             child.attrib["fill"] = color
 
+    def paths_concatenated(self, node, tag_name):
+        text = ""
+        for child in node.iterchildren(tag_name):
+            d = child.attrib['d']
+            text = text + "  " + d
+        return text
+
+    def lines_concatenated(self, node, tag_name):
+        text = ""
+        for child in node.iterchildren(tag_name):
+            line = 'M{x1},{y1} L{x2},{y2}'.format(x1=child.attrib['x1'],
+                                                  x2=child.attrib['x2'],
+                                                  y1=child.attrib['y1'],
+                                                  y2=child.attrib['y2'])
+            text = text + line
+        return text
+
     def get_node_frame(self, node, scale):
         """
         Determine the node's size and position
@@ -449,16 +466,11 @@ class TexText(inkex.Effect):
         pattern = re.compile(r"[a-zA-Z]*\s*\-*\d+\.*\d*,*\-*\d+\.*\d*")
         text = ""
 
-        for child in node.iterchildren("path"):
-            d = child.attrib['d']
-            text = text + "  " + d
+        text += self.paths_concatenated(node, "path")
+        text += self.paths_concatenated(node, "{{{ns}}}path".format(ns=SVG_NS))
 
-        for child in node.iterchildren("line"):
-            line = 'M{x1},{y1} L{x2},{y2}'.format(x1=child.attrib['x1'],
-                                                  x2=child.attrib['x2'],
-                                                  y1=child.attrib['y1'],
-                                                  y2=child.attrib['y2'])
-            text = text + line
+        text += self.lines_concatenated(node, "line")
+        text += self.lines_concatenated(node, "{{{ns}}}line".format(ns=SVG_NS))
 
         points = re.findall(pattern, text)
 
@@ -942,7 +954,7 @@ class PstoeditPlotSvg(PdfConverterBase):
 
     def pdf_to_svg(self):
         # Options for pstoedit command
-        pstoeditOpts = '-dt -ssp -psarg -r9600x9600'.split()
+        pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
 
         # Exec pstoedit: pdf -> svg
         exec_command(['pstoedit', '-f', 'plot-svg',
