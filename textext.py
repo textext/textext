@@ -419,22 +419,14 @@ class TexText(inkex.Effect):
         for child in node.iterchildren():
             child.attrib["fill"] = color
 
-    def paths_concatenated(self, node, tag_name):
-        text = ""
-        for child in node.iterchildren(tag_name):
-            d = child.attrib['d']
-            text = text + "  " + d
-        return text
+    def path_from_node(self, node):
+        return node.attrib['d']
 
-    def lines_concatenated(self, node, tag_name):
-        text = ""
-        for child in node.iterchildren(tag_name):
-            line = 'M{x1},{y1} L{x2},{y2}'.format(x1=child.attrib['x1'],
-                                                  x2=child.attrib['x2'],
-                                                  y1=child.attrib['y1'],
-                                                  y2=child.attrib['y2'])
-            text = text + line
-        return text
+    def line_from_node(self, node):
+        return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
+                                              x2=node.attrib['x2'],
+                                              y1=node.attrib['y1'],
+                                              y2=node.attrib['y2'])
 
     def get_node_frame(self, node, scale):
         """
@@ -466,11 +458,16 @@ class TexText(inkex.Effect):
         pattern = re.compile(r"[a-zA-Z]*\s*\-*\d+\.*\d*,*\-*\d+\.*\d*")
         text = ""
 
-        text += self.paths_concatenated(node, "path")
-        text += self.paths_concatenated(node, "{{{ns}}}path".format(ns=SVG_NS))
+        name_space = "{{{ns}}}".format(ns=SVG_NS)
+        for child in node.iterchildren():
+            tag = child.tag
+            if tag.startswith(name_space):
+                tag = tag[len(name_space):]
 
-        text += self.lines_concatenated(node, "line")
-        text += self.lines_concatenated(node, "{{{ns}}}line".format(ns=SVG_NS))
+            if tag == "path":
+                text += "  " + self.path_from_node(child)
+            elif tag == "line":
+                text += "  " + self.line_from_node(child)
 
         points = re.findall(pattern, text)
 
