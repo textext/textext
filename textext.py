@@ -19,7 +19,7 @@ This brings some of the power of TeX typesetting to Inkscape.
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
 
-Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, and Florent Becker
+Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, Florent Becker and Vladislav Gavryusev
 for contributions.
 
 .. note::
@@ -295,8 +295,8 @@ class TexText(inkex.Effect):
             self.set_node_color(new_node, "black")
 
             root = self.document.getroot()
-            width = inkex.unittouu(root.get('width'))
-            height = inkex.unittouu(root.get('height'))
+            width = self.unittouu(root.get('width'))
+            height = self.unittouu(root.get('height'))
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
             self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
