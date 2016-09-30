@@ -3,7 +3,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.5"
+!define PRODUCT_VERSION "0.5.1"
 !define PRODUCT_PUBLISHER "Pit Garbe"
 !define PRODUCT_WEB_SITE "http://www.et.tu-dresden.de/rst/"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"
@@ -32,7 +32,7 @@
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "TexText-0.5.exe"
+OutFile "TexText-0.5.1.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show

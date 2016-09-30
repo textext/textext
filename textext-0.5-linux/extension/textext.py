@@ -19,7 +19,7 @@ This brings some of the power of TeX typesetting to Inkscape.
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
 
-Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, and Florent Becker
+Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, Florent Becker and Vladislav Gavryusev
 for contributions.
 
 .. note::
@@ -38,7 +38,7 @@ for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.5"
+__version__ = "0.5.1"
 __docformat__ = "restructuredtext en"
 
 import os
@@ -84,14 +84,14 @@ LOG_LEVEL_DEBUG = "Debug Log Level"
 
 from asktext import AskerFactory
 
-# ------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Inkscape plugin functionality
-# ------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 
 def die(message=""):
     """
-    Terminate the program with an optional error message while also emitting all accumulated warnings
+    Terminate the program with an optional error message while also emitting all accumulated warnings.
     :param message: Optional error message.
     :raise SystemExit:
     """
@@ -295,8 +295,16 @@ class TexText(inkex.Effect):
             self.set_node_color(new_node, "black")
 
             root = self.document.getroot()
-            width = inkex.unittouu(root.get('width'))
-            height = inkex.unittouu(root.get('height'))
+            try:
+                # -- for Inkscape version 0.91
+                width = self.unittouu(root.get('width'))
+                height = self.unittouu(root.get('height'))
+            except AttributeError:
+                # -- for Inkscape version 0.48
+                width = inkex.unittouu(root.get('width'))
+                height = inkex.unittouu(root.get('height'))
+        
+                
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
             self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
