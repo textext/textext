@@ -57,7 +57,8 @@ except ImportError:
 
         TOOLKIT = TK
     except ImportError:
-        raise RuntimeError("Neither pygtk nor Tkinter is available!")
+        raise RuntimeError("Neither pygtk nor Tkinter is available! \n Hint: " \
+            "If you updated Inkscape from 0.48 to 0.91 under Windows you have to reinstall PyGTK!")
 
 
 def set_monospace_font(text_view):
