@@ -34,7 +34,7 @@ Finally, to enable the preview feature of *Tex Text*, you need to install `Image
 ### Tex Text Extension
 
 The installation of *Tex Text for Inkscape* is straightforward.
-Simply use the installer `textext-0.5.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory).
+Simply use the installer `TexText-0.5.1.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory).
 
 
 ### PyGTK
