@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - A LaTeX distribution (e.g. MiKTeX) has to be installed, especially pdflatex is needed
-- You need Inkscape, of course
+- You need the 32bit version of Inkscape, of course
 
 
 ## Installation
@@ -11,12 +11,12 @@
 ### Tex Text Extension
 
 The installation of *Tex Text for Inkscape* is straightforward.
-Simply use the installer `textext-0.5.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory).
+Simply use the installer `textext-0.5.2.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory).
 
 
 ### PyGTK
 
-After that, go to the `Additional Software` folder and install `pygtk-all-in-one-2.24.2.win32-py2.6.msi`. It will find the Python-Installation that comes embedded in Inkscape, because the *Tex Text*-Installer registered it with the Windows Registry for you.
+After that, download and install `pygtk-all-in-one-2.24.2.win32-py2.6.msi`. You find this file under http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/. The installer will find the Python-Installation that comes embedded in Inkscape, because the *Tex Text*-Installer registered it with the Windows Registry for you.
 
 On the second page, which lets you choose which parts to install, make sure you activate the item *PyGTKSourceView2 2.10.1* in order to enable the nicest GUI for *Tex Text*. You're not required to install it, but *Tex Text* won't look as nice as it could.
 
@@ -24,9 +24,9 @@ On the second page, which lets you choose which parts to install, make sure you 
 
 If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well.
 
-- The installer for *pstoedit* is `pstoeditsetup-win32.exe`
-- To install *ImageMagick*, run `ImageMagick-6.8.8-7-Q16-x86-static.exe`
-- Depending on your machines architecture, install either the 32 or 64 bit version of Ghostscript
+- The installer for *pstoedit* is `pstoeditsetup-win32.exe` which  can be found under https://sourceforge.net/projects/pstoedit/files/pstoedit/
+- To install *ImageMagick*, run `ImageMagick-6.8.8-7-Q16-x86-static.exe` which can be downloaded from ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/ (more recent versions have not been tested yet)
+- Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from https://ghostscript.com/download/gsdnld.html
 
   32 bit                  |  64bit
 ------------------------- | ------------------------
