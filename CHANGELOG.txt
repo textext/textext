@@ -1,0 +1,25 @@
+Version 0.5.2
+=============
+Fixed: 
+If working with Inkscape files stored with older versions of Inkscape or TexText
+it could happen that - after editing of a LaTeX node - the rendered object becomes
+invisible (in fact: transparent) because the fill attribute was not properly set.
+
+Fixed:
+Installation under MS Windows as non admin user ends up with the plugin installed
+into the wrong directory.
+
+Updated:
+The readme-files have been updated to the new version number. Furthermore, links
+for download of the additional software have been added as well as a comment
+that the plugin will only work usign 32bit versions of Inkscape.
+
+
+
+Version 0.5.1
+=============
+Fixed:
+TexText does not work with Inkscape 0.9.1
+
+It is ensured now that Inkscape works under both, Inkscape 0.48 and Inkscape 0.91.
+	
