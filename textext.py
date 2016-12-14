@@ -60,6 +60,7 @@ if PLATFORM == MAC:
 sys.path.append(os.path.dirname(__file__))
 
 import inkex
+import simplestyle as ss
 import tempfile
 import re
 import copy
@@ -390,7 +391,7 @@ class TexText(inkex.Effect):
         style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
                        'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
                        'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
-
+                       
         for attribute_name in style_attrs:
             try:
                 if attribute_name in old_node.keys():
@@ -412,9 +413,9 @@ class TexText(inkex.Effect):
             if old_fill != "none" and old_fill is not None and old_fill != "":
                 old_node_has_fill_color = True
 
-        if not old_node_has_fill_color:
+        if not old_node_has_fill_color:            
             TexText.set_node_color(new_node, "black")
-
+                           
     # ------ SVG Node utilities
     @staticmethod
     def set_node_color(node, color):
@@ -424,8 +425,25 @@ class TexText(inkex.Effect):
         :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
         """
         node.attrib["fill"] = color
+        TexText.set_node_style_color(node, color) # for fill in the style attribute
         for child in node.iterchildren():
             child.attrib["fill"] = color
+            TexText.set_node_style_color(child, color) # for fill in the style attribute
+
+    @staticmethod
+    def set_node_style_color(node, color):
+        """
+        If node contains a style attribute which is a CSS attribute string the
+        value fill of this string is set to color
+        :param node: which node
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+        """       
+        if "style" in node.keys():
+            old_style_dict = ss.parseStyle(node.attrib["style"])
+            if "fill" in old_style_dict.keys():
+                old_style_dict["fill"] = color
+                node.attrib["style"] = ss.formatStyle(old_style_dict)
+        
 
     def path_from_node(self, node):
         return node.attrib['d']
