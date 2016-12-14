@@ -5,7 +5,7 @@
 !define PRODUCT_NAME "TexText for Inkscape"
 !define PRODUCT_VERSION "0.5.1"
 !define PRODUCT_PUBLISHER "Pit Garbe"
-!define PRODUCT_WEB_SITE "http://www.et.tu-dresden.de/rst/"
+!define PRODUCT_WEB_SITE "https://tu-dresden.de/ing/elektrotechnik/rst"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"
 
 !define PYTHONCORE "SOFTWARE\Python\PythonCore\2.6"
@@ -31,13 +31,16 @@
 
 ; MUI end ------
 
+
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "TexText-0.5.1.exe"
+OutFile "TexText-0.5.2.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
-
+RequestExecutionLevel user
+  
 Section -SETTINGS
+
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
 SectionEnd
