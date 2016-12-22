@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="pandoc.css" type="text/css" />
+</head>
+<body>
+<h1 id="tex-text---a-latex-extension-for-inkscape">Tex Text - A LaTeX extension for Inkscape</h1>
+<h2 id="features">Features</h2>
+<ul>
+<li>Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.</li>
+<li>LaTeX equation objects can be re-edit later (in contrast to the built in LaTeX-tool).</li>
+<li>Free scaling and coloring of the objects possible.</li>
+<li>Usage of user defined preamble files (e.g. to include special packages etc.).</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>A LaTeX distribution (e.g. TeX Live (Linux, Windows, MaxOS) or MiKTeX (Windows only)) has to be installed, especially <code>pdflatex</code> is needed.</li>
+<li>You need the 32bit version of Inkscape, of course.</li>
+<li>Depending on your operating system some extra software is required, see the specific instructions below.</li>
+</ul>
+<h2 id="installation-for-linux-or-for-windows.">Installation for Linux <a href="#installation-for-windows">(or for Windows…)</a>.</h2>
+<h3 id="tex-text-extension">Tex Text Extension</h3>
+<p>To install <em>Tex Text</em>, simply run <code>python setup.py</code> in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don’t trust this script, you’ll have to copy all the files within the <code>extensions</code> directory to <code>~/.config/inkscape/extensions/</code>.</p>
+<h3 id="additional-required-software">Additional required software</h3>
+<ul>
+<li><p>You’ll need to install GtkSourceView (<code>python-gtksourceview2</code> on Ubuntu/Debian) to take advantage of all the GUI features of <em>Tex Text</em>. This package should install <code>python-gtk2</code> as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings.</p></li>
+<li><p>Next, please install <code>pstoedit</code>.</p></li>
+<li><p>Finally, to enable the preview feature of <em>Tex Text</em>, you need to install <code>ImageMagick</code>.</p></li>
+</ul>
+<p><em>(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)</em></p>
+<h3 id="congratulations-youre-done-show-usage">Congratulations, you’re done! <a href="#usage">Show Usage…</a></h3>
+<h2 id="installation-for-windows">Installation for Windows</h2>
+<h3 id="tex-text-extension-1">Tex Text Extension</h3>
+<p>The installation of <em>Tex Text for Inkscape</em> is straightforward: Simply use the installer <code>textext-0.5.2.exe</code> and follow the instructions (basically, click <em>Next</em>, <em>Install</em> and <em>Done</em>, since you usually won’t even have to change the installation directory).</p>
+<h2 id="additional-required-software-1">Additional required software</h2>
+<h3 id="pygtk">PyGTK</h3>
+<p>After that, download and install <code>pygtk-all-in-one-2.24.2.win32-py2.6.msi</code>. You find this file under <a href="http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/" class="uri">http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/</a>. The installer will find the Python-Installation that comes embedded in Inkscape, because the <em>Tex Text</em>-Installer registered it with the Windows Registry for you.</p>
+<div class="figure">
+<img src="readme-images/pygtksourceview.png" alt="Ensure that the item PyGTKSourceView2 2.10.1 is checked." style="width:75.0%" />
+<p class="caption">Ensure that the item <em>PyGTKSourceView2 2.10.1</em> is checked.</p>
+</div>
+<p>On the second page, which lets you choose which parts to install, make sure you activate the item <em>PyGTKSourceView2 2.10.1</em> in order to enable the nicest GUI for <em>Tex Text</em>. You’re not required to install it, but <em>Tex Text</em> won’t look as nice as it could.</p>
+<h3 id="even-more-software-that-you-might-need-to-install">Even more software that you might need to install</h3>
+<p>If you don’t already have <em>Ghostscript</em>, <em>pstoedit</em> and <em>ImageMagick</em> installed on your machine, you’ll have to install these as well.</p>
+<ul>
+<li>The installer for <em>pstoedit</em> is <code>pstoeditsetup-win32.exe</code> which can be found under <a href="https://sourceforge.net/projects/pstoedit/files/pstoedit/" class="uri">https://sourceforge.net/projects/pstoedit/files/pstoedit/</a></li>
+<li>To install <em>ImageMagick</em>, run <code>ImageMagick-6.8.8-7-Q16-x86-static.exe</code> which can be downloaded from <a href="ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/" class="uri">ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/</a> (more recent versions have not been tested yet)</li>
+<li>Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from <a href="https://ghostscript.com/download/gsdnld.html" class="uri">https://ghostscript.com/download/gsdnld.html</a></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>32 bit</th>
+<th>64bit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gs910w32.exe</code></td>
+<td><code>gs910w64.exe</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="congratulations-youre-done">Congratulations, you’re done!</h3>
+<h2 id="usage">Usage</h2>
+<p>The extension menu in Inkscape will now contain a new entry named <em>Tex Text</em>.</p>
+<div class="figure">
+<img src="readme-images/inkscape-extension-ubuntu.png" alt="Select the menu item TexText in order to open the window for editing your LaTeX-Code." style="width:75.0%" />
+<p class="caption">Select the menu item <em>TexText</em> in order to open the window for editing your LaTeX-Code.</p>
+</div>
+<p>When you select it, a dialog will appear that lets you enter any LaTeX code you want (presumably your formula). It will highlight the syntax with colors, show you line numbers and more. Above the text field you can choose a scale factor between 0.1 and 10 in increments of 0.1. You can also choose a preamble file from your disk which shall be used for rendering your LaTeX code.</p>
+<div class="figure">
+<img src="readme-images/textext-dialog-ubuntu.png" alt="The TexText editing dialog." style="width:75.0%" />
+<p class="caption">The TexText editing dialog.</p>
+</div>
+<p>Basically, your LaTeX code will be inserted into this environment:</p>
+<pre><code>\documentclass[preview]{standalone}
+***preamble file content***
+\pagestyle{empty}
+\begin{document}
+***Your code***
+\end{document}</code></pre>
+<p>This will be typeset and the result converted to SVG is inserted in your Inkscape document.</p>
+<p>Your LaTeX code you and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the <em>Tex Text</em> extension (which will then show the dialog containing the saved values).</p>
+<p>Any applied color or other styles will be kept when you update the LaTeX node using <em>Tex Text</em>.</p>
+<p>There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)</p>
+</body>
+</html>

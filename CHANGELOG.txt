@@ -12,7 +12,8 @@ into the wrong directory.
 Updated:
 The readme-files have been updated to the new version number. Furthermore, links
 for download of the additional software have been added as well as a comment
-that the plugin will only work usign 32bit versions of Inkscape.
+that the plugin will only work usign 32bit versions of Inkscape. Furthermore,
+there is only one readme now for both, Linux and Windows.
 
 
 

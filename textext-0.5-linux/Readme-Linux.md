@@ -34,12 +34,6 @@ When you select it, a dialog will appear that lets you enter any LaTeX code you 
 
 Basically, your LaTeX code will be inserted into this environment:
 
-> \documentclass[preview]{standalone}  
-> ***preamble file content***  
-> \pagestyle{empty}  
-> \begin{document}  
-> ***Your code***  
-> \end{document}  
 
 This will be typeset and the result converted to SVG and inserted in your Inkscape document.
 
