@@ -1,7 +1,5 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository named [Readme.pdf](docs/Readme.pdf)*
-
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.
 - LaTeX equation objects can be re-edit later (in contrast to the built in LaTeX-tool).
@@ -15,7 +13,7 @@
 - Depending on your operating system some extra software is required, see the specific instructions below.
 
 
-## Installation for Linux [(or for Windows...)](#markdown-header-installation-for-windows).
+## Installation for Linux [(or for Windows...)](#installation-for-windows).
 
 ### Tex Text Extension
 
@@ -31,7 +29,7 @@ To install *Tex Text*, simply run `python setup.py` in your terminal. All it doe
 
 *(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)*
 
-### Congratulations, you're done! [Show Usage...](#markdown-header-usage)
+### Congratulations, you're done! [Show Usage...](#usage)
 
 
 ## Installation for Windows
@@ -46,6 +44,8 @@ The installation of *Tex Text for Inkscape* is straightforward: Simply use the i
 ### PyGTK
 
 After that, download and install `pygtk-all-in-one-2.24.2.win32-py2.6.msi`. You find this file under [http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/). The installer will find the Python-Installation that comes embedded in Inkscape, because the *Tex Text*-Installer registered it with the Windows Registry for you.
+
+![Ensure that the item *PyGTKSourceView2 2.10.1* is checked.](readme-images/pygtksourceview.png){ width=75% }
 
 On the second page, which lets you choose which parts to install, make sure you activate the item *PyGTKSourceView2 2.10.1* in order to enable the nicest GUI for *Tex Text*. You're not required to install it, but *Tex Text* won't look as nice as it could.
 
@@ -68,7 +68,11 @@ If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed 
 
 The extension menu in Inkscape will now contain a new entry named *Tex Text*.
 
+![Select the menu item *TexText* in order to open the window for editing your LaTeX-Code.](readme-images/inkscape-extension-ubuntu.png){ width=75% }
+
 When you select it, a dialog will appear that lets you enter any LaTeX code you want (presumably your formula). It will highlight the syntax with colors, show you line numbers and more. Above the text field you can choose a scale factor between 0.1 and 10 in increments of 0.1. You can also choose a preamble file from your disk which shall be used for rendering your LaTeX code.
+
+![The TexText editing dialog.](readme-images/textext-dialog-ubuntu.png){ width=75% }
 
 Basically, your LaTeX code will be inserted into this environment:
 
