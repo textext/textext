@@ -1,6 +1,6 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository: [Readme.html](docs/Readme.html) or [Readme.pdf](docs/Readme.pdf)*
+*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/README.pdf) or [Readme.html](docs/README.html)*
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.
@@ -19,7 +19,7 @@
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package `TexText-0.5.2.tgz` or `TexText-0.5.2.zip` and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or `TexText-Linux-0.5.2.zip` and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -38,7 +38,7 @@ To install *Tex Text*, simply download the package `TexText-0.5.2.tgz` or `TexTe
 
 ### Tex Text Extension
 
-The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer `textext-0.5.2.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is %USERPROFILE%\AppData\Roaming\Inkscape) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer `TexText-Windows-0.5.2.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is %USERPROFILE%\AppData\Roaming\Inkscape) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
 
 ## Additional required software
 
