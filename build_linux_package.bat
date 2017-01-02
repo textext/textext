@@ -10,7 +10,7 @@ rem Some variables
 set TexTextVersion=0.5.2
 set PackagePath=texttext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
-set PackageName=TexText-%TexTextVersion%
+set PackageName=TexText-Linux-%TexTextVersion%
 
 rem Delete old stuff and setup new directory structure
 if exist %PackagePath% (

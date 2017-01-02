@@ -33,7 +33,7 @@
 
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "TexText-0.5.2.exe"
+OutFile "TexText-Windows-0.5.2.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
