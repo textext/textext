@@ -1,6 +1,6 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/README.pdf) or [Readme.html](docs/README.html)*
+*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/Readme.pdf) or [Readme.html](docs/README.html)*
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.
