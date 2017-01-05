@@ -345,8 +345,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     else:
                         col += 1
                     start.forward_char()
-
-            pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
+                pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
+            else:
+                pos_label.set_text('char: %d, line: %d' % (nchars, row))
 
         @staticmethod
         def load_file(text_buffer, path):
