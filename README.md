@@ -19,7 +19,13 @@
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or `TexText-Linux-0.5.2.zip` and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package [TexText-Linux-0.5.2.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.tgz) or [TexText-Linux-0.5.2.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.zip) and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+
+SHA-256 Checksums for the Linux-packages:
+
+* 22f8ea9408aa1936a93fb4c0e5749daad7b3bd42a86a8ee6fb6fab3fa978f4f7 *TexText-Linux-0.5.2.tgz
+* 243a8bf5162f6e890bc6e5958629b17c42808eaeb48ac3c65b80faef02214e50 *TexText-Linux-0.5.2.zip
+
 
 ### Additional required software
 
@@ -38,7 +44,11 @@ To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or 
 
 ### Tex Text Extension
 
-The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer `TexText-Windows-0.5.2.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is %USERPROFILE%\AppData\Roaming\Inkscape) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer [TexText-Windows-0.5.2.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.5.2.exe) and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is %USERPROFILE%\AppData\Roaming\Inkscape) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+
+SHA-256 Checksum for the Windows-installer:
+
+* 177802b6771c6ab2ca42a2336e37ebcbe735d8fa0018ff76170a8739729e1342 *TexText-Windows-0.5.2.exe
 
 ## Additional required software
 
