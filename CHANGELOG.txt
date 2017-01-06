@@ -9,6 +9,17 @@ Fixed:
 Installation under MS Windows as non admin user ends up with the plugin installed
 into the wrong directory.
 
+Fixed:
+Column numbers do not change during editing of the LaTeX-code under Linux and TK.
+The Column-number is nor removed from the dialog if the TK interface is used.
+
+Fixed:
+setup.py for the Linux installation does not run under Python 3.
+
+Improved:
+More detailled error information is passed to the user during setup of the
+Linux package.
+
 Updated:
 The readme-files have been updated to the new version number. Furthermore, links
 for download of the additional software have been added as well as a comment
