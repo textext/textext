@@ -3,15 +3,15 @@
 *Note: There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/Readme.pdf) or [Readme.html](docs/README.html)*
 
 ## Features
-- Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.
-- LaTeX equation objects can be re-edit later (in contrast to the built in LaTeX-tool).
+- Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
+- LaTeX equation objects can be edited later (in contrast to the built in LaTeX-tool).
 - Free scaling and coloring of the objects possible.
-- Usage of user defined preamble files (e.g. to include special packages etc.).
+- Usage of user defined preamble files (e.g., to include special packages, etc.).
 
 ## Prerequisites
 
-- A LaTeX distribution (e.g. TeX Live (Linux, Windows, MaxOS) or MiKTeX (Windows only)) has to be installed, especially `pdflatex` is needed.
-- You need the 32bit version of Inkscape, of course.
+- A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially `pdflatex` is needed.
+- You need the 32-bit version of Inkscape.
 - Depending on your operating system some extra software is required, see the specific instructions below.
 
 
@@ -19,7 +19,7 @@
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package [TexText-Linux-0.5.2.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.tgz) or [TexText-Linux-0.5.2.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.zip) and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package [TexText-Linux-0.5.2.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.tgz) or [TexText-Linux-0.5.2.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.zip) and extract it. A directory with the name `textext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 SHA-256 Checksums for the Linux-packages:
 
@@ -44,7 +44,7 @@ SHA-256 Checksums for the Linux-packages:
 
 ### Tex Text Extension
 
-The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer [TexText-Windows-0.5.2.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.5.2.exe) and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is %USERPROFILE%\AppData\Roaming\Inkscape) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer [TexText-Windows-0.5.2.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.5.2.exe) and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put three keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
 
 SHA-256 Checksum for the Windows-installer:
 
@@ -90,9 +90,9 @@ Basically, your LaTeX code will be inserted into this environment:
 \end{document}
 ```
 
-This will be typeset and the result converted to SVG is inserted in your Inkscape document.
+This will be typeset, converted to SVG and inserted into your Inkscape document.
 
-Your LaTeX code you and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the *Tex Text* extension (which will then show the dialog containing the saved values).
+Your LaTeX code and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the *Tex Text* extension (which will then show the dialog containing the saved values).
 
 Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 
