@@ -31,16 +31,14 @@
 
 ; MUI end ------
 
-
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "TexText-Windows-0.5.2.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
-InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+InstallDirRegKey HKCU "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 RequestExecutionLevel user
   
 Section -SETTINGS
-
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
 SectionEnd
@@ -52,10 +50,10 @@ Section "TexText" -SEC01
   File "typesetter.py"
   File "latexlogparser.py"
   File "default_packages.tex"
-  WriteRegStr HKLM "${PYTHONCORE}\InstallPath\InstallGroup" "" "Python 2.6"
-  WriteRegStr HKLM "${PYTHONCORE}\PythonPath" "" "$PROGRAMFILES\Inkscape\python\Lib;$PROGRAMFILES\Inkscape\python\DLLs;$PROGRAMFILES\Inkscape\python\Lib\site-packages"
+  WriteRegStr HKCU "${PYTHONCORE}\InstallPath\InstallGroup" "" "Python 2.6"
+  WriteRegStr HKCU "${PYTHONCORE}\PythonPath" "" "$PROGRAMFILES\Inkscape\python\Lib;$PROGRAMFILES\Inkscape\python\DLLs;$PROGRAMFILES\Inkscape\python\Lib\site-packages"
 SectionEnd
 
 Section -Post
-  WriteRegStr HKLM "${PYTHONCORE}\InstallPath" "" "$PROGRAMFILES\Inkscape\python"
+  WriteRegStr HKCU "${PYTHONCORE}\InstallPath" "" "$PROGRAMFILES\Inkscape\python"
 SectionEnd
