@@ -12,20 +12,20 @@
 <h1 id="tex-text---a-latex-extension-for-inkscape">Tex Text - A LaTeX extension for Inkscape</h1>
 <h2 id="features">Features</h2>
 <ul>
-<li>Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.</li>
-<li>LaTeX equation objects can be re-edit later (in contrast to the built in LaTeX-tool).</li>
+<li>Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.</li>
+<li>LaTeX equation objects can be edited later (in contrast to the built in LaTeX-tool).</li>
 <li>Free scaling and coloring of the objects possible.</li>
-<li>Usage of user defined preamble files (e.g. to include special packages etc.).</li>
+<li>Usage of user defined preamble files (e.g., to include special packages, etc.).</li>
 </ul>
 <h2 id="prerequisites">Prerequisites</h2>
 <ul>
-<li>A LaTeX distribution (e.g. TeX Live (Linux, Windows, MaxOS) or MiKTeX (Windows only)) has to be installed, especially <code>pdflatex</code> is needed.</li>
-<li>You need the 32bit version of Inkscape, of course.</li>
+<li>A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially <code>pdflatex</code> is needed.</li>
+<li>You need the 32-bit version of Inkscape 0.48 or 0.91 (Currently the plugin <em>does not</em> work with the 0.92 version!).</li>
 <li>Depending on your operating system some extra software is required, see the specific instructions below.</li>
 </ul>
 <h2 id="installation-for-linux-or-for-windows.">Installation for Linux <a href="#installation-for-windows">(or for Windows…)</a>.</h2>
 <h3 id="tex-text-extension">Tex Text Extension</h3>
-<p>To install <em>Tex Text</em>, simply download the package <code>TexText-Linux-0.5.2.tgz</code> or <code>TexText-Linux-0.5.2.zip</code> and extract it. A directory with the name <code>texttext-0.5.2-linux</code> will be created. Change into the directory and run <code>python setup.py</code> in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don’t trust this script, you’ll have to copy all the files within the <code>extensions</code> directory of the extracted archive to <code>~/.config/inkscape/extensions/</code>.</p>
+<p>To install <em>Tex Text</em>, simply download the package <code>TexText-Linux-0.5.2.tgz</code> or <code>TexText-Linux-0.5.2.zip</code> and extract it. A directory with the name <code>textext-0.5.2-linux</code> will be created. Change into the directory and run <code>python setup.py</code> in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don’t trust this script, you’ll have to copy all the files within the <code>extensions</code> directory of the extracted archive to <code>~/.config/inkscape/extensions/</code>.</p>
 <h3 id="additional-required-software">Additional required software</h3>
 <ul>
 <li><p>You’ll need to install GtkSourceView (<code>python-gtksourceview2</code> on Ubuntu/Debian) to take advantage of all the GUI features of <em>Tex Text</em>. This package should install <code>python-gtk2</code> as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings.</p></li>
@@ -49,7 +49,7 @@
 <p>If you don’t already have <em>Ghostscript</em>, <em>pstoedit</em> and <em>ImageMagick</em> installed on your machine, you’ll have to install these as well.</p>
 <ul>
 <li>The installer for <em>pstoedit</em> is <code>pstoeditsetup-win32.exe</code> which can be found under <a href="https://sourceforge.net/projects/pstoedit/files/pstoedit/" class="uri">https://sourceforge.net/projects/pstoedit/files/pstoedit/</a></li>
-<li>To install <em>ImageMagick</em>, run <code>ImageMagick-6.8.8-7-Q16-x86-static.exe</code> which can be downloaded from <a href="ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/" class="uri">ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/</a> (more recent versions have not been tested yet)</li>
+<li>To install <em>ImageMagick</em>, run <code>ImageMagick-6.9.7-3-Q16-x86-static.exe</code> which can be downloaded from <a href="ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/" class="uri">ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/</a> (more recent versions have not been tested yet)</li>
 <li>Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from <a href="https://ghostscript.com/download/gsdnld.html" class="uri">https://ghostscript.com/download/gsdnld.html</a></li>
 </ul>
 <table>
@@ -85,8 +85,8 @@
 \begin{document}
 ***Your code***
 \end{document}</code></pre>
-<p>This will be typeset and the result converted to SVG is inserted in your Inkscape document.</p>
-<p>Your LaTeX code you and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the <em>Tex Text</em> extension (which will then show the dialog containing the saved values).</p>
+<p>This will be typeset, converted to SVG and inserted into your Inkscape document.</p>
+<p>Your LaTeX code and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the <em>Tex Text</em> extension (which will then show the dialog containing the saved values).</p>
 <p>Any applied color or other styles will be kept when you update the LaTeX node using <em>Tex Text</em>.</p>
 <p>There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)</p>
 </body>
