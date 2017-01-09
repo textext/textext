@@ -1,15 +1,15 @@
 # Tex Text - A LaTeX extension for Inkscape
 
 ## Features
-- Typesetting of beautiful equations using LaTeX which are placed as svg objects in your document.
-- LaTeX equation objects can be re-edit later (in contrast to the built in LaTeX-tool).
+- Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
+- LaTeX equation objects can be edited later (in contrast to the built in LaTeX-tool).
 - Free scaling and coloring of the objects possible.
-- Usage of user defined preamble files (e.g. to include special packages etc.).
+- Usage of user defined preamble files (e.g., to include special packages, etc.).
 
 ## Prerequisites
 
-- A LaTeX distribution (e.g. TeX Live (Linux, Windows, MaxOS) or MiKTeX (Windows only)) has to be installed, especially `pdflatex` is needed.
-- You need the 32bit version of Inkscape, of course.
+- A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially `pdflatex` is needed.
+- You need the 32-bit version of Inkscape 0.48 or 0.91 (Currently the plugin *does not* work with the 0.92 version!).
 - Depending on your operating system some extra software is required, see the specific instructions below.
 
 
@@ -17,7 +17,7 @@
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or `TexText-Linux-0.5.2.zip` and extract it. A directory with the name `texttext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or `TexText-Linux-0.5.2.zip` and extract it. A directory with the name `textext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -53,7 +53,7 @@ On the second page, which lets you choose which parts to install, make sure you 
 If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well.
 
 - The installer for *pstoedit* is `pstoeditsetup-win32.exe` which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/](https://sourceforge.net/projects/pstoedit/files/pstoedit/)
-- To install *ImageMagick*, run `ImageMagick-6.8.8-7-Q16-x86-static.exe` which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
+- To install *ImageMagick*, run `ImageMagick-6.9.7-3-Q16-x86-static.exe` which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
 - Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from [https://ghostscript.com/download/gsdnld.html](https://ghostscript.com/download/gsdnld.html)
 
   32 bit                  |  64bit
@@ -84,9 +84,9 @@ Basically, your LaTeX code will be inserted into this environment:
 \end{document}
 ```
 
-This will be typeset and the result converted to SVG is inserted in your Inkscape document.
+This will be typeset, converted to SVG and inserted into your Inkscape document.
 
-Your LaTeX code you and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the *Tex Text* extension (which will then show the dialog containing the saved values).
+Your LaTeX code and the accompanying settings (scale factor and optionally a preamble file) will be stored within the new SVG node in the document. This allows you to edit the LaTeX node later by selecting it and running the *Tex Text* extension (which will then show the dialog containing the saved values).
 
 Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 

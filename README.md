@@ -11,7 +11,7 @@
 ## Prerequisites
 
 - A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially `pdflatex` is needed.
-- You need the 32-bit version of Inkscape.
+- You need the 32-bit version of Inkscape 0.48 or 0.91 (Currently the plugin *does not* work with the 0.92 version!).
 - Depending on your operating system some extra software is required, see the specific instructions below.
 
 
@@ -48,7 +48,7 @@ The installation of *Tex Text for Inkscape* is straightforward: Simply use the i
 
 SHA-256 Checksum for the Windows-installer:
 
-* 177802b6771c6ab2ca42a2336e37ebcbe735d8fa0018ff76170a8739729e1342 *TexText-Windows-0.5.2.exe
+* 51a9d0bcb16810ea1af740ff2e8895e894c803ebf809f5f98998e4ddc25d8054 *TexText-Windows-0.5.2.exe
 
 ## Additional required software
 
@@ -63,7 +63,7 @@ On the second page, which lets you choose which parts to install, make sure you 
 If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well.
 
 - The installer for *pstoedit* is `pstoeditsetup-win32.exe` which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/](https://sourceforge.net/projects/pstoedit/files/pstoedit/)
-- To install *ImageMagick*, run `ImageMagick-6.8.8-7-Q16-x86-static.exe` which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
+- To install *ImageMagick*, run `ImageMagick-6.9.7-3-Q16-x86-static.exe` which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
 - Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from [https://ghostscript.com/download/gsdnld.html](https://ghostscript.com/download/gsdnld.html)
 
   32 bit                  |  64bit
