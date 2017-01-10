@@ -15,17 +15,16 @@
 - Depending on your operating system some extra software is required, see the specific instructions below.
 
 
-## Installation for Linux [(or for Windows...)](#markdown-header-installation-for-windows).
+## Installation for Linux [(go to Windows instructions...)](#markdown-header-installation-for-windows).
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package [TexText-Linux-0.5.2.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.tgz) or [TexText-Linux-0.5.2.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.5.2.zip) and extract it. A directory with the name `textext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+ Download    | SHA-256 Checksum
+-------------|-------------------
+[TexText-Linux-0.5.2.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.5.2.tgz) | 22f8ea9408aa1936a93fb4c0e5749daad7b3bd42a86a8ee6fb6fab3fa978f4f7
+[TexText-Linux-0.5.2.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.5.2.zip) | 243a8bf5162f6e890bc6e5958629b17c42808eaeb48ac3c65b80faef02214e50
 
-SHA-256 Checksums for the Linux-packages:
-
-* 22f8ea9408aa1936a93fb4c0e5749daad7b3bd42a86a8ee6fb6fab3fa978f4f7 *TexText-Linux-0.5.2.tgz
-* 243a8bf5162f6e890bc6e5958629b17c42808eaeb48ac3c65b80faef02214e50 *TexText-Linux-0.5.2.zip
-
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -44,7 +43,11 @@ SHA-256 Checksums for the Linux-packages:
 
 ### Tex Text Extension
 
-The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer [TexText-Windows-0.5.2.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.5.2.exe) and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put three keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+Download    | SHA-256 Checksum
+------------|-------------------
+[TexText-Windows-0.5.2.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.5.2.exe) | add0d5c609e8bab19465d4c3f803603b535e9dbd3c09d82a0e27a970719bc82c
+
+The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put three keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
 
 SHA-256 Checksum for the Windows-installer:
 
