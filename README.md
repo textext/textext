@@ -48,7 +48,7 @@ The installation of *Tex Text for Inkscape* is straightforward: Simply use the i
 
 SHA-256 Checksum for the Windows-installer:
 
-* 51a9d0bcb16810ea1af740ff2e8895e894c803ebf809f5f98998e4ddc25d8054 *TexText-Windows-0.5.2.exe
+* add0d5c609e8bab19465d4c3f803603b535e9dbd3c09d82a0e27a970719bc82c *TexText-Windows-0.5.2.exe
 
 ## Additional required software
 
