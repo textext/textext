@@ -65,6 +65,7 @@ import tempfile
 import re
 import copy
 from lxml import etree
+import win_app_paths as wap
 
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
@@ -240,11 +241,16 @@ class TexText(inkex.Effect):
                            converter.tmp('png')]
 
                 if PLATFORM == WINDOWS:
-                    import _winreg
+                    #import _winreg
 
-                    key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\ImageMagick\Current")
-                    path = _winreg.QueryValueEx(key, "LibPath")[0]
-                    exec_command([path + '\\' + 'convert'] + options)
+                    #key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\ImageMagick\Current")
+                    #path = _winreg.QueryValueEx(key, "LibPath")[0]
+                    path = wap.get_imagemagick_dir()
+                    if not path: raise RuntimeError()
+                    if path == wap.IS_IN_PATH:
+                        exec_command(['convert'] + options)
+                    else:
+                        exec_command([path + '\\' + 'convert'] + options)
                 else:
                     exec_command(['convert'] + options)
 
@@ -760,11 +766,28 @@ if PLATFORM == WINDOWS:
     # Try to add some commonly needed paths to PATH
     paths = os.environ.get('PATH', '').split(os.path.pathsep)
 
-    program_files = os.environ.get('PROGRAMFILES')
-    if program_files:
-        paths += glob.glob(os.path.join(program_files, 'gs/gs*/bin'))
-        paths += glob.glob(os.path.join(program_files, 'pstoedit*'))
-        paths += glob.glob(os.path.join(program_files, 'miktex*/miktex/bin'))
+    #program_files = os.environ.get('PROGRAMFILES')
+    #if program_files:
+    #    paths += glob.glob(os.path.join(program_files, 'gs/gs*/bin'))
+    #    paths += glob.glob(os.path.join(program_files, 'pstoedit*'))
+    #    paths += glob.glob(os.path.join(program_files, 'miktex*/miktex/bin'))
+    
+    additional_path = ""
+    new_path_element = wap.get_pstoedit_dir()
+    if new_path_element:
+        if new_path_element != wap.IS_IN_PATH:
+            paths += glob.glob(os.path.join(new_path_element))
+    else:
+        add_log_message(wap.get_last_error())
+        raise RuntimeError(lates_messaga())
+
+    new_path_element = wap.get_ghostscript_dir()
+    if new_path_element:
+        if new_path_element != wap.IS_IN_PATH:
+            paths += glob.glob(os.path.join(new_path_element))
+    else:
+        add_log_message(wap.get_last_error())
+        raise RuntimeError(lates_messaga())
 
     os.environ['PATH'] = os.path.pathsep.join(paths)
 
