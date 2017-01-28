@@ -1,6 +1,8 @@
 # Tex Text - A LaTeX extension for Inkscape
 
-*Note: There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/Readme.pdf) or [Readme.html](docs/README.html)*
+**Note 1:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/Readme.pdf) or [Readme.html](docs/README.html)
+
+**Note 2:** Downloads and installation instructions shown here refer to the **Inkscape_0.91 branch** of TexText intended to be used for Inkscape 0.91 and 0.48. Please switch to that branch if you want to do something on the source code. In this **default branch** we focus on fixes for current issues with Inkscape 0.92 which will be pushed to the **Inkscape_0.92 branch** when finalized.
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
