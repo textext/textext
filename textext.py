@@ -476,9 +476,10 @@ class TexText(inkex.Effect):
         # 2. zero or more spaces
         # 3. optional minus sign
         # 4. at least one digit + optional dot + optional digits
-        # 5. optional comma
-        # 6. optional minus sign
-        # 7. at least one digit + optional dot + optional digits
+        # 5. zero or one of the following group:
+        # 5.1 comma
+        # 5.2 optional minus sign
+        # 5.3 at least one digit + optional dot + optional digits
         # This matches stuff like:
         #   "L152.47,698.78"
         #   "C151.82,703.7"
@@ -486,8 +487,9 @@ class TexText(inkex.Effect):
         #   "500.01"
         #   "54"
         #   "c 35,45.0"
+        #   "v 0"
         # etc.
-        pattern = re.compile(r"[a-zA-Z]*\s*\-*\d+\.*\d*,*\-*\d+\.*\d*")
+        pattern = re.compile(r"[a-zA-Z]*\s*\-?\d+\.?\d*(,\-?\d+\.?\d*)?")
         text = ""
 
         name_space = "{{{ns}}}".format(ns=SVG_NS)
@@ -501,7 +503,7 @@ class TexText(inkex.Effect):
             elif tag == "line":
                 text += "  " + self.line_from_node(child)
 
-        points = re.findall(pattern, text)
+        points = [match.group() for match in re.finditer(pattern, text)]
 
         x_values = []
         y_values = []
