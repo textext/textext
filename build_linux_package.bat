@@ -7,7 +7,7 @@ rem subdirectory while the readme and setup-script are placed into
 rem the "textext-[Version]-linu"x directory
 
 rem Some variables
-set TexTextVersion=0.5.2
+set TexTextVersion=0.6
 set PackagePath=texttext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
 set PackageName=TexText-Linux-%TexTextVersion%
@@ -30,6 +30,7 @@ call :copy_func latexlogparser.py %ExtensionPath%
 call :copy_func textext.inx %ExtensionPath%
 call :copy_func textext.py %ExtensionPath%
 call :copy_func typesetter.py %ExtensionPath%
+call :copy_func win_app_paths.py %ExtensionPath%
 call :copy_func setup.py %PackagePath%
 call :copy_func docs\Readme.pdf %PackagePath%
 
