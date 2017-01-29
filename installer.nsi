@@ -3,12 +3,10 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.5.2"
+!define PRODUCT_VERSION "0.6"
 !define PRODUCT_PUBLISHER "Pit Garbe"
 !define PRODUCT_WEB_SITE "https://tu-dresden.de/ing/elektrotechnik/rst"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"
-
-!define PYTHONCORE "SOFTWARE\Python\PythonCore\2.6"
 
 ; MUI 1.67 compatible ------
 !include "MUI2.nsh"
@@ -32,7 +30,7 @@
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "TexText-Windows-0.5.2.exe"
+OutFile "TexText-Windows-0.6.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
 InstallDirRegKey HKCU "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -50,10 +48,5 @@ Section "TexText" -SEC01
   File "typesetter.py"
   File "latexlogparser.py"
   File "default_packages.tex"
-  WriteRegStr HKCU "${PYTHONCORE}\InstallPath\InstallGroup" "" "Python 2.6"
-  WriteRegStr HKCU "${PYTHONCORE}\PythonPath" "" "$PROGRAMFILES\Inkscape\python\Lib;$PROGRAMFILES\Inkscape\python\DLLs;$PROGRAMFILES\Inkscape\python\Lib\site-packages"
-SectionEnd
-
-Section -Post
-  WriteRegStr HKCU "${PYTHONCORE}\InstallPath" "" "$PROGRAMFILES\Inkscape\python"
+  File "win_app_paths.py"
 SectionEnd
