@@ -780,7 +780,7 @@ if PLATFORM == WINDOWS:
         if new_path_element != wap.IS_IN_PATH:
             paths += glob.glob(os.path.join(new_path_element))
     else:
-        add_log_message(wap.get_last_error())
+        add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
         raise RuntimeError(lates_messaga())
 
     new_path_element = wap.get_ghostscript_dir()
@@ -788,7 +788,7 @@ if PLATFORM == WINDOWS:
         if new_path_element != wap.IS_IN_PATH:
             paths += glob.glob(os.path.join(new_path_element))
     else:
-        add_log_message(wap.get_last_error())
+        add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
         raise RuntimeError(lates_messaga())
 
     os.environ['PATH'] = os.path.pathsep.join(paths)
