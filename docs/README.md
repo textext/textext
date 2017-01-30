@@ -9,15 +9,21 @@
 ## Prerequisites
 
 - A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially `pdflatex` is needed.
-- You need the 32-bit version of Inkscape 0.48 or 0.91 (Currently the plugin *does not* work with the 0.92 version!).
+- You need the 32-bit or 64-bit version of Inkscape releases 0.92, 0.91 or 0.48
 - Depending on your operating system some extra software is required, see the specific instructions below.
+- **Important:** If you use Inkscape 0.92 please ensure that the python 2.7 interpreter has been selected during the installation of Inkscape (by default this is the case).
 
 
 ## Installation for Linux [(or for Windows...)](#installation-for-windows).
 
 ### Tex Text Extension
 
-To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or `TexText-Linux-0.5.2.zip` and extract it. A directory with the name `textext-0.5.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+\footnotesize
+
+- [TexText-Linux-0.6.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.tgz)
+- [TexText-Linux-0.6.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.zip)
+
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -36,29 +42,44 @@ To install *Tex Text*, simply download the package `TexText-Linux-0.5.2.tgz` or 
 
 ### Tex Text Extension
 
-The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer `TexText-Windows-0.5.2.exe` and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put three Keys into the Windows registry which notify PyGTK where to find the correct Python interpreter.
+\footnotesize
+
+- [TexText-Windows-0.6.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.exe)
+
+The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
+
 
 ## Additional required software
 
 ### PyGTK
 
-After that, download and install `pygtk-all-in-one-2.24.2.win32-py2.6.msi`. You find this file under [http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/). The installer will find the Python-Installation that comes embedded in Inkscape, because the *Tex Text*-Installer registered it with the Windows Registry for you.
+After that, you have to install PyGTK. Depending on your Inkscape version you need to download one of the following installers:
 
-![Ensure that the item *PyGTKSourceView2 2.10.1* is checked.](readme-images/pygtksourceview.png){ width=75% }
+ Inkscape Version     | PyGTK Installer
+----------------------|-----------------------------------------------------------------------------
+Inkscape 0.91 and 0.48 | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
+Inkscape 0.92 | [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
 
-On the second page, which lets you choose which parts to install, make sure you activate the item *PyGTKSourceView2 2.10.1* in order to enable the nicest GUI for *Tex Text*. You're not required to install it, but *Tex Text* won't look as nice as it could.
+The installer will search for your Inkscape installation and puts the required files into the `python` directory of Inkscape. An uninstaller is installed by the installer, too.
+
+If you do not trust the installer you can download one of the following zip archives and copy its content into the `python` directory of your Inkscape installation:
+
+ Inkscape Version     | PyGTK zip-archive
+----------------------|-----------------------------------------------------------------------------
+Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip)
+Inkscape 0.92| [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+
+
 
 ### Even more software that you might need to install
 
-If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well.
+If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well. Depending on your machines architecture (32- or 64-bit) you find the corresponding packages under the following links:
 
-- The installer for *pstoedit* is `pstoeditsetup-win32.exe` which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/](https://sourceforge.net/projects/pstoedit/files/pstoedit/)
-- To install *ImageMagick*, run `ImageMagick-6.9.7-3-Q16-x86-static.exe` which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
-- Depending on your machines architecture, install either the 32 or 64 bit version 9.10 or later of Ghostscript which can be downloaded from [https://ghostscript.com/download/gsdnld.html](https://ghostscript.com/download/gsdnld.html)
+- The installers for *pstoedit* are `pstoeditsetup-win32.exe` (32-bit) or `pstoeditsetup-x64.exe` (64-bit) which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70](https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70)
+- To install *ImageMagick*, run `ImageMagick-6.9.7-x-Q16-x86-static.exe` (32-bit) or `ImageMagick-6.9.7-x-Q16-x64-static.exe`(64-bit)  which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
+-  The installers for *Ghostscript* `gs910w32.exe` (32-bit) or `gs910w64.exe` (64-bit) can be downloaded from [https://ghostscript.com/download/gsdnld.html](https://ghostscript.com/download/gsdnld.html).
 
-  32 bit                  |  64bit
-------------------------- | ------------------------
-`gs910w32.exe`            | `gs910w64.exe`
+**Note:** The 32-bit version of Inkscape is able to use the 64-bit versions of these programs and vice versa.
 
 
 ### Congratulations, you're done!

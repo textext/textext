@@ -1,3 +1,19 @@
+Version 0.6 (31.01.2017)
+========================
+Fixed:
+"too many values to unpack"-error in Inkscape 0.92
+
+Fixed:
+TexText does not work with 64-bit versions of Inkscape under MS Windows
+
+Improved:
+TexText does not care anymore if 32-bit or 64-bit versions of pstoedit, 
+ImageMagick and ghostscript are installed
+
+Improved:
+Installation of PyGTK simplified
+
+
 Version 0.5.2
 =============
 Fixed: 
