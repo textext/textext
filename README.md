@@ -22,8 +22,8 @@
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.6.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.tgz) | 7e48cc3fe037f4ddfb6fb110eed18869900fb2a9ea00067c4bf180da96b73d34
-[TexText-Linux-0.6.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.zip) | 061950e1afa37ebbf49c062f4c0e3e35c4bf3d66a0e4fd8ef78cbca3ef9b7d4c
+[TexText-Linux-0.6.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.tgz) | 707155e8368453550594fe52df781bd2a6bfe20b62a81d4c11c3b2a886b41242
+[TexText-Linux-0.6.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.zip) | 328e2e3d42e831876142b8eae9033e28645eba195ca8dceee463a46587ede044
 
 To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
@@ -46,7 +46,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.6.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.6.exe) | 15e2234f416f754be7b6f00d59f64ca3221f5b00477ca1d5d4e20f9b5100cf51
+[TexText-Windows-0.6.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.6.exe) | ee4f2cc0061451d037d295b0661ce00ba3e817291e759e25fb7c7e9a7cde94d5
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
