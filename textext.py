@@ -65,7 +65,8 @@ import tempfile
 import re
 import copy
 from lxml import etree
-import win_app_paths as wap
+if PLATFORM == WINDOWS:
+    import win_app_paths as wap
 
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
