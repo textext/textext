@@ -11,7 +11,7 @@
 ## New in release 0.6 (2017-02-01)
 - Full compatibility with Inkscape 0.92
 - Full compatibility with 64-bit installations of Inkscape under MS Windows
-- See CHANGELOG.txt for more information and history
+- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
 
 ## Prerequisites
 
