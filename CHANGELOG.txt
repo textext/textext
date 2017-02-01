@@ -1,4 +1,4 @@
-Version 0.6 (31.01.2017)
+Version 0.6 (2017-02-01)
 ========================
 Fixed:
 "too many values to unpack"-error in Inkscape 0.92
@@ -14,8 +14,8 @@ Improved:
 Installation of PyGTK simplified
 
 
-Version 0.5.2
-=============
+Version 0.5.2 (2017-01-06)
+==========================
 Fixed: 
 If working with Inkscape files stored with older versions of Inkscape or TexText
 it could happen that - after editing of a LaTeX node - the rendered object becomes
@@ -44,8 +44,8 @@ there is only one readme now for both, Linux and Windows.
 
 
 
-Version 0.5.1
-=============
+Version 0.5.1 (2016-10-10)
+==========================
 Fixed:
 TexText does not work with Inkscape 0.9.1
 

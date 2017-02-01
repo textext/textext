@@ -8,6 +8,11 @@
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
+## New in release 0.6 (2017-02-01)
+- Full compatibility with Inkscape 0.92
+- Full compatibility with 64-bit installations of Inkscape under MS Windows
+- See CHANGELOG.txt for more information and history
+
 ## Prerequisites
 
 - A LaTeX distribution (e.g., TeX Live [Linux, Windows, MaxOS] or MiKTeX [Windows only]) has to be installed, especially `pdflatex` is needed.
@@ -22,8 +27,8 @@
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.6.tgz](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.tgz) | 707155e8368453550594fe52df781bd2a6bfe20b62a81d4c11c3b2a886b41242
-[TexText-Linux-0.6.zip](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Linux-0.6.zip) | 328e2e3d42e831876142b8eae9033e28645eba195ca8dceee463a46587ede044
+[TexText-Linux-0.6.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.tgz) | eebbd70225d5173b4bedf7aa7cbb4c8ee842df08ea40a4985843129a750fe87f
+[TexText-Linux-0.6.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.zip) | eac91fc9d5a5fecb5fced179ae279d64f758714c2c8f7e7eb0e0bb53f3291544
 
 To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
@@ -46,7 +51,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.6.exe](https://bitbucket.org/jcwinkler/textext/downloads/TexText-Windows-0.6.exe) | ee4f2cc0061451d037d295b0661ce00ba3e817291e759e25fb7c7e9a7cde94d5
+[TexText-Windows-0.6.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.exe) | c6c33f3851b58083cd4285eefb3be8c6e199c14db74ac6045010aa6b46c329d3
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -59,9 +64,9 @@ After that, you have to install PyGTK. Depending on your Inkscape version you ne
 
  Inkscape Version | PyGTK Installer (SHA-256 Checksum)
 ------------------|-----------------------------------
-Inkscape 0.91 and 0.48 | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/jcwinkler/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
+Inkscape 0.91 and 0.48 | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
  | 1189df2eb90d1229b850bbba75def3b39306f303f9e34415d34eaf58cda6a05c
-Inkscape 0.92 | [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/jcwinkler/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
+Inkscape 0.92 | [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
  | a2ea5842084aa5f6fdc1880ae4ad135135f5ff0423bb0cd527a8f0cf95f7ffd6
 
 The installer will search for your Inkscape installation and puts the required files into the `python` directory of Inkscape. An uninstaller is installed by the installer, too.
@@ -70,9 +75,9 @@ If you do not trust the installer you can download one of the following zip arch
 
  Inkscape Version | PyGTK zip-archive (SHA-256 Checksum)
 ------------------|-------------------------------------
-Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/jcwinkler/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
+Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
  | 15f35a48d7b3558aadc9f8c7a2b9da8da0f66c8dfb88fb6c5e0230e58d64c080
-Inkscape 0.92| [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/jcwinkler/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+Inkscape 0.92| [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
  | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
 
 
