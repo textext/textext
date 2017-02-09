@@ -45,6 +45,7 @@ import os
 import sys
 import glob
 import platform
+import subprocess
 
 DEBUG = False
 
@@ -243,7 +244,8 @@ class TexText(inkex.Effect):
 
                 if PLATFORM == WINDOWS:
                     path = wap.get_imagemagick_dir()
-                    if not path: raise RuntimeError()
+                    if not path:
+                        raise RuntimeError()
                     if path == wap.IS_IN_PATH:
                         exec_command(['convert'] + options)
                     else:
@@ -256,8 +258,13 @@ class TexText(inkex.Effect):
                 add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.",
                                 LOG_LEVEL_ERROR)
                 raise RuntimeError(latest_message())
-        except (OSError, WindowsError):
-            pass
+        except Exception as error:
+            if isinstance(error, OSError):
+                pass
+            elif PLATFORM == WINDOWS and isinstance(error, WindowsError):
+                pass
+            else:
+                raise
         finally:
             os.chdir(cwd)
             converter.finish()
@@ -307,8 +314,8 @@ class TexText(inkex.Effect):
                 # -- for Inkscape version 0.48
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
-        
-                
+
+
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
             self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
@@ -394,7 +401,7 @@ class TexText(inkex.Effect):
         style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
                        'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
                        'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
-                       
+
         for attribute_name in style_attrs:
             try:
                 if attribute_name in old_node.keys():
@@ -416,9 +423,9 @@ class TexText(inkex.Effect):
             if old_fill != "none" and old_fill is not None and old_fill != "":
                 old_node_has_fill_color = True
 
-        if not old_node_has_fill_color:            
+        if not old_node_has_fill_color:
             TexText.set_node_color(new_node, "black")
-                           
+
     # ------ SVG Node utilities
     @staticmethod
     def set_node_color(node, color):
@@ -440,13 +447,13 @@ class TexText(inkex.Effect):
         value fill of this string is set to color
         :param node: which node
         :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-        """       
+        """
         if "style" in node.keys():
             old_style_dict = ss.parseStyle(node.attrib["style"])
             if "fill" in old_style_dict.keys():
                 old_style_dict["fill"] = color
                 node.attrib["style"] = ss.formatStyle(old_style_dict)
-        
+
 
     def path_from_node(self, node):
         return node.attrib['d']
@@ -701,8 +708,6 @@ class Settings(object):
 #------------------------------------------------------------------------------
 
 try:
-    import subprocess
-
     def exec_command(cmd, ok_return_value=0):
         """
         Run given command, check return value, and return
@@ -772,7 +777,7 @@ if PLATFORM == WINDOWS:
             paths += glob.glob(os.path.join(new_path_element))
     else:
         add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
-        raise RuntimeError(lates_messaga())
+        raise RuntimeError(latest_message())
 
     new_path_element = wap.get_ghostscript_dir()
     if new_path_element:
@@ -780,7 +785,7 @@ if PLATFORM == WINDOWS:
             paths += glob.glob(os.path.join(new_path_element))
     else:
         add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
-        raise RuntimeError(lates_messaga())
+        raise RuntimeError(latest_message())
 
     os.environ['PATH'] = os.path.pathsep.join(paths)
 

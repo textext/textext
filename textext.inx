@@ -6,6 +6,7 @@
   <dependency type="executable" location="extensions">asktext.py</dependency>
   <dependency type="executable" location="extensions">typesetter.py</dependency>
   <dependency type="executable" location="extensions">latexlogparser.py</dependency>
+  <dependency type="executable" location="extensions">win_app_paths.py</dependency>
   <effect>
     <object-type>all</object-type>
   </effect>
