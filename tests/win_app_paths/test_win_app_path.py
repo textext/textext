@@ -5,6 +5,7 @@ if res:
     print('GS OK')
 else:
     print('GS not found!')
+    print(wap.get_last_error())
 
 res = wap.check_command(['C:\\Program Files (x86)\\pstoedit\\pstoedit.exe', '-v'])
 if res:
