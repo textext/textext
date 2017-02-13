@@ -8,7 +8,7 @@ rem the "textext-[Version]-linux" directory
 
 rem Some variables
 set TexTextVersion=0.6.1
-set PackagePath=texttext-%TexTextVersion%-linux
+set PackagePath=textext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
 set PackageName=TexText-Linux-%TexTextVersion%
 
