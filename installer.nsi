@@ -74,6 +74,5 @@ Section "TexText" -SEC01
   File "latexlogparser.py"
   File "default_packages.tex"
   File "win_app_paths.py"
-  File "docs\LICENSE-TexText.txt"
   File "docs\README-TexText.pdf"
 SectionEnd
