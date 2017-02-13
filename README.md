@@ -1,6 +1,6 @@
-# Tex Text 0.6 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
+# Tex Text 0.6.1 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
-**Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [Readme.pdf](docs/Readme.pdf) or [Readme.html](docs/README.html)
+**Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README.html)
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
@@ -8,7 +8,9 @@
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
-## New in release 0.6 (2017-02-01)
+## New in release 0.6.1 (2017-02-10)
+- Fixed bug #18
+- Introduced proposals #19 and #20
 - Full compatibility with Inkscape 0.92
 - Full compatibility with 64-bit installations of Inkscape under MS Windows
 - See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
@@ -27,10 +29,10 @@
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.6.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.tgz) | eebbd70225d5173b4bedf7aa7cbb4c8ee842df08ea40a4985843129a750fe87f
-[TexText-Linux-0.6.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.zip) | eac91fc9d5a5fecb5fced179ae279d64f758714c2c8f7e7eb0e0bb53f3291544
+[TexText-Linux-0.6.1.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.tgz) | 0ed8be7442e80cc248a9c0eb524bc5f34a10fb990075e268cca4d7962eb3a34b
+[TexText-Linux-0.6.1.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.zip) | 8459b5a4dcacfd791685867a2499a7139d9afbfb085cbb6938765e51ef2296a3
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -51,7 +53,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.6.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.exe) | c6c33f3851b58083cd4285eefb3be8c6e199c14db74ac6045010aa6b46c329d3
+[TexText-Windows-0.6.1.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.1.exe) | 2683b8f9b0bb4dfdf384e8fc6da8ce8e6e9354491c6bddf1ae03ba0c7261636b
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -119,3 +121,7 @@ Your LaTeX code and the accompanying settings (scale factor and optionally a pre
 Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 
 There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)
+
+## Known Issues
+
+- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.

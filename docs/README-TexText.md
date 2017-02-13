@@ -112,3 +112,7 @@ Your LaTeX code and the accompanying settings (scale factor and optionally a pre
 Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 
 There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)
+
+## Known Issues
+
+- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
