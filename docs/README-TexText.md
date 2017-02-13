@@ -20,10 +20,10 @@
 
 \footnotesize
 
-- [TexText-Linux-0.6.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.tgz)
-- [TexText-Linux-0.6.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.zip)
+- [TexText-Linux-0.6.1.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.tgz)
+- [TexText-Linux-0.6.1.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.zip)
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -44,7 +44,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 \footnotesize
 
-- [TexText-Windows-0.6.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.exe)
+- [TexText-Windows-0.6.1.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.1.exe)
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -112,3 +112,7 @@ Your LaTeX code and the accompanying settings (scale factor and optionally a pre
 Any applied color or other styles will be kept when you update the LaTeX node using *Tex Text*.
 
 There is a preview button as well, which shortens the feedback cycle from entry to result considerably, so use it! (It requires ImageMagick to be installed.)
+
+## Known Issues
+
+- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
