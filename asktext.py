@@ -57,8 +57,8 @@ except ImportError:
 
         TOOLKIT = TK
     except ImportError:
-        raise RuntimeError("Neither pygtk nor Tkinter is available! \n Hint: " \
-            "If you updated Inkscape from 0.48 to 0.91 under Windows you have to reinstall PyGTK!")
+        raise RuntimeError("Neither pygtk nor Tkinter is available! \n Hint: If you updated Inkscape "
+                           "from 0.48 to 0.91 under Windows you have to reinstall PyGTK!")
 
 
 def set_monospace_font(text_view):
@@ -116,24 +116,26 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, text, preamble_file, scale_factor):
+    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor):
         """
         Return the best possible GUI variant depending on the installed components
+        :param current_scale_factor:
         :param text: Prefilled text
         :param preamble_file: Preamble file path
-        :param scale_factor: A scale factor (0.1 to 10)
+        :param global_scale_factor: The globally last used scale factor (0.1 to 10)
+        :param current_scale_factor: The node's saved scale factor (0.1 to 10)
         :return: an instance of AskText
         """
         if TOOLKIT == TK:
-            return AskTextTK(text, preamble_file, scale_factor)
+            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
-            return AskTextGTKSource(text, preamble_file, scale_factor)
+            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor)
 
 
 class AskText(object):
     """GUI for editing TexText objects"""
 
-    def __init__(self, text, preamble_file, scale_factor):
+    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
         if len(text) > 0:
             self.text = text
         else:
@@ -143,7 +145,8 @@ class AskText(object):
                 self.text = ""
 
         self.callback = None
-        self.scale_factor = scale_factor
+        self.global_scale_factor = global_scale_factor
+        self.current_scale_factor = current_scale_factor
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
@@ -160,7 +163,8 @@ class AskText(object):
         """
         pass
 
-    def cb_cancel(self, widget=None, data=None):
+    @staticmethod
+    def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
         raise SystemExit(1)
 
@@ -168,13 +172,28 @@ class AskText(object):
         """Callback for OK / Save button"""
         pass
 
+    def scale_factor_after_loading(self):
+        """
+        The slider's initial scale factor:
+         Either the previously saved value or the global scale factor or a default of 1.0 if the extension
+         runs for the first time.
+
+        :return: Initial scale factor for the slider
+        """
+        scale_factor = self.current_scale_factor
+        if scale_factor is None:
+            scale_factor = self.global_scale_factor
+        if scale_factor is None:
+            scale_factor = 1.0
+        return scale_factor
+
 
 if TOOLKIT == TK:
     class AskTextTK(AskText):
         """TK GUI for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, scale_factor):
-            super(AskTextTK, self).__init__(text, preamble_file, scale_factor)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
+            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor)
             self._frame = None
 
         def ask(self, callback, preview_callback=None):
@@ -198,10 +217,8 @@ if TOOLKIT == TK:
             label.pack(pady=2, padx=5, side="left", anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", pady=5, padx=5, anchor="e")
-            if self.scale_factor is not None:
-                self._scale.set(self.scale_factor)
-            else:
-                self._scale.set(1.0)
+
+            self._scale.set(self.scale_factor_after_loading())
             box.pack(fill="x", expand=True)
 
             label = Tk.Label(self._frame, text="Text:")
@@ -236,8 +253,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, scale_factor):
-            super(AskTextGTKSource, self).__init__(text, preamble_file, scale_factor)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
+            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor)
             self._preview = None
             self._scale_adj = None
             self._preview_callback = None
@@ -269,13 +286,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             ]
 
             self._radio_actions = [
-                ('TabsWidth2', None, '2', None, 'Set tabulation width to 4 spaces', 2),
-                ('TabsWidth4', None, '4', None, 'Set tabulation width to 4 spaces', 4),
-                ('TabsWidth6', None, '6', None, 'Set tabulation width to 6 spaces', 6),
-                ('TabsWidth8', None, '8', None, 'Set tabulation width to 8 spaces', 8),
-                ('TabsWidth10', None, '10', None, 'Set tabulation width to 10 spaces', 10),
-                ('TabsWidth12', None, '12', None, 'Set tabulation width to 12 spaces', 12)
-            ]
+                ('TabsWidth%d' % num, None, '%d' % num, None, 'Set tabulation width to %d spaces' % num, num) for num in
+                range(2, 13, 2)]
 
             gtksourceview_ui_additions = "" if TOOLKIT == GTK else """
             <menu action='ViewMenu'>
@@ -283,15 +295,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
               <menuitem action='AutoIndent'/>
               <menuitem action='InsertSpaces'/>
               <menu action='TabsWidth'>
-                <menuitem action='TabsWidth2'/>
-                <menuitem action='TabsWidth4'/>
-                <menuitem action='TabsWidth6'/>
-                <menuitem action='TabsWidth8'/>
-                <menuitem action='TabsWidth10'/>
-                <menuitem action='TabsWidth12'/>
+                %s
               </menu>
             </menu>
-            """
+            """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
 
             self._view_ui_description = """
             <ui>
@@ -305,10 +312,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             """.format(additions=gtksourceview_ui_additions)
 
         @staticmethod
-        def open_file_cb(unused, text_buffer):
+        def open_file_cb(_, text_buffer):
             """
             Present file chooser to select a source code file
-            :param unused: ignored parameter
             :param text_buffer: The target text buffer to show the loaded text in
             """
             chooser = gtk.FileChooserDialog('Open file...', None,
@@ -443,11 +449,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             else:
                 self.preamble_file = self._preamble_widget.get_text()
 
-            if self.scale_factor is not None:
-                self.scale_factor = self._scale_adj.get_value()
+            self.global_scale_factor = self._scale_adj.get_value()
 
             try:
-                self.callback(self.text, self.preamble_file, self.scale_factor)
+                self.callback(self.text, self.preamble_file, self.global_scale_factor)
             except StandardError, error:
                 import traceback
 
@@ -463,7 +468,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
             self.update_position_label(text_buffer, view)
 
-        def window_deleted_cb(self, widget, event, view):
+        @staticmethod
+        def window_deleted_cb(widget, event, view):
             gtk.main_quit()
             return True
 
@@ -537,7 +543,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             return button_box
 
-        def clear_preamble(self, unused=None):
+        def clear_preamble(self, _=None):
             """
             Clear the preamble file setting
             """
@@ -546,6 +552,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._preamble_widget.set_filename(self.preamble_file)
             else:
                 self._preamble_widget.set_text(self.preamble_file)
+
+        def reset_scale_factor(self, _=None):
+            self._scale_adj.set_value(self.current_scale_factor)
+
+        def use_global_scale_factor(self, _=None):
+            self._scale_adj.set_value(self.global_scale_factor)
 
         # ---------- Create main window
         def create_window(self):
@@ -583,9 +595,41 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale_adj = gtk.Adjustment(lower=0.1, upper=10, step_incr=0.1, page_incr=1)
             self._scale = gtk.HScale(self._scale_adj)
             self._scale.set_digits(1)
-            self._scale_adj.set_value(self.scale_factor if self.scale_factor else 1.0)
+            self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
+
+            # We need buttons with custom labels and stock icons, so we make some
+            reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
+            items = [('tt-reset', 'Reset ({:.1f})'.format(reset_scale), 0, 0, None),
+                     ('tt-global', 'Global ({:.1f})'.format(self.global_scale_factor), 0, 0, None)]
+
+            # Forcibly show icons
+            settings = gtk.settings_get_default()
+            settings.props.gtk_button_images = True
+
+            # Make copies of stock icons
+            aliases = [('tt-reset', gtk.STOCK_UNDO),
+                       ('tt-global', gtk.STOCK_COPY)]
+
+            gtk.stock_add(items)
+            factory = gtk.IconFactory()
+            factory.add_default()
+            style = window.get_style()
+            for new_stock, alias in aliases:
+                icon_set = style.lookup_icon_set(alias)
+                factory.add(new_stock, icon_set)
+
+            scale_reset_button = gtk.Button(stock='tt-reset')
+            scale_reset_button.set_tooltip_text("Reset the scale to the saved value of {:.1f}".format(reset_scale))
+            scale_reset_button.connect('clicked', self.reset_scale_factor)
+
+            scale_global_button = gtk.Button(stock='tt-global')
+            scale_global_button.set_tooltip_text("Use global scale factor of {:.1f}".format(self.global_scale_factor))
+            scale_global_button.connect('clicked', self.use_global_scale_factor)
+
             scale_box.pack_start(self._scale, True, True, 2)
+            scale_box.pack_start(scale_reset_button, False, False, 2)
+            scale_box.pack_start(scale_global_button, False, False, 2)
 
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
@@ -640,12 +684,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._preview = gtk.Image()
 
             # Vertical Layout
-            vbox = gtk.VBox(0, False)
+            vbox = gtk.VBox(False, 4)
             window.add(vbox)
 
             vbox.pack_start(menu, False, False, 0)
             vbox.pack_start(preamble_box, False, False, 0)
-            if self.scale_factor:
+            if self.global_scale_factor:
                 vbox.pack_start(scale_box, False, False, 0)
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
@@ -690,4 +734,4 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # main loop
             gtk.main()
-            return self.text, self.preamble_file, self.scale_factor
+            return self.text, self.preamble_file, self.global_scale_factor
