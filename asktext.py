@@ -567,7 +567,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             :return: the created window
             """
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            window.set_border_width(0)
+            window.set_border_width(2)
             window.set_title('Enter LaTeX Formula - TexText')
 
             # File chooser and Scale Adjustment
@@ -583,15 +583,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preamble_delete.connect('clicked', self.clear_preamble)
             preamble_delete.set_tooltip_text("Clear the preamble file setting")
 
+            preamble_frame = gtk.Frame("Preamble File")
             preamble_box = gtk.HBox(homogeneous=False, spacing=2)
-            preamble_label = gtk.Label("Preamble File")
-            preamble_box.pack_start(preamble_label, False, False, 2)
+            preamble_frame.add(preamble_box)
             preamble_box.pack_start(self._preamble_widget, True, True, 2)
             preamble_box.pack_start(preamble_delete, False, False, 2)
 
+            scale_frame = gtk.Frame("Scale Factor")
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
-            scale_label = gtk.Label("Scale Factor")
-            scale_box.pack_start(scale_label, False, False, 2)
+            scale_frame.add(scale_box)
             self._scale_adj = gtk.Adjustment(lower=0.1, upper=10, step_incr=0.1, page_incr=1)
             self._scale = gtk.HScale(self._scale_adj)
             self._scale.set_digits(1)
@@ -688,9 +688,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             window.add(vbox)
 
             vbox.pack_start(menu, False, False, 0)
-            vbox.pack_start(preamble_box, False, False, 0)
+            vbox.pack_start(preamble_frame, False, False, 0)
             if self.global_scale_factor:
-                vbox.pack_start(scale_box, False, False, 0)
+                vbox.pack_start(scale_frame, False, False, 0)
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
             vbox.pack_start(self._preview, False, False, 0)
