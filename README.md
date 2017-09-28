@@ -1,6 +1,11 @@
 # Tex Text 0.6.1 - A LaTeX extension for Inkscape (releases 0.92.1, 0.91 and 0.48)
+ 
+![blank line](spacer.png)
+ 
+> ##Very important - Inkscape 0.92.2
+> On Windows TexText **does not** work in Inkscape 0.92.2. Please, use the 0.92.1 Inkscape release instead until a solution is found (See Issue #44)!
 
-**VERY IMPORTANT:** On Windows TexText **does not** work in Inkscape 0.92.2. Use the 0.92.1 Inkscape release instead until a solution is found (See Issue #44)!
+![blank line](spacer.png)
 
 **Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README.html)
 
