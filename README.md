@@ -1,4 +1,6 @@
-# Tex Text 0.6.1 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
+# Tex Text 0.6.1 - A LaTeX extension for Inkscape (releases 0.92.1, 0.91 and 0.48)
+
+**VERY IMPORTANT:** On Windows TexText **does not** work in Inkscape 0.92.2. Use the 0.92.1 Inkscape release instead until a solution is found (See Issue #44)!
 
 **Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README.html)
 
