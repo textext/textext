@@ -195,60 +195,74 @@ if TOOLKIT == TK:
         def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
             super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor)
             self._frame = None
+            self._scale = None
 
         def ask(self, callback, preview_callback=None):
             self.callback = callback
 
             root = Tk.Tk()
+            root.title("TexText")
 
             self._frame = Tk.Frame(root)
             self._frame.pack()
 
-            box = Tk.Frame(self._frame)
+            # Frame box for preamble file
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Preamble file:")
-            label.pack(pady=2, padx=5, side="left", anchor="w")
+            label.pack(pady=2, padx=5, anchor="w")
             self._preamble = Tk.Entry(box)
-            self._preamble.pack(expand=True, fill="x", pady=5, padx=5, side="right")
+            self._preamble.pack(expand=True, fill="x", pady=5, padx=5)
             self._preamble.insert(Tk.END, self.preamble_file)
-            box.pack(fill="x", expand=True)
+            box.pack(fill="x", pady=5, expand=True)
 
-            box = Tk.Frame(self._frame)
+            # Frame box for scale factor and reset buttons
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Scale factor:")
-            label.pack(pady=2, padx=5, side="left", anchor="w")
+            label.pack(pady=2, padx=5, anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
-            self._scale.pack(expand=True, fill="x", pady=5, padx=5, anchor="e")
-
+            self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
             self._scale.set(self.scale_factor_after_loading())
-            box.pack(fill="x", expand=True)
+            
+            reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
+            self._reset_button = Tk.Button(box, text="Reset ({:.1f})".format(reset_scale), command=self.reset_scale_factor)
+            self._reset_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
+            self._global_button = Tk.Button(box, text="Global ({:.1f})".format(self.global_scale_factor), command=self.use_global_scale_factor)
+            self._global_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
 
+            box.pack(fill="x", pady=5, expand=True)
+
+            # Text input field
             label = Tk.Label(self._frame, text="Text:")
             label.pack(pady=2, padx=5, anchor="w")
-
             self._text_box = Tk.Text(self._frame)
             self._text_box.pack(expand=True, fill="both", pady=5, padx=5)
             self._text_box.insert(Tk.END, self.text)
 
+            # OK and Cancel button
             box = Tk.Frame(self._frame)
             self._ok_button = Tk.Button(box, text="OK", command=self.cb_ok)
             self._ok_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
-
             self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
             self._cancel.pack(ipadx=30, ipady=4, pady=5, padx=5, side="right")
-
             box.pack(expand=False)
 
             root.mainloop()
 
-            self.callback(self.text, self.preamble_file, self.scale_factor)
-            return self.text, self.preamble_file, self.scale_factor
+            self.callback(self.text, self.preamble_file, self.global_scale_factor)
+            return self.text, self.preamble_file, self.global_scale_factor
 
         def cb_ok(self, widget=None, data=None):
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
-            if self.scale_factor is not None:
-                self.scale_factor = self._scale.get()
+            self.global_scale_factor = float(self._scale.get())
             self._frame.quit()
 
+        def reset_scale_factor(self, _=None):
+            self._scale.set(self.current_scale_factor)
+
+        def use_global_scale_factor(self, _=None):
+            self._scale.set(self.global_scale_factor)
+            
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
