@@ -2,8 +2,11 @@
  
 ![blank line](spacer.png)
  
-> ##Very important - Inkscape 0.92.2
+> ##Very important 1 - Inkscape 0.92.2 on Windows
 > On Windows TexText **does not** work in Inkscape 0.92.2. Please, use the 0.92.1 Inkscape release instead until a solution is found (See Issue #44)!
+
+> ##Very important 2 - broken pstoedit support by ghostscript
+> On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed!
 
 ![blank line](spacer.png)
 
@@ -47,9 +50,10 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 - Next, please install `pstoedit`.
 
+- The extension also needs Ghostscript. This should already be included with your LaTeX distribution. However, **make sure** that Ghostscript version 9.20 or earlier is installed. The utility pstoedit **DOES NOT** work with Ghostscript 9.21 and newer.
+
 - Finally, to enable the preview feature of *Tex Text*, you need to install `ImageMagick`.
 
-*(The extension also needs Ghostscript, but this should already be included with your LaTeX distribution.)*
 
 ### Congratulations, you're done! [Show Usage...](#markdown-header-usage)
 
@@ -86,7 +90,7 @@ If you do not trust the installer you can download one of the following zip arch
 ------------------|-------------------------------------
 Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
  | 15f35a48d7b3558aadc9f8c7a2b9da8da0f66c8dfb88fb6c5e0230e58d64c080
-Inkscape 0.92| [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+Inkscape 0.92 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
  | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
 
 
@@ -96,8 +100,11 @@ Inkscape 0.92| [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org
 If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well. Depending on your machines architecture (32- or 64-bit) you find the corresponding packages under the following links:
 
 - The installers for *pstoedit* are `pstoeditsetup-win32.exe` (32-bit) or `pstoeditsetup-x64.exe` (64-bit) which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70](https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70)
+
 - To install *ImageMagick*, run `ImageMagick-6.9.7-x-Q16-x86-static.exe` (32-bit) or `ImageMagick-6.9.7-x-Q16-x64-static.exe`(64-bit)  which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
--  The installers for *Ghostscript* `gs910w32.exe` (32-bit) or `gs910w64.exe` (64-bit) can be downloaded from [https://ghostscript.com/download/gsdnld.html](https://ghostscript.com/download/gsdnld.html).
+
+-  The installers for *Ghostscript* `gs920w32.exe` (32-bit) or `gs920w64.exe` (64-bit) can be downloaded from [32-bit]( https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w32.exe) and [64-bit](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w64.exe
+) DO NOT install ghostscript 9.21 or 9.22!!
 
 **Note:** The 32-bit version of Inkscape is able to use the 64-bit versions of these programs and vice versa.
 
