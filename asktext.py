@@ -219,15 +219,23 @@ if TOOLKIT == TK:
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
+            label = Tk.Label(box, text="Use RESET to set scale factor to the value this node has been created with.")
+            label.pack(pady=2, padx=5, anchor="w")
+            explanation = """Use GLOBAL to set scale factor to the value used while editing
+the previous node of this document."""
+            label = Tk.Label(box, justify="left", text=explanation)
+            label.pack(pady=2, padx=5, anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
             self._scale.set(self.scale_factor_after_loading())
             
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            self._reset_button = Tk.Button(box, text="Reset ({:.1f})".format(reset_scale), command=self.reset_scale_factor)
-            self._reset_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
-            self._global_button = Tk.Button(box, text="Global ({:.1f})".format(self.global_scale_factor), command=self.use_global_scale_factor)
-            self._global_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
+            self._reset_button = Tk.Button(box, text="Reset ({:.1f})".format(reset_scale),
+                                           command=self.reset_scale_factor)
+            self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+            self._global_button = Tk.Button(box, text="Global ({:.1f})".format(self.global_scale_factor),
+                                            command=self.use_global_scale_factor)
+            self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
             box.pack(fill="x", pady=5, expand=True)
 
@@ -241,9 +249,9 @@ if TOOLKIT == TK:
             # OK and Cancel button
             box = Tk.Frame(self._frame)
             self._ok_button = Tk.Button(box, text="OK", command=self.cb_ok)
-            self._ok_button.pack(ipadx=30, ipady=4, pady=5, padx=5, side="left")
+            self._ok_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
             self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
-            self._cancel.pack(ipadx=30, ipady=4, pady=5, padx=5, side="right")
+            self._cancel.pack(ipadx=10, ipady=4, pady=5, padx=5, side="right")
             box.pack(expand=False)
 
             root.mainloop()
