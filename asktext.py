@@ -31,7 +31,6 @@ TK = "TK"
 TOOLKIT = None
 
 import os
-import inkex
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -231,7 +230,7 @@ edited node in Inkscape."""
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
             self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
             self._scale.set(self.scale_factor_after_loading())
-            
+
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
             self._reset_button = Tk.Button(box, text="Reset ({:.1f})".format(reset_scale),
                                            command=self.reset_scale_factor)
@@ -266,10 +265,10 @@ edited node in Inkscape."""
             window_height = root.winfo_height()
             window_xpos = (screen_width/2) - (window_width/2)
             window_ypos = (screen_height/2) - (window_height/2)
-            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))            
-                      
+            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
+
             root.mainloop()
-            
+
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor)
             return self.text, self.preamble_file, self.global_scale_factor
@@ -285,7 +284,7 @@ edited node in Inkscape."""
 
         def use_global_scale_factor(self, _=None):
             self._scale.set(self.global_scale_factor)
-            
+
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
