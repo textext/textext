@@ -31,6 +31,7 @@ TK = "TK"
 TOOLKIT = None
 
 import os
+import inkex
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -219,10 +220,12 @@ if TOOLKIT == TK:
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
-            label = Tk.Label(box, text="Use RESET to set scale factor to the value this node has been created with.")
+            explanation = """Use RESET to set scale factor to the value this node has been
+created with."""
+            label = Tk.Label(box, justify="left", text=explanation)
             label.pack(pady=2, padx=5, anchor="w")
-            explanation = """Use GLOBAL to set scale factor to the value used while editing
-the previous node of this document."""
+            explanation = """Use GLOBAL to set scale factor to the value of the previously
+edited node in Inkscape."""
             label = Tk.Label(box, justify="left", text=explanation)
             label.pack(pady=2, padx=5, anchor="w")
             self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
@@ -254,7 +257,19 @@ the previous node of this document."""
             self._cancel.pack(ipadx=10, ipady=4, pady=5, padx=5, side="right")
             box.pack(expand=False)
 
+            # Ensure that the window opens centered on the screen
+            root.update()
+
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            window_width = root.winfo_width()
+            window_height = root.winfo_height()
+            window_xpos = (screen_width/2) - (window_width/2)
+            window_ypos = (screen_height/2) - (window_height/2)
+            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))            
+                      
             root.mainloop()
+            
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor)
             return self.text, self.preamble_file, self.global_scale_factor
@@ -642,11 +657,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 factory.add(new_stock, icon_set)
 
             scale_reset_button = gtk.Button(stock='tt-reset')
-            scale_reset_button.set_tooltip_text("Reset the scale to the saved value of {:.1f}".format(reset_scale))
+            scale_reset_button.set_tooltip_text("Set scale factor to the value this node has been created with ({:.1f})".format(reset_scale))
             scale_reset_button.connect('clicked', self.reset_scale_factor)
 
             scale_global_button = gtk.Button(stock='tt-global')
-            scale_global_button.set_tooltip_text("Use global scale factor of {:.1f}".format(self.global_scale_factor))
+            scale_global_button.set_tooltip_text("Set scale factor to the value of the previously edited node in Inkscape ({:.1f})".format(self.global_scale_factor))
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
             scale_box.pack_start(self._scale, True, True, 2)
