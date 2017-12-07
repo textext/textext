@@ -66,6 +66,7 @@ import tempfile
 import re
 import copy
 from lxml import etree
+
 if PLATFORM == WINDOWS:
     import win_app_paths as wap
 
@@ -87,6 +88,7 @@ LOG_LEVEL_ERROR = "Error Log Level"
 LOG_LEVEL_DEBUG = "Debug Log Level"
 
 from asktext import AskerFactory
+
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality
@@ -190,11 +192,11 @@ class TexText(inkex.Effect):
             die("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
         # Find root element
-        old_node, text, preamble_file = self.get_old()
+        old_node, text, preamble_file, current_scale = self.get_old()
 
         # Ask for TeX code
         if self.options.text is None:
-            scale_factor = self.options.scale_factor
+            global_scale_factor = self.options.scale_factor
 
             if not preamble_file:
                 preamble_file = self.options.preamble_file
@@ -202,10 +204,14 @@ class TexText(inkex.Effect):
             if not os.path.isfile(preamble_file):
                 preamble_file = ""
 
-            asker = AskerFactory().asker(text, preamble_file, scale_factor)
+            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale)
             try:
-                asker.ask(lambda t, p, s: self.do_convert(t, p, s, usable_converter_class, old_node),
-                          lambda t, p, c: self.preview_convert(t, p, usable_converter_class, c))
+                asker.ask(lambda _text, _preamble, _scale: self.do_convert(_text, _preamble, _scale,
+                                                                           usable_converter_class,
+                                                                           old_node),
+                          lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
+                                                                                           usable_converter_class,
+                                                                                           _preview_callback))
             finally:
                 pass
 
@@ -216,7 +222,8 @@ class TexText(inkex.Effect):
 
         show_log()
 
-    def preview_convert(self, text, preamble_file, converter_class, image_setter):
+    @staticmethod
+    def preview_convert(text, preamble_file, converter_class, image_setter):
         """
         Generates a preview PNG of the LaTeX output using the selected converter.
 
@@ -296,10 +303,10 @@ class TexText(inkex.Effect):
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
             return
 
-
-        # -- Set textext attribs
+        # -- Store textext attributes
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
+        new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(scale_factor).encode('string-escape')
 
         # -- Copy style
         if old_node is None:
@@ -314,8 +321,6 @@ class TexText(inkex.Effect):
                 # -- for Inkscape version 0.48
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
-
-
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
             self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
@@ -366,7 +371,7 @@ class TexText(inkex.Effect):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_node, latex_text, preamble_file_name)
+        :return: (old_node, latex_text, preamble_file_name, scale)
         """
 
         for i in self.options.ids:
@@ -377,10 +382,16 @@ class TexText(inkex.Effect):
 
             # otherwise, check for TEXTEXT_NS in attrib
             if '{%s}text' % TEXTEXT_NS in node.attrib:
-                return (node,
-                        node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape'),
-                        node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape'))
-        return None, "", ""
+                scale = None
+                if '{%s}scale' % TEXTEXT_NS in node.attrib:
+                    scale_string = node.attrib.get('{%s}scale' % TEXTEXT_NS, '').decode('string-escape')
+                    scale = float(scale_string)
+
+                text = node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape')
+                preamble = node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape')
+
+                return node, text, preamble, scale
+        return None, "", "", None
 
     def replace_node(self, old_node, new_node):
         """
@@ -435,10 +446,10 @@ class TexText(inkex.Effect):
         :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
         """
         node.attrib["fill"] = color
-        TexText.set_node_style_color(node, color) # for fill in the style attribute
+        TexText.set_node_style_color(node, color)  # for fill in the style attribute
         for child in node.iterchildren():
             child.attrib["fill"] = color
-            TexText.set_node_style_color(child, color) # for fill in the style attribute
+            TexText.set_node_style_color(child, color)  # for fill in the style attribute
 
     @staticmethod
     def set_node_style_color(node, color):
@@ -454,11 +465,12 @@ class TexText(inkex.Effect):
                 old_style_dict["fill"] = color
                 node.attrib["style"] = ss.formatStyle(old_style_dict)
 
-
-    def path_from_node(self, node):
+    @staticmethod
+    def path_from_node(node):
         return node.attrib['d']
 
-    def line_from_node(self, node):
+    @staticmethod
+    def line_from_node(node):
         return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
                                               x2=node.attrib['x2'],
                                               y1=node.attrib['y1'],
@@ -610,7 +622,8 @@ class TexText(inkex.Effect):
         transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
         node.attrib['transform'] = transform
 
-    def get_node_transform(self, node):
+    @staticmethod
+    def get_node_transform(node):
         """
         Gets the matrix values form the node's transform attribute
         :param node:
@@ -659,7 +672,7 @@ class Settings(object):
             try:
                 self.values = {}
                 for line in f.read().split("\n"):
-                    if not '=' in line:
+                    if '=' not in line:
                         continue
                     k, v = line.split("=", 1)
                     self.values[k.strip()] = v.strip()
@@ -703,6 +716,7 @@ class Settings(object):
     def set(self, key, value):
         self.values[key] = str(value)
 
+
 #------------------------------------------------------------------------------
 # LaTeX converters
 #------------------------------------------------------------------------------
@@ -743,6 +757,7 @@ try:
 except ImportError:
     # Python < 2.4 ...
     import popen2
+
 
     def exec_command(cmd, ok_return_value=0):
         """
