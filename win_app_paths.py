@@ -1,6 +1,6 @@
 """
 :Author: Jan Winkler
-:Date: 2017-01-19
+:Date: 2017-12-13
 :License: BSD
 
 win_app_paths.py: Provides some crude functions trying to determine the paths to pstoedit,
@@ -8,14 +8,13 @@ imagemagick, and ghostscript. Furthermore a function is provided that safely che
 available on the system or not.
 
 You can modify the lists _STR_KEYS_PSTOEDIT, _STR_KEYS_IMAGEMAGICK,
-_STR_KEYS_GHOSTSCRIPT to search further
-path locations
+_STR_KEYS_GHOSTSCRIPT to search further path locations
 """
 import os as _os
 import subprocess as _sp
 import _winreg as _wr
 
-__all__ = ['get_last_error', 'get_pstoedit_dir', 'get_imagemagick_dir',
+__all__ = ['get_last_error', 'get_pstoedit_dir', 'get_imagemagick_command',
            'get_ghostscript_dir', 'check_command', 'IS_IN_PATH']
 
 # path to pstoedit is usually found under SOFTEWARE/wglunz/pstoedit in subkey InstallPath. Other
@@ -23,10 +22,11 @@ __all__ = ['get_last_error', 'get_pstoedit_dir', 'get_imagemagick_dir',
 # STR_KEYS_PSTOEDIT = [['key1', 'subkey1'],['key2', 'subkey2'], ['key3', 'subkey3']]
 _STR_KEYS_PSTOEDIT = [[r'SOFTWARE\wglunz\pstoedit', r'InstallPath']]
 
-# path to ImageMagick is usually found under SOFTWARE/ImageMagick/Current in key BinPath. Other
-# key-subkey pairs to be checked for maybe added as list elements:
-# STR_KEYS_IMAGEMAGICK = [['key1', 'subkey1'], ['key2', 'subkey2'], ['key3', 'subkey3']]
-_STR_KEYS_IMAGEMAGICK = [[r'SOFTWARE\ImageMagick\Current', r'LibPath']]
+# path to ImageMagick is usually found under SOFTWARE/ImageMagick/Current in key LibPath. The 
+# version of the lib is found under the key Version. Other
+# key-subkey triples to be checked for maybe added as list elements:
+# STR_KEYS_IMAGEMAGICK = [['key1', 'pathkey1', 'versionkey1'], ['key2', 'pathkey2', versionkey2]]
+_STR_KEYS_IMAGEMAGICK = [[r'SOFTWARE\ImageMagick\Current', r'LibPath', r'Version']]
 
 # path to ghostscript is usually found under SOFTWARE/Artifex/GPL Ghostscript/[VersionsNummer]/bin
 # other keys to be checked for maybe added as list elements:
@@ -101,37 +101,45 @@ def get_pstoedit_dir():
         return None
 
 
-def get_imagemagick_dir():
+def get_imagemagick_command():
     """
-    Tries to determine the directory in which imagemagick is installed. If successful the path is
-    returned. If imagemagick is found in the system path then the constant IS_IN_PATH is returned.
-    If nothing is found the function returns None.
+    Tries to determine the directory in which imagemagick is installed. If successful the path 
+    including the raw command depending on the installed version is returned. If nothing is found 
+    the function returns None.
 
     The function searches the Windows registry under HKLM an HKCU for the keys defined in the list
     STR_KEYS_IMAGEMAGICK. If a key is found it looks for the path defined under the Subkey defined
     in STR_KEYS_IMAGEMAGICK. The elements of the list STR_KEYS_IMAGEMAGICK are lists each of them
-    owns two elements: The first one is the key, the second one the subkey. If nothing is found in
+    owns three elements: The first one is the key, the second one the subkey specifying the library
+    path and the third one is the key where the version should be found. If nothing is found in
     the registry it is checked if imagemagick can be found in the system path (which usually is not
     the case).
     """
 
+    # 1. Try to find the required information in the registry
     for access_right in _REG_ACCESS_RIGHTS:
         for hkey in [_wr.HKEY_LOCAL_MACHINE, _wr.HKEY_CURRENT_USER]:
             for str_key in _STR_KEYS_IMAGEMAGICK:
                 try:
                     key = _wr.OpenKey(hkey, str_key[0], 0, access_right)
                     try:
-                        value, _ = _wr.QueryValueEx(key, str_key[1])
+                        pathname, _ = _wr.QueryValueEx(key, str_key[1])
+                        version, _ = _wr.QueryValueEx(key, str_key[2])
                         _wr.CloseKey(key)
-                        return value
+                        if int(version[0]) >= 7.0:
+                            return _os.path.join(pathname, 'magick')
+                        else:
+                            return _os.path.join(pathname, 'convert')
                     except WindowsError:
                         pass
                 except WindowsError:
                     pass
 
-    # Try to check if imagemagick is found in the system path
-    if check_command(['convert', '--help']):
-        return IS_IN_PATH
+    # 2. If nothing is found in the registry try to check if imagemagick is found in the system path
+    if check_command(['convert', '--help']): # ImageMagick 6
+        return "convert"
+    elif check_command(['magick', '--help']): # ImageMagick 7
+        return "magick"
     else:
         _set_last_error('imagemagick seems not to be installed on the system '
                         '(neither found in path nor found under '
