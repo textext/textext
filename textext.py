@@ -1019,9 +1019,9 @@ class PstoeditPlotSvg(PdfConverterBase):
 
         # Exec pstoedit: pdf -> svg
         try:
-            exec_command(['pstoedit', '-f', 'plot-svg',
-                          self.tmp('pdf'), self.tmp('svg')]
-                         + pstoeditOpts)
+            result = exec_command(['pstoedit', '-f', 'plot-svg',
+                                   self.tmp('pdf'), self.tmp('svg')]
+                                   + pstoeditOpts)
         except RuntimeError as excpt:
             # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
             if "-1073741515" in excpt.message:
@@ -1031,8 +1031,11 @@ class PstoeditPlotSvg(PdfConverterBase):
                                 "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
                                 "This is a problem of pstoedit, not of TexText!!", LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
-        if not os.path.exists(self.tmp('svg')):
-            add_log_message("pstoedit didn't produce output", LOG_LEVEL_ERROR)
+        if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript            
+            if "DELAYBIND" in result:
+                result += "Ensure that a ghostscript version < 9.21 is installed on your system!\n"
+            add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
 
     @classmethod
