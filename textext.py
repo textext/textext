@@ -244,25 +244,26 @@ class TexText(inkex.Effect):
         try:
             converter.tex_to_pdf(text, preamble_file)
 
-            # convert resulting pdf to png using ImageMagick's 'convert'
+            # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
             try:
-                options = ['-density', '200', '-background', 'transparent', '-trim', converter.tmp('pdf'),
-                           converter.tmp('png')]
+                # -trim MUST be placed between the filenames!
+                options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'),
+                           '-trim', converter.tmp('png')]
 
                 if PLATFORM == WINDOWS:
-                    path = wap.get_imagemagick_dir()
-                    if not path:
+                    win_command = wap.get_imagemagick_command()
+                    if not win_command:
                         raise RuntimeError()
-                    if path == wap.IS_IN_PATH:
-                        exec_command(['convert'] + options)
-                    else:
-                        exec_command([path + '\\' + 'convert'] + options)
+                    exec_command([win_command] + options)
                 else:
-                    exec_command(['convert'] + options)
+                    try:
+                        exec_command(['convert'] + options)   # ImageMagick 6
+                    except OSError:
+                        exec_command(['magick'] + options)    # ImageMagick 7
 
                 image_setter(converter.tmp('png'))
-            except RuntimeError:
-                add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.",
+            except RuntimeError as error:
+                add_log_message("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.\nDetailed error message:\n%s" % (str(error)),
                                 LOG_LEVEL_ERROR)
                 raise RuntimeError(latest_message())
         except Exception as error:
