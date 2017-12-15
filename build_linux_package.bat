@@ -2,12 +2,12 @@
 rem Batch Script for building Linux installation package on Windows.
 rem
 rem The script creates a directory "textext-[Version]-linux" with a
-rem subdirectoy "extension". The extion files go into the extension
+rem subdirectoy "extension". The extension files go into the extension
 rem subdirectory while the readme and setup-script are placed into
 rem the "textext-[Version]-linux" directory
 
 rem Some variables
-set TexTextVersion=0.6.1
+set TexTextVersion=0.7
 set PackagePath=textext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
 set PackageName=TexText-Linux-%TexTextVersion%
