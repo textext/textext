@@ -1,12 +1,9 @@
-# Tex Text 0.6.1 - A LaTeX extension for Inkscape (releases 0.92.1, 0.91 and 0.48)
+# Tex Text 0.7 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
  
 ![blank line](spacer.png)
  
-> ##Very important 1 - Inkscape 0.92.2 on Windows
-> On Windows TexText **does not** work in Inkscape 0.92.2. Please, use the 0.92.1 Inkscape release instead until a solution is found (See Issue #44)!
-
-> ##Very important 2 - broken pstoedit support by ghostscript
-> On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed!
+> ##Very important - broken pstoedit support by ghostscript
+> On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard for a fix by migrating the converter engine to pdf2svg or inkscape from the command line.
 
 ![blank line](spacer.png)
 
@@ -18,11 +15,11 @@
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
-## New in release 0.6.1 (2017-02-10)
-- Fixed bug #18
-- Introduced proposals #19 and #20
-- Full compatibility with Inkscape 0.92
-- Full compatibility with 64-bit installations of Inkscape under MS Windows
+## New in release 0.7 (2017-12-15)
+- New: Compatibility with Inkscape 0.92.2 also under Windows
+- New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
+- New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
+- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50).
 - See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
 
 ## Prerequisites
@@ -39,14 +36,14 @@
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.6.1.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.tgz) | 0ed8be7442e80cc248a9c0eb524bc5f34a10fb990075e268cca4d7962eb3a34b
-[TexText-Linux-0.6.1.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.6.1.zip) | 8459b5a4dcacfd791685867a2499a7139d9afbfb085cbb6938765e51ef2296a3
+[TexText-Linux-0.7.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.tgz) | 2c2c9aa1a7282b4ad5f3f146752b9d58b9f354fb0094137ee05af7a1eabd7af7
+[TexText-Linux-0.7.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.zip) | 3577bcd85d79ed708ebad9cca1c16763389a337833e9e85f90b2d08daa82835e
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.6.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
-- You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*. This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings.
+- You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*. This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings. Also ensure that the package `gnome-themes-standard` is installed to avoid anoying GTK-warnings after creating a LaTeX node.
 
 - Next, please install `pstoedit`.
 
@@ -64,7 +61,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.6.1.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.6.1.exe) | 2683b8f9b0bb4dfdf384e8fc6da8ce8e6e9354491c6bddf1ae03ba0c7261636b
+[TexText-Windows-0.7.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.7.exe) | 67d1c52e25d6e1a81e59f5108083c5b07905029bdbe821ca37ce81af9480fafe
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -73,25 +70,33 @@ The installation of *Tex Text for Inkscape* is straightforward: Simply use the i
 
 ### PyGTK
 
-After that, you have to install PyGTK. Depending on your Inkscape version you need to download one of the following installers:
+After that, you have to install PyGTK. Depending on your Inkscape version you need to download one of the following installers **(please uninstall any previous version of PyGTK for Inkscape before)**:
 
- Inkscape Version | PyGTK Installer (SHA-256 Checksum)
-------------------|-----------------------------------
-Inkscape 0.91 and 0.48 | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
- | 1189df2eb90d1229b850bbba75def3b39306f303f9e34415d34eaf58cda6a05c
-Inkscape 0.92 | [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
+ Inkscape Version (**important!**) | PyGTK Installer (SHA-256 Checksum)
+-----------------------------------|-----------------------------------
+ Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
+ | c8e2e7551f253afb736a1f4f936a40dc116ad14bec7eac0c548b18a0a6e7e066
+ Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
+ | 7356f8d3232c038b2fff50d5cf608044c7c911db4f0b20d230bd5504a5cb20f9
+ Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
  | a2ea5842084aa5f6fdc1880ae4ad135135f5ff0423bb0cd527a8f0cf95f7ffd6
+ Inkscape 0.91 and 0.48  (64- and 32-bit) | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
+ | 1189df2eb90d1229b850bbba75def3b39306f303f9e34415d34eaf58cda6a05c
 
-The installer will search for your Inkscape installation and puts the required files into the `python` directory of Inkscape. An uninstaller is installed by the installer, too.
+The installer will search for your Inkscape installation and puts the required files into the directory of Inkscape. An uninstaller is installed by the installer, too.
 
-If you do not trust the installer you can download one of the following zip archives and copy its content into the `python` directory of your Inkscape installation:
+If you do not trust the installer you can download one of the following zip archives and copy its content into the directory in which inkscape.exe resides (Inkscape version 0.92.2) or directly into the `python` directory of your Inkscape installation (Inkscape versions 0.48, 0.91, 0.92.0, 0.92.1):
 
  Inkscape Version | PyGTK zip-archive (SHA-256 Checksum)
 ------------------|-------------------------------------
+Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
+ | db67a38bd4214e155446228cf0103b8d2b40e655c25b54574fab8f4f94a1dcdb
+Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
+ | 7bc3e3123391827ac87e0be44a694959c7adf206b71af49a665ffe66b46ca8df
+Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+ | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
 Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
  | 15f35a48d7b3558aadc9f8c7a2b9da8da0f66c8dfb88fb6c5e0230e58d64c080
-Inkscape 0.92 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
- | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
 
 
 
@@ -104,7 +109,7 @@ If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed 
 - To install *ImageMagick*, run `ImageMagick-6.9.7-x-Q16-x86-static.exe` (32-bit) or `ImageMagick-6.9.7-x-Q16-x64-static.exe`(64-bit)  which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
 
 -  The installers for *Ghostscript* `gs920w32.exe` (32-bit) or `gs920w64.exe` (64-bit) can be downloaded from [32-bit]( https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w32.exe) and [64-bit](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w64.exe
-) DO NOT install ghostscript 9.21 or 9.22!!
+) **DO NOT install ghostscript 9.21 or 9.22!!**
 
 **Note:** The 32-bit version of Inkscape is able to use the 64-bit versions of these programs and vice versa.
 
@@ -139,3 +144,15 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 ## Known Issues
 
 - Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
+- TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
+- Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
+
+## Release history
+
+### New in release 0.6.1 (2017-02-10)
+- Fixed bug #18
+- Introduced proposals #19 and #20
+- Full compatibility with Inkscape 0.92
+- Full compatibility with 64-bit installations of Inkscape under MS Windows
+- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
+
