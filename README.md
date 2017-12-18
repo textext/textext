@@ -70,7 +70,7 @@ The installation of *Tex Text for Inkscape* is straightforward: Simply use the i
 
 ### PyGTK
 
-After that, you have to install PyGTK. Depending on your Inkscape version you need to download one of the following installers **(please uninstall any previous version of PyGTK for Inkscape before)**:
+After that, you have to install PyGTK. Depending on your Inkscape version you need to download one of the following installers:
 
  Inkscape Version (**important!**) | PyGTK Installer (SHA-256 Checksum)
 -----------------------------------|-----------------------------------
