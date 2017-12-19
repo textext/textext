@@ -7,7 +7,7 @@
 
 ![blank line](spacer.png)
 
-**Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README.html)
+**Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
