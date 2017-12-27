@@ -61,7 +61,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.7.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.7.exe) | 67d1c52e25d6e1a81e59f5108083c5b07905029bdbe821ca37ce81af9480fafe
+[TexText-Windows-0.7.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.7.exe) | 6f7edf8536a37b7de67f06d0ab3f1adbbc7e3d5e42ceb8a963c3945eb8dc583c
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
