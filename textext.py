@@ -38,7 +38,7 @@ for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.6.1"
+__version__ = "0.7"
 __docformat__ = "restructuredtext en"
 
 import os
@@ -89,6 +89,8 @@ LOG_LEVEL_DEBUG = "Debug Log Level"
 
 from asktext import AskerFactory
 
+# Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
+from typesetter import Typesetter
 
 #------------------------------------------------------------------------------
 # Inkscape plugin functionality
@@ -913,8 +915,6 @@ class LatexConverterBase(object):
 
         log_buffer = StringIO()
         log_handler = logging.StreamHandler(log_buffer)
-
-        from typesetter import Typesetter
 
         typesetter = Typesetter(self.tmp('tex'))
         typesetter.halt_on_errors = False
