@@ -1,6 +1,6 @@
 # Tex Text 0.7 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
-TexText is a Python plugin for the vector graphics editor Inkscape providing the possibility to add LaTeX generated SVG elements to your drawing.
+TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until Junuary 2018. Originally TexText has been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
 
 ![TexText dialog together with Inkscape](docs/readme-images/textext-with-inkscape.png)
 
