@@ -1,11 +1,11 @@
 # Tex Text 0.7 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
- 
-![blank line](spacer.png)
- 
-> ##Very important - broken pstoedit support by ghostscript
-> On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard for a fix by migrating the converter engine to pdf2svg or inkscape from the command line.
 
-![blank line](spacer.png)
+TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until Junuary 2018. Originally TexText has been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
+
+![TexText dialog together with Inkscape](docs/readme-images/textext-with-inkscape.png)
+
+### Very important - broken pstoedit support by ghostscript
+On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard for a fix by migrating the converter engine to pdf2svg or inkscape from the command line.
 
 **Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
 
@@ -19,7 +19,7 @@
 - New: Compatibility with Inkscape 0.92.2 also under Windows
 - New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
 - New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
-- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50).
+- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)).
 - See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
 
 ## Prerequisites
@@ -146,8 +146,11 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 - Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
 - TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
 - Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
+- Under Inkscape 0.92 the fontsize selected in LaTeX does not match the font size in Inkscape if scale factor 1.0 is chosen (Issue #55 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open))
 
 ## Release history
+
+Issue numbers refer to [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)
 
 ### New in release 0.6.1 (2017-02-10)
 - Fixed bug #18
