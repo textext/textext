@@ -1,13 +1,13 @@
 # Tex Text 0.7 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
-TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until Junuary 2018. Originally TexText has been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
+TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until January 2018. Originally, TexText had been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
 
 ![TexText dialog together with Inkscape](docs/readme-images/textext-with-inkscape.png)
 
 ### Very important - broken pstoedit support by ghostscript
-On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard for a fix by migrating the converter engine to pdf2svg or inkscape from the command line.
+On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard on a fix by migrating the converter engine to pdf2svg or the Inkscape command line itself.
 
-**Note:** There are more sophisticated instructions, including pictures in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
+**Note:** There are more sophisticated instructions, including pictures, in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
 
 ## Features
 - Typesetting of beautiful equations using LaTeX which are placed as SVG objects in your document.
@@ -43,7 +43,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 ### Additional required software
 
-- You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*. This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings. Also ensure that the package `gnome-themes-standard` is installed to avoid anoying GTK-warnings after creating a LaTeX node.
+- You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*. This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings. Also ensure that the package `gnome-themes-standard` is installed to avoid annoying GTK-warnings after creating a LaTeX node.
 
 - Next, please install `pstoedit`.
 
@@ -143,10 +143,10 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 
 ## Known Issues
 
-- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
+- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are ignored.
 - TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
 - Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
-- Under Inkscape 0.92 the fontsize selected in LaTeX does not match the font size in Inkscape if scale factor 1.0 is chosen (Issue #55 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open))
+- Under Inkscape 0.92 the font size selected in LaTeX does not match the font size in Inkscape if scale factor 1.0 is chosen (Issue #55 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open))
 
 ## Release history
 
