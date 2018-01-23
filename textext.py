@@ -307,6 +307,9 @@ class TexText(inkex.Effect):
             return
 
         # -- Store textext attributes
+        new_node.attrib['{%s}textextver' % TEXTEXT_NS] = __version__.encode('string-escape')
+        new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "latex".encode('string-escape')
+        new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
         new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(scale_factor).encode('string-escape')
