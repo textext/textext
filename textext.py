@@ -196,6 +196,14 @@ class TexText(inkex.Effect):
         # Find root element
         old_node, text, preamble_file, current_scale = self.get_old()
 
+        # Adapt scale factor of nodes created with previous versions of TexText
+        # This is only necessary for nodes created with TexText 0.7.0 and prior. These nodes
+        # do not have a version keyword.
+        # If we do not perform this operation nodes scaled by the user to his needs in the previous version
+        # will be about three times smaller after insertion of the new node (if doc units are mm).
+        if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
+            current_scale *= self.uutounit(1, "pt")
+
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
