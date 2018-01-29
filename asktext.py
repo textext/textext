@@ -232,10 +232,10 @@ edited node in Inkscape."""
             self._scale.set(self.scale_factor_after_loading())
 
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            self._reset_button = Tk.Button(box, text="Reset ({:.1f})".format(reset_scale),
+            self._reset_button = Tk.Button(box, text="Reset ({0:.1f})".format(reset_scale),
                                            command=self.reset_scale_factor)
             self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
-            self._global_button = Tk.Button(box, text="Global ({:.1f})".format(self.global_scale_factor),
+            self._global_button = Tk.Button(box, text="Global ({0:.1f})".format(self.global_scale_factor),
                                             command=self.use_global_scale_factor)
             self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
@@ -636,8 +636,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            items = [('tt-reset', 'Reset ({:.1f})'.format(reset_scale), 0, 0, None),
-                     ('tt-global', 'Global ({:.1f})'.format(self.global_scale_factor), 0, 0, None)]
+            items = [('tt-reset', 'Reset ({0:.1f})'.format(reset_scale), 0, 0, None),
+                     ('tt-global', 'Global ({0:.1f})'.format(self.global_scale_factor), 0, 0, None)]
 
             # Forcibly show icons
             settings = gtk.settings_get_default()
@@ -656,11 +656,14 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 factory.add(new_stock, icon_set)
 
             scale_reset_button = gtk.Button(stock='tt-reset')
-            scale_reset_button.set_tooltip_text("Set scale factor to the value this node has been created with ({:.1f})".format(reset_scale))
+            scale_reset_button.set_tooltip_text(
+                "Set scale factor to the value this node has been created with ({0:.1f})".format(reset_scale))
             scale_reset_button.connect('clicked', self.reset_scale_factor)
 
             scale_global_button = gtk.Button(stock='tt-global')
-            scale_global_button.set_tooltip_text("Set scale factor to the value of the previously edited node in Inkscape ({:.1f})".format(self.global_scale_factor))
+            scale_global_button.set_tooltip_text(
+                "Set scale factor to the value of the previously edited node in Inkscape ({0:.1f})".format(
+                    self.global_scale_factor))
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
             scale_box.pack_start(self._scale, True, True, 2)
