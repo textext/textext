@@ -202,7 +202,12 @@ class TexText(inkex.Effect):
         # If we do not perform this operation nodes scaled by the user to his needs in the previous version
         # will be about three times smaller after insertion of the new node (if doc units are mm).
         if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
-            current_scale *= self.uutounit(1, "pt")
+            try:
+                # Inkscape > 0.48
+                current_scale *= self.uutounit(1, "pt")
+            except AttributeError:
+                # Inkscape <= 0.48
+                current_scale *= inkex.uutounit(1, "pt")
 
         # Ask for TeX code
         if self.options.text is None:
