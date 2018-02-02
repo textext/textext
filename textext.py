@@ -196,11 +196,9 @@ class TexText(inkex.Effect):
         # Find root element
         old_node, text, preamble_file, current_scale = self.get_old()
 
-        # Adapt scale factor of nodes created with previous versions of TexText
-        # This is only necessary for nodes created with TexText 0.7.0 and prior. These nodes
-        # do not have a version keyword.
-        # If we do not perform this operation nodes scaled by the user to his needs in the previous version
-        # will be about three times smaller after insertion of the new node (if doc units are mm).
+        # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
+        # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
+        # is preserved when recompiling the LaTeX code.
         if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
             try:
                 # Inkscape > 0.48
@@ -308,7 +306,7 @@ class TexText(inkex.Effect):
         if isinstance(text, unicode):
             text = text.encode('utf-8')
 
-        # Coordinates in node from converter are always in pt, we have to scale them such that the node size matches
+        # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
         # even if the document user units are not in pt
         try:
             # Inkscape > 0.48
