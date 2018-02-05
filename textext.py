@@ -38,7 +38,7 @@ for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.7"
+__version__ = "0.7.1"
 __docformat__ = "restructuredtext en"
 
 import os

@@ -1,4 +1,4 @@
-# Tex Text 0.7 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
+# Tex Text 0.7.1 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
 TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until January 2018. Originally, TexText had been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
 
@@ -40,10 +40,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.7.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.tgz) | 2c2c9aa1a7282b4ad5f3f146752b9d58b9f354fb0094137ee05af7a1eabd7af7
-[TexText-Linux-0.7.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.zip) | 3577bcd85d79ed708ebad9cca1c16763389a337833e9e85f90b2d08daa82835e
+[TexText-Linux-0.7.1,tgz](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.tgz) | 5f409bec9bdeb9ab2eff9d8608d518f7f1156cfcc187caef9638371b5c2a9bbb
+[TexText-Linux-0.7.1.zip](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.zip) | 64a9f8fd1ca35669e0389fd28528e71cdc4c4ce3bcdfb2720e033366c608c4e7
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -65,7 +65,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.7.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.7.exe) | 6f7edf8536a37b7de67f06d0ab3f1adbbc7e3d5e42ceb8a963c3945eb8dc583c
+[TexText-Windows-0.7.1.exe](https://github.com/textext/textext/releases/download/0.7.1/TexText-Windows-0.7.1.exe) | c938c31e2136fd11a8c74cb3eb3f97d1ef4801503b2d3e0936803fcfc554a3d5
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -78,13 +78,13 @@ After that, you have to install PyGTK. Depending on your Inkscape version you ne
 
  Inkscape Version (**important!**) | PyGTK Installer (SHA-256 Checksum)
 -----------------------------------|-----------------------------------
- Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
+ Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
  | c8e2e7551f253afb736a1f4f936a40dc116ad14bec7eac0c548b18a0a6e7e066
- Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
+ Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
  | 7356f8d3232c038b2fff50d5cf608044c7c911db4f0b20d230bd5504a5cb20f9
- Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
+ Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.exe)
  | a2ea5842084aa5f6fdc1880ae4ad135135f5ff0423bb0cd527a8f0cf95f7ffd6
- Inkscape 0.91 and 0.48  (64- and 32-bit) | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
+ Inkscape 0.91 and 0.48  (64- and 32-bit) | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
  | 1189df2eb90d1229b850bbba75def3b39306f303f9e34415d34eaf58cda6a05c
 
 The installer will search for your Inkscape installation and puts the required files into the directory of Inkscape. An uninstaller is installed by the installer, too.
@@ -93,13 +93,13 @@ If you do not trust the installer you can download one of the following zip arch
 
  Inkscape Version | PyGTK zip-archive (SHA-256 Checksum)
 ------------------|-------------------------------------
-Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
+Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
  | db67a38bd4214e155446228cf0103b8d2b40e655c25b54574fab8f4f94a1dcdb
-Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
+Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
  | 7bc3e3123391827ac87e0be44a694959c7adf206b71af49a665ffe66b46ca8df
-Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
  | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
-Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
+Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
  | 15f35a48d7b3558aadc9f8c7a2b9da8da0f66c8dfb88fb6c5e0230e58d64c080
 
 

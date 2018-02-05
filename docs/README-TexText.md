@@ -20,10 +20,10 @@
 
 \footnotesize
 
-- [TexText-Linux-0.7.tgz](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.tgz)
-- [TexText-Linux-0.7.zip](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Linux-0.7.zip)
+- [TexText-Linux-0.7.1.tgz](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.tgz)
+- [TexText-Linux-0.7.1.zip](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.zip)
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -44,7 +44,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 \footnotesize
 
-- [TexText-Windows-0.7.exe](https://bitbucket.org/pitgarbe/textext/downloads/TexText-Windows-0.7.exe)
+- [TexText-Windows-0.7.1.exe](https://github.com/textext/textext/releases/download/0.7.1/TexText-Windows-0.7.1.exe)
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -57,10 +57,10 @@ After that, you have to install PyGTK. Depending on your Inkscape version you ne
 
  Inkscape Version (**important!**) | PyGTK Installer
 -----------------------------------|-----------------------------------
- Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
- Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
- Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.92.exe)
- Inkscape 0.91 and 0.48  (64- and 32-bit) | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://bitbucket.org/pitgarbe/textext/downloads/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
+ Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
+ Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
+ Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.exe)
+ Inkscape 0.91 and 0.48  (64- and 32-bit) | [Install-PyGTK-2.24-Inkscape-0.48+0.91.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe)
 
 The installer will search for your Inkscape installation and puts the required files into the directory of Inkscape. An uninstaller is installed by the installer, too.
 
@@ -68,10 +68,10 @@ If you do not trust the installer you can download one of the following zip arch
 
  Inkscape Version | PyGTK zip-archive
 ------------------|-------------------------------------
-Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
-Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
-Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
-Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://bitbucket.org/pitgarbe/textext/downloads/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
+Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
+Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
+Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
+Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip) 
 
 
 
