@@ -15,6 +15,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
+## New in relase 0.7.1 (2018-02-06)
+- Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
+- Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+
 ## New in release 0.7 (2017-12-15)
 - New: Compatibility with Inkscape 0.92.2 also under Windows
 - New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
