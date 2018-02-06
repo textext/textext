@@ -38,7 +38,7 @@ for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.7"
+__version__ = "0.7.1"
 __docformat__ = "restructuredtext en"
 
 import os
@@ -196,6 +196,17 @@ class TexText(inkex.Effect):
         # Find root element
         old_node, text, preamble_file, current_scale = self.get_old()
 
+        # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
+        # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
+        # is preserved when recompiling the LaTeX code.
+        if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
+            try:
+                # Inkscape > 0.48
+                current_scale *= self.uutounit(1, "pt")
+            except AttributeError:
+                # Inkscape <= 0.48
+                current_scale *= inkex.uutounit(1, "pt")
+
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
@@ -279,13 +290,13 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, scale_factor, converter_class, old_node):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node):
         """
         Does the conversion using the selected converter.
 
         :param text:
         :param preamble_file:
-        :param scale_factor:
+        :param user_scale_factor:
         :param converter_class:
         :param old_node:
         """
@@ -294,6 +305,15 @@ class TexText(inkex.Effect):
 
         if isinstance(text, unicode):
             text = text.encode('utf-8')
+
+        # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
+        # even if the document user units are not in pt
+        try:
+            # Inkscape > 0.48
+            scale_factor = user_scale_factor*self.unittouu("1pt")
+        except AttributeError:
+            # Inkscape <= 0.48
+            scale_factor = user_scale_factor*inkex.unittouu("1pt")
 
         # Convert
         converter = converter_class()
@@ -307,9 +327,14 @@ class TexText(inkex.Effect):
             return
 
         # -- Store textext attributes
+        new_node.attrib['{%s}version' % TEXTEXT_NS] = __version__.encode('string-escape')
+        new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "pdflatex".encode('string-escape')
+        new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
-        new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(scale_factor).encode('string-escape')
+        new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
+        new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
+        self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
 
         # -- Copy style
         if old_node is None:
@@ -366,7 +391,7 @@ class TexText(inkex.Effect):
             self.settings.set('preamble', '')
 
         if scale_factor is not None:
-            self.settings.set('scale', scale_factor)
+            self.settings.set('scale', user_scale_factor)
         self.settings.save()
 
     def get_old(self):

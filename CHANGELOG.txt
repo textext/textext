@@ -1,5 +1,18 @@
+Version 0.7.1 (2018-02-06)
+==========================
+Fixed:
+Wrong scaling so that text with explicitly defined font size does not match 
+size of text with equal font size in Inkscape 0.92.x (issue #1)
+
+Fixed:
+"Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+
+
+---
 Note: All issue references for version 0.7 and prior refer to
 bitbucket.org/pitgarbe/textext
+---
+
  
 Version 0.7 (2017-12-15)
 ========================
