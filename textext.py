@@ -333,8 +333,13 @@ class TexText(inkex.Effect):
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
         new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
-        new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
-        self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
+        try:
+            new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
+            self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
+        except KeyError:
+            # Unfortunately when this node comes from an Inkscape document that has never been saved before
+            # no version attribute is provided by Inkscape :-(
+            pass
 
         # -- Copy style
         if old_node is None:
