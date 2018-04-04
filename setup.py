@@ -18,7 +18,7 @@ def main():
     success = green.format(success)
     failure = red.format(failure)
 
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extension")
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
     destination = os.path.expanduser("~/.config/inkscape/extensions")
 
     num_copied_files = 0
