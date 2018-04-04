@@ -372,21 +372,13 @@ class TexText(inkex.Effect):
             except (KeyError, IndexError, TypeError, AttributeError):
                 pass
 
-            # calculate the size difference between the old and new node and translate the new node to keep it centered
-            old_scale = self.get_node_scale_factor(old_node)
+            relative_scale = user_scale_factor / float(old_node.attrib['{%s}scale' % TEXTEXT_NS])
+            scale_transform = st.parseTransform("scale(%d)" % relative_scale)
 
-            self.set_node_scale_factor(new_node, scale_factor)
+            old_transform = old_node.attrib['transform']
+            composition = st.parseTransform(old_transform, scale_transform)
 
-            x_old, y_old, w_old, h_old = self.get_node_frame(old_node, old_scale)
-            x_new, y_new, w_new, h_new = self.get_node_frame(new_node, scale_factor)
-
-            w_diff = w_old - w_new
-            h_diff = h_old - h_new
-
-            x_diff = x_old - x_new
-            y_diff = y_old - y_new
-
-            self.translate_node(new_node, w_diff / 2.0 + x_diff, -h_diff / 2.0 - y_diff)
+            new_node.attrib['transform'] = st.formatTransform(composition)
 
             self.replace_node(old_node, new_node)
 
