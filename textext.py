@@ -547,9 +547,7 @@ class TexText(inkex.Effect):
         :param node:
         :return: a, b, c, d, e, f   (the values of the transform matrix)
         """
-        transform = node.attrib['transform']
-        transform = transform.split('(', 1)[1].split(')')[0]
-        a, b, c, d, e, f = transform.split(',')
+        (a,c,e),(b,d,f) = st.parseTransform(node.attrib['transform'])
         return a, b, c, d, e, f
 
 
