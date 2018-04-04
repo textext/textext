@@ -62,6 +62,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import inkex
 import simplestyle as ss
+import simpletransform as st
 import tempfile
 import re
 import copy
@@ -356,7 +357,7 @@ class TexText(inkex.Effect):
                 height = inkex.unittouu(root.get('height'))
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
-            self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
+            self.translate_node(new_node, -x + width/2 -w/2, -y+height/2 -h/2)
 
             self.current_layer.append(new_node)
         else:
@@ -510,117 +511,9 @@ class TexText(inkex.Effect):
                                               y2=node.attrib['y2'])
 
     def get_node_frame(self, node, scale):
-        """
-        Determine the node's size and position
-
-        It's accounting for the coordinates of all paths in the node's children.
-
-        :param node:
-        :param scale: The scale factor to take into account
-        :return: x, y, width, height
-        """
-
-        # match coordinates in SVG path data (see: http://www.w3.org/TR/SVG/paths.html#PathData)
-        # 1. zero or more letters
-        # 2. zero or more spaces
-        # 3. optional minus sign
-        # 4. at least one digit + optional dot + optional digits
-        # 5. zero or one of the following group:
-        # 5.1 comma
-        # 5.2 optional minus sign
-        # 5.3 at least one digit + optional dot + optional digits
-        # This matches stuff like:
-        #   "L152.47,698.78"
-        #   "C151.82,703.7"
-        #   "151,701.63"
-        #   "500.01"
-        #   "54"
-        #   "c 35,45.0"
-        #   "v 0"
-        # etc.
-        pattern = re.compile(r"[a-zA-Z]*\s*\-?\d+\.?\d*(,\-?\d+\.?\d*)?")
-        text = ""
-
-        name_space = "{{{ns}}}".format(ns=SVG_NS)
-        for child in node.iterchildren():
-            tag = child.tag
-            if tag.startswith(name_space):
-                tag = tag[len(name_space):]
-
-            if tag == "path":
-                text += "  " + self.path_from_node(child)
-            elif tag == "line":
-                text += "  " + self.line_from_node(child)
-
-        points = [match.group() for match in re.finditer(pattern, text)]
-
-        x_values = []
-        y_values = []
-
-        if points[0][0] == "m":
-            absolute = False
-        elif points[0][0] == "M":
-            absolute = True
-        else:
-            # Guessing
-            absolute = True
-
-        current_x, current_y = 0, 0
-        x, y = 0, 0
-
-        if absolute:
-            for point in points:
-                point = point.lstrip()
-                first_letter = point[0]
-
-                if not first_letter.isdigit() and not first_letter == "-":
-                    command = first_letter
-                    point = point[1:].lstrip()
-
-                if command in "MLC":  # Move, Line, Cubic Curve
-                    x, y = point.split(",", 1)
-                elif command == "H":  # Horizontal (just one coordinate part)
-                    x, y = point, current_y
-                elif command == "V":  # Vertical (just one coordinate part)
-                    x, y = current_x, point
-
-                current_x = float(x)
-                current_y = float(y)
-                x_values.append(current_x)
-                y_values.append(current_y)
-        else:
-            for point in points:
-                point = point.lstrip()
-                first_letter = point[0]
-
-                if not first_letter.isdigit() and not first_letter == "-":
-                    command = first_letter
-                    point = point[1:].lstrip()
-
-                    if command == "m":
-                        current_x, current_y = 0, 0  # reset base coordinate ('m' at the beginning of path is absolute)
-
-                if command in "mlc":  # move, line, cubic curve
-                    x, y = point.split(",", 1)
-                elif command in "h":  # horizontal (only one coordinate part)
-                    x, y = point, 0
-                elif command in "v":  # vertical (only one coordinate part)
-                    x, y = 0, point
-
-                current_x += float(x)
-                current_y += float(y)
-                x_values.append(current_x)
-                y_values.append(current_y)
-
-        scale = float(scale)
-        min_x = min(x_values) * scale
-        max_x = max(x_values) * scale
-        min_y = min(y_values) * scale
-        max_y = max(y_values) * scale
-
-        width = (max_x - min_x)
-        height = (max_y - min_y)
-
+        min_x, max_x, min_y,max_y = st.computeBBox([node])
+        width = max_x - min_x
+        height = max_y - min_y
         return min_x, min_y, width, height
 
     def get_node_scale_factor(self, node):
