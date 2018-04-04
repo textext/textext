@@ -356,7 +356,7 @@ class TexText(inkex.Effect):
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
 
-            x, y, w, h = self.get_node_frame(new_node, scale_factor)
+            x, y, w, h = self.get_node_frame(new_node)
             self.translate_node(new_node, -x + width/2 -w/2, -y+height/2 -h/2)
 
             self.current_layer.append(new_node)
@@ -373,10 +373,23 @@ class TexText(inkex.Effect):
                 pass
 
             relative_scale = user_scale_factor / float(old_node.attrib['{%s}scale' % TEXTEXT_NS])
-            scale_transform = st.parseTransform("scale(%d)" % relative_scale)
+            scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
             old_transform = old_node.attrib['transform']
             composition = st.parseTransform(old_transform, scale_transform)
+
+            # keep central point of drawing intact, calculate required shift
+            x,y,w,h = self.get_node_frame(old_node)
+
+            p = [x+w/2, y+h/2]
+
+            st.applyTransformToPoint(scale_transform,p)
+
+            dx = x+w/2-p[0]
+            dy = y+h/2-p[1]
+
+            composition[0][2] += dx
+            composition[1][2] += dy
 
             new_node.attrib['transform'] = st.formatTransform(composition)
 
@@ -502,8 +515,8 @@ class TexText(inkex.Effect):
                                               y1=node.attrib['y1'],
                                               y2=node.attrib['y2'])
 
-    def get_node_frame(self, node, scale):
-        min_x, max_x, min_y,max_y = st.computeBBox([node])
+    def get_node_frame(self, node, mat=[[1,0,0],[0,1,0]]):
+        min_x, max_x, min_y,max_y = st.computeBBox([node], mat)
         width = max_x - min_x
         height = max_y - min_y
         return min_x, min_y, width, height
