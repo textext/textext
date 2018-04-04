@@ -488,7 +488,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self.global_scale_factor = self._scale_adj.get_value()
 
             try:
-                self.callback(self.text, self.preamble_file, self.global_scale_factor)
+                self.callback(self.text, self.preamble_file, self.global_scale_factor,self._alignment_combobox.get_active_text())
             except StandardError, error:
                 import traceback
 
@@ -629,10 +629,28 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
             scale_frame.add(scale_box)
             self._scale_adj = gtk.Adjustment(lower=0.1, upper=10, step_incr=0.1, page_incr=1)
-            self._scale = gtk.HScale(self._scale_adj)
+            self._scale = gtk.SpinButton(self._scale_adj)
             self._scale.set_digits(1)
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
+
+            liststore = gtk.ListStore(str)
+            for a in [  "top left","top center","top right",
+                        "middle left","middle center","middle right",
+                        "bottom left","bottom center", "bottom right"]:
+                liststore.append([a])
+
+
+            self._alignment_combobox = gtk.ComboBox()
+
+            cell = gtk.CellRendererText()
+            self._alignment_combobox.pack_start(cell)
+            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.set_model(liststore)
+            self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_active(4)
+
+
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
@@ -667,6 +685,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
             scale_box.pack_start(self._scale, True, True, 2)
+            scale_box.pack_start(self._alignment_combobox, True, True, 2)
             scale_box.pack_start(scale_reset_button, False, False, 2)
             scale_box.pack_start(scale_global_button, False, False, 2)
 
