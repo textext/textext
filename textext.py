@@ -220,9 +220,11 @@ class TexText(inkex.Effect):
 
             asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale)
             try:
-                asker.ask(lambda _text, _preamble, _scale: self.do_convert(_text, _preamble, _scale,
-                                                                           usable_converter_class,
-                                                                           old_node),
+
+                def callback(_text, _preamble, _scale, alignment="middle center"):
+                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_node, alignment )
+
+                asker.ask(callback,
                           lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
                                                                                            usable_converter_class,
                                                                                            _preview_callback))
@@ -291,7 +293,7 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node, alignment):
         """
         Does the conversion using the selected converter.
 
@@ -378,15 +380,33 @@ class TexText(inkex.Effect):
             old_transform = old_node.attrib['transform']
             composition = st.parseTransform(old_transform, scale_transform)
 
-            # keep central point of drawing intact, calculate required shift
+
+            # keep alignment point of drawing intact, calculate required shift
+
             x,y,w,h = self.get_node_frame(old_node)
 
-            p = [x+w/2, y+h/2]
+            v_alignment, h_alignment = alignment.split(" ")
+
+            if v_alignment=="top":
+                ypos = y + h
+            elif v_alignment=="middle":
+                ypos = y + h/2
+            elif v_alignment=="bottom":
+                ypos = y
+
+            if h_alignment == "left":
+                xpos = x
+            elif h_alignment == "center":
+                xpos = x+w/2
+            elif h_alignment == "right":
+                xpos=x+w
+
+            p = [xpos, ypos]
 
             st.applyTransformToPoint(scale_transform,p)
 
-            dx = x+w/2-p[0]
-            dy = y+h/2-p[1]
+            dx = xpos-p[0]
+            dy = ypos-p[1]
 
             composition[0][2] += dx
             composition[1][2] += dy
