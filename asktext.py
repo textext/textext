@@ -116,7 +116,7 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor):
+    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
         """
         Return the best possible GUI variant depending on the installed components
         :param current_scale_factor:
@@ -127,15 +127,15 @@ class AskerFactory(object):
         :return: an instance of AskText
         """
         if TOOLKIT == TK:
-            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor)
+            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
-            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor)
+            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
 
 
 class AskText(object):
     """GUI for editing TexText objects"""
 
-    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
+    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
         if len(text) > 0:
             self.text = text
         else:
@@ -147,6 +147,7 @@ class AskText(object):
         self.callback = None
         self.global_scale_factor = global_scale_factor
         self.current_scale_factor = current_scale_factor
+        self.current_alignment = current_alignment
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
@@ -192,8 +193,8 @@ if TOOLKIT == TK:
     class AskTextTK(AskText):
         """TK GUI for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
-            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
+            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
             self._frame = None
             self._scale = None
 
@@ -289,8 +290,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor):
-            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
+            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
             self._preview = None
             self._scale_adj = None
             self._preview_callback = None
@@ -635,9 +636,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
 
             liststore = gtk.ListStore(str)
-            for a in [  "top left","top center","top right",
+            alignment_labels = [  "top left","top center","top right",
                         "middle left","middle center","middle right",
-                        "bottom left","bottom center", "bottom right"]:
+                        "bottom left","bottom center", "bottom right"]
+            for a in alignment_labels:
                 liststore.append([a])
 
 
@@ -648,7 +650,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.add_attribute(cell, 'text', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
-            self._alignment_combobox.set_active(4)
+            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
 
 
 
