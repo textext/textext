@@ -628,9 +628,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_frame = gtk.Frame("Scale Factor")
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
             scale_frame.add(scale_box)
-            self._scale_adj = gtk.Adjustment(lower=0.1, upper=10, step_incr=0.1, page_incr=1)
+            self._scale_adj = gtk.Adjustment(lower=0.001, upper=180, step_incr=0.001, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj)
-            self._scale.set_digits(1)
+            self._scale.set_digits(3)
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
 
