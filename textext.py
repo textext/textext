@@ -44,6 +44,7 @@ __docformat__ = "restructuredtext en"
 import os
 import sys
 import glob
+import math
 import platform
 import subprocess
 
@@ -208,6 +209,9 @@ class TexText(inkex.Effect):
                 # Inkscape <= 0.48
                 current_scale *= inkex.uutounit(1, "pt")
 
+        if old_node is not None and ('{%s}jacobian_sqrt' % TEXTEXT_NS in old_node.attrib.keys()):
+            current_scale *= self.get_jacobian_sqrt(old_node)/float(old_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS])
+
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
@@ -222,7 +226,7 @@ class TexText(inkex.Effect):
             try:
 
                 def callback(_text, _preamble, _scale, alignment="middle center"):
-                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_node, alignment )
+                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_node, alignment, original_scale=current_scale)
 
                 asker.ask(callback,
                           lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
@@ -293,7 +297,7 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node, alignment):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node, alignment, original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -361,6 +365,8 @@ class TexText(inkex.Effect):
             x, y, w, h = self.get_node_frame(new_node)
             self.translate_node(new_node, -x + width/2 -w/2, -y+height/2 -h/2)
 
+            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
+
             self.current_layer.append(new_node)
         else:
             # copy old transform but apply the current scale factor
@@ -374,7 +380,7 @@ class TexText(inkex.Effect):
             except (KeyError, IndexError, TypeError, AttributeError):
                 pass
 
-            relative_scale = user_scale_factor / float(old_node.attrib['{%s}scale' % TEXTEXT_NS])
+            relative_scale = user_scale_factor / original_scale
             scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
             old_transform = old_node.attrib['transform']
@@ -388,11 +394,11 @@ class TexText(inkex.Effect):
             v_alignment, h_alignment = alignment.split(" ")
 
             if v_alignment=="top":
-                ypos = y + h
+                ypos = y
             elif v_alignment=="middle":
                 ypos = y + h/2
             elif v_alignment=="bottom":
-                ypos = y
+                ypos = y + h
 
             if h_alignment == "left":
                 xpos = x
@@ -412,6 +418,7 @@ class TexText(inkex.Effect):
             composition[1][2] += dy
 
             new_node.attrib['transform'] = st.formatTransform(composition)
+            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
 
             self.replace_node(old_node, new_node)
 
@@ -540,6 +547,11 @@ class TexText(inkex.Effect):
         width = max_x - min_x
         height = max_y - min_y
         return min_x, min_y, width, height
+
+    def get_jacobian_sqrt(self, node):
+        a, b, c, d, e, f = self.get_node_transform(node)
+        det = a * d - c * b
+        return math.sqrt(math.fabs(det))
 
     def get_node_scale_factor(self, node):
         """
