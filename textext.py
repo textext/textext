@@ -369,50 +369,42 @@ class TexText(inkex.Effect):
 
             self.current_layer.append(new_node)
         else:
-            # copy old transform but apply the current scale factor
-            try:
-                new_node.attrib['transform'] = old_node.attrib['transform']
-            except (KeyError, IndexError, TypeError, AttributeError):
-                pass
-
-            try:
-                new_node.attrib['transform'] = old_node.attrib['{%s}transform' % SVG_NS]
-            except (KeyError, IndexError, TypeError, AttributeError):
-                pass
 
             relative_scale = user_scale_factor / original_scale
             scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
             old_transform = old_node.attrib['transform']
             composition = st.parseTransform(old_transform, scale_transform)
-
-
             # keep alignment point of drawing intact, calculate required shift
 
+            new_node.attrib['transform'] = st.formatTransform(composition)
+
             x,y,w,h = self.get_node_frame(old_node)
+            new_x, new_y, new_w, new_h = self.get_node_frame(new_node)
 
-            v_alignment, h_alignment = alignment.split(" ")
 
-            if v_alignment=="top":
-                ypos = y
-            elif v_alignment=="middle":
-                ypos = y + h/2
-            elif v_alignment=="bottom":
-                ypos = y + h
+            def get_pos(x,y,w,h,alignment):
+                v_alignment, h_alignment = alignment.split(" ")
+                if v_alignment=="top":
+                    ypos = y
+                elif v_alignment=="middle":
+                    ypos = y + h/2
+                elif v_alignment=="bottom":
+                    ypos = y + h
 
-            if h_alignment == "left":
-                xpos = x
-            elif h_alignment == "center":
-                xpos = x+w/2
-            elif h_alignment == "right":
-                xpos=x+w
+                if h_alignment == "left":
+                    xpos = x
+                elif h_alignment == "center":
+                    xpos = x+w/2
+                elif h_alignment == "right":
+                    xpos=x+w
+                return [xpos,ypos]
 
-            p = [xpos, ypos]
+            p_old = get_pos(x,y,w,h,alignment)
+            p_new = get_pos(new_x, new_y, new_w, new_h, alignment)
 
-            st.applyTransformToPoint(scale_transform,p)
-
-            dx = xpos-p[0]
-            dy = ypos-p[1]
+            dx = p_old[0]-p_new[0]
+            dy = p_old[1]-p_new[1]
 
             composition[0][2] += dx
             composition[1][2] += dy
