@@ -158,6 +158,10 @@ def latest_message():
 
 
 class TexText(inkex.Effect):
+
+    DEFAULT_ALIGNMENT = "middle center"
+    ATTR_ALIGNMENT = '{%s}alignment' % TEXTEXT_NS
+
     def __init__(self):
         inkex.Effect.__init__(self)
 
@@ -212,6 +216,12 @@ class TexText(inkex.Effect):
         if old_node is not None and ('{%s}jacobian_sqrt' % TEXTEXT_NS in old_node.attrib.keys()):
             current_scale *= self.get_jacobian_sqrt(old_node)/float(old_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS])
 
+        alignment = TexText.DEFAULT_ALIGNMENT
+
+        if  old_node is not None and TexText.ATTR_ALIGNMENT in old_node.attrib.keys():
+            alignment = old_node.attrib[TexText.ATTR_ALIGNMENT]
+
+
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
@@ -222,7 +232,7 @@ class TexText(inkex.Effect):
             if not os.path.isfile(preamble_file):
                 preamble_file = ""
 
-            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale)
+            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale, current_alignment=alignment)
             try:
 
                 def callback(_text, _preamble, _scale, alignment="middle center"):
@@ -340,6 +350,7 @@ class TexText(inkex.Effect):
         new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
         new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
         new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
+        new_node.attrib['{%s}alignment' % TEXTEXT_NS] = str(alignment).encode('string-escape')
         try:
             new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
             self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
