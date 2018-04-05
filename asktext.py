@@ -651,6 +651,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
             self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
+            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
 
 
 
