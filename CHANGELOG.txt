@@ -1,3 +1,9 @@
+Version 0.7.2 (2018-04-06)
+==========================
+Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while
+converting text from LaTeX to SVG")
+
+
 Version 0.7.1 (2018-02-06)
 ==========================
 Fixed:
@@ -20,13 +26,18 @@ Fixed:
 Plugin does not run with Inkscape 0.92.2 under Windows
 
 New: 
-Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
+Global and local scale factor. This feature enables the user to set the scale
+factor of a node to the value used while editing the previous node (Button
+"Global"). Hence, it is easier to change several nodes to the same scale
+factor. It is always possible to reset the scale factor to the value used for
+creating the node (Button "Reset").
 
 New: 
 Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
 
 Workaround: 
-A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50).
+A message is displayed if pstoedit failed to produce svg output and ghostscript
+< 9.21 is installed on the system (issues #44, #48, #50).
 
 
 Version 0.6.1 (2017-02-13)
