@@ -15,16 +15,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
-## New in relase 0.7.1 (2018-02-06)
-- Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
-- Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+## New in relase 0.7.2 (2018-04-06)
+- Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while converting text from LaTeX to SVG")
 
-## New in release 0.7 (2017-12-15)
-- New: Compatibility with Inkscape 0.92.2 also under Windows
-- New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
-- New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
-- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)).
-- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
+[(go to full release history...)](#markdown-header-release-history)
 
 ## Prerequisites
 
@@ -148,13 +142,25 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 ## Known Issues
 
 - Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are ignored.
+- Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue will be fixed in Version 0.8 auf TexText thanks to the support of @sizmailov.
 - TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
 - Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
-- Under Inkscape 0.92 the font size selected in LaTeX does not match the font size in Inkscape if scale factor 1.0 is chosen (Issue #55 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open))
+
 
 ## Release history
 
-Issue numbers refer to [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)
+### New in relase 0.7.1 (2018-02-06)
+- Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
+- Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+
+For releases <= 0.7 issue numbers refer to [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)
+
+### New in release 0.7 (2017-12-15)
+- New: Compatibility with Inkscape 0.92.2 also under Windows
+- New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
+- New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
+- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)).
+- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
 
 ### New in release 0.6.1 (2017-02-10)
 - Fixed bug #18
