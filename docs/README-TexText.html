@@ -28,10 +28,10 @@
 <h3 id="tex-text-extension">Tex Text Extension</h3>
 <p></p>
 <ul>
-<li><a href="https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.tgz">TexText-Linux-0.7.1.tgz</a></li>
-<li><a href="https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.zip">TexText-Linux-0.7.1.zip</a></li>
+<li><a href="https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.tgz">TexText-Linux-0.7.2.tgz</a></li>
+<li><a href="https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.zip">TexText-Linux-0.7.2.zip</a></li>
 </ul>
-<p>To install <em>Tex Text</em>, simply download the package and extract it. A directory with the name <code>textext-0.7.1-linux</code> will be created. Change into the directory and run <code>python setup.py</code> in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don’t trust this script, you’ll have to copy all the files within the <code>extensions</code> directory of the extracted archive to <code>~/.config/inkscape/extensions/</code>.</p>
+<p>To install <em>Tex Text</em>, simply download the package and extract it. A directory with the name <code>textext-0.7.2-linux</code> will be created. Change into the directory and run <code>python setup.py</code> in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don’t trust this script, you’ll have to copy all the files within the <code>extensions</code> directory of the extracted archive to <code>~/.config/inkscape/extensions/</code>.</p>
 <h3 id="additional-required-software">Additional required software</h3>
 <ul>
 <li><p>You’ll need to install GtkSourceView (<code>python-gtksourceview2</code> on Ubuntu/Debian) to take advantage of all the GUI features of <em>Tex Text</em>. This package should install <code>python-gtk2</code> as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings.</p></li>
@@ -44,7 +44,7 @@
 <h3 id="tex-text-extension-1">Tex Text Extension</h3>
 <p></p>
 <ul>
-<li><a href="https://github.com/textext/textext/releases/download/0.7.1/TexText-Windows-0.7.1.exe">TexText-Windows-0.7.1.exe</a></li>
+<li><a href="https://github.com/textext/textext/releases/download/0.7.2/TexText-Windows-0.7.2.exe">TexText-Windows-0.7.2.exe</a></li>
 </ul>
 <p>The installation of <em>Tex Text for Inkscape</em> is straightforward: Simply use the installer and follow the instructions (basically, click <em>Next</em>, <em>Install</em> and <em>Done</em>, since you usually won’t even have to change the installation directory). It will copy the required files into the user’s Inkscape configuration directory (usually this is <code>%USERPROFILE%\AppData\Roaming\Inkscape</code>) and put a key into the Windows registry which is used to store configuration data of the extension.</p>
 <h2 id="additional-required-software-1">Additional required software</h2>
@@ -146,6 +146,7 @@
 <h2 id="known-issues">Known Issues</h2>
 <ul>
 <li>Currently, colors set within the LaTeX code (<code>\textcolor{...}</code> in combination with an added <code>\usepackage{color}</code> in the preamble file) are irgnored.</li>
+<li>Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue will be fixed in Version 0.8 auf TexText thanks to the support of <span class="citation">@sizmailov</span>.</li>
 <li>TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript &gt; 9.20 and cannot directly addressed by TexText.</li>
 <li>Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3. Use the GTK interface instead.</li>
 </ul>

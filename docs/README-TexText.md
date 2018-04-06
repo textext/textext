@@ -20,10 +20,10 @@
 
 \footnotesize
 
-- [TexText-Linux-0.7.1.tgz](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.tgz)
-- [TexText-Linux-0.7.1.zip](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.zip)
+- [TexText-Linux-0.7.2.tgz](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.tgz)
+- [TexText-Linux-0.7.2.zip](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.zip)
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -44,7 +44,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 \footnotesize
 
-- [TexText-Windows-0.7.1.exe](https://github.com/textext/textext/releases/download/0.7.1/TexText-Windows-0.7.1.exe)
+- [TexText-Windows-0.7.2.exe](https://github.com/textext/textext/releases/download/0.7.2/TexText-Windows-0.7.2.exe)
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -124,5 +124,6 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 ## Known Issues
 
 - Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are irgnored.
+- Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue will be fixed in Version 0.8 auf TexText thanks to the support of @sizmailov.
 - TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
 - Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3. Use the GTK interface instead.
