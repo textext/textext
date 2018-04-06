@@ -1,4 +1,4 @@
-# Tex Text 0.7.1 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
+# Tex Text 0.7.2 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
 TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until January 2018. Originally, TexText had been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
 
@@ -15,16 +15,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
-## New in relase 0.7.1 (2018-02-06)
-- Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
-- Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+## New in relase 0.7.2 (2018-04-06)
+- Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while converting text from LaTeX to SVG")
 
-## New in release 0.7 (2017-12-15)
-- New: Compatibility with Inkscape 0.92.2 also under Windows
-- New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
-- New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
-- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)).
-- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
+[(go to full release history...)](#markdown-header-release-history)
 
 ## Prerequisites
 
@@ -40,10 +34,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.7.1,tgz](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.tgz) | 5f409bec9bdeb9ab2eff9d8608d518f7f1156cfcc187caef9638371b5c2a9bbb
-[TexText-Linux-0.7.1.zip](https://github.com/textext/textext/releases/download/0.7.1/TexText-Linux-0.7.1.zip) | 64a9f8fd1ca35669e0389fd28528e71cdc4c4ce3bcdfb2720e033366c608c4e7
+[TexText-Linux-0.7.2,tgz](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.tgz) | 532132eb52be721fd1e3a2cc57006b544812db16935aeb09f6b435a40ce84110
+[TexText-Linux-0.7.2.zip](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.zip) | 2772e1606c84d713fe4b821fe61a28974fa0fb5028e7e1fc09d76103491114c8
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.1-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -65,7 +59,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.7.1.exe](https://github.com/textext/textext/releases/download/0.7.1/TexText-Windows-0.7.1.exe) | c938c31e2136fd11a8c74cb3eb3f97d1ef4801503b2d3e0936803fcfc554a3d5
+[TexText-Windows-0.7.2.exe](https://github.com/textext/textext/releases/download/0.7.2/TexText-Windows-0.7.2.exe) | d4f0b1e0c483f5949e487dc8979fd5feeec35f75224b81dbc531133582362682
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 
@@ -148,13 +142,25 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 ## Known Issues
 
 - Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are ignored.
+- Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue will be fixed in Version 0.8 auf TexText thanks to the support of @sizmailov.
 - TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
 - Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
-- Under Inkscape 0.92 the font size selected in LaTeX does not match the font size in Inkscape if scale factor 1.0 is chosen (Issue #55 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open))
+
 
 ## Release history
 
-Issue numbers refer to [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)
+### New in relase 0.7.1 (2018-02-06)
+- Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
+- Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
+
+For releases <= 0.7 issue numbers refer to [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)
+
+### New in release 0.7 (2017-12-15)
+- New: Compatibility with Inkscape 0.92.2 also under Windows
+- New: Global and local scale factor. This feature enables the user to set the scale factor of a node to the value used while editing the previous node (Button "Global"). Hence, it is easier to change several nodes to the same scale factor. It is always possible to reset the scale factor to the value used for creating the node (Button "Reset").
+- New: Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
+- Workaround: A message is displayed if pstoedit failed to produce svg output and ghostscript < 9.21 is installed on the system (issues #44, #48, #50 on [BitBucket](https://bitbucket.org/pitgarbe/textext/issues?status=new&status=open)).
+- See [CHANGELOG.txt](CHANGELOG.txt) for more information and history
 
 ### New in release 0.6.1 (2017-02-10)
 - Fixed bug #18
