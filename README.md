@@ -18,7 +18,7 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 ## New in relase 0.7.2 (2018-04-06)
 - Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while converting text from LaTeX to SVG")
 
-[(go to full release history...)](#markdown-header-release-history)
+[(go to full release history...)](#release-history)
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 - **Important:** If you use Inkscape 0.92 please ensure that the python 2.7 interpreter has been selected during the installation of Inkscape (by default this is the case).
 
 
-## Installation for Linux [(go to Windows instructions...)](#markdown-header-installation-for-windows).
+## Installation for Linux [(go to Windows instructions...)](#installation-for-windows).
 
 ### Tex Text Extension
 
@@ -50,7 +50,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 - Finally, to enable the preview feature of *Tex Text*, you need to install `ImageMagick`.
 
 
-### Congratulations, you're done! [Show Usage...](#markdown-header-usage)
+### Congratulations, you're done! [Show Usage...](#usage)
 
 
 ## Installation for Windows
