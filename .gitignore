@@ -4,6 +4,12 @@
 *.tar.gz
 tests/out.svg
 *.iss
+bezmisc.py
+cubicsuperpath.py
+inkex.py
+simplepath.py
+simplestyle.py
+simpletransform.py
 /PyGTK_for_Inkscape/0.92.2/build
 /PyGTK_for_Inkscape/0.92.2/download-*/
 /PyGTK_for_Inkscape/0.92.2/files/
