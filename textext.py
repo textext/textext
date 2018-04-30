@@ -65,7 +65,7 @@ import inkex
 import simplestyle as ss
 import simpletransform as st
 import tempfile
-import re
+import abc
 import copy
 from lxml import etree
 
@@ -160,7 +160,6 @@ def latest_message():
 class TexText(inkex.Effect):
 
     DEFAULT_ALIGNMENT = "middle center"
-    ATTR_ALIGNMENT = '{%s}alignment' % TEXTEXT_NS
 
     def __init__(self):
         inkex.Effect.__init__(self)
@@ -204,8 +203,8 @@ class TexText(inkex.Effect):
 
         # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
         # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
-        # is preserved when recompiling the LaTeX code.
-        if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
+        # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
+        if (old_node is not None) and (not old_node.is_textext_attrib("version")):
             try:
                 # Inkscape > 0.48
                 current_scale *= self.uutounit(1, "pt")
@@ -213,13 +212,13 @@ class TexText(inkex.Effect):
                 # Inkscape <= 0.48
                 current_scale *= inkex.uutounit(1, "pt")
 
-        if old_node is not None and ('{%s}jacobian_sqrt' % TEXTEXT_NS in old_node.attrib.keys()):
-            current_scale *= self.get_jacobian_sqrt(old_node)/float(old_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS])
+        if old_node is not None and old_node.is_textext_attrib("jacobian_sqrt"):
+            current_scale *= old_node.get_jacobian_sqrt()/float(old_node.get_textext_attrib("jacobian_sqrt"))
 
         alignment = TexText.DEFAULT_ALIGNMENT
 
-        if  old_node is not None and TexText.ATTR_ALIGNMENT in old_node.attrib.keys():
-            alignment = old_node.attrib[TexText.ATTR_ALIGNMENT]
+        if old_node is not None and old_node.is_textext_attrib("alignment"):
+            alignment = old_node.get_textext_attrib("alignment")
 
 
         # Ask for TeX code
@@ -344,16 +343,29 @@ class TexText(inkex.Effect):
             return
 
         # -- Store textext attributes
-        new_node.attrib['{%s}version' % TEXTEXT_NS] = __version__.encode('string-escape')
-        new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "pdflatex".encode('string-escape')
-        new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
-        new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
-        new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
-        new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
-        new_node.attrib['{%s}alignment' % TEXTEXT_NS] = str(alignment).encode('string-escape')
+        #new_node.attrib['{%s}version' % TEXTEXT_NS] = __version__.encode('string-escape')
+        #new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "pdflatex".encode('string-escape')
+        #new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
+        #new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
+        #new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
+        #new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
+        #new_node.attrib['{%s}alignment' % TEXTEXT_NS] = str(alignment).encode('string-escape')
+
+        new_node.set_textext_attrib("version", __version__)
+        new_node.set_textext_attrib("texconverter", "pdflatex")
+        new_node.set_textext_attrib("pdfconverter", "pstoedit")
+        new_node.set_textext_attrib("text", text)
+        new_node.set_textext_attrib("preamble", preamble_file)
+        new_node.set_textext_attrib("scale", str(user_scale_factor))
+        new_node.set_textext_attrib("alignment", str(alignment))
+
+
+
         try:
-            new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
-            self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
+            #new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
+            #self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
+            new_node.set_textext_attrib("inkscapeversion",
+                                        self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0])
         except KeyError:
             # Unfortunately when this node comes from an Inkscape document that has never been saved before
             # no version attribute is provided by Inkscape :-(
@@ -361,7 +373,7 @@ class TexText(inkex.Effect):
 
         # -- Copy style
         if old_node is None:
-            self.set_node_color(new_node, "black")
+            new_node.set_color("black")
 
             root = self.document.getroot()
             try:
@@ -373,28 +385,28 @@ class TexText(inkex.Effect):
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
 
-            x, y, w, h = self.get_node_frame(new_node)
-            self.translate_node(new_node, -x + width/2 -w/2, -y+height/2 -h/2)
+            x, y, w, h = new_node.get_frame()
+            new_node.translate(-x + width/2 -w/2, -y+height/2 -h/2)
 
-            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
+            new_node.set_textext_attrib('jacobian_sqrt', str(new_node.get_jacobian_sqrt()))
 
-            self.current_layer.append(new_node)
+            self.current_layer.append(new_node.get_xml_raw_node())
         else:
 
             relative_scale = user_scale_factor / original_scale
             scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
-            old_transform = old_node.attrib['transform']
+            old_transform = old_node.get_attrib('transform')
             composition = st.parseTransform(old_transform, scale_transform)
             # keep alignment point of drawing intact, calculate required shift
 
-            new_node.attrib['transform'] = st.formatTransform(composition)
+            new_node.set_attrib('transform', st.formatTransform(composition))
 
-            x,y,w,h = self.get_node_frame(old_node)
-            new_x, new_y, new_w, new_h = self.get_node_frame(new_node)
+            x,y,w,h = old_node.get_frame()
+            new_x, new_y, new_w, new_h = new_node.get_frame()
 
 
-            def get_pos(x,y,w,h,alignment):
+            def get_pos(x, y, w, h, alignment):
                 v_alignment, h_alignment = alignment.split(" ")
                 if v_alignment=="top":
                     ypos = y
@@ -409,7 +421,7 @@ class TexText(inkex.Effect):
                     xpos = x+w/2
                 elif h_alignment == "right":
                     xpos=x+w
-                return [xpos,ypos]
+                return [xpos, ypos]
 
             p_old = get_pos(x,y,w,h,alignment)
             p_new = get_pos(new_x, new_y, new_w, new_h, alignment)
@@ -420,10 +432,10 @@ class TexText(inkex.Effect):
             composition[0][2] += dx
             composition[1][2] += dy
 
-            new_node.attrib['transform'] = st.formatTransform(composition)
-            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
+            new_node.set_attrib('transform', st.formatTransform(composition))
+            new_node.set_textext_attrib("jacobian_sqrt", str(new_node.get_jacobian_sqrt()))
 
-            self.replace_node(old_node, new_node)
+            self.replace_node(old_node.get_xml_raw_node(), new_node.get_xml_raw_node())
 
         # -- Save settings
         if os.path.isfile(preamble_file):
@@ -459,7 +471,7 @@ class TexText(inkex.Effect):
                 text = node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape')
                 preamble = node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape')
 
-                return node, text, preamble, scale
+                return PsToEditSvgElement(node), text, preamble, scale
         return None, "", "", None
 
     def replace_node(self, old_node, new_node):
@@ -478,125 +490,34 @@ class TexText(inkex.Effect):
         :param old_node:
         :param new_node:
         """
-        style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
-                       'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
-                       'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
-
-        for attribute_name in style_attrs:
-            try:
-                if attribute_name in old_node.keys():
-                    old_attribute = old_node.attrib[attribute_name]
-                else:
-                    continue
-
-                new_node.attrib[attribute_name] = old_attribute
-
-                for child in new_node.iterchildren():
-                    child.attrib[attribute_name] = old_attribute
-
-            except (KeyError, IndexError, TypeError, AttributeError):
-                add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
-
-        old_node_has_fill_color = False
-        if "fill" in old_node.keys():
-            old_fill = old_node.attrib["fill"]
-            if old_fill != "none" and old_fill is not None and old_fill != "":
-                old_node_has_fill_color = True
-
-        if not old_node_has_fill_color:
-            TexText.set_node_color(new_node, "black")
-
-    # ------ SVG Node utilities
-    @staticmethod
-    def set_node_color(node, color):
-        """
-        Set a nodes fill color
-        :param node: which node
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-        """
-        node.attrib["fill"] = color
-        TexText.set_node_style_color(node, color)  # for fill in the style attribute
-        for child in node.iterchildren():
-            child.attrib["fill"] = color
-            TexText.set_node_style_color(child, color)  # for fill in the style attribute
-
-    @staticmethod
-    def set_node_style_color(node, color):
-        """
-        If node contains a style attribute which is a CSS attribute string the
-        value fill of this string is set to color
-        :param node: which node
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-        """
-        if "style" in node.keys():
-            old_style_dict = ss.parseStyle(node.attrib["style"])
-            if "fill" in old_style_dict.keys():
-                old_style_dict["fill"] = color
-                node.attrib["style"] = ss.formatStyle(old_style_dict)
-
-    @staticmethod
-    def path_from_node(node):
-        return node.attrib['d']
-
-    @staticmethod
-    def line_from_node(node):
-        return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
-                                              x2=node.attrib['x2'],
-                                              y1=node.attrib['y1'],
-                                              y2=node.attrib['y2'])
-
-    def get_node_frame(self, node, mat=[[1,0,0],[0,1,0]]):
-        min_x, max_x, min_y,max_y = st.computeBBox([node], mat)
-        width = max_x - min_x
-        height = max_y - min_y
-        return min_x, min_y, width, height
-
-    def get_jacobian_sqrt(self, node):
-        a, b, c, d, e, f = self.get_node_transform(node)
-        det = a * d - c * b
-        return math.sqrt(math.fabs(det))
-
-    def get_node_scale_factor(self, node):
-        """
-        Extract the scale factor from the node's transform attribute
-        :param node:
-        :return: scale factor
-        """
-        a, b, c, d, e, f = self.get_node_transform(node)
-        return a
-
-    def set_node_scale_factor(self, node, scale):
-        """
-        Set the node's scale factor (keeps the rest of the transform matrix)
-        :param node:
-        :param scale: the new scale factor
-        """
-        a, b, c, d, e, f = self.get_node_transform(node)
-        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
-        node.attrib['transform'] = transform
-
-    def translate_node(self, node, x, y):
-        """
-        Translate the node
-        :param node:
-        :param x: horizontal translation
-        :param y: vertical translation
-        """
-        a, b, c, d, old_x, old_y = self.get_node_transform(node)
-        new_x = float(old_x) + x
-        new_y = float(old_y) + y
-        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
-        node.attrib['transform'] = transform
-
-    @staticmethod
-    def get_node_transform(node):
-        """
-        Gets the matrix values form the node's transform attribute
-        :param node:
-        :return: a, b, c, d, e, f   (the values of the transform matrix)
-        """
-        (a,c,e),(b,d,f) = st.parseTransform(node.attrib['transform'])
-        return a, b, c, d, e, f
+        # ToDo: Make this smarter and such that the user can decide if he wants to use LaTeX or Inkscape colors
+        # style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
+        #                'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
+        #                'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
+        #
+        # for attribute_name in style_attrs:
+        #     try:
+        #         if attribute_name in old_node.keys():
+        #             old_attribute = old_node.attrib[attribute_name]
+        #         else:
+        #             continue
+        #
+        #         new_node.attrib[attribute_name] = old_attribute
+        #
+        #         for child in new_node.iterchildren():
+        #             child.attrib[attribute_name] = old_attribute
+        #
+        #     except (KeyError, IndexError, TypeError, AttributeError):
+        #         add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
+        #
+        # old_node_has_fill_color = False
+        # if "fill" in old_node.keys():
+        #     old_fill = old_node.attrib["fill"]
+        #     if old_fill != "none" and old_fill is not None and old_fill != "":
+        #         old_node_has_fill_color = True
+        #
+        # if not old_node_has_fill_color:
+        #     TexText.set_color(new_node, "black")
 
 
 class Settings(object):
@@ -925,15 +846,13 @@ class PdfConverterBase(LatexConverterBase):
             return None
 
         if scale_factor is not None:
-            new_node.attrib['transform'] = self.get_transform(scale_factor)
+            #new_node.attrib['transform'] = self.get_transform(scale_factor)
+            new_node.set_scale_factor(scale_factor)
+
         return new_node
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
-        raise NotImplementedError
-
-    def get_transform(self, scale_factor):
-        """Get a suitable default value for the transform attribute"""
         raise NotImplementedError
 
     def svg_to_group(self):
@@ -945,7 +864,7 @@ class PdfConverterBase(LatexConverterBase):
         tree = etree.parse(self.tmp('svg'))
         self.fix_xml_namespace(tree.getroot())
         try:
-            return copy.copy(tree.getroot().xpath('g')[0])
+            return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
         except IndexError:
             return None
 
@@ -969,11 +888,6 @@ class PstoeditPlotSvg(PdfConverterBase):
     """
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
-
-    def get_transform(self, scale_factor):
-        return 'matrix(%f,0,0,%f,%f,%f)' % (
-            scale_factor, -scale_factor,
-            0, 0)
 
     def pdf_to_svg(self):
         # Options for pstoedit command
@@ -1009,6 +923,179 @@ class PstoeditPlotSvg(PdfConverterBase):
                             LOG_LEVEL_DEBUG)
         if 'plot-svg' not in out:
             add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
+
+
+class SvgElement(object):
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, xml_element):
+        """ Instanciates an object of type SvgElement
+
+        :param xml_element: The node as an etree.Element object
+        """
+        self._node = xml_element
+
+    def get_xml_raw_node(self):
+        """ Returns the node as an etree.Element object """
+        return self._node
+
+    def get_attrib(self, attrib_name):
+        """ Returns the value of the attribute attrib_name (str) in the standard namespace if it exists, otherwise None """
+        attrib_value = None
+        if attrib_name in self._node.attrib.keys():
+            attrib_value = self._node.attrib[attrib_name]
+        return attrib_value
+
+    def set_attrib(self, attrib_name, attrib_value):
+        """ Sets the value of the attribute with the name attrib_name to attrib_value in the standard namespace"""
+        self._node.attrib[attrib_name] = attrib_value
+
+    def is_textext_attrib(self, attrib_name):
+        """ Returns True if the attibute attrib_name (str) exists in the TexText namespace, otherwise false """
+        return '{%s}%s' % (TEXTEXT_NS, attrib_name) in self._node.attrib.keys()
+
+    def get_textext_attrib(self, attrib_name):
+        """ Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None """
+        attrib_value = None
+        if self.is_textext_attrib(attrib_name):
+            attrib_value = self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)]
+        return attrib_value
+
+    def set_textext_attrib(self, attrib_name, attrib_value):
+        """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
+        self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
+
+    @staticmethod
+    @abc.abstractmethod
+    def _calc_transform(scale_factor):
+        """ Calculates the transformation matrix for a simple scaling"""
+
+    @staticmethod
+    def _path_from_node(node):
+        return node.attrib['d']
+
+    @staticmethod
+    def _line_from_node(node):
+        return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
+                                              x2=node.attrib['x2'],
+                                              y1=node.attrib['y1'],
+                                              y2=node.attrib['y2'])
+
+    @abc.abstractmethod
+    def get_frame(self):
+        """ Returns x_min, y_min, width and height of node"""
+
+    @abc.abstractmethod
+    def get_transform_values(self):
+        """ Returns the entries a, b, c, d, e, f of the node's transformation the matrix """
+
+    @abc.abstractmethod
+    def get_jacobian_sqrt(self):
+        """ Return the square root of the Jacobians determinant """
+
+    @abc.abstractmethod
+    def translate(self, dx, dy):
+        """ Translates node by dx and dy """
+
+    @abc.abstractmethod
+    def set_scale_factor(self, scale):
+        """ Sets the SVG scale factor of the node """
+
+    @abc.abstractmethod
+    def get_scale_factor(self):
+        """ Returns the SVG scale factor of the node """
+
+    @abc.abstractmethod
+    def set_color(self, color):
+        """ Sets the color of the node to color """
+
+
+class PsToEditSvgElement(SvgElement):
+
+    def __init__(self, xml_element):
+        super(self.__class__, self).__init__(xml_element)
+
+    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
+        """
+        Determine the node's size and position
+
+        It's accounting for the coordinates of all paths in the node's children.
+
+        :return: x, y, width, height
+        """
+        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
+        width = max_x - min_x
+        height = max_y - min_y
+        return min_x, min_y, width, height
+
+    def get_transform_values(self):
+        """
+        Gets the matrix values form the node's transform attribute
+
+        :return: a, b, c, d, e, f   (the values of the transform matrix)
+        """
+        (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
+        return a, b, c, d, e, f
+
+    def get_jacobian_sqrt(self):
+        a, b, c, d, e, f = self.get_transform_values()
+        det = a * d - c * b
+        return math.sqrt(math.fabs(det))
+
+    def translate(self, x, y):
+        """
+        Translate the node
+        :param x: horizontal translation
+        :param y: vertical translation
+        """
+        a, b, c, d, old_x, old_y = self.get_transform_values()
+        new_x = float(old_x) + x
+        new_y = float(old_y) + y
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
+        self._node.attrib['transform'] = transform
+
+    def get_scale_factor(self):
+        """
+        Extract the scale factor from the node's transform attribute
+        :return: scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        return a
+
+    def set_scale_factor(self, scale):
+        """
+        Set the node's scale factor (keeps the rest of the transform matrix)
+        :param scale: the new scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
+        self._node.attrib['transform'] = transform
+
+    def set_color(self, color):
+        """ Sets the color of the node to color
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+
+        ToDo: Reimplement this to attribute correct color management!
+        """
+        #self._node.attrib["fill"] = color
+        #TexText.set_node_style_color(self._node, color)  # for fill in the style attribute
+        #for child in self._node.iterchildren():
+        #    child.attrib["fill"] = color
+        #    TexText.set_node_style_color(child, color)  # for fill in the style attribute
+
+        # from old set_node_style_color method:
+        #if "style" in node.keys():
+        #    old_style_dict = ss.parseStyle(node.attrib["style"])
+        #    if "fill" in old_style_dict.keys():
+        #        old_style_dict["fill"] = color
+        #        node.attrib["style"] = ss.formatStyle(old_style_dict)
+
+    @staticmethod
+    def _calc_transform(scale_factor):
+        """ Calculates the transformation matrix for a simple scaling"""
+        # ToDo: Do we need this anymore?
+        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, -scale_factor, 0, 0)
+
 
 
 CONVERTERS = [PstoeditPlotSvg]
