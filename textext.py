@@ -220,7 +220,6 @@ class TexText(inkex.Effect):
         if old_node is not None and old_node.is_textext_attrib("alignment"):
             alignment = old_node.get_textext_attrib("alignment")
 
-
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
@@ -352,8 +351,6 @@ class TexText(inkex.Effect):
         new_node.set_textext_attrib("alignment", str(alignment))
 
         try:
-            #new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
-            #self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
             new_node.set_textext_attrib("inkscapeversion",
                                         self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0])
         except KeyError:
@@ -394,7 +391,6 @@ class TexText(inkex.Effect):
 
             x,y,w,h = old_node.get_frame()
             new_x, new_y, new_w, new_h = new_node.get_frame()
-
 
             def get_pos(x, y, w, h, alignment):
                 v_alignment, h_alignment = alignment.split(" ")
@@ -850,7 +846,6 @@ class PdfConverterBase(LatexConverterBase):
             return None
 
         if scale_factor is not None:
-            #new_node.attrib['transform'] = self.get_transform(scale_factor)
             new_node.set_scale_factor(scale_factor)
 
         return new_node
@@ -949,13 +944,6 @@ class Pdf2SvgPlotSvg(PdfConverterBase):
     @staticmethod
     def get_pdf_converter_name():
         return "pdf2svg"
-
-    def get_transform(self, scale_factor):
-        """
-        Returns a string containing the matrix expression associated with the given scale factor.
-        matrix = [scale_factor, 0, 0, scale_factor, 0, 0]
-        """
-        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, scale_factor, 0, 0)
 
     def pdf_to_svg(self):
         """
@@ -1076,48 +1064,60 @@ class SvgElement(object):
         """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
         self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
 
+    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
+        """
+        Determine the node's size and position. It's accounting for the coordinates of all paths in the node's children.
+
+        :return: x position, y position, width, height
+        """
+        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
+        width = max_x - min_x
+        height = max_y - min_y
+        return min_x, min_y, width, height
+
+    def get_transform_values(self):
+        """
+        Returns the entries a, b, c, d, e, f of self._node's transformation matrix
+        depending on the transform applied. If no transform is defined all values returned are zero
+        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
+        """
+        a = b = c = d = e = f = 0
+        if 'transform' in self._node.attrib:
+            (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
+        return a, b, c, d, e, f
+
+    def get_jacobian_sqrt(self):
+        a, b, c, d, e, f = self.get_transform_values()
+        det = a * d - c * b
+        return math.sqrt(math.fabs(det))
+
+    def get_scale_factor(self):
+        """
+        Extract the scale factor from the node's transform attribute
+        :return: scale factor
+        """
+        a, _, _, _, _, _ = self.get_transform_values()
+        return a
+
+    def translate(self, x, y):
+        """
+        Translate the node
+        :param x: horizontal translation
+        :param y: vertical translation
+        """
+        a, b, c, d, old_x, old_y = self.get_transform_values()
+        new_x = float(old_x) + x
+        new_y = float(old_y) + y
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
+        self._node.attrib['transform'] = transform
+
     @abc.abstractmethod
     def get_converter_name():
         """ Returns the converter used for creating the svg elemen """
 
     @abc.abstractmethod
-    def _calc_transform(scale_factor):
-        """ Calculates the transformation matrix for a simple scaling"""
-
-    @staticmethod
-    def _path_from_node(node):
-        return node.attrib['d']
-
-    @staticmethod
-    def _line_from_node(node):
-        return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
-                                              x2=node.attrib['x2'],
-                                              y1=node.attrib['y1'],
-                                              y2=node.attrib['y2'])
-
-    @abc.abstractmethod
-    def get_frame(self):
-        """ Returns x_min, y_min, width and height of node"""
-
-    @abc.abstractmethod
-    def get_transform_values(self):
-        """ Returns the entries a, b, c, d, e, f of the node's transformation the matrix """
-
-    @abc.abstractmethod
-    def get_jacobian_sqrt(self):
-        """ Return the square root of the Jacobians determinant """
-
-    @abc.abstractmethod
-    def translate(self, dx, dy):
-        """ Translates node by dx and dy """
-
-    @abc.abstractmethod
     def set_scale_factor(self, scale):
         """ Sets the SVG scale factor of the node """
-
-    @abc.abstractmethod
-    def get_scale_factor(self):
-        """ Returns the SVG scale factor of the node """
 
     @abc.abstractmethod
     def set_color(self, color):
@@ -1134,56 +1134,10 @@ class PsToEditSvgElement(SvgElement):
         """ Returns the converter used for creating the svg elemen """
         return "pstoedit"
 
-    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
-        """
-        Determine the node's size and position
-
-        It's accounting for the coordinates of all paths in the node's children.
-
-        :return: x, y, width, height
-        """
-        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
-        width = max_x - min_x
-        height = max_y - min_y
-        return min_x, min_y, width, height
-
-    def get_transform_values(self):
-        """
-        Gets the matrix values form the node's transform attribute
-
-        :return: a, b, c, d, e, f   (the values of the transform matrix)
-        """
-        (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
-        return a, b, c, d, e, f
-
-    def get_jacobian_sqrt(self):
-        a, b, c, d, e, f = self.get_transform_values()
-        det = a * d - c * b
-        return math.sqrt(math.fabs(det))
-
-    def translate(self, x, y):
-        """
-        Translate the node
-        :param x: horizontal translation
-        :param y: vertical translation
-        """
-        a, b, c, d, old_x, old_y = self.get_transform_values()
-        new_x = float(old_x) + x
-        new_y = float(old_y) + y
-        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
-        self._node.attrib['transform'] = transform
-
-    def get_scale_factor(self):
-        """
-        Extract the scale factor from the node's transform attribute
-        :return: scale factor
-        """
-        a, b, c, d, e, f = self.get_transform_values()
-        return a
-
     def set_scale_factor(self, scale):
         """
         Set the node's scale factor (keeps the rest of the transform matrix)
+        Note that pstoedit needs -scale at the fourth position!
         :param scale: the new scale factor
         """
         a, b, c, d, e, f = self.get_transform_values()
@@ -1196,24 +1150,7 @@ class PsToEditSvgElement(SvgElement):
 
         ToDo: Reimplement this to attribute correct color management!
         """
-        #self._node.attrib["fill"] = color
-        #TexText.set_node_style_color(self._node, color)  # for fill in the style attribute
-        #for child in self._node.iterchildren():
-        #    child.attrib["fill"] = color
-        #    TexText.set_node_style_color(child, color)  # for fill in the style attribute
-
-        # from old set_node_style_color method:
-        #if "style" in node.keys():
-        #    old_style_dict = ss.parseStyle(node.attrib["style"])
-        #    if "fill" in old_style_dict.keys():
-        #        old_style_dict["fill"] = color
-        #        node.attrib["style"] = ss.formatStyle(old_style_dict)
-
-    @staticmethod
-    def _calc_transform(scale_factor):
-        """ Calculates the transformation matrix for a simple scaling"""
-        # ToDo: Do we need this anymore?
-        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, -scale_factor, 0, 0)
+        return
 
 
 class Pdf2SvgSvgElement(SvgElement):
@@ -1225,49 +1162,6 @@ class Pdf2SvgSvgElement(SvgElement):
     def get_converter_name():
         """ Returns the converter used for creating the svg elemen """
         return "pdf2svg"
-
-    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
-        """ Returns x_min, y_min, width and height of node"""
-        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
-        width = max_x - min_x
-        height = max_y - min_y
-        return min_x, min_y, width, height
-
-    def get_transform_values(self):
-        """
-        Returns the entries a, b, c, d, e, f of self._node's transformation matrix
-        depending on the transform applied
-        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
-        """
-        a = b = c = d = e = f = 0
-        if 'transform' in self._node.attrib:
-            (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
-        return a, b, c, d, e, f
-
-    def get_jacobian_sqrt(self):
-        a, b, c, d, e, f = self.get_transform_values()
-        det = a * d - c * b
-        return math.sqrt(math.fabs(det))
-
-    def translate(self, x, y):
-        """
-        Translate the node
-        :param x: horizontal translation
-        :param y: vertical translation
-        """
-        a, b, c, d, old_x, old_y = self.get_transform_values()
-        new_x = float(old_x) + x
-        new_y = float(old_y) + y
-        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
-        self._node.attrib['transform'] = transform
-
-    def get_scale_factor(self):
-        """
-        Extract the scale factor from the node's transform attribute
-        :return: scale factor
-        """
-        a, b, c, d, e, f = self.get_transform_values()
-        return a
 
     def set_scale_factor(self, scale):
         """
@@ -1284,25 +1178,7 @@ class Pdf2SvgSvgElement(SvgElement):
 
         ToDo: Reimplement this to attribute correct color management!
         """
-        #self._node.attrib["fill"] = color
-        #TexText.set_node_style_color(self._node, color)  # for fill in the style attribute
-        #for child in self._node.iterchildren():
-        #    child.attrib["fill"] = color
-        #    TexText.set_node_style_color(child, color)  # for fill in the style attribute
-
-        # from old set_node_style_color method:
-        #if "style" in node.keys():
-        #    old_style_dict = ss.parseStyle(node.attrib["style"])
-        #    if "fill" in old_style_dict.keys():
-        #        old_style_dict["fill"] = color
-        #        node.attrib["style"] = ss.formatStyle(old_style_dict)
-
-    @staticmethod
-    def _calc_transform(scale_factor):
-        """ Calculates the transformation matrix for a simple scaling"""
-        # ToDo: Do we need this anymore?
-        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, -scale_factor, 0, 0)
-
+        return
 
 
 #CONVERTERS = [PstoeditPlotSvg]
