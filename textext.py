@@ -1076,12 +1076,10 @@ class SvgElement(object):
         """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
         self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
 
-    @staticmethod
     @abc.abstractmethod
     def get_converter_name():
         """ Returns the converter used for creating the svg elemen """
 
-    @staticmethod
     @abc.abstractmethod
     def _calc_transform(scale_factor):
         """ Calculates the transformation matrix for a simple scaling"""
@@ -1358,8 +1356,8 @@ class Pdf2SvgSvgElement(SvgElement):
 
 
 
-#CONVERTERS = [PstoeditPlotSvg]
-CONVERTERS = [Pdf2SvgPlotSvg]
+CONVERTERS = [PstoeditPlotSvg]
+#CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
