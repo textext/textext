@@ -65,6 +65,7 @@ import inkex
 import simplestyle as ss
 import simpletransform as st
 import tempfile
+import re
 import abc
 import copy
 from lxml import etree
@@ -343,23 +344,13 @@ class TexText(inkex.Effect):
             return
 
         # -- Store textext attributes
-        #new_node.attrib['{%s}version' % TEXTEXT_NS] = __version__.encode('string-escape')
-        #new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "pdflatex".encode('string-escape')
-        #new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
-        #new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
-        #new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
-        #new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
-        #new_node.attrib['{%s}alignment' % TEXTEXT_NS] = str(alignment).encode('string-escape')
-
         new_node.set_textext_attrib("version", __version__)
-        new_node.set_textext_attrib("texconverter", "pdflatex")
-        new_node.set_textext_attrib("pdfconverter", "pstoedit")
+        new_node.set_textext_attrib("texconverter", converter.get_tex_converter_name())
+        new_node.set_textext_attrib("pdfconverter", converter.get_pdf_converter_name())
         new_node.set_textext_attrib("text", text)
         new_node.set_textext_attrib("preamble", preamble_file)
         new_node.set_textext_attrib("scale", str(user_scale_factor))
         new_node.set_textext_attrib("alignment", str(alignment))
-
-
 
         try:
             #new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
@@ -471,7 +462,16 @@ class TexText(inkex.Effect):
                 text = node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape')
                 preamble = node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape')
 
-                return PsToEditSvgElement(node), text, preamble, scale
+                if '{%s}pdfconverter' % TEXTEXT_NS in node.attrib:
+                    pdf_converter = node.attrib.get('{%s}pdfconverter' % TEXTEXT_NS, '').decode('string-escape')
+                    if pdf_converter == "pdf2svg":
+                        svg_element = Pdf2SvgSvgElement(node)
+                    else:
+                        svg_element = PsToEditSvgElement(node)
+                else:
+                    svg_element = PsToEditSvgElement(node)
+
+                return svg_element, text, preamble, scale
         return None, "", "", None
 
     def replace_node(self, old_node, new_node):
@@ -832,6 +832,11 @@ class LatexConverterBase(object):
 
 
 class PdfConverterBase(LatexConverterBase):
+
+    @staticmethod
+    def get_tex_converter_name():
+        return "pdflatex"
+
     def convert(self, latex_text, preamble_file, scale_factor):
         cwd = os.getcwd()
         try:
@@ -859,35 +864,19 @@ class PdfConverterBase(LatexConverterBase):
         """
         Convert the SVG file to an SVG group node.
 
-        :Returns: <svg:g> node
+        :Returns: Subclass of SvgElement
         """
-        tree = etree.parse(self.tmp('svg'))
-        self.fix_xml_namespace(tree.getroot())
-        try:
-            return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
-        except IndexError:
-            return None
-
-    def fix_xml_namespace(self, node):
-        svg = '{%s}' % SVG_NS
-
-        if node.tag.startswith(svg):
-            node.tag = node.tag[len(svg):]
-
-        for key in node.attrib.keys():
-            if key.startswith(svg):
-                new_key = key[len(svg):]
-                node.attrib[new_key] = node.attrib[key]
-                del node.attrib[key]
-
-        for c in node:
-            self.fix_xml_namespace(c)
+        raise NotImplementedError
 
 
 class PstoeditPlotSvg(PdfConverterBase):
     """
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
+
+    @staticmethod
+    def get_pdf_converter_name():
+        return "pstoedit"
 
     def pdf_to_svg(self):
         # Options for pstoedit command
@@ -914,6 +903,34 @@ class PstoeditPlotSvg(PdfConverterBase):
             add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
 
+    def svg_to_group(self):
+        """
+        Convert the SVG file to an SVG group node.
+
+        :Returns: Subclass of SvgElement
+        """
+        tree = etree.parse(self.tmp('svg'))
+        self._fix_xml_namespace(tree.getroot())
+        try:
+            return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+        except IndexError:
+            return None
+
+    def _fix_xml_namespace(self, node):
+        svg = '{%s}' % SVG_NS
+
+        if node.tag.startswith(svg):
+            node.tag = node.tag[len(svg):]
+
+        for key in node.attrib.keys():
+            if key.startswith(svg):
+                new_key = key[len(svg):]
+                node.attrib[new_key] = node.attrib[key]
+                del node.attrib[key]
+
+        for c in node:
+            self._fix_xml_namespace(c)
+
     @classmethod
     def check_available(cls):
         """Check whether pstoedit has plot-svg"""
@@ -923,6 +940,101 @@ class PstoeditPlotSvg(PdfConverterBase):
                             LOG_LEVEL_DEBUG)
         if 'plot-svg' not in out:
             add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
+
+
+class Pdf2SvgPlotSvg(PdfConverterBase):
+    """
+    Convert PDF -> SVG using pdf2svg
+    """
+
+    @staticmethod
+    def get_pdf_converter_name():
+        return "pdf2svg"
+
+    def get_transform(self, scale_factor):
+        """
+        Returns a string containing the matrix expression associated with the given scale factor.
+        matrix = [scale_factor, 0, 0, scale_factor, 0, 0]
+        """
+        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, scale_factor, 0, 0)
+
+    def pdf_to_svg(self):
+        """
+        Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
+        """
+        try:
+            # Exec pdf2cvg infile.pdf outfile.svg
+            result = exec_command(['c:\\Progs\\pdf2svg\\pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+        except RuntimeError as excpt:
+            add_log_message("Command pdf2svg failed: %s" % (excpt))
+            raise RuntimeError(latest_message())
+
+        if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+            add_log_message("pdf2svg didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
+            raise RuntimeError(latest_message())
+
+    def svg_to_group(self):
+        """
+        Convert the SVG file to an SVG group node. pdf2svg produces a file of the following structure:
+        <svg>
+            <defs>
+            </defs>
+            <g>
+            </g>
+        </svg>
+        The groups in the last <g>-Element reference the symbols defined within the <def>-node. In this method
+        the references in the <g>-node are replaced  by the definitions from <defs> so we can return the group without
+        any <defs>.
+        """
+        tree = etree.parse(self.tmp('svg'))
+        svg_raw = tree.getroot()
+
+        # At first we collect all defs with an id-attribute found in the svg raw tree. They are put later directly
+        # into the nodes in the <g>-Element referencing them
+        path_defs = {}
+        for def_node in svg_raw.xpath("//*[local-name() = \"defs\"]//*[@id]"):
+            path_defs["#" + def_node.attrib["id"]] = def_node
+
+        try:
+            # Now we pick all nodes that have a href attribute and replace the reference in them by the appropriate
+            # path definitions from def_nodes
+            for node in svg_raw.xpath("//*"):
+                if ("{%s}href" % XLINK_NS) in node.attrib:
+                    # Fetch data from node
+                    node_href = node.attrib["{%s}href" % XLINK_NS]
+                    node_x = node.attrib["x"]
+                    node_y = node.attrib["y"]
+                    node_translate = "translate(%s,%s)" % (node_x, node_y)
+
+                    # remove the node
+                    parent = node.getparent()
+                    parent.remove(node)
+
+                    # Add positional data to the svg paths
+                    for svgdef in path_defs[node_href].iterchildren():
+                        svgdef.attrib["transform"] = node_translate
+
+                        # Add new node into document
+                        parent.append(copy.copy(svgdef))
+
+            # Finally, we build the group
+            new_group = etree.Element(inkex.addNS("g"))
+            for node in svg_raw:
+                if node.tag != "{%s}defs" % SVG_NS:
+                    new_group.append(node)
+            # return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+            # return new_group
+            return Pdf2SvgSvgElement(new_group)
+
+        except:
+            return None
+
+    @classmethod
+    def check_available(cls):
+        """
+        Check if pdf2svg is available
+        """
+        out = exec_command(['c:\\Progs\\pdf2svg\\pdf2svg', '--help'], ok_return_value=None)
 
 
 class SvgElement(object):
@@ -964,6 +1076,11 @@ class SvgElement(object):
     def set_textext_attrib(self, attrib_name, attrib_value):
         """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
         self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_converter_name():
+        """ Returns the converter used for creating the svg elemen """
 
     @staticmethod
     @abc.abstractmethod
@@ -1014,6 +1131,11 @@ class PsToEditSvgElement(SvgElement):
 
     def __init__(self, xml_element):
         super(self.__class__, self).__init__(xml_element)
+
+    @staticmethod
+    def get_converter_name():
+        """ Returns the converter used for creating the svg elemen """
+        return "pstoedit"
 
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """
@@ -1097,8 +1219,246 @@ class PsToEditSvgElement(SvgElement):
         return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, -scale_factor, 0, 0)
 
 
+class Pdf2SvgSvgElement(SvgElement):
 
-CONVERTERS = [PstoeditPlotSvg]
+    def __init__(self, xml_element):
+        super(self.__class__, self).__init__(xml_element)
+
+    @staticmethod
+    def get_converter_name():
+        """ Returns the converter used for creating the svg elemen """
+        return "pdf2svg"
+
+    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
+        """ Returns x_min, y_min, width and height of node"""
+
+        # Note: in pdf2svg the coordinates are separated by a space, not by a comma, hence we have to use "\s" instead
+        # of "," in newly created nodes. After the node has been shifted by the user in Inkscape the coordinate pairs
+        # are separated by commas as in pstoedit-nodes. If the node has been left untouched in Inkscape the coordinates
+        # are still separated by spaces. Hence we have to catch both cases in the last regex-group:
+        # -> (\s|,) instead of , in the last group!
+        # Furthermore, pdf2svg likes to put exponents into its numbers, e.g. 1.23e-4
+        pattern = re.compile(r"[cmlvhCMLVH]*\s*\-?\d+\.?\d*([eE][+-]?\d+)?((\s|,)\-?\d+\.?\d*([eE][+-]?\d+)?)?")
+
+        x_min = 1e6
+        x_max = -1e6
+        y_min = 1e6
+        y_max = -1e6
+
+        # Iterate over all path elements and determine their maximum and minumum x and y values. Note that the
+        # coordinates are translated by pdf2svg, so we have to account for this
+        for path_ele in self._node.xpath("//*[local-name() =\"path\"]"):
+            data = path_ele.attrib["d"]
+            _, _, _, _, x_trans, y_trans = self.calc_transform_values(path_ele)
+            points = [match.group() for match in re.finditer(pattern, data)]
+            x_min_temp, x_max_temp, y_min_temp, y_max_temp = self.get_xy_minmax(points)
+            x_min_temp += x_trans
+            x_max_temp += x_trans
+            y_min_temp += y_trans
+            y_max_temp += y_trans
+            if x_min_temp < x_min:
+                x_min = x_min_temp
+            if x_max_temp > x_max:
+                x_max = x_max_temp
+            if y_min_temp < y_min:
+                y_min = y_min_temp
+            if y_max_temp > y_max:
+                y_max = y_max_temp
+
+        # Do the same with the line elements
+        for line_ele in self._node.xpath("//*[local-name() =\"line\"]"):
+            data = line_ele.attrib["d"]
+            _, _, _, _, x_trans, y_trans = self.calc_transform_values(line_ele)
+            points = [match.group() for match in re.finditer(pattern, data)]
+            x_min_temp, x_max_temp, y_min_temp, y_max_temp = self.get_xy_minmax(points)
+            x_min_temp += x_trans
+            x_max_temp += x_trans
+            y_min_temp += y_trans
+            y_max_temp += y_trans
+            if x_min_temp < x_min:
+                x_min = x_min_temp
+            if x_max_temp > x_max:
+                x_max = x_max_temp
+            if y_min_temp < y_min:
+                y_min = y_min_temp
+            if y_max_temp > y_max:
+                y_max = y_max_temp
+
+        # Finally, we have to add the absolute translation of the frame
+        scale, _, _, _, x_trans, y_trans = self.get_transform_values()
+        scale = scale
+        return x_min * scale + x_trans, y_min * scale + y_trans, (x_max - x_min) * scale, (y_max - y_min) * scale
+
+    @staticmethod
+    def get_xy_minmax(points):
+        """
+        Determins the minimum and maximum x and y values of the node described by the commands found in the list points
+        points = ["M 1.2, 3.4", "C 3.2, 2.4", "4.2, 4.2", "1.2, 2.3", "V 1.2", "h 2.1", ...]
+        """
+        x_values = []
+        y_values = []
+        current_x, current_y = 0, 0
+        x, y = 0, 0
+
+        for point in points:
+            point = point.lstrip()
+            first_letter = point[0]
+
+            # Get a command (new letter only if command changes)
+            if not first_letter.isdigit() and not first_letter == "-":
+                command = first_letter
+
+                # For relative cubic beziers all coordinates refer to the initial point (= final point of last command)
+                # for poly beziers each third point is the initial point for the next one
+                # M 1,2 c 0.1,0.1 0.1,0.1 0.5,0.5 0.1,0.1 0.1,0.1 0.5,0.5 -->
+                # Bezier starts at 1,2, goes to 1.5,2.5, then goes to 2.0,3.0
+                if command == "c":
+                    x_cubic_init = current_x
+                    y_cubic_init = current_y
+                    cubic_segment = 0
+                point = point[1:].lstrip()
+
+            if command in "MmLlCc":  # Move, Line, Cubic Curve
+                x, y = re.split("\s|,\s?", point)  # split "1.2 3.4" as well as "1.2,3.4" and "1.2, 3.4" into 2 strings
+            elif command == "Hh":  # Horizontal (just one coordinate part)
+                x, y = point, current_y
+            elif command == "Vv":  # Vertical (just one coordinate part)
+                x, y = current_x, point
+
+            # Depending in absolute or relative command determine the current x,y
+            if command.isupper():
+                current_x = float(x)
+                current_y = float(y)
+            else:
+                # For relative cubic beziers all coordinates refer to the initial point (= final point of last command)
+                # In Poly-Beziers each third point is the final point of the segment and the initial point of the
+                # next segment, so we have to account for this by the counter cubic_segment
+                if command == "c":
+                    current_x = x_cubic_init + float(x)
+                    current_y = y_cubic_init + float(y)
+                    cubic_segment += 1
+                    if cubic_segment == 3:
+                        x_cubic_init = current_x
+                        y_cubic_init = current_y
+                        cubic_segment = 0
+                else:
+                    current_x += float(x)
+                    current_y += float(y)
+
+            x_values.append(current_x)
+            y_values.append(current_y)
+
+        return min(x_values), max(x_values), min(y_values), max(y_values)
+
+    def get_transform_values(self):
+        """
+        Returns the entries a, b, c, d, e, f of self._node's transformation matrix
+        depending on the transform applied
+        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
+        """
+        return self.calc_transform_values(self._node)
+
+    @staticmethod
+    def calc_transform_values(node):
+        """
+        Returns the entries a, b, c, d, e, f of the node's transformation matrix
+        depending on the transform applied
+        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
+        """
+        a = b = c = d = e = f = 0
+
+        if 'transform' in node.attrib:
+            transform = node.attrib['transform']
+            [type, data] = transform.split('(')
+            data = data.split(')')[0]
+            if type == "translate":
+                a = d = 1
+                tmp = data.split(",")
+                if len(tmp) == 1:
+                    e = float(tmp[0])
+                else:
+                    [e, f] = [float(val) for val in tmp]
+            elif type == "matrix":
+                a, b, c, d, e, f = [float(val) for val in data.split(',')]
+            elif type == "scale":
+                a = d = float(data)
+            elif type == "rotate":
+                data = float(data)
+                a = d = math.cos(data)
+                b = math.sin(data)
+                c = -math.sin(data)
+            elif type == "skewX":
+                a = d = 1
+                c = math.tan(float(data))
+            elif type == "skewY":
+                a = d = 1
+                b = math.tan(float(data))
+
+        return a, b, c, d, e, f
+
+    def get_jacobian_sqrt(self):
+        a, b, c, d, e, f = self.get_transform_values()
+        det = a * d - c * b
+        return math.sqrt(math.fabs(det))
+
+    def translate(self, x, y):
+        """
+        Translate the node
+        :param x: horizontal translation
+        :param y: vertical translation
+        """
+        a, b, c, d, old_x, old_y = self.get_transform_values()
+        new_x = float(old_x) + x
+        new_y = float(old_y) + y
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
+        self._node.attrib['transform'] = transform
+
+    def get_scale_factor(self):
+        """
+        Extract the scale factor from the node's transform attribute
+        :return: scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        return a
+
+    def set_scale_factor(self, scale):
+        """
+        Set the node's scale factor (keeps the rest of the transform matrix)
+        :param scale: the new scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, scale, e, f)
+        self._node.attrib['transform'] = transform
+
+    def set_color(self, color):
+        """ Sets the color of the node to color
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+
+        ToDo: Reimplement this to attribute correct color management!
+        """
+        #self._node.attrib["fill"] = color
+        #TexText.set_node_style_color(self._node, color)  # for fill in the style attribute
+        #for child in self._node.iterchildren():
+        #    child.attrib["fill"] = color
+        #    TexText.set_node_style_color(child, color)  # for fill in the style attribute
+
+        # from old set_node_style_color method:
+        #if "style" in node.keys():
+        #    old_style_dict = ss.parseStyle(node.attrib["style"])
+        #    if "fill" in old_style_dict.keys():
+        #        old_style_dict["fill"] = color
+        #        node.attrib["style"] = ss.formatStyle(old_style_dict)
+
+    @staticmethod
+    def _calc_transform(scale_factor):
+        """ Calculates the transformation matrix for a simple scaling"""
+        # ToDo: Do we need this anymore?
+        return 'matrix(%f,0,0,%f,%f,%f)' % (scale_factor, -scale_factor, 0, 0)
+
+
+
+#CONVERTERS = [PstoeditPlotSvg]
+CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
