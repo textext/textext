@@ -1228,52 +1228,10 @@ class Pdf2SvgSvgElement(SvgElement):
 
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """ Returns x_min, y_min, width and height of node"""
-
-        x_min = 1e6
-        x_max = -1e6
-        y_min = 1e6
-        y_max = -1e6
-
-        # Iterate over all path elements and determine their maximum and minumum x and y values. Note that the
-        # coordinates are translated by pdf2svg, so we have to account for this
-        for path_ele in self._node.xpath("//*[local-name() =\"path\"]"):
-            _, _, _, _, x_trans, y_trans = self.calc_transform_values(path_ele)
-            x_min_temp, x_max_temp, y_min_temp, y_max_temp = st.computeBBox([path_ele], mat)
-            x_min_temp += x_trans
-            x_max_temp += x_trans
-            y_min_temp += y_trans
-            y_max_temp += y_trans
-            if x_min_temp < x_min:
-                x_min = x_min_temp
-            if x_max_temp > x_max:
-                x_max = x_max_temp
-            if y_min_temp < y_min:
-                y_min = y_min_temp
-            if y_max_temp > y_max:
-                y_max = y_max_temp
-
-        # Do the same with the line elements
-        for line_ele in self._node.xpath("//*[local-name() =\"line\"]"):
-            _, _, _, _, x_trans, y_trans = self.calc_transform_values(line_ele)
-            x_min_temp, x_max_temp, y_min_temp, y_max_temp = st.computeBBox([line_ele], mat)
-            x_min_temp += x_trans
-            x_min_temp += x_trans
-            x_max_temp += x_trans
-            y_min_temp += y_trans
-            y_max_temp += y_trans
-            if x_min_temp < x_min:
-                x_min = x_min_temp
-            if x_max_temp > x_max:
-                x_max = x_max_temp
-            if y_min_temp < y_min:
-                y_min = y_min_temp
-            if y_max_temp > y_max:
-                y_max = y_max_temp
-
-        # Finally, we have to add the absolute translation of the frame
-        scale, _, _, _, x_trans, y_trans = self.get_transform_values()
-        scale = scale
-        return x_min * scale + x_trans, y_min * scale + y_trans, (x_max - x_min) * scale, (y_max - y_min) * scale
+        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
+        width = max_x - min_x
+        height = max_y - min_y
+        return min_x, min_y, width, height
 
     def get_transform_values(self):
         """
@@ -1281,18 +1239,9 @@ class Pdf2SvgSvgElement(SvgElement):
         depending on the transform applied
         See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
         """
-        return self.calc_transform_values(self._node)
-
-    @staticmethod
-    def calc_transform_values(node):
-        """
-        Returns the entries a, b, c, d, e, f of the node's transformation matrix
-        depending on the transform applied
-        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
-        """
         a = b = c = d = e = f = 0
-        if 'transform' in node.attrib:
-            (a,c,e),(b,d,f) = st.parseTransform(node.attrib['transform'])
+        if 'transform' in self._node.attrib:
+            (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
         return a, b, c, d, e, f
 
     def get_jacobian_sqrt(self):
@@ -1356,8 +1305,8 @@ class Pdf2SvgSvgElement(SvgElement):
 
 
 
-CONVERTERS = [PstoeditPlotSvg]
-#CONVERTERS = [Pdf2SvgPlotSvg]
+#CONVERTERS = [PstoeditPlotSvg]
+CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
