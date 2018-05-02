@@ -65,7 +65,6 @@ import inkex
 import simplestyle as ss
 import simpletransform as st
 import tempfile
-import re
 import abc
 import copy
 from lxml import etree
@@ -1232,14 +1231,6 @@ class Pdf2SvgSvgElement(SvgElement):
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """ Returns x_min, y_min, width and height of node"""
 
-        # Note: in pdf2svg the coordinates are separated by a space, not by a comma, hence we have to use "\s" instead
-        # of "," in newly created nodes. After the node has been shifted by the user in Inkscape the coordinate pairs
-        # are separated by commas as in pstoedit-nodes. If the node has been left untouched in Inkscape the coordinates
-        # are still separated by spaces. Hence we have to catch both cases in the last regex-group:
-        # -> (\s|,) instead of , in the last group!
-        # Furthermore, pdf2svg likes to put exponents into its numbers, e.g. 1.23e-4
-        pattern = re.compile(r"[cmlvhCMLVH]*\s*\-?\d+\.?\d*([eE][+-]?\d+)?((\s|,)\-?\d+\.?\d*([eE][+-]?\d+)?)?")
-
         x_min = 1e6
         x_max = -1e6
         y_min = 1e6
@@ -1248,10 +1239,8 @@ class Pdf2SvgSvgElement(SvgElement):
         # Iterate over all path elements and determine their maximum and minumum x and y values. Note that the
         # coordinates are translated by pdf2svg, so we have to account for this
         for path_ele in self._node.xpath("//*[local-name() =\"path\"]"):
-            data = path_ele.attrib["d"]
             _, _, _, _, x_trans, y_trans = self.calc_transform_values(path_ele)
-            points = [match.group() for match in re.finditer(pattern, data)]
-            x_min_temp, x_max_temp, y_min_temp, y_max_temp = self.get_xy_minmax(points)
+            x_min_temp, x_max_temp, y_min_temp, y_max_temp = st.computeBBox([path_ele], mat)
             x_min_temp += x_trans
             x_max_temp += x_trans
             y_min_temp += y_trans
@@ -1267,10 +1256,9 @@ class Pdf2SvgSvgElement(SvgElement):
 
         # Do the same with the line elements
         for line_ele in self._node.xpath("//*[local-name() =\"line\"]"):
-            data = line_ele.attrib["d"]
             _, _, _, _, x_trans, y_trans = self.calc_transform_values(line_ele)
-            points = [match.group() for match in re.finditer(pattern, data)]
-            x_min_temp, x_max_temp, y_min_temp, y_max_temp = self.get_xy_minmax(points)
+            x_min_temp, x_max_temp, y_min_temp, y_max_temp = st.computeBBox([line_ele], mat)
+            x_min_temp += x_trans
             x_min_temp += x_trans
             x_max_temp += x_trans
             y_min_temp += y_trans
@@ -1289,67 +1277,6 @@ class Pdf2SvgSvgElement(SvgElement):
         scale = scale
         return x_min * scale + x_trans, y_min * scale + y_trans, (x_max - x_min) * scale, (y_max - y_min) * scale
 
-    @staticmethod
-    def get_xy_minmax(points):
-        """
-        Determins the minimum and maximum x and y values of the node described by the commands found in the list points
-        points = ["M 1.2, 3.4", "C 3.2, 2.4", "4.2, 4.2", "1.2, 2.3", "V 1.2", "h 2.1", ...]
-        """
-        x_values = []
-        y_values = []
-        current_x, current_y = 0, 0
-        x, y = 0, 0
-
-        for point in points:
-            point = point.lstrip()
-            first_letter = point[0]
-
-            # Get a command (new letter only if command changes)
-            if not first_letter.isdigit() and not first_letter == "-":
-                command = first_letter
-
-                # For relative cubic beziers all coordinates refer to the initial point (= final point of last command)
-                # for poly beziers each third point is the initial point for the next one
-                # M 1,2 c 0.1,0.1 0.1,0.1 0.5,0.5 0.1,0.1 0.1,0.1 0.5,0.5 -->
-                # Bezier starts at 1,2, goes to 1.5,2.5, then goes to 2.0,3.0
-                if command == "c":
-                    x_cubic_init = current_x
-                    y_cubic_init = current_y
-                    cubic_segment = 0
-                point = point[1:].lstrip()
-
-            if command in "MmLlCc":  # Move, Line, Cubic Curve
-                x, y = re.split("\s|,\s?", point)  # split "1.2 3.4" as well as "1.2,3.4" and "1.2, 3.4" into 2 strings
-            elif command == "Hh":  # Horizontal (just one coordinate part)
-                x, y = point, current_y
-            elif command == "Vv":  # Vertical (just one coordinate part)
-                x, y = current_x, point
-
-            # Depending in absolute or relative command determine the current x,y
-            if command.isupper():
-                current_x = float(x)
-                current_y = float(y)
-            else:
-                # For relative cubic beziers all coordinates refer to the initial point (= final point of last command)
-                # In Poly-Beziers each third point is the final point of the segment and the initial point of the
-                # next segment, so we have to account for this by the counter cubic_segment
-                if command == "c":
-                    current_x = x_cubic_init + float(x)
-                    current_y = y_cubic_init + float(y)
-                    cubic_segment += 1
-                    if cubic_segment == 3:
-                        x_cubic_init = current_x
-                        y_cubic_init = current_y
-                        cubic_segment = 0
-                else:
-                    current_x += float(x)
-                    current_y += float(y)
-
-            x_values.append(current_x)
-            y_values.append(current_y)
-
-        return min(x_values), max(x_values), min(y_values), max(y_values)
-
     def get_transform_values(self):
         """
         Returns the entries a, b, c, d, e, f of self._node's transformation matrix
@@ -1366,34 +1293,8 @@ class Pdf2SvgSvgElement(SvgElement):
         See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
         """
         a = b = c = d = e = f = 0
-
         if 'transform' in node.attrib:
-            transform = node.attrib['transform']
-            [type, data] = transform.split('(')
-            data = data.split(')')[0]
-            if type == "translate":
-                a = d = 1
-                tmp = data.split(",")
-                if len(tmp) == 1:
-                    e = float(tmp[0])
-                else:
-                    [e, f] = [float(val) for val in tmp]
-            elif type == "matrix":
-                a, b, c, d, e, f = [float(val) for val in data.split(',')]
-            elif type == "scale":
-                a = d = float(data)
-            elif type == "rotate":
-                data = float(data)
-                a = d = math.cos(data)
-                b = math.sin(data)
-                c = -math.sin(data)
-            elif type == "skewX":
-                a = d = 1
-                c = math.tan(float(data))
-            elif type == "skewY":
-                a = d = 1
-                b = math.tan(float(data))
-
+            (a,c,e),(b,d,f) = st.parseTransform(node.attrib['transform'])
         return a, b, c, d, e, f
 
     def get_jacobian_sqrt(self):
