@@ -440,39 +440,8 @@ class TexText(inkex.Effect):
 
     @staticmethod
     def copy_style(old_node, new_node):
-        """
-        Copy all style attributes from the old to the new node, including the children, since TexText nodes are groups.
-        :param old_node:
-        :param new_node:
-        """
-        # ToDo: Make this smarter and such that the user can decide if he wants to use LaTeX or Inkscape colors
-        # style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
-        #                'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
-        #                'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
-        #
-        # for attribute_name in style_attrs:
-        #     try:
-        #         if attribute_name in old_node.keys():
-        #             old_attribute = old_node.attrib[attribute_name]
-        #         else:
-        #             continue
-        #
-        #         new_node.attrib[attribute_name] = old_attribute
-        #
-        #         for child in new_node.iterchildren():
-        #             child.attrib[attribute_name] = old_attribute
-        #
-        #     except (KeyError, IndexError, TypeError, AttributeError):
-        #         add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
-        #
-        # old_node_has_fill_color = False
-        # if "fill" in old_node.keys():
-        #     old_fill = old_node.attrib["fill"]
-        #     if old_fill != "none" and old_fill is not None and old_fill != "":
-        #         old_node_has_fill_color = True
-        #
-        # if not old_node_has_fill_color:
-        #     TexText.set_color(new_node, "black")
+        # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
+        return
 
 
 class Settings(object):
@@ -851,7 +820,7 @@ class PstoeditPlotSvg(PdfConverterBase):
                                 "This is a problem of pstoedit, not of TexText!!", LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
         if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript            
+            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript
             if "DELAYBIND" in result:
                 result += "Ensure that a ghostscript version < 9.21 is installed on your system!\n"
             add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
@@ -985,6 +954,7 @@ class Pdf2SvgPlotSvg(PdfConverterBase):
 
 
 class SvgElement(object):
+    """ Holds SVG node data and provides several methods for working on the data """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, xml_element):
@@ -999,7 +969,10 @@ class SvgElement(object):
         return self._node
 
     def get_attrib(self, attrib_name):
-        """ Returns the value of the attribute attrib_name (str) in the standard namespace if it exists, otherwise None """
+        """
+        Returns the value of the attribute attrib_name (str) in the standard namespace if it exists,
+        otherwise None
+        """
         attrib_value = None
         if attrib_name in self._node.attrib.keys():
             attrib_value = self._node.attrib[attrib_name]
@@ -1014,7 +987,9 @@ class SvgElement(object):
         return self.is_node_textext_attribute(self._node, attrib_name)
 
     def get_textext_attrib(self, attrib_name):
-        """ Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None """
+        """
+        Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None
+        """
         return self.get_node_textext_attrib(self._node, attrib_name)
 
     def set_textext_attrib(self, attrib_name, attrib_value):
@@ -1028,13 +1003,13 @@ class SvgElement(object):
 
     @classmethod
     def get_node_textext_attrib(cls, node, attrib_name):
-        """ Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None """
+        """
+        Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None
+        """
         attrib_value = None
         if cls.is_node_textext_attribute(node, attrib_name):
             attrib_value = node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)].decode('string-escape')
         return attrib_value
-
-
 
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """
@@ -1118,7 +1093,7 @@ class SvgElement(object):
 
     @abc.abstractmethod
     def get_converter_name():
-        """ Returns the converter used for creating the svg elemen """
+        """ Returns the converter used for creating the svg element (static method in derived classes) """
 
     @abc.abstractmethod
     def set_scale_factor(self, scale):
@@ -1134,9 +1109,10 @@ class SvgElement(object):
         Modifies - if necessary - the transformation matrix stored in transform_as_list which has its origin
         from ref_node such that no unexepcted behavior occurs if applied to the node managed by self.
 
-        This is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa.
+        This is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa, see
+        derived classes.
 
-        :param ref_node: An object subclassed from ref_node the transform originally belonged to
+        :param ref_node: An object subclassed from ref_node the transform in transform_as_list originally belonged to
         :param transform_as_list: The transformation matrix as a 2-dim list [[a,c,e],[b,d,f]]
         :return: The modified or original transformation matrix as a 2-dim list.
         """
@@ -1156,7 +1132,7 @@ class SvgElement(object):
         elif v_alignment == "bottom":
             ypos = y + h
         else:
-            # fallback = middle
+            # fallback -> middle
             ypos = y + h / 2
 
         if h_alignment == "left":
@@ -1166,12 +1142,13 @@ class SvgElement(object):
         elif h_alignment == "right":
             xpos = x + w
         else:
-            # fallback = center
+            # fallback -> center
             xpos = x + w / 2
         return [xpos, ypos]
 
 
 class PsToEditSvgElement(SvgElement):
+    """ Holds SVG node data created by pstoedit """
 
     def __init__(self, xml_element):
         super(self.__class__, self).__init__(xml_element)
@@ -1207,6 +1184,7 @@ class PsToEditSvgElement(SvgElement):
 
 
 class Pdf2SvgSvgElement(SvgElement):
+    """ Holds SVG node data created by pdf2svg """
 
     def __init__(self, xml_element):
         super(self.__class__, self).__init__(xml_element)
