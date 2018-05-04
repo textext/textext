@@ -449,7 +449,7 @@ class TexText(inkex.Effect):
 
             # otherwise, check for TEXTEXT_NS in attrib
             if '{%s}text' % TEXTEXT_NS in node.attrib:
-                scale = None
+                scale = 1.0
                 if '{%s}scale' % TEXTEXT_NS in node.attrib:
                     scale_string = node.attrib.get('{%s}scale' % TEXTEXT_NS, '').decode('string-escape')
                     scale = float(scale_string)
