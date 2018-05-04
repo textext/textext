@@ -379,7 +379,6 @@ class TexText(inkex.Effect):
             self.current_layer.append(new_node.get_xml_raw_node())
         else:
             relative_scale = user_scale_factor / original_scale
-
             new_node.align_to_node(old_node, alignment, relative_scale)
 
             self.replace_node(old_node.get_xml_raw_node(), new_node.get_xml_raw_node())
@@ -409,23 +408,23 @@ class TexText(inkex.Effect):
                 continue
 
             # otherwise, check for TEXTEXT_NS in attrib
-            if '{%s}text' % TEXTEXT_NS in node.attrib:
-                scale = 1.0
-                if '{%s}scale' % TEXTEXT_NS in node.attrib:
-                    scale_string = node.attrib.get('{%s}scale' % TEXTEXT_NS, '').decode('string-escape')
-                    scale = float(scale_string)
-
-                text = node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape')
-                preamble = node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape')
-
-                if '{%s}pdfconverter' % TEXTEXT_NS in node.attrib:
-                    pdf_converter = node.attrib.get('{%s}pdfconverter' % TEXTEXT_NS, '').decode('string-escape')
+            if SvgElement.is_node_textext_attribute(node, 'text'):
+                # Check which pdf converter has been used for creating svg data
+                if SvgElement.is_node_textext_attribute(node, 'pdfconverter'):
+                    pdf_converter = SvgElement.get_node_textext_attrib(node, 'pdfconverter')
                     if pdf_converter == "pdf2svg":
                         svg_element = Pdf2SvgSvgElement(node)
                     else:
                         svg_element = PsToEditSvgElement(node)
                 else:
                     svg_element = PsToEditSvgElement(node)
+
+                text = svg_element.get_textext_attrib('text')
+                preamble = svg_element.get_textext_attrib('preamble')
+
+                scale = 1.0
+                if svg_element.is_textext_attrib('scale'):
+                    scale = float(svg_element.get_textext_attrib('scale'))
 
                 return svg_element, text, preamble, scale
         return None, "", "", None
@@ -1012,18 +1011,30 @@ class SvgElement(object):
 
     def is_textext_attrib(self, attrib_name):
         """ Returns True if the attibute attrib_name (str) exists in the TexText namespace, otherwise false """
-        return '{%s}%s' % (TEXTEXT_NS, attrib_name) in self._node.attrib.keys()
+        return self.is_node_textext_attribute(self._node, attrib_name)
 
     def get_textext_attrib(self, attrib_name):
         """ Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None """
-        attrib_value = None
-        if self.is_textext_attrib(attrib_name):
-            attrib_value = self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)]
-        return attrib_value
+        return self.get_node_textext_attrib(self._node, attrib_name)
 
     def set_textext_attrib(self, attrib_name, attrib_value):
         """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
         self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
+
+    @staticmethod
+    def is_node_textext_attribute(node, attrib_name):
+        """ Returns True if the attibute attrib_name (str) exists in the TexText namespace of node, otherwise false """
+        return '{%s}%s' % (TEXTEXT_NS, attrib_name) in node.attrib.keys()
+
+    @classmethod
+    def get_node_textext_attrib(cls, node, attrib_name):
+        """ Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None """
+        attrib_value = None
+        if cls.is_node_textext_attribute(node, attrib_name):
+            attrib_value = node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)].decode('string-escape')
+        return attrib_value
+
+
 
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """
