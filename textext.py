@@ -374,52 +374,13 @@ class TexText(inkex.Effect):
 
             x, y, w, h = new_node.get_frame()
             new_node.translate(-x + width/2 -w/2, -y+height/2 -h/2)
-
             new_node.set_textext_attrib('jacobian_sqrt', str(new_node.get_jacobian_sqrt()))
 
             self.current_layer.append(new_node.get_xml_raw_node())
         else:
-
             relative_scale = user_scale_factor / original_scale
-            scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
-            old_transform = old_node.get_attrib('transform')
-            composition = st.parseTransform(old_transform, scale_transform)
-            # keep alignment point of drawing intact, calculate required shift
-
-            new_node.set_attrib('transform', st.formatTransform(composition))
-
-            x,y,w,h = old_node.get_frame()
-            new_x, new_y, new_w, new_h = new_node.get_frame()
-
-            def get_pos(x, y, w, h, alignment):
-                v_alignment, h_alignment = alignment.split(" ")
-                if v_alignment=="top":
-                    ypos = y
-                elif v_alignment=="middle":
-                    ypos = y + h/2
-                elif v_alignment=="bottom":
-                    ypos = y + h
-
-                if h_alignment == "left":
-                    xpos = x
-                elif h_alignment == "center":
-                    xpos = x+w/2
-                elif h_alignment == "right":
-                    xpos=x+w
-                return [xpos, ypos]
-
-            p_old = get_pos(x,y,w,h,alignment)
-            p_new = get_pos(new_x, new_y, new_w, new_h, alignment)
-
-            dx = p_old[0]-p_new[0]
-            dy = p_old[1]-p_new[1]
-
-            composition[0][2] += dx
-            composition[1][2] += dy
-
-            new_node.set_attrib('transform', st.formatTransform(composition))
-            new_node.set_textext_attrib("jacobian_sqrt", str(new_node.get_jacobian_sqrt()))
+            new_node.align_to_node(old_node, alignment, relative_scale)
 
             self.replace_node(old_node.get_xml_raw_node(), new_node.get_xml_raw_node())
 
@@ -1111,6 +1072,39 @@ class SvgElement(object):
         transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
         self._node.attrib['transform'] = transform
 
+    def align_to_node(self, ref_node, alignment, relative_scale):
+        """
+        Aligns the node represented by self to a reference node according to the settings defined by the user
+        :param ref_node: Reference node subclassed from SvgElement to which self is going to be aligned
+        :param alignment: A 2-element string list defining the alignment
+        :param relative_scale: Scaling of the new node relative to the scale of the reference node
+        """
+        scale_transform = st.parseTransform("scale(%f)" % relative_scale)
+
+        old_transform = ref_node.get_attrib('transform')
+        composition = st.parseTransform(old_transform, scale_transform)
+
+        # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
+        composition = self._check_and_fix_transform(ref_node, composition)
+
+        # keep alignment point of drawing intact, calculate required shift
+        self.set_attrib('transform', st.formatTransform(composition))
+
+        x, y, w, h = ref_node.get_frame()
+        new_x, new_y, new_w, new_h = self.get_frame()
+
+        p_old = self._get_pos(x, y, w, h, alignment)
+        p_new = self._get_pos(new_x, new_y, new_w, new_h, alignment)
+
+        dx = p_old[0] - p_new[0]
+        dy = p_old[1] - p_new[1]
+
+        composition[0][2] += dx
+        composition[1][2] += dy
+
+        self.set_attrib('transform', st.formatTransform(composition))
+        self.set_textext_attrib("jacobian_sqrt", str(self.get_jacobian_sqrt()))
+
     @abc.abstractmethod
     def get_converter_name():
         """ Returns the converter used for creating the svg elemen """
@@ -1122,6 +1116,48 @@ class SvgElement(object):
     @abc.abstractmethod
     def set_color(self, color):
         """ Sets the color of the node to color """
+
+    @abc.abstractmethod
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """
+        Modifies - if necessary - the transformation matrix stored in transform_as_list which has its origin
+        from ref_node such that no unexepcted behavior occurs if applied to the node managed by self.
+
+        This is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa.
+
+        :param ref_node: An object subclassed from ref_node the transform originally belonged to
+        :param transform_as_list: The transformation matrix as a 2-dim list [[a,c,e],[b,d,f]]
+        :return: The modified or original transformation matrix as a 2-dim list.
+        """
+
+    @staticmethod
+    def _get_pos(x, y, w, h, alignment):
+        """ Returns the alignment point of a frame according to the required defined in alignment
+
+        :param x, y, w, h: Position of top left corner, width and height of the frame
+        :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
+        """
+        v_alignment, h_alignment = alignment.split(" ")
+        if v_alignment == "top":
+            ypos = y
+        elif v_alignment == "middle":
+            ypos = y + h / 2
+        elif v_alignment == "bottom":
+            ypos = y + h
+        else:
+            # fallback = middle
+            ypos = y + h / 2
+
+        if h_alignment == "left":
+            xpos = x
+        elif h_alignment == "center":
+            xpos = x + w / 2
+        elif h_alignment == "right":
+            xpos = x + w
+        else:
+            # fallback = center
+            xpos = x + w / 2
+        return [xpos, ypos]
 
 
 class PsToEditSvgElement(SvgElement):
@@ -1152,6 +1188,12 @@ class PsToEditSvgElement(SvgElement):
         """
         return
 
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
+        if isinstance(ref_node, Pdf2SvgSvgElement):
+            transform_as_list[1][1] *= -1
+        return transform_as_list
+
 
 class Pdf2SvgSvgElement(SvgElement):
 
@@ -1179,6 +1221,12 @@ class Pdf2SvgSvgElement(SvgElement):
         ToDo: Reimplement this to attribute correct color management!
         """
         return
+
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
+        if isinstance(ref_node, PsToEditSvgElement):
+            transform_as_list[1][1] *= -1
+        return transform_as_list
 
 
 #CONVERTERS = [PstoeditPlotSvg]
