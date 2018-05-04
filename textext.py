@@ -911,7 +911,7 @@ class Pdf2SvgPlotSvg(PdfConverterBase):
         """
         try:
             # Exec pdf2cvg infile.pdf outfile.svg
-            result = exec_command(['c:\\Progs\\pdf2svg\\pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+            result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
         except RuntimeError as excpt:
             add_log_message("Command pdf2svg failed: %s" % (excpt))
             raise RuntimeError(latest_message())
@@ -981,7 +981,7 @@ class Pdf2SvgPlotSvg(PdfConverterBase):
         """
         Check if pdf2svg is available
         """
-        out = exec_command(['c:\\Progs\\pdf2svg\\pdf2svg', '--help'], ok_return_value=None)
+        out = exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
 class SvgElement(object):
