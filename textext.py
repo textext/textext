@@ -199,12 +199,12 @@ class TexText(inkex.Effect):
             die("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
         # Find root element
-        old_node, text, preamble_file, current_scale = self.get_old()
+        old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
         # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
         # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
         # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
-        if (old_node is not None) and (not old_node.is_attrib("version", TEXTEXT_NS)):
+        if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
             try:
                 # Inkscape > 0.48
                 current_scale *= self.uutounit(1, "pt")
@@ -212,13 +212,13 @@ class TexText(inkex.Effect):
                 # Inkscape <= 0.48
                 current_scale *= inkex.uutounit(1, "pt")
 
-        if old_node is not None and old_node.is_attrib("jacobian_sqrt", TEXTEXT_NS):
-            current_scale *= old_node.get_jacobian_sqrt()/float(old_node.get_attrib("jacobian_sqrt", TEXTEXT_NS))
+        if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
+            current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
 
         alignment = TexText.DEFAULT_ALIGNMENT
 
-        if old_node is not None and old_node.is_attrib("alignment", TEXTEXT_NS):
-            alignment = old_node.get_attrib("alignment", TEXTEXT_NS)
+        if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
+            alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
 
         # Ask for TeX code
         if self.options.text is None:
@@ -234,7 +234,7 @@ class TexText(inkex.Effect):
             try:
 
                 def callback(_text, _preamble, _scale, alignment="middle center"):
-                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_node, alignment, original_scale=current_scale)
+                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment, original_scale=current_scale)
 
                 asker.ask(callback,
                           lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
@@ -246,7 +246,7 @@ class TexText(inkex.Effect):
         else:
             self.do_convert(self.options.text,
                             self.options.preamble_file,
-                            self.options.scale_factor, usable_converter_class, old_node)
+                            self.options.scale_factor, usable_converter_class, old_svg_ele)
 
         show_log()
 
@@ -305,7 +305,7 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node, alignment, original_scale=None):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -313,7 +313,7 @@ class TexText(inkex.Effect):
         :param preamble_file:
         :param user_scale_factor:
         :param converter_class:
-        :param old_node:
+        :param old_svg_ele:
         """
         if not text:
             return
@@ -333,32 +333,32 @@ class TexText(inkex.Effect):
         # Convert
         converter = converter_class()
         try:
-            new_node = converter.convert(text, preamble_file, scale_factor)
+            new_svg_ele = converter.convert(text, preamble_file, scale_factor)
         finally:
             converter.finish()
 
-        if new_node is None:
+        if new_svg_ele is None:
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
             return
 
         # -- Store textext attributes
-        new_node.set_attrib("version", __version__, TEXTEXT_NS)
-        new_node.set_attrib("texconverter", converter.get_tex_converter_name(), TEXTEXT_NS)
-        new_node.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
-        new_node.set_attrib("text", text, TEXTEXT_NS)
-        new_node.set_attrib("preamble", preamble_file, TEXTEXT_NS)
-        new_node.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
-        new_node.set_attrib("alignment", str(alignment), TEXTEXT_NS)
+        new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
+        new_svg_ele.set_attrib("texconverter", converter.get_tex_converter_name(), TEXTEXT_NS)
+        new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
+        new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
+        new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
+        new_svg_ele.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
+        new_svg_ele.set_attrib("alignment", str(alignment), TEXTEXT_NS)
 
         if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
-            new_node.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
+            new_svg_ele.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
                                                                               inkex.NSS["inkscape"]).split(' ')[0])
             # Unfortunately when this node comes from an Inkscape document that has never been saved before
             # no version attribute is provided by Inkscape :-(
 
         # -- Copy style
-        if old_node is None:
-            new_node.set_color("black")
+        if old_svg_ele is None:
+            new_svg_ele.set_color("black")
 
             root = self.document.getroot()
             try:
@@ -370,16 +370,16 @@ class TexText(inkex.Effect):
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
 
-            x, y, w, h = new_node.get_frame()
-            new_node.translate(-x + width/2 -w/2, -y+height/2 -h/2)
-            new_node.set_attrib('jacobian_sqrt', str(new_node.get_jacobian_sqrt()), TEXTEXT_NS)
+            x, y, w, h = new_svg_ele.get_frame()
+            new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
+            new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
 
-            self.current_layer.append(new_node.get_xml_raw_node())
+            self.current_layer.append(new_svg_ele.get_xml_raw_node())
         else:
             relative_scale = user_scale_factor / original_scale
-            new_node.align_to_node(old_node, alignment, relative_scale)
+            new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
 
-            self.replace_node(old_node.get_xml_raw_node(), new_node.get_xml_raw_node())
+            self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
 
         # -- Save settings
         if os.path.isfile(preamble_file):
@@ -387,6 +387,7 @@ class TexText(inkex.Effect):
         else:
             self.settings.set('preamble', '')
 
+        # ToDo: Do we really need this if statement?
         if scale_factor is not None:
             self.settings.set('scale', user_scale_factor)
         self.settings.save()
@@ -396,7 +397,7 @@ class TexText(inkex.Effect):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_node, latex_text, preamble_file_name, scale)
+        :return: (old_svg_ele, latex_text, preamble_file_name, scale)
         """
 
         for i in self.options.ids:
@@ -769,14 +770,14 @@ class PdfConverterBase(LatexConverterBase):
         finally:
             os.chdir(cwd)
 
-        new_node = self.svg_to_group()
-        if new_node is None:
+        new_svg_ele = self.svg_to_group()
+        if new_svg_ele is None:
             return None
 
         if scale_factor is not None:
-            new_node.set_scale_factor(scale_factor)
+            new_svg_ele.set_scale_factor(scale_factor)
 
-        return new_node
+        return new_svg_ele
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
