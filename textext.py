@@ -204,7 +204,7 @@ class TexText(inkex.Effect):
         # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
         # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
         # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
-        if (old_node is not None) and (not old_node.is_textext_attrib("version")):
+        if (old_node is not None) and (not old_node.is_attrib("version", TEXTEXT_NS)):
             try:
                 # Inkscape > 0.48
                 current_scale *= self.uutounit(1, "pt")
@@ -212,13 +212,13 @@ class TexText(inkex.Effect):
                 # Inkscape <= 0.48
                 current_scale *= inkex.uutounit(1, "pt")
 
-        if old_node is not None and old_node.is_textext_attrib("jacobian_sqrt"):
-            current_scale *= old_node.get_jacobian_sqrt()/float(old_node.get_textext_attrib("jacobian_sqrt"))
+        if old_node is not None and old_node.is_attrib("jacobian_sqrt", TEXTEXT_NS):
+            current_scale *= old_node.get_jacobian_sqrt()/float(old_node.get_attrib("jacobian_sqrt", TEXTEXT_NS))
 
         alignment = TexText.DEFAULT_ALIGNMENT
 
-        if old_node is not None and old_node.is_textext_attrib("alignment"):
-            alignment = old_node.get_textext_attrib("alignment")
+        if old_node is not None and old_node.is_attrib("alignment", TEXTEXT_NS):
+            alignment = old_node.get_attrib("alignment", TEXTEXT_NS)
 
         # Ask for TeX code
         if self.options.text is None:
@@ -342,21 +342,19 @@ class TexText(inkex.Effect):
             return
 
         # -- Store textext attributes
-        new_node.set_textext_attrib("version", __version__)
-        new_node.set_textext_attrib("texconverter", converter.get_tex_converter_name())
-        new_node.set_textext_attrib("pdfconverter", converter.get_pdf_converter_name())
-        new_node.set_textext_attrib("text", text)
-        new_node.set_textext_attrib("preamble", preamble_file)
-        new_node.set_textext_attrib("scale", str(user_scale_factor))
-        new_node.set_textext_attrib("alignment", str(alignment))
+        new_node.set_attrib("version", __version__, TEXTEXT_NS)
+        new_node.set_attrib("texconverter", converter.get_tex_converter_name(), TEXTEXT_NS)
+        new_node.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
+        new_node.set_attrib("text", text, TEXTEXT_NS)
+        new_node.set_attrib("preamble", preamble_file, TEXTEXT_NS)
+        new_node.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
+        new_node.set_attrib("alignment", str(alignment), TEXTEXT_NS)
 
-        try:
-            new_node.set_textext_attrib("inkscapeversion",
-                                        self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0])
-        except KeyError:
+        if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
+            new_node.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
+                                                                              inkex.NSS["inkscape"]).split(' ')[0])
             # Unfortunately when this node comes from an Inkscape document that has never been saved before
             # no version attribute is provided by Inkscape :-(
-            pass
 
         # -- Copy style
         if old_node is None:
@@ -374,7 +372,7 @@ class TexText(inkex.Effect):
 
             x, y, w, h = new_node.get_frame()
             new_node.translate(-x + width/2 -w/2, -y+height/2 -h/2)
-            new_node.set_textext_attrib('jacobian_sqrt', str(new_node.get_jacobian_sqrt()))
+            new_node.set_attrib('jacobian_sqrt', str(new_node.get_jacobian_sqrt()), TEXTEXT_NS)
 
             self.current_layer.append(new_node.get_xml_raw_node())
         else:
@@ -408,10 +406,11 @@ class TexText(inkex.Effect):
                 continue
 
             # otherwise, check for TEXTEXT_NS in attrib
-            if SvgElement.is_node_textext_attribute(node, 'text'):
+            if SvgElement.is_node_attrib(node, 'text', TEXTEXT_NS):
+
                 # Check which pdf converter has been used for creating svg data
-                if SvgElement.is_node_textext_attribute(node, 'pdfconverter'):
-                    pdf_converter = SvgElement.get_node_textext_attrib(node, 'pdfconverter')
+                if SvgElement.is_node_attrib(node, 'pdfconverter', TEXTEXT_NS):
+                    pdf_converter = SvgElement.get_node_attrib(node, 'pdfconverter', TEXTEXT_NS)
                     if pdf_converter == "pdf2svg":
                         svg_element = Pdf2SvgSvgElement(node)
                     else:
@@ -419,12 +418,12 @@ class TexText(inkex.Effect):
                 else:
                     svg_element = PsToEditSvgElement(node)
 
-                text = svg_element.get_textext_attrib('text')
-                preamble = svg_element.get_textext_attrib('preamble')
+                text = svg_element.get_attrib('text', TEXTEXT_NS)
+                preamble = svg_element.get_attrib('preamble', TEXTEXT_NS)
 
                 scale = 1.0
-                if svg_element.is_textext_attrib('scale'):
-                    scale = float(svg_element.get_textext_attrib('scale'))
+                if svg_element.is_attrib('scale', TEXTEXT_NS):
+                    scale = float(svg_element.get_attrib('scale', TEXTEXT_NS))
 
                 return svg_element, text, preamble, scale
         return None, "", "", None
@@ -968,48 +967,48 @@ class SvgElement(object):
         """ Returns the node as an etree.Element object """
         return self._node
 
-    def get_attrib(self, attrib_name):
+    def is_attrib(self, attrib_name, namespace=u""):
+        """ Returns True if the attibute attrib_name (str) exists in the specified namespace, otherwise false """
+        return self.is_node_attrib(self._node, attrib_name, namespace)
+
+    def get_attrib(self, attrib_name, namespace=u""):
         """
-        Returns the value of the attribute attrib_name (str) in the standard namespace if it exists,
-        otherwise None
+        Returns the value of the attribute attrib_name (str) in the specified namespace if it exists, otherwise None
         """
-        attrib_value = None
-        if attrib_name in self._node.attrib.keys():
-            attrib_value = self._node.attrib[attrib_name]
-        return attrib_value
+        return self.get_node_attrib(self._node, attrib_name, namespace)
 
-    def set_attrib(self, attrib_name, attrib_value):
-        """ Sets the value of the attribute with the name attrib_name to attrib_value in the standard namespace"""
-        self._node.attrib[attrib_name] = attrib_value
-
-    def is_textext_attrib(self, attrib_name):
-        """ Returns True if the attibute attrib_name (str) exists in the TexText namespace, otherwise false """
-        return self.is_node_textext_attribute(self._node, attrib_name)
-
-    def get_textext_attrib(self, attrib_name):
-        """
-        Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None
-        """
-        return self.get_node_textext_attrib(self._node, attrib_name)
-
-    def set_textext_attrib(self, attrib_name, attrib_value):
-        """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the TexText namespace"""
-        self._node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)] = attrib_value.encode('string-escape')
-
-    @staticmethod
-    def is_node_textext_attribute(node, attrib_name):
-        """ Returns True if the attibute attrib_name (str) exists in the TexText namespace of node, otherwise false """
-        return '{%s}%s' % (TEXTEXT_NS, attrib_name) in node.attrib.keys()
+    def set_attrib(self, attrib_name, attrib_value, namespace=""):
+        """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the specified namespace"""
+        aname = self.build_full_attribute_name(attrib_name, namespace)
+        self._node.attrib[aname] = attrib_value.encode('string-escape')
 
     @classmethod
-    def get_node_textext_attrib(cls, node, attrib_name):
+    def is_node_attrib(cls, node, attrib_name, namespace=u""):
         """
-        Returns the value of the attribute attrib_name (str) in the TexText namespace if it exists, otherwise None
+        Returns True if the attibute attrib_name (str) exists in the specified namespace of the given XML node,
+        otherwise False
+        """
+        return cls.build_full_attribute_name(attrib_name, namespace) in node.attrib.keys()
+
+    @classmethod
+    def get_node_attrib(cls, node, attrib_name, namespace=u""):
+        """
+        Returns the value of the attribute attrib_name (str) in the specified namespace of the given CML node
+        if it exists, otherwise None
         """
         attrib_value = None
-        if cls.is_node_textext_attribute(node, attrib_name):
-            attrib_value = node.attrib['{%s}%s' % (TEXTEXT_NS, attrib_name)].decode('string-escape')
+        if cls.is_node_attrib(node, attrib_name, namespace):
+            aname = cls.build_full_attribute_name(attrib_name, namespace)
+            attrib_value = node.attrib[aname].decode('string-escape')
         return attrib_value
+
+    @staticmethod
+    def build_full_attribute_name(attrib_name, namespace):
+        """ Builds a correct namespaced attribute name """
+        if namespace == "":
+            return attrib_name
+        else:
+            return '{%s}%s' % (namespace, attrib_name)
 
     def get_frame(self, mat=[[1,0,0],[0,1,0]]):
         """
@@ -1089,11 +1088,7 @@ class SvgElement(object):
         composition[1][2] += dy
 
         self.set_attrib('transform', st.formatTransform(composition))
-        self.set_textext_attrib("jacobian_sqrt", str(self.get_jacobian_sqrt()))
-
-    @abc.abstractmethod
-    def get_converter_name():
-        """ Returns the converter used for creating the svg element (static method in derived classes) """
+        self.set_attrib("jacobian_sqrt", str(self.get_jacobian_sqrt()), TEXTEXT_NS)
 
     @abc.abstractmethod
     def set_scale_factor(self, scale):
@@ -1153,11 +1148,6 @@ class PsToEditSvgElement(SvgElement):
     def __init__(self, xml_element):
         super(self.__class__, self).__init__(xml_element)
 
-    @staticmethod
-    def get_converter_name():
-        """ Returns the converter used for creating the svg elemen """
-        return "pstoedit"
-
     def set_scale_factor(self, scale):
         """
         Set the node's scale factor (keeps the rest of the transform matrix)
@@ -1188,11 +1178,6 @@ class Pdf2SvgSvgElement(SvgElement):
 
     def __init__(self, xml_element):
         super(self.__class__, self).__init__(xml_element)
-
-    @staticmethod
-    def get_converter_name():
-        """ Returns the converter used for creating the svg elemen """
-        return "pdf2svg"
 
     def set_scale_factor(self, scale):
         """
