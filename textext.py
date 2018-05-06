@@ -1038,14 +1038,6 @@ class SvgElement(object):
         det = a * d - c * b
         return math.sqrt(math.fabs(det))
 
-    def get_scale_factor(self):
-        """
-        Extract the scale factor from the node's transform attribute
-        :return: scale factor
-        """
-        a, _, _, _, _, _ = self.get_transform_values()
-        return a
-
     def translate(self, x, y):
         """
         Translate the node
