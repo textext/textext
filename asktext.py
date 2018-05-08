@@ -653,23 +653,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
 
-            liststore = gtk.ListStore(str)
-            alignment_labels = [  "top left","top center","top right",
-                        "middle left","middle center","middle right",
-                        "bottom left","bottom center", "bottom right"]
-            for a in alignment_labels:
-                liststore.append([a])
-
-            self._alignment_combobox = gtk.ComboBox()
-
-            cell = gtk.CellRendererText()
-            self._alignment_combobox.pack_start(cell)
-            self._alignment_combobox.add_attribute(cell, 'text', 0)
-            self._alignment_combobox.set_model(liststore)
-            self._alignment_combobox.set_wrap_width(3)
-            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
-            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
-
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
             items = [('tt-reset', 'Reset ({0:.1f})'.format(reset_scale), 0, 0, None),
@@ -703,9 +686,37 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
             scale_box.pack_start(self._scale, True, True, 2)
-            scale_box.pack_start(self._alignment_combobox, True, True, 2)
             scale_box.pack_start(scale_reset_button, False, False, 2)
             scale_box.pack_start(scale_global_button, False, False, 2)
+
+            # --- Alignment box ---
+            alignment_frame = gtk.Frame("Alignment")
+            alignment_box = gtk.HBox(homogeneous=False, spacing=2)
+            alignment_frame.add(alignment_box)
+
+            liststore = gtk.ListStore(str)
+            alignment_labels = [  "top left","top center","top right",
+                        "middle left","middle center","middle right",
+                        "bottom left","bottom center", "bottom right"]
+            for a in alignment_labels:
+                liststore.append([a])
+
+            self._alignment_combobox = gtk.ComboBox()
+
+            cell = gtk.CellRendererText()
+            self._alignment_combobox.pack_start(cell)
+            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.set_model(liststore)
+            self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
+            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
+
+            alignment_box.pack_start(self._alignment_combobox, True, True, 2)
+
+            # --- Scale and alignment together in one "line"
+            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=2)
+            scale_align_hbox.pack_start(scale_frame, False, False, 0)
+            scale_align_hbox.pack_start(alignment_frame, True, True, 0)
 
             # --- TeX code window ---
             # Scrolling Window with Source View inside
@@ -767,8 +778,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.pack_start(menu, False, False, 0)
             vbox.pack_start(preamble_frame, False, False, 0)
             vbox.pack_start(texcmd_frame, False, False, 0)
-            if self.global_scale_factor:
-                vbox.pack_start(scale_frame, False, False, 0)
+            vbox.pack_start(scale_align_hbox, False, False, 0)
+
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
             vbox.pack_start(self._preview, False, False, 0)
