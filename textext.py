@@ -160,6 +160,7 @@ def latest_message():
 class TexText(inkex.Effect):
 
     DEFAULT_ALIGNMENT = "middle center"
+    DEFAULT_TEXCMD = "pdflatex"
 
     def __init__(self):
         inkex.Effect.__init__(self)
@@ -220,6 +221,10 @@ class TexText(inkex.Effect):
         if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
             alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
 
+        current_tex_command = TexText.DEFAULT_TEXCMD
+        if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
+            current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
+
         # Ask for TeX code
         if self.options.text is None:
             global_scale_factor = self.options.scale_factor
@@ -230,11 +235,13 @@ class TexText(inkex.Effect):
             if not os.path.isfile(preamble_file):
                 preamble_file = ""
 
-            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale, current_alignment=alignment)
+            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale,
+                                         current_alignment=alignment, current_texcmd=current_tex_command)
             try:
 
-                def callback(_text, _preamble, _scale, alignment="middle center"):
-                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment, original_scale=current_scale)
+                def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT, tex_cmd=TexText.DEFAULT_TEXCMD):
+                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
+                                           tex_cmd, original_scale=current_scale)
 
                 asker.ask(callback,
                           lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
@@ -244,6 +251,7 @@ class TexText(inkex.Effect):
                 pass
 
         else:
+            # ToDo: I think this is completely broken...
             self.do_convert(self.options.text,
                             self.options.preamble_file,
                             self.options.scale_factor, usable_converter_class, old_svg_ele)
@@ -305,7 +313,8 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, original_scale=None):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
+                   original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -314,6 +323,8 @@ class TexText(inkex.Effect):
         :param user_scale_factor:
         :param converter_class:
         :param old_svg_ele:
+        :param alignment:
+        :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
         """
         if not text:
             return
@@ -333,7 +344,7 @@ class TexText(inkex.Effect):
         # Convert
         converter = converter_class()
         try:
-            new_svg_ele = converter.convert(text, preamble_file, scale_factor)
+            new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
         finally:
             converter.finish()
 
@@ -343,7 +354,7 @@ class TexText(inkex.Effect):
 
         # -- Store textext attributes
         new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
-        new_svg_ele.set_attrib("texconverter", converter.get_tex_converter_name(), TEXTEXT_NS)
+        new_svg_ele.set_attrib("texconverter", tex_command, TEXTEXT_NS)
         new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
         new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
         new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
@@ -628,13 +639,14 @@ class LatexConverterBase(object):
         self.tmp_path = tempfile.mkdtemp()
         self.tmp_base = 'tmp'
 
-    def convert(self, latex_text, preamble_file, scale_factor):
+    def convert(self, latex_text, preamble_file, scale_factor, tex_command):
         """
         Return an XML node containing latex text
 
         :param latex_text: Latex code to use
         :param preamble_file: Name of a preamble file to include
         :param scale_factor: Scale factor to use if object doesn't have a ``transform`` attribute.
+        :param tex_command: The command for tex -> pdf ("pdflatex", "xelatex", "lualatex"
 
         :return: XML DOM node
         """
@@ -661,7 +673,7 @@ class LatexConverterBase(object):
         """
         return os.path.join(self.tmp_path, self.tmp_base + '.' + suffix)
 
-    def tex_to_pdf(self, latex_text, preamble_file):
+    def tex_to_pdf(self, tex_command, latex_text, preamble_file):
         """
         Create a PDF file from latex text
         """
@@ -698,8 +710,11 @@ class LatexConverterBase(object):
 
         # Exec pdflatex: tex -> pdf
         try:
-            exec_command(['pdflatex', self.tmp('tex')] + latexOpts)
+            # lualatex does not like the backslash, even on Windows... So we always pass it unix-like but with
+            # a drive letter.
+            exec_command([tex_command, self.tmp('tex').replace('\\', '/')] + latexOpts)
         except RuntimeError as error:
+            # ToDo: Handle case when no log file has been created... (e.g. when tex_command not found)
             parsed_log = self.parse_pdf_log(self.tmp('log'))
             add_log_message(parsed_log, LOG_LEVEL_ERROR)
             raise RuntimeError("Your LaTeX code has problems:\n\n{errors}".format(errors=parsed_log))
@@ -761,11 +776,11 @@ class PdfConverterBase(LatexConverterBase):
     def get_tex_converter_name():
         return "pdflatex"
 
-    def convert(self, latex_text, preamble_file, scale_factor):
+    def convert(self, latex_text, preamble_file, scale_factor, tex_command):
         cwd = os.getcwd()
         try:
             os.chdir(self.tmp_path)
-            self.tex_to_pdf(latex_text, preamble_file)
+            self.tex_to_pdf(tex_command, latex_text, preamble_file)
             self.pdf_to_svg()
         finally:
             os.chdir(cwd)
