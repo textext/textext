@@ -616,6 +616,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self.clear_preamble()
 
+            # --- Preamble file ---
             preamble_delete = gtk.Button(label="Clear")
             preamble_delete.connect('clicked', self.clear_preamble)
             preamble_delete.set_tooltip_text("Clear the preamble file setting")
@@ -626,6 +627,23 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preamble_box.pack_start(self._preamble_widget, True, True, 2)
             preamble_box.pack_start(preamble_delete, False, False, 2)
 
+            # --- Tex command ---
+            texcmd_frame = gtk.Frame("TeX command")
+            texcmd_box = gtk.HBox(homogeneous=False, spacing=2)
+            texcmd_frame.add(texcmd_box)
+
+            self._texcmd_cbox = gtk.combo_box_new_text()
+            cell = gtk.CellRendererText()
+            self._texcmd_cbox.pack_start(cell)
+            self._texcmd_cbox.set_wrap_width(1)
+            self._texcmd_cbox.append_text("LaTeX")
+            self._texcmd_cbox.append_text("XeLaTex")
+            self._texcmd_cbox.append_text("LuaLaTeX")
+            self._texcmd_cbox.set_active(0)
+            self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
+            texcmd_box.pack_start(self._texcmd_cbox, True, True, 2)
+
+            # --- Scaling ---
             scale_frame = gtk.Frame("Scale Factor")
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
             scale_frame.add(scale_box)
@@ -642,7 +660,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             for a in alignment_labels:
                 liststore.append([a])
 
-
             self._alignment_combobox = gtk.ComboBox()
 
             cell = gtk.CellRendererText()
@@ -652,8 +669,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.set_wrap_width(3)
             self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
-
-
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
@@ -692,6 +707,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_box.pack_start(scale_reset_button, False, False, 2)
             scale_box.pack_start(scale_global_button, False, False, 2)
 
+            # --- TeX code window ---
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
             scroll_window.set_shadow_type(gtk.SHADOW_IN)
@@ -750,6 +766,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(menu, False, False, 0)
             vbox.pack_start(preamble_frame, False, False, 0)
+            vbox.pack_start(texcmd_frame, False, False, 0)
             if self.global_scale_factor:
                 vbox.pack_start(scale_frame, False, False, 0)
             vbox.pack_start(scroll_window, True, True, 0)
