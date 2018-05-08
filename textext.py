@@ -65,7 +65,7 @@ import inkex
 import simplestyle as ss
 import simpletransform as st
 import tempfile
-import re
+import abc
 import copy
 from lxml import etree
 
@@ -160,7 +160,6 @@ def latest_message():
 class TexText(inkex.Effect):
 
     DEFAULT_ALIGNMENT = "middle center"
-    ATTR_ALIGNMENT = '{%s}alignment' % TEXTEXT_NS
 
     def __init__(self):
         inkex.Effect.__init__(self)
@@ -200,12 +199,12 @@ class TexText(inkex.Effect):
             die("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
         # Find root element
-        old_node, text, preamble_file, current_scale = self.get_old()
+        old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
         # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
         # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
-        # is preserved when recompiling the LaTeX code.
-        if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
+        # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
+        if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
             try:
                 # Inkscape > 0.48
                 current_scale *= self.uutounit(1, "pt")
@@ -213,14 +212,13 @@ class TexText(inkex.Effect):
                 # Inkscape <= 0.48
                 current_scale *= inkex.uutounit(1, "pt")
 
-        if old_node is not None and ('{%s}jacobian_sqrt' % TEXTEXT_NS in old_node.attrib.keys()):
-            current_scale *= self.get_jacobian_sqrt(old_node)/float(old_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS])
+        if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
+            current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
 
         alignment = TexText.DEFAULT_ALIGNMENT
 
-        if  old_node is not None and TexText.ATTR_ALIGNMENT in old_node.attrib.keys():
-            alignment = old_node.attrib[TexText.ATTR_ALIGNMENT]
-
+        if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
+            alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
 
         # Ask for TeX code
         if self.options.text is None:
@@ -236,7 +234,7 @@ class TexText(inkex.Effect):
             try:
 
                 def callback(_text, _preamble, _scale, alignment="middle center"):
-                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_node, alignment, original_scale=current_scale)
+                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment, original_scale=current_scale)
 
                 asker.ask(callback,
                           lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
@@ -248,7 +246,7 @@ class TexText(inkex.Effect):
         else:
             self.do_convert(self.options.text,
                             self.options.preamble_file,
-                            self.options.scale_factor, usable_converter_class, old_node)
+                            self.options.scale_factor, usable_converter_class, old_svg_ele)
 
         show_log()
 
@@ -307,7 +305,7 @@ class TexText(inkex.Effect):
             os.chdir(cwd)
             converter.finish()
 
-    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_node, alignment, original_scale=None):
+    def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -315,7 +313,7 @@ class TexText(inkex.Effect):
         :param preamble_file:
         :param user_scale_factor:
         :param converter_class:
-        :param old_node:
+        :param old_svg_ele:
         """
         if not text:
             return
@@ -335,33 +333,32 @@ class TexText(inkex.Effect):
         # Convert
         converter = converter_class()
         try:
-            new_node = converter.convert(text, preamble_file, scale_factor)
+            new_svg_ele = converter.convert(text, preamble_file, scale_factor)
         finally:
             converter.finish()
 
-        if new_node is None:
+        if new_svg_ele is None:
             add_log_message("No new Node!", LOG_LEVEL_DEBUG)
             return
 
         # -- Store textext attributes
-        new_node.attrib['{%s}version' % TEXTEXT_NS] = __version__.encode('string-escape')
-        new_node.attrib['{%s}texconverter' % TEXTEXT_NS] = "pdflatex".encode('string-escape')
-        new_node.attrib['{%s}pdfconverter' % TEXTEXT_NS] = "pstoedit".encode('string-escape')
-        new_node.attrib['{%s}text' % TEXTEXT_NS] = text.encode('string-escape')
-        new_node.attrib['{%s}preamble' % TEXTEXT_NS] = preamble_file.encode('string-escape')
-        new_node.attrib['{%s}scale' % TEXTEXT_NS] = str(user_scale_factor).encode('string-escape')
-        new_node.attrib['{%s}alignment' % TEXTEXT_NS] = str(alignment).encode('string-escape')
-        try:
-            new_node.attrib['{%s}inkscapeversion' % TEXTEXT_NS] = (
-            self.document.getroot().attrib['{%s}version' % inkex.NSS["inkscape"]].split(' ')[0]).encode('string-escape')
-        except KeyError:
+        new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
+        new_svg_ele.set_attrib("texconverter", converter.get_tex_converter_name(), TEXTEXT_NS)
+        new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
+        new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
+        new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
+        new_svg_ele.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
+        new_svg_ele.set_attrib("alignment", str(alignment), TEXTEXT_NS)
+
+        if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
+            new_svg_ele.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
+                                                                              inkex.NSS["inkscape"]).split(' ')[0])
             # Unfortunately when this node comes from an Inkscape document that has never been saved before
             # no version attribute is provided by Inkscape :-(
-            pass
 
         # -- Copy style
-        if old_node is None:
-            self.set_node_color(new_node, "black")
+        if old_svg_ele is None:
+            new_svg_ele.set_color("black")
 
             root = self.document.getroot()
             try:
@@ -373,57 +370,16 @@ class TexText(inkex.Effect):
                 width = inkex.unittouu(root.get('width'))
                 height = inkex.unittouu(root.get('height'))
 
-            x, y, w, h = self.get_node_frame(new_node)
-            self.translate_node(new_node, -x + width/2 -w/2, -y+height/2 -h/2)
+            x, y, w, h = new_svg_ele.get_frame()
+            new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
+            new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
 
-            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
-
-            self.current_layer.append(new_node)
+            self.current_layer.append(new_svg_ele.get_xml_raw_node())
         else:
-
             relative_scale = user_scale_factor / original_scale
-            scale_transform = st.parseTransform("scale(%f)" % relative_scale)
+            new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
 
-            old_transform = old_node.attrib['transform']
-            composition = st.parseTransform(old_transform, scale_transform)
-            # keep alignment point of drawing intact, calculate required shift
-
-            new_node.attrib['transform'] = st.formatTransform(composition)
-
-            x,y,w,h = self.get_node_frame(old_node)
-            new_x, new_y, new_w, new_h = self.get_node_frame(new_node)
-
-
-            def get_pos(x,y,w,h,alignment):
-                v_alignment, h_alignment = alignment.split(" ")
-                if v_alignment=="top":
-                    ypos = y
-                elif v_alignment=="middle":
-                    ypos = y + h/2
-                elif v_alignment=="bottom":
-                    ypos = y + h
-
-                if h_alignment == "left":
-                    xpos = x
-                elif h_alignment == "center":
-                    xpos = x+w/2
-                elif h_alignment == "right":
-                    xpos=x+w
-                return [xpos,ypos]
-
-            p_old = get_pos(x,y,w,h,alignment)
-            p_new = get_pos(new_x, new_y, new_w, new_h, alignment)
-
-            dx = p_old[0]-p_new[0]
-            dy = p_old[1]-p_new[1]
-
-            composition[0][2] += dx
-            composition[1][2] += dy
-
-            new_node.attrib['transform'] = st.formatTransform(composition)
-            new_node.attrib['{%s}jacobian_sqrt' % TEXTEXT_NS] = str(self.get_jacobian_sqrt(new_node)).encode('string-escape')
-
-            self.replace_node(old_node, new_node)
+            self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
 
         # -- Save settings
         if os.path.isfile(preamble_file):
@@ -431,6 +387,7 @@ class TexText(inkex.Effect):
         else:
             self.settings.set('preamble', '')
 
+        # ToDo: Do we really need this if statement?
         if scale_factor is not None:
             self.settings.set('scale', user_scale_factor)
         self.settings.save()
@@ -440,7 +397,7 @@ class TexText(inkex.Effect):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_node, latex_text, preamble_file_name, scale)
+        :return: (old_svg_ele, latex_text, preamble_file_name, scale)
         """
 
         for i in self.options.ids:
@@ -450,16 +407,26 @@ class TexText(inkex.Effect):
                 continue
 
             # otherwise, check for TEXTEXT_NS in attrib
-            if '{%s}text' % TEXTEXT_NS in node.attrib:
-                scale = None
-                if '{%s}scale' % TEXTEXT_NS in node.attrib:
-                    scale_string = node.attrib.get('{%s}scale' % TEXTEXT_NS, '').decode('string-escape')
-                    scale = float(scale_string)
+            if SvgElement.is_node_attrib(node, 'text', TEXTEXT_NS):
 
-                text = node.attrib.get('{%s}text' % TEXTEXT_NS, '').decode('string-escape')
-                preamble = node.attrib.get('{%s}preamble' % TEXTEXT_NS, '').decode('string-escape')
+                # Check which pdf converter has been used for creating svg data
+                if SvgElement.is_node_attrib(node, 'pdfconverter', TEXTEXT_NS):
+                    pdf_converter = SvgElement.get_node_attrib(node, 'pdfconverter', TEXTEXT_NS)
+                    if pdf_converter == "pdf2svg":
+                        svg_element = Pdf2SvgSvgElement(node)
+                    else:
+                        svg_element = PsToEditSvgElement(node)
+                else:
+                    svg_element = PsToEditSvgElement(node)
 
-                return node, text, preamble, scale
+                text = svg_element.get_attrib('text', TEXTEXT_NS)
+                preamble = svg_element.get_attrib('preamble', TEXTEXT_NS)
+
+                scale = 1.0
+                if svg_element.is_attrib('scale', TEXTEXT_NS):
+                    scale = float(svg_element.get_attrib('scale', TEXTEXT_NS))
+
+                return svg_element, text, preamble, scale
         return None, "", "", None
 
     def replace_node(self, old_node, new_node):
@@ -473,130 +440,8 @@ class TexText(inkex.Effect):
 
     @staticmethod
     def copy_style(old_node, new_node):
-        """
-        Copy all style attributes from the old to the new node, including the children, since TexText nodes are groups.
-        :param old_node:
-        :param new_node:
-        """
-        style_attrs = ['fill', 'fill-opacity', 'fill-rule', 'font-size-adjust', 'font-stretch', 'font-style',
-                       'font-variant', 'font-weight', 'letter-spacing', 'stroke', 'stroke-dasharray', 'stroke-linecap',
-                       'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'text-anchor', 'word-spacing', 'style']
-
-        for attribute_name in style_attrs:
-            try:
-                if attribute_name in old_node.keys():
-                    old_attribute = old_node.attrib[attribute_name]
-                else:
-                    continue
-
-                new_node.attrib[attribute_name] = old_attribute
-
-                for child in new_node.iterchildren():
-                    child.attrib[attribute_name] = old_attribute
-
-            except (KeyError, IndexError, TypeError, AttributeError):
-                add_log_message("Problem setting attribute %s" % attribute_name, LOG_LEVEL_DEBUG)
-
-        old_node_has_fill_color = False
-        if "fill" in old_node.keys():
-            old_fill = old_node.attrib["fill"]
-            if old_fill != "none" and old_fill is not None and old_fill != "":
-                old_node_has_fill_color = True
-
-        if not old_node_has_fill_color:
-            TexText.set_node_color(new_node, "black")
-
-    # ------ SVG Node utilities
-    @staticmethod
-    def set_node_color(node, color):
-        """
-        Set a nodes fill color
-        :param node: which node
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-        """
-        node.attrib["fill"] = color
-        TexText.set_node_style_color(node, color)  # for fill in the style attribute
-        for child in node.iterchildren():
-            child.attrib["fill"] = color
-            TexText.set_node_style_color(child, color)  # for fill in the style attribute
-
-    @staticmethod
-    def set_node_style_color(node, color):
-        """
-        If node contains a style attribute which is a CSS attribute string the
-        value fill of this string is set to color
-        :param node: which node
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-        """
-        if "style" in node.keys():
-            old_style_dict = ss.parseStyle(node.attrib["style"])
-            if "fill" in old_style_dict.keys():
-                old_style_dict["fill"] = color
-                node.attrib["style"] = ss.formatStyle(old_style_dict)
-
-    @staticmethod
-    def path_from_node(node):
-        return node.attrib['d']
-
-    @staticmethod
-    def line_from_node(node):
-        return 'M{x1},{y1} L{x2},{y2}'.format(x1=node.attrib['x1'],
-                                              x2=node.attrib['x2'],
-                                              y1=node.attrib['y1'],
-                                              y2=node.attrib['y2'])
-
-    def get_node_frame(self, node, mat=[[1,0,0],[0,1,0]]):
-        min_x, max_x, min_y,max_y = st.computeBBox([node], mat)
-        width = max_x - min_x
-        height = max_y - min_y
-        return min_x, min_y, width, height
-
-    def get_jacobian_sqrt(self, node):
-        a, b, c, d, e, f = self.get_node_transform(node)
-        det = a * d - c * b
-        return math.sqrt(math.fabs(det))
-
-    def get_node_scale_factor(self, node):
-        """
-        Extract the scale factor from the node's transform attribute
-        :param node:
-        :return: scale factor
-        """
-        a, b, c, d, e, f = self.get_node_transform(node)
-        return a
-
-    def set_node_scale_factor(self, node, scale):
-        """
-        Set the node's scale factor (keeps the rest of the transform matrix)
-        :param node:
-        :param scale: the new scale factor
-        """
-        a, b, c, d, e, f = self.get_node_transform(node)
-        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
-        node.attrib['transform'] = transform
-
-    def translate_node(self, node, x, y):
-        """
-        Translate the node
-        :param node:
-        :param x: horizontal translation
-        :param y: vertical translation
-        """
-        a, b, c, d, old_x, old_y = self.get_node_transform(node)
-        new_x = float(old_x) + x
-        new_y = float(old_y) + y
-        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
-        node.attrib['transform'] = transform
-
-    @staticmethod
-    def get_node_transform(node):
-        """
-        Gets the matrix values form the node's transform attribute
-        :param node:
-        :return: a, b, c, d, e, f   (the values of the transform matrix)
-        """
-        (a,c,e),(b,d,f) = st.parseTransform(node.attrib['transform'])
-        return a, b, c, d, e, f
+        # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
+        return
 
 
 class Settings(object):
@@ -911,6 +756,11 @@ class LatexConverterBase(object):
 
 
 class PdfConverterBase(LatexConverterBase):
+
+    @staticmethod
+    def get_tex_converter_name():
+        return "pdflatex"
+
     def convert(self, latex_text, preamble_file, scale_factor):
         cwd = os.getcwd()
         try:
@@ -920,49 +770,26 @@ class PdfConverterBase(LatexConverterBase):
         finally:
             os.chdir(cwd)
 
-        new_node = self.svg_to_group()
-        if new_node is None:
+        new_svg_ele = self.svg_to_group()
+        if new_svg_ele is None:
             return None
 
         if scale_factor is not None:
-            new_node.attrib['transform'] = self.get_transform(scale_factor)
-        return new_node
+            new_svg_ele.set_scale_factor(scale_factor)
+
+        return new_svg_ele
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
-        raise NotImplementedError
-
-    def get_transform(self, scale_factor):
-        """Get a suitable default value for the transform attribute"""
         raise NotImplementedError
 
     def svg_to_group(self):
         """
         Convert the SVG file to an SVG group node.
 
-        :Returns: <svg:g> node
+        :Returns: Subclass of SvgElement
         """
-        tree = etree.parse(self.tmp('svg'))
-        self.fix_xml_namespace(tree.getroot())
-        try:
-            return copy.copy(tree.getroot().xpath('g')[0])
-        except IndexError:
-            return None
-
-    def fix_xml_namespace(self, node):
-        svg = '{%s}' % SVG_NS
-
-        if node.tag.startswith(svg):
-            node.tag = node.tag[len(svg):]
-
-        for key in node.attrib.keys():
-            if key.startswith(svg):
-                new_key = key[len(svg):]
-                node.attrib[new_key] = node.attrib[key]
-                del node.attrib[key]
-
-        for c in node:
-            self.fix_xml_namespace(c)
+        raise NotImplementedError
 
 
 class PstoeditPlotSvg(PdfConverterBase):
@@ -970,10 +797,9 @@ class PstoeditPlotSvg(PdfConverterBase):
     Convert PDF -> SVG using pstoedit's plot-svg backend
     """
 
-    def get_transform(self, scale_factor):
-        return 'matrix(%f,0,0,%f,%f,%f)' % (
-            scale_factor, -scale_factor,
-            0, 0)
+    @staticmethod
+    def get_pdf_converter_name():
+        return "pstoedit"
 
     def pdf_to_svg(self):
         # Options for pstoedit command
@@ -994,11 +820,39 @@ class PstoeditPlotSvg(PdfConverterBase):
                                 "This is a problem of pstoedit, not of TexText!!", LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
         if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript            
+            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript
             if "DELAYBIND" in result:
                 result += "Ensure that a ghostscript version < 9.21 is installed on your system!\n"
             add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
+
+    def svg_to_group(self):
+        """
+        Convert the SVG file to an SVG group node.
+
+        :Returns: Subclass of SvgElement
+        """
+        tree = etree.parse(self.tmp('svg'))
+        self._fix_xml_namespace(tree.getroot())
+        try:
+            return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+        except IndexError:
+            return None
+
+    def _fix_xml_namespace(self, node):
+        svg = '{%s}' % SVG_NS
+
+        if node.tag.startswith(svg):
+            node.tag = node.tag[len(svg):]
+
+        for key in node.attrib.keys():
+            if key.startswith(svg):
+                new_key = key[len(svg):]
+                node.attrib[new_key] = node.attrib[key]
+                del node.attrib[key]
+
+        for c in node:
+            self._fix_xml_namespace(c)
 
     @classmethod
     def check_available(cls):
@@ -1011,7 +865,339 @@ class PstoeditPlotSvg(PdfConverterBase):
             add_log_message("Pstoedit not compiled with plot-svg support", LOG_LEVEL_DEBUG)
 
 
-CONVERTERS = [PstoeditPlotSvg]
+class Pdf2SvgPlotSvg(PdfConverterBase):
+    """
+    Convert PDF -> SVG using pdf2svg
+    """
+
+    @staticmethod
+    def get_pdf_converter_name():
+        return "pdf2svg"
+
+    def pdf_to_svg(self):
+        """
+        Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
+        """
+        try:
+            # Exec pdf2cvg infile.pdf outfile.svg
+            result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+        except RuntimeError as excpt:
+            add_log_message("Command pdf2svg failed: %s" % (excpt))
+            raise RuntimeError(latest_message())
+
+        if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+            add_log_message("pdf2svg didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
+            raise RuntimeError(latest_message())
+
+    def svg_to_group(self):
+        """
+        Convert the SVG file to an SVG group node. pdf2svg produces a file of the following structure:
+        <svg>
+            <defs>
+            </defs>
+            <g>
+            </g>
+        </svg>
+        The groups in the last <g>-Element reference the symbols defined within the <def>-node. In this method
+        the references in the <g>-node are replaced  by the definitions from <defs> so we can return the group without
+        any <defs>.
+        """
+        tree = etree.parse(self.tmp('svg'))
+        svg_raw = tree.getroot()
+
+        # At first we collect all defs with an id-attribute found in the svg raw tree. They are put later directly
+        # into the nodes in the <g>-Element referencing them
+        path_defs = {}
+        for def_node in svg_raw.xpath("//*[local-name() = \"defs\"]//*[@id]"):
+            path_defs["#" + def_node.attrib["id"]] = def_node
+
+        try:
+            # Now we pick all nodes that have a href attribute and replace the reference in them by the appropriate
+            # path definitions from def_nodes
+            for node in svg_raw.xpath("//*"):
+                if ("{%s}href" % XLINK_NS) in node.attrib:
+                    # Fetch data from node
+                    node_href = node.attrib["{%s}href" % XLINK_NS]
+                    node_x = node.attrib["x"]
+                    node_y = node.attrib["y"]
+                    node_translate = "translate(%s,%s)" % (node_x, node_y)
+
+                    # remove the node
+                    parent = node.getparent()
+                    parent.remove(node)
+
+                    # Add positional data to the svg paths
+                    for svgdef in path_defs[node_href].iterchildren():
+                        svgdef.attrib["transform"] = node_translate
+
+                        # Add new node into document
+                        parent.append(copy.copy(svgdef))
+
+            # Finally, we build the group
+            new_group = etree.Element(inkex.addNS("g"))
+            for node in svg_raw:
+                if node.tag != "{%s}defs" % SVG_NS:
+                    new_group.append(node)
+            # return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+            # return new_group
+            return Pdf2SvgSvgElement(new_group)
+
+        except:
+            return None
+
+    @classmethod
+    def check_available(cls):
+        """
+        Check if pdf2svg is available
+        """
+        out = exec_command(['pdf2svg', '--help'], ok_return_value=None)
+
+
+class SvgElement(object):
+    """ Holds SVG node data and provides several methods for working on the data """
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, xml_element):
+        """ Instanciates an object of type SvgElement
+
+        :param xml_element: The node as an etree.Element object
+        """
+        self._node = xml_element
+
+    def get_xml_raw_node(self):
+        """ Returns the node as an etree.Element object """
+        return self._node
+
+    def is_attrib(self, attrib_name, namespace=u""):
+        """ Returns True if the attibute attrib_name (str) exists in the specified namespace, otherwise false """
+        return self.is_node_attrib(self._node, attrib_name, namespace)
+
+    def get_attrib(self, attrib_name, namespace=u""):
+        """
+        Returns the value of the attribute attrib_name (str) in the specified namespace if it exists, otherwise None
+        """
+        return self.get_node_attrib(self._node, attrib_name, namespace)
+
+    def set_attrib(self, attrib_name, attrib_value, namespace=""):
+        """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the specified namespace"""
+        aname = self.build_full_attribute_name(attrib_name, namespace)
+        self._node.attrib[aname] = attrib_value.encode('string-escape')
+
+    @classmethod
+    def is_node_attrib(cls, node, attrib_name, namespace=u""):
+        """
+        Returns True if the attibute attrib_name (str) exists in the specified namespace of the given XML node,
+        otherwise False
+        """
+        return cls.build_full_attribute_name(attrib_name, namespace) in node.attrib.keys()
+
+    @classmethod
+    def get_node_attrib(cls, node, attrib_name, namespace=u""):
+        """
+        Returns the value of the attribute attrib_name (str) in the specified namespace of the given CML node
+        if it exists, otherwise None
+        """
+        attrib_value = None
+        if cls.is_node_attrib(node, attrib_name, namespace):
+            aname = cls.build_full_attribute_name(attrib_name, namespace)
+            attrib_value = node.attrib[aname].decode('string-escape')
+        return attrib_value
+
+    @staticmethod
+    def build_full_attribute_name(attrib_name, namespace):
+        """ Builds a correct namespaced attribute name """
+        if namespace == "":
+            return attrib_name
+        else:
+            return '{%s}%s' % (namespace, attrib_name)
+
+    def get_frame(self, mat=[[1,0,0],[0,1,0]]):
+        """
+        Determine the node's size and position. It's accounting for the coordinates of all paths in the node's children.
+
+        :return: x position, y position, width, height
+        """
+        min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
+        width = max_x - min_x
+        height = max_y - min_y
+        return min_x, min_y, width, height
+
+    def get_transform_values(self):
+        """
+        Returns the entries a, b, c, d, e, f of self._node's transformation matrix
+        depending on the transform applied. If no transform is defined all values returned are zero
+        See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
+        """
+        a = b = c = d = e = f = 0
+        if 'transform' in self._node.attrib:
+            (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
+        return a, b, c, d, e, f
+
+    def get_jacobian_sqrt(self):
+        a, b, c, d, e, f = self.get_transform_values()
+        det = a * d - c * b
+        return math.sqrt(math.fabs(det))
+
+    def translate(self, x, y):
+        """
+        Translate the node
+        :param x: horizontal translation
+        :param y: vertical translation
+        """
+        a, b, c, d, old_x, old_y = self.get_transform_values()
+        new_x = float(old_x) + x
+        new_y = float(old_y) + y
+        transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
+        self._node.attrib['transform'] = transform
+
+    def align_to_node(self, ref_node, alignment, relative_scale):
+        """
+        Aligns the node represented by self to a reference node according to the settings defined by the user
+        :param ref_node: Reference node subclassed from SvgElement to which self is going to be aligned
+        :param alignment: A 2-element string list defining the alignment
+        :param relative_scale: Scaling of the new node relative to the scale of the reference node
+        """
+        scale_transform = st.parseTransform("scale(%f)" % relative_scale)
+
+        old_transform = ref_node.get_attrib('transform')
+        composition = st.parseTransform(old_transform, scale_transform)
+
+        # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
+        composition = self._check_and_fix_transform(ref_node, composition)
+
+        # keep alignment point of drawing intact, calculate required shift
+        self.set_attrib('transform', st.formatTransform(composition))
+
+        x, y, w, h = ref_node.get_frame()
+        new_x, new_y, new_w, new_h = self.get_frame()
+
+        p_old = self._get_pos(x, y, w, h, alignment)
+        p_new = self._get_pos(new_x, new_y, new_w, new_h, alignment)
+
+        dx = p_old[0] - p_new[0]
+        dy = p_old[1] - p_new[1]
+
+        composition[0][2] += dx
+        composition[1][2] += dy
+
+        self.set_attrib('transform', st.formatTransform(composition))
+        self.set_attrib("jacobian_sqrt", str(self.get_jacobian_sqrt()), TEXTEXT_NS)
+
+    @abc.abstractmethod
+    def set_scale_factor(self, scale):
+        """ Sets the SVG scale factor of the node """
+
+    @abc.abstractmethod
+    def set_color(self, color):
+        """ Sets the color of the node to color """
+
+    @abc.abstractmethod
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """
+        Modifies - if necessary - the transformation matrix stored in transform_as_list which has its origin
+        from ref_node such that no unexepcted behavior occurs if applied to the node managed by self.
+
+        This is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa, see
+        derived classes.
+
+        :param ref_node: An object subclassed from ref_node the transform in transform_as_list originally belonged to
+        :param transform_as_list: The transformation matrix as a 2-dim list [[a,c,e],[b,d,f]]
+        :return: The modified or original transformation matrix as a 2-dim list.
+        """
+
+    @staticmethod
+    def _get_pos(x, y, w, h, alignment):
+        """ Returns the alignment point of a frame according to the required defined in alignment
+
+        :param x, y, w, h: Position of top left corner, width and height of the frame
+        :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
+        """
+        v_alignment, h_alignment = alignment.split(" ")
+        if v_alignment == "top":
+            ypos = y
+        elif v_alignment == "middle":
+            ypos = y + h / 2
+        elif v_alignment == "bottom":
+            ypos = y + h
+        else:
+            # fallback -> middle
+            ypos = y + h / 2
+
+        if h_alignment == "left":
+            xpos = x
+        elif h_alignment == "center":
+            xpos = x + w / 2
+        elif h_alignment == "right":
+            xpos = x + w
+        else:
+            # fallback -> center
+            xpos = x + w / 2
+        return [xpos, ypos]
+
+
+class PsToEditSvgElement(SvgElement):
+    """ Holds SVG node data created by pstoedit """
+
+    def __init__(self, xml_element):
+        super(self.__class__, self).__init__(xml_element)
+
+    def set_scale_factor(self, scale):
+        """
+        Set the node's scale factor (keeps the rest of the transform matrix)
+        Note that pstoedit needs -scale at the fourth position!
+        :param scale: the new scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
+        self._node.attrib['transform'] = transform
+
+    def set_color(self, color):
+        """ Sets the color of the node to color
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+
+        ToDo: Reimplement this to attribute correct color management!
+        """
+        return
+
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
+        if isinstance(ref_node, Pdf2SvgSvgElement):
+            transform_as_list[1][1] *= -1
+        return transform_as_list
+
+
+class Pdf2SvgSvgElement(SvgElement):
+    """ Holds SVG node data created by pdf2svg """
+
+    def __init__(self, xml_element):
+        super(self.__class__, self).__init__(xml_element)
+
+    def set_scale_factor(self, scale):
+        """
+        Set the node's scale factor (keeps the rest of the transform matrix)
+        :param scale: the new scale factor
+        """
+        a, b, c, d, e, f = self.get_transform_values()
+        transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, scale, e, f)
+        self._node.attrib['transform'] = transform
+
+    def set_color(self, color):
+        """ Sets the color of the node to color
+        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
+
+        ToDo: Reimplement this to attribute correct color management!
+        """
+        return
+
+    def _check_and_fix_transform(self, ref_node, transform_as_list):
+        """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
+        if isinstance(ref_node, PsToEditSvgElement):
+            transform_as_list[1][1] *= -1
+        return transform_as_list
+
+
+#CONVERTERS = [PstoeditPlotSvg]
+CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
