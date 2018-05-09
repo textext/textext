@@ -956,7 +956,15 @@ class Pdf2SvgPlotSvg(PdfConverterBase):
             for node in svg_raw:
                 if node.tag != "{%s}defs" % SVG_NS:
                     new_group.append(node)
-            # return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+
+            # Ensure that strokes with color "none" have zero width to ensure proper colorization via Inkscape
+            for node in new_group.getiterator(tag="{%s}path" % SVG_NS):
+                if "style" in node.attrib:
+                    node_style_dict = ss.parseStyle(node.attrib["style"])
+                    if "stroke" in node_style_dict and node_style_dict["stroke"].lower() == "none":
+                        node_style_dict["stroke-width"] = "0"
+                        node.attrib["style"] = ss.formatStyle(node_style_dict)
+
             # return new_group
             return Pdf2SvgSvgElement(new_group)
 
