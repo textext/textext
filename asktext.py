@@ -544,7 +544,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     preamble = self._preamble_widget.get_text()
 
                 try:
-                    self._preview_callback(text, preamble, self.set_preview_image_from_file)
+                    self._preview_callback(text, preamble, self.set_preview_image_from_file,
+                                           self._texcmd_cbox.get_active_text().lower())
                 except StandardError, error:
                     error_dialog(self._window,
                                  "TexText Error",

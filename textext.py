@@ -239,14 +239,17 @@ class TexText(inkex.Effect):
                                          current_alignment=alignment, current_texcmd=current_tex_command)
             try:
 
-                def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT, tex_cmd=TexText.DEFAULT_TEXCMD):
+                def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
+                             tex_cmd=TexText.DEFAULT_TEXCMD):
                     return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
                                            tex_cmd, original_scale=current_scale)
 
                 asker.ask(callback,
-                          lambda _text, _preamble, _preview_callback: self.preview_convert(_text, _preamble,
-                                                                                           usable_converter_class,
-                                                                                           _preview_callback))
+                          lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
+                                                                                                         _preamble,
+                                                                                                         usable_converter_class,
+                                                                                                         _preview_callback,
+                                                                                                         _tex_command))
             finally:
                 pass
 
@@ -259,7 +262,7 @@ class TexText(inkex.Effect):
         show_log()
 
     @staticmethod
-    def preview_convert(text, preamble_file, converter_class, image_setter):
+    def preview_convert(text, preamble_file, converter_class, image_setter, tex_command):
         """
         Generates a preview PNG of the LaTeX output using the selected converter.
 
@@ -267,6 +270,7 @@ class TexText(inkex.Effect):
         :param preamble_file:
         :param converter_class:
         :param image_setter: A callback to execute with the file path of the generated PNG
+        :param tex_command: Command for tex -> pdf
         """
         if not text:
             return
@@ -278,7 +282,7 @@ class TexText(inkex.Effect):
 
         cwd = os.getcwd()
         try:
-            converter.tex_to_pdf(text, preamble_file)
+            converter.tex_to_pdf(tex_command, text, preamble_file)
 
             # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
             try:
