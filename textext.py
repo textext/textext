@@ -718,13 +718,16 @@ class LatexConverterBase(object):
             # a drive letter.
             exec_command([tex_command, self.tmp('tex').replace('\\', '/')] + latexOpts)
         except RuntimeError as error:
-            # ToDo: Handle case when no log file has been created... (e.g. when tex_command not found)
-            parsed_log = self.parse_pdf_log(self.tmp('log'))
-            add_log_message(parsed_log, LOG_LEVEL_ERROR)
-            raise RuntimeError("Your LaTeX code has problems:\n\n{errors}".format(errors=parsed_log))
+            if os.path.exists(self.tmp('log')):
+                parsed_log = self.parse_pdf_log(self.tmp('log'))
+                add_log_message(parsed_log, LOG_LEVEL_ERROR)
+                raise RuntimeError("Your LaTeX code has problems:\n\n{errors}".format(errors=parsed_log))
+            else:
+                add_log_message(error.message, LOG_LEVEL_ERROR)
+                raise RuntimeError(latest_message())
 
         if not os.path.exists(self.tmp('pdf')):
-            add_log_message("pdflatex didn't produce output %s" % self.tmp('pdf'), LOG_LEVEL_ERROR)
+            add_log_message("%s didn't produce output %s" % (tex_command, self.tmp('pdf')), LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
 
         return
