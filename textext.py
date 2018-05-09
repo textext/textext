@@ -712,7 +712,7 @@ class LatexConverterBase(object):
         finally:
             f_tex.close()
 
-        # Exec pdflatex: tex -> pdf
+        # Exec tex_command: tex -> pdf
         try:
             # lualatex does not like the backslash, even on Windows... So we always pass it unix-like but with
             # a drive letter.
@@ -734,7 +734,7 @@ class LatexConverterBase(object):
 
     def parse_pdf_log(self, logfile):
         """
-        Strip down pdflatex output to only the warnings, errors etc. and discard all the noise
+        Strip down tex output to only the warnings, errors etc. and discard all the noise
         :param logfile:
         :return: string
         """
@@ -778,10 +778,6 @@ class LatexConverterBase(object):
 
 
 class PdfConverterBase(LatexConverterBase):
-
-    @staticmethod
-    def get_tex_converter_name():
-        return "pdflatex"
 
     def convert(self, latex_text, preamble_file, scale_factor, tex_command):
         cwd = os.getcwd()
