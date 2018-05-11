@@ -116,7 +116,7 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
+    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd):
         """
         Return the best possible GUI variant depending on the installed components
         :param current_scale_factor:
@@ -124,18 +124,25 @@ class AskerFactory(object):
         :param preamble_file: Preamble file path
         :param global_scale_factor: The globally last used scale factor (0.1 to 10)
         :param current_scale_factor: The node's saved scale factor (0.1 to 10)
+        :param current_alignment: The node's saved alignment position
+        :param current_texcmd: The node's saved texcommand used in last compilation
         :return: an instance of AskText
         """
         if TOOLKIT == TK:
-            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
+            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                             current_texcmd)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
-            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
+            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                                    current_texcmd)
 
 
 class AskText(object):
     """GUI for editing TexText objects"""
 
-    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
+    TEX_COMMANDS = ["pdflatex", "xelatex", "lualatex"]
+
+    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                 current_texcmd):
         if len(text) > 0:
             self.text = text
         else:
@@ -148,6 +155,12 @@ class AskText(object):
         self.global_scale_factor = global_scale_factor
         self.current_scale_factor = current_scale_factor
         self.current_alignment = current_alignment
+
+        if current_texcmd in self.TEX_COMMANDS:
+            self.current_texcmd = current_texcmd
+        else:
+            self.current_texcmd = self.TEX_COMMANDS[0]
+
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
@@ -193,8 +206,10 @@ if TOOLKIT == TK:
     class AskTextTK(AskText):
         """TK GUI for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
-            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                     current_texcmd):
+            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor,
+                                            current_alignment, current_texcmd)
             self._frame = None
             self._scale = None
 
@@ -290,10 +305,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment):
-            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment)
+        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                     current_texcmd):
+            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor,
+                                                   current_alignment, current_texcmd)
             self._preview = None
             self._scale_adj = None
+            self._texcmd_cbox = None
             self._preview_callback = None
             self._source_view = None
 
@@ -489,7 +507,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self.global_scale_factor = self._scale_adj.get_value()
 
             try:
-                self.callback(self.text, self.preamble_file, self.global_scale_factor,self._alignment_combobox.get_active_text())
+                self.callback(self.text, self.preamble_file, self.global_scale_factor,
+                              self._alignment_combobox.get_active_text(),
+                              self._texcmd_cbox.get_active_text().lower())
             except StandardError, error:
                 import traceback
 
@@ -524,7 +544,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     preamble = self._preamble_widget.get_text()
 
                 try:
-                    self._preview_callback(text, preamble, self.set_preview_image_from_file)
+                    self._preview_callback(text, preamble, self.set_preview_image_from_file,
+                                           self._texcmd_cbox.get_active_text().lower())
                 except StandardError, error:
                     error_dialog(self._window,
                                  "TexText Error",
@@ -616,6 +637,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self.clear_preamble()
 
+            # --- Preamble file ---
             preamble_delete = gtk.Button(label="Clear")
             preamble_delete.connect('clicked', self.clear_preamble)
             preamble_delete.set_tooltip_text("Clear the preamble file setting")
@@ -626,6 +648,22 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preamble_box.pack_start(self._preamble_widget, True, True, 2)
             preamble_box.pack_start(preamble_delete, False, False, 2)
 
+            # --- Tex command ---
+            texcmd_frame = gtk.Frame("TeX command")
+            texcmd_box = gtk.HBox(homogeneous=False, spacing=2)
+            texcmd_frame.add(texcmd_box)
+
+            self._texcmd_cbox = gtk.combo_box_new_text()
+            cell = gtk.CellRendererText()
+            self._texcmd_cbox.pack_start(cell)
+            self._texcmd_cbox.set_wrap_width(1)
+            for tex_command in self.TEX_COMMANDS:
+                self._texcmd_cbox.append_text(tex_command)
+            self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
+            self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
+            texcmd_box.pack_start(self._texcmd_cbox, True, True, 2)
+
+            # --- Scaling ---
             scale_frame = gtk.Frame("Scale Factor")
             scale_box = gtk.HBox(homogeneous=False, spacing=2)
             scale_frame.add(scale_box)
@@ -634,26 +672,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale.set_digits(3)
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
-
-            liststore = gtk.ListStore(str)
-            alignment_labels = [  "top left","top center","top right",
-                        "middle left","middle center","middle right",
-                        "bottom left","bottom center", "bottom right"]
-            for a in alignment_labels:
-                liststore.append([a])
-
-
-            self._alignment_combobox = gtk.ComboBox()
-
-            cell = gtk.CellRendererText()
-            self._alignment_combobox.pack_start(cell)
-            self._alignment_combobox.add_attribute(cell, 'text', 0)
-            self._alignment_combobox.set_model(liststore)
-            self._alignment_combobox.set_wrap_width(3)
-            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
-            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
-
-
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
@@ -688,10 +706,39 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
             scale_box.pack_start(self._scale, True, True, 2)
-            scale_box.pack_start(self._alignment_combobox, True, True, 2)
             scale_box.pack_start(scale_reset_button, False, False, 2)
             scale_box.pack_start(scale_global_button, False, False, 2)
 
+            # --- Alignment box ---
+            alignment_frame = gtk.Frame("Alignment")
+            alignment_box = gtk.HBox(homogeneous=False, spacing=2)
+            alignment_frame.add(alignment_box)
+
+            liststore = gtk.ListStore(str)
+            alignment_labels = [  "top left","top center","top right",
+                        "middle left","middle center","middle right",
+                        "bottom left","bottom center", "bottom right"]
+            for a in alignment_labels:
+                liststore.append([a])
+
+            self._alignment_combobox = gtk.ComboBox()
+
+            cell = gtk.CellRendererText()
+            self._alignment_combobox.pack_start(cell)
+            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.set_model(liststore)
+            self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
+            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
+
+            alignment_box.pack_start(self._alignment_combobox, True, True, 2)
+
+            # --- Scale and alignment together in one "line"
+            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=2)
+            scale_align_hbox.pack_start(scale_frame, False, False, 0)
+            scale_align_hbox.pack_start(alignment_frame, True, True, 0)
+
+            # --- TeX code window ---
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
             scroll_window.set_shadow_type(gtk.SHADOW_IN)
@@ -750,8 +797,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(menu, False, False, 0)
             vbox.pack_start(preamble_frame, False, False, 0)
-            if self.global_scale_factor:
-                vbox.pack_start(scale_frame, False, False, 0)
+            vbox.pack_start(texcmd_frame, False, False, 0)
+            vbox.pack_start(scale_align_hbox, False, False, 0)
+
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
             vbox.pack_start(self._preview, False, False, 0)
