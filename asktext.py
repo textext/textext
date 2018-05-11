@@ -140,6 +140,9 @@ class AskText(object):
     """GUI for editing TexText objects"""
 
     TEX_COMMANDS = ["pdflatex", "xelatex", "lualatex"]
+    ALIGNMENT_LABELS = ["top left", "top center", "top right",
+                        "middle left", "middle center", "middle right",
+                        "bottom left", "bottom center", "bottom right"]
 
     def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd):
@@ -212,6 +215,7 @@ if TOOLKIT == TK:
                                             current_alignment, current_texcmd)
             self._frame = None
             self._scale = None
+            self._alignment_tk_str = None
 
         def ask(self, callback, preview_callback=None):
             self.callback = callback
@@ -257,6 +261,25 @@ edited node in Inkscape."""
 
             box.pack(fill="x", pady=5, expand=True)
 
+            # Alignment
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="Alignment to existing node:")
+            label.pack(pady=2, padx=5, anchor="w")
+
+            self._alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            self._alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+
+            alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
+            vbox = None
+            for i, ind in enumerate(alignment_index_list):
+                if i % 3 == 0:
+                    vbox = Tk.Frame(box)
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
+                               value=self.ALIGNMENT_LABELS[ind]).pack(expand=True, anchor="w")
+                if (i + 1) % 3 == 0:
+                    vbox.pack(side="left", fill="x", expand=True)
+            box.pack(fill="x")
+
             # Text input field
             label = Tk.Label(self._frame, text="Text:")
             label.pack(pady=2, padx=5, anchor="w")
@@ -285,14 +308,14 @@ edited node in Inkscape."""
 
             root.mainloop()
 
-
-            self.callback(self.text, self.preamble_file, self.global_scale_factor)
+            self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get())
             return self.text, self.preamble_file, self.global_scale_factor
 
         def cb_ok(self, widget=None, data=None):
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
             self.global_scale_factor = float(self._scale.get())
+
             self._frame.quit()
 
         def reset_scale_factor(self, _=None):
@@ -715,10 +738,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_frame.add(alignment_box)
 
             liststore = gtk.ListStore(str)
-            alignment_labels = [  "top left","top center","top right",
-                        "middle left","middle center","middle right",
-                        "bottom left","bottom center", "bottom right"]
-            for a in alignment_labels:
+            for a in self.ALIGNMENT_LABELS:
                 liststore.append([a])
 
             self._alignment_combobox = gtk.ComboBox()
@@ -728,7 +748,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.add_attribute(cell, 'text', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
-            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
+            self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
 
             alignment_box.pack_start(self._alignment_combobox, True, True, 2)
