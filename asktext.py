@@ -54,6 +54,7 @@ try:
 except ImportError:
     try:
         import Tkinter as Tk
+        import tkMessageBox as TkMsgBoxes
 
         TOOLKIT = TK
     except ImportError:
@@ -216,6 +217,29 @@ if TOOLKIT == TK:
             self._frame = None
             self._scale = None
 
+        @staticmethod
+        def validate_spinbox_input(d, i, P, s, S, v, V, W):
+            """ Ensure that only floating point numbers are accepted as input of a Tk widget
+                Inspired from:
+                https://stackoverflow.com/questions/4140437/interactively-validating-entry-widget-content-in-tkinter
+
+                Note: Selecting an entry and copying something from the clipboard is rejected by this method. Reason:
+                Without validation Tk appends the content of the clipboard at the end of the selection leading to
+                invalid content. So with or without this validation method you need to delete the content of the
+                box before inserting the new stuff.
+            """
+            if S == '' or P == '':
+                # Initialization of widget (S=='') and deletion of entry (P=='')
+                valid = True
+            else:
+                # All other cases: Ensure that result is OK
+                try:
+                    float(P)
+                    valid = True
+                except ValueError:
+                    valid = False
+            return valid
+
         def ask(self, callback, preview_callback=None):
             self.callback = callback
 
@@ -250,23 +274,20 @@ if TOOLKIT == TK:
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
-            explanation = """Use RESET to set scale factor to the value this node has been
-created with."""
-            label = Tk.Label(box, justify="left", text=explanation)
-            label.pack(pady=2, padx=5, anchor="w")
-            explanation = """Use GLOBAL to set scale factor to the value of the previously
-edited node in Inkscape."""
-            label = Tk.Label(box, justify="left", text=explanation)
-            label.pack(pady=2, padx=5, anchor="w")
-            self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
+
+            validation_command = (root.register(self.validate_spinbox_input),
+                                  '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+            self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
+                                     validatecommand=validation_command)
             self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
-            self._scale.set(self.scale_factor_after_loading())
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.scale_factor_after_loading())
 
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            self._reset_button = Tk.Button(box, text="Reset ({0:.1f})".format(reset_scale),
+            self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
                                            command=self.reset_scale_factor)
             self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
-            self._global_button = Tk.Button(box, text="Global ({0:.1f})".format(self.global_scale_factor),
+            self._global_button = Tk.Button(box, text="From previous node ({0:.3f})".format(self.global_scale_factor),
                                             command=self.use_global_scale_factor)
             self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
@@ -324,17 +345,24 @@ edited node in Inkscape."""
             return self.text, self.preamble_file, self.global_scale_factor
 
         def cb_ok(self, widget=None, data=None):
+            try:
+                self.global_scale_factor = float(self._scale.get())
+            except ValueError:
+                TkMsgBoxes.showerror("Scale factor error",
+                                     "Please enter a valid floating point number for the scale factor!")
+                return
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
-            self.global_scale_factor = float(self._scale.get())
 
             self._frame.quit()
 
         def reset_scale_factor(self, _=None):
-            self._scale.set(self.current_scale_factor)
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.current_scale_factor)
 
         def use_global_scale_factor(self, _=None):
-            self._scale.set(self.global_scale_factor)
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.global_scale_factor)
 
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
