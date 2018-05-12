@@ -215,7 +215,6 @@ if TOOLKIT == TK:
                                             current_alignment, current_texcmd)
             self._frame = None
             self._scale = None
-            self._alignment_tk_str = None
 
         def ask(self, callback, preview_callback=None):
             self.callback = callback
@@ -233,6 +232,18 @@ if TOOLKIT == TK:
             self._preamble = Tk.Entry(box)
             self._preamble.pack(expand=True, fill="x", pady=5, padx=5)
             self._preamble.insert(Tk.END, self.preamble_file)
+            box.pack(fill="x", pady=5, expand=True)
+
+            # Frame box for tex command
+            tex_command_tk_str = Tk.StringVar()
+            tex_command_tk_str.set(self.current_texcmd)
+
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="TeX command:")
+            label.pack(pady=2, padx=5, anchor="w")
+            for tex_command in self.TEX_COMMANDS:
+                Tk.Radiobutton(box, text=tex_command, variable=tex_command_tk_str,
+                               value=tex_command).pack(side="left", expand=False, anchor="w")
             box.pack(fill="x", pady=5, expand=True)
 
             # Frame box for scale factor and reset buttons
@@ -266,15 +277,15 @@ edited node in Inkscape."""
             label = Tk.Label(box, text="Alignment to existing node:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            self._alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
-            self._alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+            alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
 
             alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
             vbox = None
             for i, ind in enumerate(alignment_index_list):
                 if i % 3 == 0:
                     vbox = Tk.Frame(box)
-                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
                                value=self.ALIGNMENT_LABELS[ind]).pack(expand=True, anchor="w")
                 if (i + 1) % 3 == 0:
                     vbox.pack(side="left", fill="x", expand=True)
@@ -308,7 +319,8 @@ edited node in Inkscape."""
 
             root.mainloop()
 
-            self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get())
+            self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
+                          tex_command_tk_str.get())
             return self.text, self.preamble_file, self.global_scale_factor
 
         def cb_ok(self, widget=None, data=None):
