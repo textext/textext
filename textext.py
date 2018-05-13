@@ -1214,8 +1214,8 @@ class Pdf2SvgSvgElement(SvgElement):
         return transform_as_list
 
 
-CONVERTERS = [PstoeditPlotSvg]
-#CONVERTERS = [Pdf2SvgPlotSvg]
+#CONVERTERS = [PstoeditPlotSvg]
+CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
