@@ -287,7 +287,7 @@ if TOOLKIT == TK:
             self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
                                            command=self.reset_scale_factor)
             self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
-            self._global_button = Tk.Button(box, text="From previous node ({0:.3f})".format(self.global_scale_factor),
+            self._global_button = Tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
                                             command=self.use_global_scale_factor)
             self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
@@ -735,11 +735,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale.set_digits(3)
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
-
+    
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
             items = [('tt-reset', 'Reset ({0:.3f})'.format(reset_scale), 0, 0, None),
-                     ('tt-global', 'From previous ({0:.3f})'.format(self.global_scale_factor), 0, 0, None)]
+                     ('tt-global', 'As previous ({0:.3f})'.format(self.global_scale_factor), 0, 0, None)]
 
             # Forcibly show icons
             settings = gtk.settings_get_default()
