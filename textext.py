@@ -373,8 +373,6 @@ class TexText(inkex.Effect):
 
         # -- Copy style
         if old_svg_ele is None:
-            new_svg_ele.set_color("black")
-
             root = self.document.getroot()
             try:
                 # -- for Inkscape version 0.91
@@ -393,6 +391,11 @@ class TexText(inkex.Effect):
         else:
             relative_scale = user_scale_factor / original_scale
             new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
+
+            # If no non-black color has been explicitely set by TeX we copy the color information from the old node
+            # so that coloring done in Inkscape is preserved.
+            if not new_svg_ele.is_colorized():
+                new_svg_ele.import_group_color_style(old_svg_ele)
 
             self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
 
@@ -1114,8 +1117,62 @@ class SvgElement(object):
         """ Sets the SVG scale factor of the node """
 
     @abc.abstractmethod
-    def set_color(self, color):
-        """ Sets the color of the node to color """
+    def is_colorized(self):
+        """ Returns true if at least one element of the managed node contains a non-black fill or stroke color """
+
+    @staticmethod
+    def has_colorized_attribute(node):
+        """ Returns true if at least one element of node contains a non-black fill or stroke attribute """
+        for it_node in node.getiterator():
+            for attrib in ["stroke", "fill"]:
+                if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
+                                                                                                        "black", "none",
+                                                                                                        "#000000"]:
+                    return True
+        return False
+
+    @staticmethod
+    def has_colorized_style(node):
+        """ Returns true if at least one element of node contains a non-black fill or stroke style """
+        for it_node in node.getiterator():
+            if "style" in it_node.attrib:
+                node_style_dict = ss.parseStyle(it_node.attrib["style"])
+                for style_attrib in ["stroke", "fill"]:
+                    if style_attrib in node_style_dict and \
+                            node_style_dict[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
+                                                                                           "black",
+                                                                                           "none",
+                                                                                           "#000000"]:
+                        return True
+        return False
+
+    def import_group_color_style(self, src_svg_ele):
+        """
+        Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
+        of self._node. Ensures that non color relevant style attributes are not overwritten.
+        """
+
+        # Take the top level style information which is set when coloring the group in Inkscape
+        src_style_string = src_svg_ele._node.get("style")
+
+        # If a style attribute exists we can copy the style, if not, there is nothing to do here
+        if src_style_string:
+            # Fetch the part of the source dict which is interesting for colorization
+            src_style_dict = ss.parseStyle(src_style_string)
+            color_style_dict = {key: value for key, value in src_style_dict.items() if
+                                key in ["fill", "stroke", "opacity", "stroke-opacity", "fill-opacity"]}
+
+            # Iterate over all nodes of self._node and apply the imported color style
+            for dest_node in self._node.getiterator():
+                dest_style_string = dest_node.attrib.get("style")
+                if dest_style_string:
+                    dest_style_dict = ss.parseStyle(dest_style_string)
+                    for key, value in color_style_dict.items():
+                        dest_style_dict[key] = value
+                else:
+                    dest_style_dict = color_style_dict
+                dest_style_string = ss.formatStyle(dest_style_dict)
+                dest_node.attrib["style"] = dest_style_string
 
     @abc.abstractmethod
     def _check_and_fix_transform(self, ref_node, transform_as_list):
@@ -1177,13 +1234,14 @@ class PsToEditSvgElement(SvgElement):
         transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
         self._node.attrib['transform'] = transform
 
-    def set_color(self, color):
-        """ Sets the color of the node to color
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-
-        ToDo: Reimplement this to attribute correct color management!
-        """
-        return
+    def is_colorized(self):
+        """ Returns true if at least one element of the node contains a non-black fill or stroke color """
+        # pstoedit stores color information as attributes, not as css styles, so checking for attributes should
+        # be enough. But to be on the save side...
+        has_color = self.has_colorized_attribute(self._node)
+        if not has_color:
+            has_color = self.has_colorized_style(self._node)
+        return has_color
 
     def _check_and_fix_transform(self, ref_node, transform_as_list):
         """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
@@ -1207,13 +1265,14 @@ class Pdf2SvgSvgElement(SvgElement):
         transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, scale, e, f)
         self._node.attrib['transform'] = transform
 
-    def set_color(self, color):
-        """ Sets the color of the node to color
-        :param color: what color, i.e. "red" or "#ff0000" or "rgb(255,0,0)"
-
-        ToDo: Reimplement this to attribute correct color management!
-        """
-        return
+    def is_colorized(self):
+        """ Returns true if at least one element of the node contains a non-black fill or stroke color """
+        # pdf2svg consequently uses the style css properties for colorization, so checking for style should
+        # be enough. But to be on the save side...
+        has_color = self.has_colorized_style(self._node)
+        if not has_color:
+            has_color = self.has_colorized_attribute(self._node)
+        return has_color
 
     def _check_and_fix_transform(self, ref_node, transform_as_list):
         """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
