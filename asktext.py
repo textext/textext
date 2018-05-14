@@ -223,6 +223,8 @@ if TOOLKIT == TK:
                 Inspired from:
                 https://stackoverflow.com/questions/4140437/interactively-validating-entry-widget-content-in-tkinter
 
+                S -> string coming from user, s -> current string in the box, P -> resulting string in the box
+                d -> Command (insert = 1, delete = 0), i -> Index position of cursor
                 Note: Selecting an entry and copying something from the clipboard is rejected by this method. Reason:
                 Without validation Tk appends the content of the clipboard at the end of the selection leading to
                 invalid content. So with or without this validation method you need to delete the content of the
