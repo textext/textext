@@ -289,6 +289,9 @@ if TOOLKIT == TK:
             self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
                                            command=self.reset_scale_factor)
             self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+            if self.text == "":
+                self._reset_button.config(state=Tk.DISABLED)
+
             self._global_button = Tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
                                             command=self.use_global_scale_factor)
             self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
@@ -305,11 +308,12 @@ if TOOLKIT == TK:
 
             alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
             vbox = None
+            tk_state = Tk.DISABLED if self.text == "" else Tk.NORMAL
             for i, ind in enumerate(alignment_index_list):
                 if i % 3 == 0:
                     vbox = Tk.Frame(box)
                 Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
-                               value=self.ALIGNMENT_LABELS[ind]).pack(expand=True, anchor="w")
+                               value=self.ALIGNMENT_LABELS[ind], state=tk_state).pack(expand=True, anchor="w")
                 if (i + 1) % 3 == 0:
                     vbox.pack(side="left", fill="x", expand=True)
             box.pack(fill="x")
@@ -763,6 +767,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_reset_button.set_tooltip_text(
                 "Set scale factor to the value this node has been created with ({0:.3f})".format(reset_scale))
             scale_reset_button.connect('clicked', self.reset_scale_factor)
+            if self.text == "":
+                scale_reset_button.set_sensitive(False)
 
             scale_global_button = gtk.Button(stock='tt-global')
             scale_global_button.set_tooltip_text(
@@ -792,6 +798,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.set_wrap_width(3)
             self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
+            if self.text == "":
+                self._alignment_combobox.set_sensitive(False)
 
             alignment_box.pack_start(self._alignment_combobox, True, True, 2)
 
