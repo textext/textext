@@ -54,6 +54,7 @@ try:
 except ImportError:
     try:
         import Tkinter as Tk
+        import tkMessageBox as TkMsgBoxes
 
         TOOLKIT = TK
     except ImportError:
@@ -140,6 +141,9 @@ class AskText(object):
     """GUI for editing TexText objects"""
 
     TEX_COMMANDS = ["pdflatex", "xelatex", "lualatex"]
+    ALIGNMENT_LABELS = ["top left", "top center", "top right",
+                        "middle left", "middle center", "middle right",
+                        "bottom left", "bottom center", "bottom right"]
 
     def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd):
@@ -213,6 +217,29 @@ if TOOLKIT == TK:
             self._frame = None
             self._scale = None
 
+        @staticmethod
+        def validate_spinbox_input(d, i, P, s, S, v, V, W):
+            """ Ensure that only floating point numbers are accepted as input of a Tk widget
+                Inspired from:
+                https://stackoverflow.com/questions/4140437/interactively-validating-entry-widget-content-in-tkinter
+
+                Note: Selecting an entry and copying something from the clipboard is rejected by this method. Reason:
+                Without validation Tk appends the content of the clipboard at the end of the selection leading to
+                invalid content. So with or without this validation method you need to delete the content of the
+                box before inserting the new stuff.
+            """
+            if S == '' or P == '':
+                # Initialization of widget (S=='') and deletion of entry (P=='')
+                valid = True
+            else:
+                # All other cases: Ensure that result is OK
+                try:
+                    float(P)
+                    valid = True
+                except ValueError:
+                    valid = False
+            return valid
+
         def ask(self, callback, preview_callback=None):
             self.callback = callback
 
@@ -231,31 +258,59 @@ if TOOLKIT == TK:
             self._preamble.insert(Tk.END, self.preamble_file)
             box.pack(fill="x", pady=5, expand=True)
 
+            # Frame box for tex command
+            tex_command_tk_str = Tk.StringVar()
+            tex_command_tk_str.set(self.current_texcmd)
+
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="TeX command:")
+            label.pack(pady=2, padx=5, anchor="w")
+            for tex_command in self.TEX_COMMANDS:
+                Tk.Radiobutton(box, text=tex_command, variable=tex_command_tk_str,
+                               value=tex_command).pack(side="left", expand=False, anchor="w")
+            box.pack(fill="x", pady=5, expand=True)
+
             # Frame box for scale factor and reset buttons
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
-            explanation = """Use RESET to set scale factor to the value this node has been
-created with."""
-            label = Tk.Label(box, justify="left", text=explanation)
-            label.pack(pady=2, padx=5, anchor="w")
-            explanation = """Use GLOBAL to set scale factor to the value of the previously
-edited node in Inkscape."""
-            label = Tk.Label(box, justify="left", text=explanation)
-            label.pack(pady=2, padx=5, anchor="w")
-            self._scale = Tk.Scale(box, orient="horizontal", from_=0.1, to=10, resolution=0.1)
+
+            validation_command = (root.register(self.validate_spinbox_input),
+                                  '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+            self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
+                                     validatecommand=validation_command)
             self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
-            self._scale.set(self.scale_factor_after_loading())
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.scale_factor_after_loading())
 
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            self._reset_button = Tk.Button(box, text="Reset ({0:.1f})".format(reset_scale),
+            self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
                                            command=self.reset_scale_factor)
             self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
-            self._global_button = Tk.Button(box, text="Global ({0:.1f})".format(self.global_scale_factor),
+            self._global_button = Tk.Button(box, text="From previous node ({0:.3f})".format(self.global_scale_factor),
                                             command=self.use_global_scale_factor)
             self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
             box.pack(fill="x", pady=5, expand=True)
+
+            # Alignment
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="Alignment to existing node:")
+            label.pack(pady=2, padx=5, anchor="w")
+
+            alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+
+            alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
+            vbox = None
+            for i, ind in enumerate(alignment_index_list):
+                if i % 3 == 0:
+                    vbox = Tk.Frame(box)
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
+                               value=self.ALIGNMENT_LABELS[ind]).pack(expand=True, anchor="w")
+                if (i + 1) % 3 == 0:
+                    vbox.pack(side="left", fill="x", expand=True)
+            box.pack(fill="x")
 
             # Text input field
             label = Tk.Label(self._frame, text="Text:")
@@ -285,21 +340,29 @@ edited node in Inkscape."""
 
             root.mainloop()
 
-
-            self.callback(self.text, self.preamble_file, self.global_scale_factor)
+            self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
+                          tex_command_tk_str.get())
             return self.text, self.preamble_file, self.global_scale_factor
 
         def cb_ok(self, widget=None, data=None):
+            try:
+                self.global_scale_factor = float(self._scale.get())
+            except ValueError:
+                TkMsgBoxes.showerror("Scale factor error",
+                                     "Please enter a valid floating point number for the scale factor!")
+                return
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
-            self.global_scale_factor = float(self._scale.get())
+
             self._frame.quit()
 
         def reset_scale_factor(self, _=None):
-            self._scale.set(self.current_scale_factor)
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.current_scale_factor)
 
         def use_global_scale_factor(self, _=None):
-            self._scale.set(self.global_scale_factor)
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.global_scale_factor)
 
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
@@ -675,8 +738,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-            items = [('tt-reset', 'Reset ({0:.1f})'.format(reset_scale), 0, 0, None),
-                     ('tt-global', 'Global ({0:.1f})'.format(self.global_scale_factor), 0, 0, None)]
+            items = [('tt-reset', 'Reset ({0:.3f})'.format(reset_scale), 0, 0, None),
+                     ('tt-global', 'From previous ({0:.3f})'.format(self.global_scale_factor), 0, 0, None)]
 
             # Forcibly show icons
             settings = gtk.settings_get_default()
@@ -696,12 +759,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             scale_reset_button = gtk.Button(stock='tt-reset')
             scale_reset_button.set_tooltip_text(
-                "Set scale factor to the value this node has been created with ({0:.1f})".format(reset_scale))
+                "Set scale factor to the value this node has been created with ({0:.3f})".format(reset_scale))
             scale_reset_button.connect('clicked', self.reset_scale_factor)
 
             scale_global_button = gtk.Button(stock='tt-global')
             scale_global_button.set_tooltip_text(
-                "Set scale factor to the value of the previously edited node in Inkscape ({0:.1f})".format(
+                "Set scale factor to the value of the previously edited node in Inkscape ({0:.3f})".format(
                     self.global_scale_factor))
             scale_global_button.connect('clicked', self.use_global_scale_factor)
 
@@ -715,10 +778,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_frame.add(alignment_box)
 
             liststore = gtk.ListStore(str)
-            alignment_labels = [  "top left","top center","top right",
-                        "middle left","middle center","middle right",
-                        "bottom left","bottom center", "bottom right"]
-            for a in alignment_labels:
+            for a in self.ALIGNMENT_LABELS:
                 liststore.append([a])
 
             self._alignment_combobox = gtk.ComboBox()
@@ -728,7 +788,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.add_attribute(cell, 'text', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
-            self._alignment_combobox.set_active(alignment_labels.index(self.current_alignment))
+            self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
 
             alignment_box.pack_start(self._alignment_combobox, True, True, 2)
