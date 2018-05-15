@@ -3,11 +3,13 @@ under several Inkscape versions.
 
 Nomenclature:
 
-[type]_i_[major]_[minor]_[bugfix]_tt_[major]_[minor]_[bugfix]_[converters].svg
+[type]_i_[major]_[minor]_[bugfix]_tt_[major]_[minor]_[bugfix]_[converters]_[info].svg
 
 [type]                      -> Short description of file content
 i_[major]_[minor]_[bugfix]  -> Inkscape version used for creation of the file
 tt_[major]_[minor]_[bugfix] -> TexText version used for creation of nodes in the file
+[converter]                 -> Specific convertes used (pdf2svg, pstoedit since tt 0.8)
+[info]                      -> Additional information
 
 Example:
 eqn_i0_92_2_tt0_8_0_pdf2svg.svg
