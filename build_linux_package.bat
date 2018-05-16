@@ -7,7 +7,7 @@ rem subdirectory while the readme and setup-script are placed into
 rem the "textext-[Version]-linux" directory
 
 rem Some variables
-set TexTextVersion=0.7.2
+set TexTextVersion=0.7.3
 set PackagePath=textext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
 set PackageName=TexText-Linux-%TexTextVersion%

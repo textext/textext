@@ -1,4 +1,4 @@
-# Tex Text 0.7.2 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
+# Tex Text 0.7.3 - A LaTeX extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
 TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org) providing the possibility to add LaTeX generated SVG elements to your drawing. This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until January 2018. Originally, TexText had been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
 
@@ -39,10 +39,10 @@ The source code can be found in the releases/0.8 branch and packages with short 
 
  Download    | SHA-256 Checksum
 -------------|-------------------
-[TexText-Linux-0.7.2,tgz](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.tgz) | 532132eb52be721fd1e3a2cc57006b544812db16935aeb09f6b435a40ce84110
-[TexText-Linux-0.7.2.zip](https://github.com/textext/textext/releases/download/0.7.2/TexText-Linux-0.7.2.zip) | 2772e1606c84d713fe4b821fe61a28974fa0fb5028e7e1fc09d76103491114c8
+[TexText-Linux-0.7.3,tgz](https://github.com/textext/textext/releases/download/0.7.3/TexText-Linux-0.7.3.tgz) | 5095d4bbbe4731d3edbff06fd82a48cf0c6c003a15147bede5bf11515c2e4fac
+[TexText-Linux-0.7.3.zip](https://github.com/textext/textext/releases/download/0.7.3/TexText-Linux-0.7.3.zip) | b7c62cfe06101cd59c39d6dcf11816413c4cf0afb45cfbd88d3de9dd29616ff0
 
-To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.2-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
+To install *Tex Text*, simply download the package and extract it. A directory with the name `textext-0.7.3-linux` will be created. Change into the directory and run `python setup.py` in your terminal. All it does, is copying the necessary files to your Inkscape extension directory. If you don't trust this script, you'll have to copy all the files within the `extensions` directory of the extracted archive to `~/.config/inkscape/extensions/`.
 
 ### Additional required software
 
@@ -64,7 +64,7 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
  Download   | SHA-256 Checksum
 ------------|-------------------
-[TexText-Windows-0.7.2.exe](https://github.com/textext/textext/releases/download/0.7.2/TexText-Windows-0.7.2.exe) | d4f0b1e0c483f5949e487dc8979fd5feeec35f75224b81dbc531133582362682
+[TexText-Windows-0.7.3.exe](https://github.com/textext/textext/releases/download/0.7.3/TexText-Windows-0.7.3.exe) | a9e91bc1d8d6ae10f3edb978b73f051d4cbb7db4300202694ca00e0c1238319e
 
 The installation of *Tex Text for Inkscape* is straightforward: Simply use the installer and follow the instructions (basically, click *Next*, *Install* and *Done*, since you usually won't even have to change the installation directory). It will copy the required files into the user's Inkscape configuration directory (usually this is `%USERPROFILE%\AppData\Roaming\Inkscape`) and put a key into the Windows registry which is used to store configuration data of the extension.
 

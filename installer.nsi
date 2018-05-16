@@ -3,7 +3,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.7.2"
+!define PRODUCT_VERSION "0.7.3"
 !define PRODUCT_PUBLISHER "Pit Garbe, Jan Winkler"
 !define PRODUCT_WEB_SITE "https://tu-dresden.de/ing/elektrotechnik/rst"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"

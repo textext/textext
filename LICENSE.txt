@@ -1,4 +1,4 @@
-Copyright (c) 2007-2017 Pauli Virtanen, Pit Garbe, Jan Winkler.
+Copyright (c) 2007-2018 Pauli Virtanen, Pit Garbe, Jan Winkler.
 
 All rights reserved.
 
