@@ -1,3 +1,12 @@
+Version 0.8.0 (t.b.a.)
+=======================================
+- Fixed bad positioning, improved alignment capabilities 
+(Thanks to Sergei Izmailov for implementing this)
+- pdf2svg as backend
+- xelatex and lualatex support
+- Keep colors explicitly set in TeX or set by Inkscape
+- ...
+
 Version 0.7.3 (2018-05-17)
 ==========================
 Fixed: Failure when trying to re-edit nodes created with very old versions of 

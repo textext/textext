@@ -8,6 +8,8 @@ textext
 :Date: 2008-04-26
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
+:Author: Jan Winkler <enceladus@posteo.de>
+:Date: 2018-05-16
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -19,8 +21,8 @@ This brings some of the power of TeX typesetting to Inkscape.
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
 
-Thanks to Robert Szalai, Rafal Kolanski, Brian Clarke, Florent Becker and Vladislav Gavryusev
-for contributions.
+Thanks to Sergei Izmailov, Robert Szalai, Rafal Kolanski, Brian Clarke, 
+Florent Becker and Vladislav Gavryusev for contributions.
 
 .. note::
    Unfortunately, the TeX input dialog is modal. That is, you cannot
