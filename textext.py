@@ -392,7 +392,7 @@ class TexText(inkex.Effect):
             relative_scale = user_scale_factor / original_scale
             new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
 
-            # If no non-black color has been explicitely set by TeX we copy the color information from the old node
+            # If no non-black color has been explicitily set by TeX we copy the color information from the old node
             # so that coloring done in Inkscape is preserved.
             if not new_svg_ele.is_colorized():
                 new_svg_ele.import_group_color_style(old_svg_ele)
@@ -1238,10 +1238,7 @@ class PsToEditSvgElement(SvgElement):
         """ Returns true if at least one element of the node contains a non-black fill or stroke color """
         # pstoedit stores color information as attributes, not as css styles, so checking for attributes should
         # be enough. But to be on the save side...
-        has_color = self.has_colorized_attribute(self._node)
-        if not has_color:
-            has_color = self.has_colorized_style(self._node)
-        return has_color
+        return self.has_colorized_attribute(self._node) or self.has_colorized_style(self._node)
 
     def _check_and_fix_transform(self, ref_node, transform_as_list):
         """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
@@ -1269,10 +1266,7 @@ class Pdf2SvgSvgElement(SvgElement):
         """ Returns true if at least one element of the node contains a non-black fill or stroke color """
         # pdf2svg consequently uses the style css properties for colorization, so checking for style should
         # be enough. But to be on the save side...
-        has_color = self.has_colorized_style(self._node)
-        if not has_color:
-            has_color = self.has_colorized_attribute(self._node)
-        return has_color
+        return self.has_colorized_style(self._node) or self.has_colorized_attribute(self._node)
 
     def _check_and_fix_transform(self, ref_node, transform_as_list):
         """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
