@@ -8,7 +8,7 @@ TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.
 On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! Alternatively, see the next remark:
 
 ### Very important 2 - You can try out a pre-release of TexText 0.8 which is not affected by broken pstoedit
-The source code can be found in the releases/0.8 branch and packages with short installation instructions in the GitHub Release section. Please report any issues! Thank you!
+The source code can be found in the [releases/0.8 branch](https://github.com/textext/textext/tree/releases/0.8) and packages with short installation instructions in the [GitHub Release section](https://github.com/textext/textext/releases/tag/0.8-pre0). Please report any issues! Thank you!
 
 **Note:** There are more sophisticated instructions, including pictures, in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
 
