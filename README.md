@@ -4,8 +4,11 @@ TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.
 
 ![TexText dialog together with Inkscape](docs/readme-images/textext-with-inkscape.png)
 
-### Very important - broken pstoedit support by ghostscript
-On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! We are working hard on a fix by migrating the converter engine to pdf2svg or the Inkscape command line itself.
+### Very important 1 - broken pstoedit support by ghostscript
+On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! Alternatively, see the next remark:
+
+### Very important 2 - You can try out a pre-release of TexText 0.8 which is not affected by broken pstoedit
+The source code can be found in the releases/0.8 branch and packages with short installation instructions in the GitHub Release section. Please report any issues! Thank you!
 
 **Note:** There are more sophisticated instructions, including pictures, in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
 
@@ -15,8 +18,10 @@ On all platforms pstoedit support is broken by ghostscript releases 9.21 and lat
 - Free scaling and coloring of the objects possible.
 - Usage of user defined preamble files (e.g., to include special packages, etc.).
 
-## New in relase 0.7.2 (2018-04-06)
-- Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while converting text from LaTeX to SVG")
+## New in release 0.7.3 (2018-05-17)
+====================================
+- Fixed: Failure when trying to re-edit nodes created with very old versions of TexText. (issue #15: "Recompiling of nodes created with TexText < 0.5 fails")
+- Fixed: Issue #19: Missing width and height attributes in svg document lead to crash
 
 [(go to full release history...)](#release-history)
 
@@ -149,7 +154,10 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 
 ## Release history
 
-### New in relase 0.7.1 (2018-02-06)
+### New in release 0.7.2 (2018-04-06)
+- Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while converting text from LaTeX to SVG")
+
+### New in release 0.7.1 (2018-02-06)
 - Fixed: Wrong scaling so that text with explicitly defined font size does not match size of text with equal font size in Inkscape 0.92.x (issue #1)
 - Fixed: "Zero length field name in format" error in Inkcape <= 0.91 (issue #6)
 
