@@ -1,3 +1,11 @@
+Version 0.7.3 (2018-05-17)
+==========================
+Fixed: Failure when trying to re-edit nodes created with very old versions of 
+TexText. (issue #15: "Recompiling of nodes created with TexText < 0.5 fails")
+
+Fixed: Issue #19: Missing width and height attributes in svg document 
+lead to crash
+
 Version 0.7.2 (2018-04-06)
 ==========================
 Fixed: Failure on missing Inkscape version key (issue #10: "Error occurred while
