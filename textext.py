@@ -174,6 +174,50 @@ class TexText(inkex.Effect):
             dest="scale_factor",
             default=self.settings.get('scale', float, 1.0))
 
+    # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
+    # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
+    def get_document_width(self):
+        width = self.document.getroot().get('width')
+        if width:
+            return width
+        else:
+            viewbox = self.document.getroot().get('viewBox')
+            if viewbox:
+                return viewbox.split()[2]
+            else:
+                return '0'
+
+    # Identical to inkex.Effect.getDocumentHeight() in Inkscape >= 0.91, but to provide compatibility with
+    # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
+    def get_document_height(self):
+        height = self.document.getroot().get('height')
+        if height:
+            return height
+        else:
+            viewbox = self.document.getroot().get('viewBox')
+            if viewbox:
+                return viewbox.split()[3]
+            else:
+                return '0'
+
+    def unit_to_uu(self, unit):
+        """ Wrapper for unittouu() accounting for different implementation in Inkscape versions"""
+        try:
+            # Inkscape > 0.48
+            return self.unittouu(unit)
+        except AttributeError:
+            # Inkscape <= 0.48
+            return inkex.unittouu(unit)
+
+    def uu_to_unit(self, val, unit):
+        """ Wrapper for uutounit() accounting for different implementation in Inkscape versions"""
+        try:
+            # Inkscape > 0.48
+            return self.uutounit(val, unit)
+        except AttributeError:
+            # Inkscape <= 0.48
+            return inkex.uutounit(val, unit)
+
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
         global CONVERTERS
@@ -200,12 +244,7 @@ class TexText(inkex.Effect):
         # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
         # is preserved when recompiling the LaTeX code.
         if (old_node is not None) and ('{%s}version' % TEXTEXT_NS not in old_node.attrib.keys()):
-            try:
-                # Inkscape > 0.48
-                current_scale *= self.uutounit(1, "pt")
-            except AttributeError:
-                # Inkscape <= 0.48
-                current_scale *= inkex.uutounit(1, "pt")
+            current_scale *= self.uu_to_unit(1, "pt")
 
         # Ask for TeX code
         if self.options.text is None:
@@ -308,12 +347,7 @@ class TexText(inkex.Effect):
 
         # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
         # even if the document user units are not in pt
-        try:
-            # Inkscape > 0.48
-            scale_factor = user_scale_factor*self.unittouu("1pt")
-        except AttributeError:
-            # Inkscape <= 0.48
-            scale_factor = user_scale_factor*inkex.unittouu("1pt")
+        scale_factor = user_scale_factor*self.unit_to_uu("1pt")
 
         # Convert
         converter = converter_class()
@@ -346,14 +380,8 @@ class TexText(inkex.Effect):
             self.set_node_color(new_node, "black")
 
             root = self.document.getroot()
-            try:
-                # -- for Inkscape version 0.91
-                width = self.unittouu(root.get('width'))
-                height = self.unittouu(root.get('height'))
-            except AttributeError:
-                # -- for Inkscape version 0.48
-                width = inkex.unittouu(root.get('width'))
-                height = inkex.unittouu(root.get('height'))
+            width = self.unit_to_uu(self.get_document_width())
+            height = self.unit_to_uu(self.get_document_height())
 
             x, y, w, h = self.get_node_frame(new_node, scale_factor)
             self.translate_node(new_node, (width - w) / 2.0 - x, (height + h) / 2.0 + y)
