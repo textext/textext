@@ -77,9 +77,9 @@ After that, you have to install PyGTK. Depending on your Inkscape version you ne
 
  Inkscape Version (**important!**) | PyGTK Installer (SHA-256 Checksum)
 -----------------------------------|-----------------------------------
- Inkscape 0.92.2 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
+ Inkscape 0.92.2 and 0.92.3 - 64-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe)
  | c8e2e7551f253afb736a1f4f936a40dc116ad14bec7eac0c548b18a0a6e7e066
- Inkscape 0.92.2 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
+ Inkscape 0.92.2 and 0.92.3 - 32-bit | [Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe)
  | 7356f8d3232c038b2fff50d5cf608044c7c911db4f0b20d230bd5504a5cb20f9
  Inkscape 0.92.0 and 0.92.1 (64- and 32-bit)| [Install-PyGTK-2.24-Inkscape-0.92.exe](https://github.com/textext/textext/releases/download/0.7/Install-PyGTK-2.24-Inkscape-0.92.exe)
  | a2ea5842084aa5f6fdc1880ae4ad135135f5ff0423bb0cd527a8f0cf95f7ffd6
@@ -88,13 +88,13 @@ After that, you have to install PyGTK. Depending on your Inkscape version you ne
 
 The installer will search for your Inkscape installation and puts the required files into the directory of Inkscape. An uninstaller is installed by the installer, too.
 
-If you do not trust the installer you can download one of the following zip archives and copy its content into the directory in which inkscape.exe resides (Inkscape version 0.92.2) or directly into the `python` directory of your Inkscape installation (Inkscape versions 0.48, 0.91, 0.92.0, 0.92.1):
+If you do not trust the installer you can download one of the following zip archives and copy its content into the directory in which inkscape.exe resides (Inkscape version 0.92.2, 0.92.3) or directly into the `python` directory of your Inkscape installation (Inkscape versions 0.48, 0.91, 0.92.0, 0.92.1):
 
  Inkscape Version | PyGTK zip-archive (SHA-256 Checksum)
 ------------------|-------------------------------------
-Inkscape 0.92.2 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
+Inkscape 0.92.2 and 0.92.3 - 64-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-64bit.zip)
  | db67a38bd4214e155446228cf0103b8d2b40e655c25b54574fab8f4f94a1dcdb
-Inkscape 0.92.2 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
+Inkscape 0.92.2 and 0.92.3 - 32-bit | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.2-32bit.zip)
  | 7bc3e3123391827ac87e0be44a694959c7adf206b71af49a665ffe66b46ca8df
 Inkscape 0.92.0 and 0.92.1 | [PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip](https://github.com/textext/textext/releases/download/0.7/PyGTK-2.24.2-Python-2.7-Inkscape-0.92.zip)
  | ff3dac6e6a01dfad1b4bfe831e8d363a06500c2673e5e692a36e0fdee065e2e0
