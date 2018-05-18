@@ -4,10 +4,10 @@ TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.
 
 ![TexText dialog together with Inkscape](docs/readme-images/textext-with-inkscape.png)
 
-### Very important 1 - broken pstoedit support by ghostscript
-On all platforms pstoedit support is broken by ghostscript releases 9.21 and later. Please make sure that you have ghostscript version 9.20 or prior installed! Alternatively, see the next remark:
+### Very important 1 - broken pstoedit support by ghostscript on some Linux platforms
+On some Linux platforms (esp.~(k)ubuntu 18.04) pstoedit support seems to be still broken by ghostscript releases 9.21 and 9.22 (see [issue 48](https://bitbucket.org/pitgarbe/textext/issues/48/ghostscript-still-bug-under-linux)). Please make sure that you have **ghostscript version 9.23** or **version 9.20** or prior installed! Windows is not affected by this issue if the installation instructions are properly executed. Alternatively, see the next remark:
 
-### Very important 2 - You can try out a pre-release of TexText 0.8 which is not affected by broken pstoedit
+### Very important 2 - You can try out a pre-release of TexText 0.8 which is not affected by broken pstoedit and offers many new features (see pic above, details follow)!
 The source code can be found in the [releases/0.8 branch](https://github.com/textext/textext/tree/releases/0.8) and packages with short installation instructions in the [GitHub Release section](https://github.com/textext/textext/releases/tag/0.8-pre0). Please report any issues! Thank you!
 
 **Note:** There are more sophisticated instructions, including pictures, in the docs directory of this repository:  [README-TexText.pdf](docs/README-TexText.pdf) or [README-TexText.html](docs/README-TexText.html)
@@ -48,9 +48,9 @@ To install *Tex Text*, simply download the package and extract it. A directory w
 
 - You'll need to install GtkSourceView (`python-gtksourceview2` on Ubuntu/Debian) to take advantage of all the GUI features of *Tex Text*. This package should install `python-gtk2` as well, but if your distribution works differently, make sure you install the Python Gtk+ bindings. Also ensure that the package `gnome-themes-standard` is installed to avoid annoying GTK-warnings after creating a LaTeX node.
 
-- Next, please install `pstoedit`.
+- Next, please install `pstoedit`, preferably version 3.71, but 3.70 might work as well if you match the ghostscript requirements, see next point.
 
-- The extension also needs Ghostscript. This should already be included with your LaTeX distribution. However, **make sure** that Ghostscript version 9.20 or earlier is installed. The utility pstoedit **DOES NOT** work with Ghostscript 9.21 and newer.
+- The extension also needs Ghostscript. This should already be included with your LaTeX distribution. However, **make sure** that Ghostscript version 9.23 or 9.20 or earlier is installed. The utility pstoedit **DOES NOT** work with Ghostscript 9.21 and 9.22. Alternatively try out [TexText 0.8 with pdf2svg]((https://github.com/textext/textext/tree/releases/0.8)).
 
 - Finally, to enable the preview feature of *Tex Text*, you need to install `ImageMagick`.
 
@@ -107,11 +107,11 @@ Inkscape 0.91 and 0.48 | [PyGTK-2.24.2-Python-2.6-Inkscape-0.48+0.91.zip](https:
 
 If you don't already have *Ghostscript*, *pstoedit* and *ImageMagick* installed on your machine, you'll have to install these as well. Depending on your machines architecture (32- or 64-bit) you find the corresponding packages under the following links:
 
-- The installers for *pstoedit* are `pstoeditsetup-win32.exe` (32-bit) or `pstoeditsetup-x64.exe` (64-bit) which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70](https://sourceforge.net/projects/pstoedit/files/pstoedit/3.70)
+- The installers for *pstoedit 3.71* are `pstoeditsetup-win32.exe` (32-bit) or `pstoeditsetup-x64.exe` (64-bit) which  can be found under [https://sourceforge.net/projects/pstoedit/files/pstoedit/3.71](https://sourceforge.net/projects/pstoedit/files/pstoedit/3.71). Make sure you use version 3.71!
 
-- To install *ImageMagick*, run `ImageMagick-6.9.7-x-Q16-x86-static.exe` (32-bit) or `ImageMagick-6.9.7-x-Q16-x64-static.exe`(64-bit)  which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries/) (more recent versions have not been tested yet)
+- To install *ImageMagick*, run `ImageMagick-7.0.7-33-Q16-x86-static.exe` (32-bit) or `ImageMagick-7.0.7-33-Q16-x64-static.exe`(64-bit)  which can be downloaded from [ftp://ftp.imagemagick.org/pub/ImageMagick/binaries](ftp://ftp.imagemagick.org/pub/ImageMagick/binaries)
 
--  The installers for *Ghostscript* `gs920w32.exe` (32-bit) or `gs920w64.exe` (64-bit) can be downloaded from [32-bit]( https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w32.exe) and [64-bit](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs920/gs920w64.exe
+-  The installers for *Ghostscript* `gs923w32.exe` (32-bit) or `gs923w64.exe` (64-bit) can be downloaded from the [Artifex GitHub Repo](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases): [32-bit](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs923/gs923w32.exe) and [64-bit](https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs923/gs923w64.exe
 ) **DO NOT install ghostscript 9.21 or 9.22!!**
 
 **Note:** The 32-bit version of Inkscape is able to use the 64-bit versions of these programs and vice versa.
@@ -146,10 +146,10 @@ There is a preview button as well, which shortens the feedback cycle from entry 
 
 ## Known Issues
 
-- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are ignored.
-- Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue will be fixed in Version 0.8 auf TexText thanks to the support of @sizmailov.
-- TexText fails to produce output if a ghostscript version later 9.20 is installed on your system. This is due to broken pstoedit support by ghostscript > 9.20 and cannot directly addressed by TexText.
-- Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape. This will be fixed by the Inkscape team in Inkscape 0.92.3 Use the GTK interface instead.
+- Currently, colors set within the LaTeX code (`\textcolor{...}` in combination with an added `\usepackage{color}` in the preamble file) are ignored (This is fixed in version 0.8).
+- Nodes which are scaled manually in Inkscape are messed up after recompiled via TexText. Originally, TexText has not been designed to provide this capability. However, this issue is fixed in Version 0.8 auf TexText thanks to the support of @sizmailov.
+- TexText fails to produce output if ghostscript version 9.21 or 9.22 is installed on your system. This is due to broken pstoedit support by ghostscript 9.21 and 9.22 and cannot be directly addressed by TexText.
+- Under windows the Tkinter version of the GUI fails to open due to a bug in Inkscape <= 0.92.2. This is fixed in Inkscape 0.92.3.
 
 
 ## Release history
