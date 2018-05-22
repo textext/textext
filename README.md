@@ -2,6 +2,8 @@
 
 TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org/) providing the possibility to add LaTeX generated SVG elements to your drawing.
 
+![TexText dialog with Inkscape](docs/wiki-resources/textext-with-inkscape.png)
+
 It provides the following key features:
 
 - Multi-line editor, optionally with syntax highlighting
