@@ -3,7 +3,7 @@ rem Batch Script for building Linux installation package on Windows.
 rem
 rem The script creates a directory "textext-[Version]-linux" with a
 rem subdirectoy "extension". The extension files go into the extension
-rem subdirectory while the readme and setup-script are placed into
+rem subdirectory while the license and the setup-script are placed into
 rem the "textext-[Version]-linux" directory
 
 rem Some variables
@@ -32,7 +32,6 @@ call :copy_func textext.py %ExtensionPath%
 call :copy_func typesetter.py %ExtensionPath%
 call :copy_func win_app_paths.py %ExtensionPath%
 call :copy_func setup.py %PackagePath%
-call :copy_func docs\README-TexText.pdf %PackagePath%
 call :copy_func LICENSE.txt %PackagePath%
 
 rem If we have tar available on this machine build a tgz package

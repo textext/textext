@@ -38,11 +38,11 @@ Inkscape extension directory. Please change this directory only if you know what
 ; Finish page
 !define MUI_FINISHPAGE_TEXT_LARGE
 !define MUI_FINISHPAGE_TEXT "${PRODUCT_NAME} ${PRODUCT_VERSION} has been installed on your computer. \
-It is recommended to carefully read the readme file with installation instructions for additional \
-software and a short TexText user guide.$\n$\nClick Finish to close Setup."
+It is recommended to carefully read the WIKI on www.github.com/textext/textext/wiki with instructions \
+for additional software and a short TexText user guide.$\n$\nClick Finish to close Setup."
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Show readme file (pdf)."
-!define MUI_FINISHPAGE_RUN_FUNCTION "ShowReadme"
+!define MUI_FINISHPAGE_RUN_TEXT "Open Wiki https://www.github.com/textext/textext/wiki"
+!define MUI_FINISHPAGE_RUN_FUNCTION "ShowWiki"
 !insertmacro MUI_PAGE_FINISH
 
 ; Language files
@@ -50,8 +50,8 @@ software and a short TexText user guide.$\n$\nClick Finish to close Setup."
 
 ; MUI end ------
 
-Function ShowReadme
-  ExecShell "" "$APPDATA\inkscape\extensions\README-TexText.pdf"
+Function ShowWiki
+  ExecShell "open" "https://www.github.com/textext/textext/wiki"
 FunctionEnd
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -74,5 +74,4 @@ Section "TexText" -SEC01
   File "latexlogparser.py"
   File "default_packages.tex"
   File "win_app_paths.py"
-  File "docs\README-TexText.pdf"
 SectionEnd
