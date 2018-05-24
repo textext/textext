@@ -8,8 +8,8 @@ textext
 :Date: 2008-04-26
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
-:Author: Jan Winkler <enceladus@posteo.de>
-:Date: 2018-05-16
+:Author: TexText developers
+:Date: 2018-05-24
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
