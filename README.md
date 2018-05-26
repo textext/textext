@@ -4,7 +4,7 @@ TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.
 
 ![TexText dialog with Inkscape](docs/wiki-resources/textext-with-inkscape.png)
 
-It provides the following key features:
+## Key features
 
 - Multi-line editor, optionally with syntax highlighting
 - Compatibility with TexText down to version 0.4.x
@@ -16,8 +16,14 @@ It provides the following key features:
 - It is possible to specify the alignment anchor of the produced output. By this it is possible to fix e.g. the top left corner of the produced svg output from compilation to compilation.
 -   TeXText uses either pdf2svg or pstoedit+ghostscript as converter for producing svg code from the generated pdf.
 
+## Download
+
 See [TexText release area](https://github.com/textext/textext/releases) on GitHub for the latest release.
 
-Detailed information about **installation** and **usage** can be found in the [Wiki](https://github.com/textext/textext/wiki)
+## Installation and usage
+
+Detailed information about **installation** and **usage** can be found in the [Wiki](https://github.com/textext/textext/wiki).
+
+## History
 
 This repository continues the development of the plugin which took place at [https://bitbucket.org/pitgarbe/textext](https://bitbucket.org/pitgarbe/textext) until January 2018. Originally, TexText had been developed by [Pauli Virtanen](http://www.iki.fi/pav/software/textext/) based on the plugin InkLaTeX written by Toru Araki.
