@@ -1,5 +1,4 @@
-Copyright (c) 2007-2018 Pauli Virtanen, Pit Garbe, Jan Winkler.
-
+Copyright (c) 2007-2018 TexText developers.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
