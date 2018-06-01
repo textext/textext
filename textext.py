@@ -21,7 +21,7 @@ This brings some of the power of TeX typesetting to Inkscape.
 Textext was initially based on InkLaTeX_ written by Toru Araki,
 but is now rewritten.
 
-Thanks to Sergei Izmailov, Robert Szalai, Rafal Kolanski, Brian Clarke, 
+Thanks to Sergei Izmailov, Robert Szalai, Rafal Kolanski, Brian Clarke,
 Florent Becker and Vladislav Gavryusev for contributions.
 
 .. note::
@@ -794,20 +794,15 @@ class LatexConverterBase(object):
 
         return log_buffer.getvalue()
 
-    def remove_temp_files(self):
-        """Remove temporary files"""
-        base = os.path.join(self.tmp_path, self.tmp_base)
-        for filename in glob.glob(base + '*'):
-            self.try_remove(filename)
-        self.try_remove(self.tmp_path)
 
-    @staticmethod
-    def try_remove(filename):
-        """Try to remove given file, skipping if it doesn't exist"""
-        if os.path.isfile(filename):
-            os.remove(filename)
-        elif os.path.isdir(filename):
-            os.rmdir(filename)
+    def remove_temp_files(self):
+        """Remove temporary files and directory"""
+        for base, dirs, files in os.walk(self.tmp_path, topdown=False):
+            for filename in files:
+                os.remove(os.path.join(base, filename))
+            for dirname in dirs:
+                os.rmdir(os.path.join(base, dirname))
+        os.rmdir(self.tmp_path)
 
 
 class PdfConverterBase(LatexConverterBase):
