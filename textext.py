@@ -1190,7 +1190,8 @@ class SvgElement(object):
             # Fetch the part of the source dict which is interesting for colorization
             src_style_dict = ss.parseStyle(src_style_string)
             color_style_dict = {key: value for key, value in src_style_dict.items() if
-                                key in ["fill", "stroke", "opacity", "stroke-opacity", "fill-opacity"]}
+                                key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
+                                                "fill-opacity"] and value.lower() != "none"}
 
             # Iterate over all nodes of self._node and apply the imported color style
             for dest_node in self._node.getiterator():
