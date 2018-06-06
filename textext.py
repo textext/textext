@@ -45,7 +45,6 @@ __docformat__ = "restructuredtext en"
 
 import os
 import sys
-import glob
 import math
 import platform
 import subprocess
@@ -646,7 +645,7 @@ if PLATFORM == WINDOWS:
     new_path_element = wap.get_pstoedit_dir()
     if new_path_element:
         if new_path_element != wap.IS_IN_PATH:
-            paths += glob.glob(os.path.join(new_path_element))
+            paths += [os.path.join(new_path_element)]
     else:
         add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
         raise RuntimeError(latest_message())
@@ -654,7 +653,7 @@ if PLATFORM == WINDOWS:
     new_path_element = wap.get_ghostscript_dir()
     if new_path_element:
         if new_path_element != wap.IS_IN_PATH:
-            paths += glob.glob(os.path.join(new_path_element))
+            paths += [os.path.join(new_path_element)]
     else:
         add_log_message(wap.get_last_error(), LOG_LEVEL_ERROR)
         raise RuntimeError(latest_message())
