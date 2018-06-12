@@ -378,7 +378,7 @@ class TexText(inkex.Effect):
 
         # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
         # even if the document user units are not in pt
-        scale_factor = user_scale_factor*self.unit_to_uu("1pt")
+        scale_factor = user_scale_factor * self.unit_to_uu("1pt")
 
         # Convert
         converter = converter_class()
