@@ -5,7 +5,8 @@ Version 0.8.0 (t.b.a.)
 - pdf2svg as backend
 - xelatex and lualatex support
 - Keep colors explicitly set in TeX or set by Inkscape
-- ...
+- Temp directory is safely removed even if it contains additional files 
+  generated during compilation
 
 Version 0.7.3 (2018-05-17)
 ==========================
