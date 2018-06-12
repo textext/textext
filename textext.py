@@ -378,7 +378,7 @@ class TexText(inkex.Effect):
 
         # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
         # even if the document user units are not in pt
-        scale_factor = user_scale_factor*self.unit_to_uu("1pt")
+        scale_factor = user_scale_factor * self.unit_to_uu("1pt")
 
         # Convert
         converter = converter_class()
@@ -851,24 +851,39 @@ class PstoeditPlotSvg(PdfConverterBase):
         pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
 
         # Exec pstoedit: pdf -> svg
+        delay_bind_error = False
+        result = ""
         try:
             result = exec_command(['pstoedit', '-f', 'plot-svg',
                                    self.tmp('pdf'), self.tmp('svg')]
-                                   + pstoeditOpts)
+                                  + pstoeditOpts)
         except RuntimeError as excpt:
-            # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
-            if "-1073741515" in excpt.message:
-                add_log_message("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
-                                "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
-                                "to install the Microsoft Visual C++ 2010 Redistributable Package "
-                                "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
-                                "This is a problem of pstoedit, not of TexText!!", LOG_LEVEL_ERROR)
-            raise RuntimeError(latest_message())
+            # Linux runs into this in case of DELAYBIND error
+            if "DELAYBIND" in excpt.message:
+                delay_bind_error = True
+                result += excpt.message
+            else:
+                # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
+                if "-1073741515" in excpt.message:
+                    add_log_message("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
+                                    "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
+                                    "to install the Microsoft Visual C++ 2010 Redistributable Package "
+                                    "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
+                                    "This is a problem of pstoedit, not of TexText!!", LOG_LEVEL_ERROR)
+                raise RuntimeError(latest_message())
         if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-            # Check for broken pstoedit due to deprecated DELAYBIND option in ghostscript
+            # Windows runds into this in case of DELAYBIND error
             if "DELAYBIND" in result:
-                result += "Ensure that a ghostscript version < 9.21 is installed on your system!\n"
-            add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
+                delay_bind_error = True
+            else:
+                add_log_message("pstoedit didn't produce output.\n%s" % (result), LOG_LEVEL_ERROR)
+                raise RuntimeError(latest_message())
+
+        if delay_bind_error:
+            result = "%s %s" % ("The ghostscript version installed on your system is not compatible with pstoedit! "
+                                "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
+                                "ghostscript).\n\n Detailed error message:\n", result)
+            add_log_message(result, LOG_LEVEL_ERROR)
             raise RuntimeError(latest_message())
 
     def svg_to_group(self):
@@ -1301,7 +1316,6 @@ class Pdf2SvgSvgElement(SvgElement):
 
 
 CONVERTERS = [Pdf2SvgPlotSvg, PstoeditPlotSvg]
-#CONVERTERS = [Pdf2SvgPlotSvg]
 
 #------------------------------------------------------------------------------
 # Entry point
