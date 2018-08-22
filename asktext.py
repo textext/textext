@@ -679,6 +679,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             Clear the preamble file setting
             """
             self.preamble_file = "default_packages.tex"
+            self.set_preamble()
+
+        def set_preamble(self):
             if hasattr(gtk, 'FileChooserButton'):
                 self._preamble_widget.set_filename(self.preamble_file)
             else:
@@ -708,7 +711,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             else:
                 self._preamble_widget = gtk.Entry()
 
-            self.clear_preamble()
+            self.set_preamble()
 
             # --- Preamble file ---
             preamble_delete = gtk.Button(label="Clear")

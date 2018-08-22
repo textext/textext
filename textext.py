@@ -271,6 +271,13 @@ class TexText(inkex.Effect):
 
             if not preamble_file:
                 preamble_file = self.options.preamble_file
+            else:
+                # Check if preamble file exists at the specified absolute path location. If not, check to find
+                # the file in the default path. If this fails, too, fallback to the default.
+                if not os.path.exists(preamble_file):
+                    preamble_file = os.path.join(os.path.dirname(self.options.preamble_file), os.path.basename(preamble_file))
+                    if not os.path.exists(preamble_file):
+                        preamble_file = self.options.preamble_file
 
             if not os.path.isfile(preamble_file):
                 preamble_file = ""
