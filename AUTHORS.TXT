@@ -12,4 +12,5 @@ Robert Szalai
 Rafal Kolanski
 Sergei Izmailov <sergei.a.izmailov@gmail.com>
 Toru Araki
+veltsov@github
 Vladislav Gavryusev 

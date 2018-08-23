@@ -3,7 +3,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.8-beta3"
+!define PRODUCT_VERSION "0.8.1"
 !define PRODUCT_PUBLISHER "Pit Garbe, Jan Winkler"
 !define PRODUCT_WEB_SITE "https://tu-dresden.de/ing/elektrotechnik/rst"
 !define PRODUCT_DIR_REGKEY "Software\Python\TexText"
@@ -38,10 +38,10 @@ Inkscape extension directory. Please change this directory only if you know what
 ; Finish page
 !define MUI_FINISHPAGE_TEXT_LARGE
 !define MUI_FINISHPAGE_TEXT "${PRODUCT_NAME} ${PRODUCT_VERSION} has been installed on your computer. \
-It is recommended to carefully read the WIKI on www.github.com/textext/textext/wiki with instructions \
+It is recommended to carefully read the WIKI on https://github.com/textext/textext/wiki/usage with instructions \
 for additional software and a short TexText user guide.$\n$\nClick Finish to close Setup."
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Open Wiki https://www.github.com/textext/textext/wiki"
+!define MUI_FINISHPAGE_RUN_TEXT "Open Wiki https://github.com/textext/textext/wiki/usage"
 !define MUI_FINISHPAGE_RUN_FUNCTION "ShowWiki"
 !insertmacro MUI_PAGE_FINISH
 
@@ -51,7 +51,7 @@ for additional software and a short TexText user guide.$\n$\nClick Finish to clo
 ; MUI end ------
 
 Function ShowWiki
-  ExecShell "open" "https://www.github.com/textext/textext/wiki"
+  ExecShell "open" "https://www.github.com/textext/textext/wiki/usage"
 FunctionEnd
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
