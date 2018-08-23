@@ -10,15 +10,6 @@ inkex.py
 simplepath.py
 simplestyle.py
 simpletransform.py
-/PyGTK_for_Inkscape/0.92.2/build
-/PyGTK_for_Inkscape/0.92.2/download-*/
-/PyGTK_for_Inkscape/0.92.2/files/
-/PyGTK_for_Inkscape/0.92.2/uninst_file_list.txt
-/PyGTK_for_Inkscape/0.92.2/inst_file_list.txt
-/PyGTK_for_Inkscape/0.91/build
-/PyGTK_for_Inkscape/0.91/files
-/PyGTK_for_Inkscape/0.92/build
-/PyGTK_for_Inkscape/0.92/files
 /textext-*-linux/
 /TexText-Linux-*.tgz
 /TexText-Linux-*.zip
