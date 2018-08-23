@@ -1,5 +1,12 @@
-Version 0.8.0 (t.b.a.)
-=======================================
+Version 0.8.1 (2018-08-23)
+==========================
+- Fixed: Loss of user defined preamble file path when re-editing
+  nodes (issue #40).
+- Added file chooser button for selection of preamble file in Tk
+  interface
+  
+Version 0.8.0 (2018-08-21)
+==========================
 - Fixed bad positioning, improved alignment capabilities 
 (Thanks to Sergei Izmailov for implementing this)
 - pdf2svg as backend
