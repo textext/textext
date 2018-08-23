@@ -57,6 +57,7 @@ except ImportError:
     try:
         import Tkinter as Tk
         import tkMessageBox as TkMsgBoxes
+        import tkFileDialog as TkFileDialogs
 
         TOOLKIT = TK
     except ImportError:
@@ -260,8 +261,13 @@ if TOOLKIT == TK:
             label = Tk.Label(box, text="Preamble file:")
             label.pack(pady=2, padx=5, anchor="w")
             self._preamble = Tk.Entry(box)
-            self._preamble.pack(expand=True, fill="x", pady=5, padx=5)
+            self._preamble.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
             self._preamble.insert(Tk.END, self.preamble_file)
+
+            self._askfilename_button = Tk.Button(box, text="Select...",
+                                           command=self.select_preamble_file)
+            self._askfilename_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+
             box.pack(fill="x", pady=5, expand=True)
 
             # Frame box for tex command
@@ -373,6 +379,14 @@ if TOOLKIT == TK:
         def use_global_scale_factor(self, _=None):
             self._scale.delete(0, "end")
             self._scale.insert(0, self.global_scale_factor)
+
+        def select_preamble_file(self):
+            file_name = TkFileDialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
+                                                      title="Select preamble file",
+                                                      filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
+            if file_name is not None:
+                self._preamble.delete(0, Tk.END)
+                self._preamble.insert(Tk.END, file_name)
 
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
