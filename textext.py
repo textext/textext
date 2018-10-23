@@ -51,7 +51,7 @@ import subprocess
 
 DEBUG = False
 
-MAC = "Mac OS"
+MAC = "Darwin"
 WINDOWS = "Windows"
 PLATFORM = platform.system()
 
