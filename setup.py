@@ -48,7 +48,13 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
             shutil.copy(file, destination)
         else:
             logger.info("Creating directory `%s`"%destination)
-            os.mkdir(destination)
+
+            if os.path.exists(destination):
+                if not os.path.isdir(destination):
+                    os.remove(destination)
+                    os.mkdir(destination)
+            else:
+                os.mkdir(destination)
             copy_extension_files(  os.path.join(file,"*"),
                                    destination,
                                    if_already_exists=if_already_exists)
