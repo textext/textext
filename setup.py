@@ -153,7 +153,7 @@ class RequirementCheckResult(object):
                 line += (offset - 1) * 2 * " " + "|" + "--"
 
             line += nest_symbol
-            line += " " + msg + "[%d]" % offset
+            line += " " + msg
 
             logger.log(lvl, line)
 
