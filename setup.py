@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-import argparse 
+import argparse
 import logging
+import re
 import os
 import glob
 import shutil
+import subprocess
 
 
 def colorize_logging():
@@ -45,14 +47,13 @@ def colorize_logging():
     BG_LIGHT_CYAN = "\033[106m"
     BG_WHITE = "\033[107m"
 
-
     levels = [
-              logging.DEBUG,
-              logging.INFO,
-              logging.WARNING,
-              logging.ERROR,
-              logging.ERROR+1, # SUCCESS
-              logging.CRITICAL
+        logging.DEBUG,
+        logging.INFO,
+        logging.WARNING,
+        logging.ERROR,
+        logging.ERROR + 1,  # SUCCESS
+        logging.CRITICAL
     ]
     names = [
         "DEBUG   ",
@@ -93,28 +94,28 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
             logger.critical("Can't copy files to `%s`: it's not a directory")
             raise CopyFileOverDirectoryError("Can't copy files to `%s`: it's not a directory")
     else:
-        logger.info("Creating directory `%s`"%dst)
+        logger.info("Creating directory `%s`" % dst)
         os.makedirs(dst)
 
     for file in glob.glob(src):
         basename = os.path.basename(file)
-        destination = os.path.join(dst,basename)
+        destination = os.path.join(dst, basename)
         if os.path.exists(destination):
-            if if_already_exists=="raise":
-                logger.critical("Can't copy `%s`: `%s` already exists"%(file,destination))
-                raise CopyFileAlreadyExistsError("Can't copy `%s`: `%s` already exists"%(file,destination))
-            elif if_already_exists=="skip":
-                logger.info("Skipping `%s`"%file)
+            if if_already_exists == "raise":
+                logger.critical("Can't copy `%s`: `%s` already exists" % (file, destination))
+                raise CopyFileAlreadyExistsError("Can't copy `%s`: `%s` already exists" % (file, destination))
+            elif if_already_exists == "skip":
+                logger.info("Skipping `%s`" % file)
                 continue
-            elif if_already_exists=="overwrite":
-                logger.info("Overwriting `%s`"%destination)
+            elif if_already_exists == "overwrite":
+                logger.info("Overwriting `%s`" % destination)
                 pass
 
         if os.path.isfile(file):
-            logger.info("Copying `%s` to `%s`" % (file,destination) )
+            logger.info("Copying `%s` to `%s`" % (file, destination))
             shutil.copy(file, destination)
         else:
-            logger.info("Creating directory `%s`"%destination)
+            logger.info("Creating directory `%s`" % destination)
 
             if os.path.exists(destination):
                 if not os.path.isdir(destination):
@@ -122,10 +123,9 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
                     os.mkdir(destination)
             else:
                 os.mkdir(destination)
-            copy_extension_files(  os.path.join(file,"*"),
-                                   destination,
-                                   if_already_exists=if_already_exists)
-
+            copy_extension_files(os.path.join(file, "*"),
+                                 destination,
+                                 if_already_exists=if_already_exists)
 
 
 class RequirementCheckResult(object):
@@ -139,6 +139,8 @@ class RequirementCheckResult(object):
             lvl = logging.ERROR + 1  # success
         else:
             lvl = logging.ERROR
+            if offset == 0:
+                lvl = logging.CRITICAL
 
         if self.nested:
             nest_symbol = "+"
@@ -148,9 +150,7 @@ class RequirementCheckResult(object):
         for msg in self.messages:
             line = ""
             if offset > 0:
-                if offset > 1:
-                    line += " " * (offset - 1)
-                line += (offset - 1) * 2 * " " + "|" + "--"
+                line += (offset - 1) * "|  " + "/" + "--"
 
             line += nest_symbol
             line += " " + msg
@@ -169,19 +169,36 @@ class RequirementCheckResult(object):
         if len(self.nested) == 0:
             return self
 
+        for i, nst in enumerate(self.nested):
+            self.nested[i] = nst.flatten()
+
         if self.nested[0].messages == ["OR"] and self.messages == ["OR"]:
             return RequirementCheckResult(
-                    self.value,
-                    ["OR"],
-                    self.nested[0].nested + self.nested[1:]
-                ).flatten()
+                self.value,
+                ["OR"],
+                self.nested[0].nested + self.nested[1:]
+            ).flatten()
 
         if self.nested[0].messages == ["AND"] and self.messages == ["AND"]:
             return RequirementCheckResult(
-                    self.value,
-                    ["AND"],
-                    self.nested[0].nested + self.nested[1:]
-                ).flatten()
+                self.value,
+                ["AND"],
+                self.nested[0].nested + self.nested[1:]
+            ).flatten()
+
+        if self.nested[-1].messages == ["OR"] and self.messages == ["OR"]:
+            return RequirementCheckResult(
+                self.value,
+                ["OR"],
+                self.nested[:-1] + self.nested[-1].nested
+            ).flatten()
+
+        if self.nested[-1].messages == ["AND"] and self.messages == ["AND"]:
+            return RequirementCheckResult(
+                self.value,
+                ["AND"],
+                self.nested[:-1] + self.nested[-1].nested
+            ).flatten()
 
         return self
 
@@ -216,17 +233,19 @@ class Requirement(object):
                                           ["OR"],
                                           [L, R]
                                           )
+
         return Requirement(or_impl)
 
-    def __neg__(self, other):
+    def __invert__(self):
         # type: (Requirement) -> Requirement
-        def neg_impl():
-            lhs_value, lhs_messages = self.check()
-            return RequirementCheckResult(not lhs_value,
+        def invert_impl():
+            L = self.check()
+            return RequirementCheckResult(not L.value,
                                           ["NOT"],
-                                          lhs_messages
+                                          [L]
                                           )
-        return Requirement(neg_impl)
+
+        return Requirement(invert_impl)
 
 
 def check_requirements():
@@ -236,24 +255,106 @@ def check_requirements():
             full_path_guess = os.path.join(path, executable)
             logger.debug("Looking for `%s` in `%s`" % (executable, path))
             if os.path.isfile(full_path_guess):
-                logger.debug("Found `%s` at `%s`"%(executable,path))
-                messages.append("Found `%s` at `%s`"%(executable,path))
-        if len(messages)>0:
+                logger.debug("Found `%s` at `%s`" % (executable, path))
+                messages.append("Found `%s` at `%s`" % (executable, path))
+        if len(messages) > 0:
             return RequirementCheckResult(True, messages)
         messages.append("`%s` is not found PATH" % (executable))
         return RequirementCheckResult(False, messages)
 
-    r = (
-        Requirement(lambda : find_in_PATH("pdflatex"))|
-        Requirement(lambda : find_in_PATH("laulatex"))|
-        Requirement(lambda : find_in_PATH("xelatex"))
+    def find_PyGtk2():
+        try:
+            subprocess.check_call(["python2.7", "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+        except (OSError, subprocess.CalledProcessError):
+            return RequirementCheckResult(False, ["PyGTK2 is not found"])
+
+        return RequirementCheckResult(True, ["PyGTK2 is found"])
+
+    def find_TkInter():
+        try:
+            subprocess.check_call(["python2.7", "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except (OSError, subprocess.CalledProcessError):
+            return RequirementCheckResult(False, ["TkInter is not found"])
+
+        return RequirementCheckResult(True, ["TkInter is found"])
+
+    def find_ghostscript(version):
+        try:
+            p = subprocess.Popen(["ghostscript", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+        except (OSError, subprocess.CalledProcessError):
+            return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
+
+        first_stdout_line = stdout.split("\n")[0]
+        m = re.search(r"(\d+.\d+)", first_stdout_line)
+        if m:
+            found_version = m.group(1)
+            if version == found_version:
+                return RequirementCheckResult(True, ["ghostscript=%s is found" % version])
+            else:
+                return RequirementCheckResult(False, [
+                    "ghostscript=%s is not found (but ghostscript=%s is found)" % (version, found_version)])
+        return RequirementCheckResult(False, ["Can't determinate ghostscript version"])
+
+    def find_pstoedit(version):
+        try:
+            p = subprocess.Popen(["pstoedit"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+        except (OSError, subprocess.CalledProcessError):
+            return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
+
+        first_stderr_line = stderr.split("\n")[0]
+        m = re.search(r"version (\d+.\d+)", first_stderr_line)
+        if m:
+            found_version = m.group(1)
+            if version == found_version:
+                return RequirementCheckResult(True, ["pstoedit=%s is found" % version])
+            else:
+                return RequirementCheckResult(False, [
+                    "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
+        return RequirementCheckResult(False, ["Can't determinate pstoedit version"])
+
+    textext_requirements = (
+            Requirement(lambda: find_in_PATH("python2.7"))
+            &
+            (
+                    Requirement(lambda: find_in_PATH("pdflatex")) |
+                    Requirement(lambda: find_in_PATH("laulatex")) |
+                    Requirement(lambda: find_in_PATH("xelatex"))
+            )
+            &
+            (
+                    Requirement(find_PyGtk2) |
+                    Requirement(find_TkInter)
+            ) &
+            (
+                    Requirement(lambda: find_in_PATH("convert")) |
+                    Requirement(lambda: find_in_PATH("magick"))
+            ) &
+            (
+                    ~(
+                            Requirement(lambda: find_pstoedit("3.70")) &
+                            Requirement(lambda: find_ghostscript("9.22"))
+                    )
+                    &
+                    (
+                            Requirement(lambda: find_in_PATH("pstoedit")) &
+                            Requirement(lambda: find_in_PATH("ghostscript"))
+                    )
+                    |
+                    (
+                        Requirement(lambda: find_in_PATH("pdf2svg"))
+                    )
+            )
     )
 
-    check_result = r.check()
+    check_result = textext_requirements.check()
 
     check_result = check_result.flatten()
 
     check_result.print_to_logger()
+
 
 colorize_logging()
 logger = logging.getLogger('TexText')
@@ -264,34 +365,32 @@ formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-    
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Install TexText')
-    
+
     if_already_exists = parser.add_mutually_exclusive_group()
     if_already_exists.add_argument(
-                "--overwrite-if-exist", 
-                dest='if_already_exists', 
-                action='store_const',
-                const="overwrite",
-                default="raise",
-                help="Overwrite already existing extension files"
-                )
+        "--overwrite-if-exist",
+        dest='if_already_exists',
+        action='store_const',
+        const="overwrite",
+        default="raise",
+        help="Overwrite already existing extension files"
+    )
     if_already_exists.add_argument(
-                "--skip-if-exist", 
-                dest='if_already_exists', 
-                action='store_const',
-                const="skip",
-                help="Retain already existing extension files"
-                )
-
+        "--skip-if-exist",
+        dest='if_already_exists',
+        action='store_const',
+        const="skip",
+        help="Retain already existing extension files"
+    )
 
     parser.add_argument(
-                "--inkscape-extensions-path",
-                default=os.path.expanduser("~/.config/inkscape/extensions"),
-                help="Path to inkscape extensions directory"
-        )
+        "--inkscape-extensions-path",
+        default=os.path.expanduser("~/.config/inkscape/extensions"),
+        help="Path to inkscape extensions directory"
+    )
 
     args = parser.parse_args()
 
