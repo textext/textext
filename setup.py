@@ -128,13 +128,52 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
                                  if_already_exists=if_already_exists)
 
 
+class TrinaryLogicValue(object):
+    def __init__(self, value=None):
+        self.value = value
+
+    def __and__(self, rhs):
+        if rhs.value == False or self.value == False:
+            return TrinaryLogicValue(False)
+        if rhs.value is None or self.value is None:
+            return TrinaryLogicValue(None)
+        return TrinaryLogicValue(True)
+
+    def __or__(self, rhs):
+        if rhs.value == True or self.value == True:
+            return TrinaryLogicValue(True)
+        if rhs.value is None or self.value is None:
+            return TrinaryLogicValue(None)
+        return TrinaryLogicValue(False)
+
+    def __invert__(self):
+        if self.value is None:
+            return TrinaryLogicValue(None)
+        return TrinaryLogicValue(not self.value)
+
+    def __eq__(self, rhs):
+        if isinstance(rhs,TrinaryLogicValue):
+            return self.value is None and rhs.value is None or self.value == rhs.value
+        return self.value is None and rhs is None or self.value == rhs
+
+
+
 class RequirementCheckResult(object):
     def __init__(self, value, messages, nested=None):
         self.value = value
-        self.messages = messages
+        self.messages = self._cleanup_flatten_messages(messages)
         self.nested = nested if nested is not None else []
 
-    def print_to_logger(self, offset=0):
+        self.is_and_node = False
+        self.is_or_node = False
+
+        if "AND" in messages:
+            self.is_and_node = True
+
+        if "OR" in messages:
+            self.is_or_node = True
+
+    def print_to_logger(self, offset=0, parent=None):
         if self.value:
             lvl = logging.ERROR + 1  # success
         else:
@@ -143,14 +182,23 @@ class RequirementCheckResult(object):
                 lvl = logging.CRITICAL
 
         if self.nested:
-            nest_symbol = "+"
+            nest_symbol = "-+"
         else:
             nest_symbol = ""
+
+
+        tail = "/-----"
+
+        if parent:
+            if parent.is_and_node:
+                tail = "/-and-"
+            if parent.is_or_node:
+                tail = "/--or-"
 
         for msg in self.messages:
             line = ""
             if offset > 0:
-                line += (offset - 1) * "|  " + "/" + "--"
+                line += (offset - 1) * "|      " + tail
 
             line += nest_symbol
             line += " " + msg
@@ -161,9 +209,27 @@ class RequirementCheckResult(object):
                 nest_symbol = "|"
             else:
                 nest_symbol = ""
+            tail = "|     "
 
         for nst in self.nested:
-            nst.print_to_logger(offset + 1)
+            nst.print_to_logger(offset + 1, self)
+
+    def _cleanup_flatten_messages(self, messages):
+        new_msgs=[]
+        prev_msg = None
+
+        # remove consequent repeats
+        for m in messages:
+            if m!=prev_msg:
+                new_msgs.append(m)
+            prev_msg = m
+
+        # remove "OR"/"AND" messages if there are anything else
+        or_and = {"OR","AND"}
+        if len(set(new_msgs) - or_and )>0:
+            return [ m for m in new_msgs if m not in or_and]
+
+        return new_msgs
 
     def flatten(self):
         if len(self.nested) == 0:
@@ -172,52 +238,93 @@ class RequirementCheckResult(object):
         for i, nst in enumerate(self.nested):
             self.nested[i] = nst.flatten()
 
-        if self.nested[0].messages == ["OR"] and self.messages == ["OR"]:
+        if self.nested[0].is_or_node and self.is_or_node:
             return RequirementCheckResult(
                 self.value,
-                ["OR"],
+                self.nested[0].messages + self.messages,
                 self.nested[0].nested + self.nested[1:]
-            ).flatten()
+            )
 
-        if self.nested[0].messages == ["AND"] and self.messages == ["AND"]:
+        if self.nested[0].is_and_node and self.is_and_node:
             return RequirementCheckResult(
                 self.value,
-                ["AND"],
+                self.nested[0].messages + self.messages,
                 self.nested[0].nested + self.nested[1:]
-            ).flatten()
+            )
 
-        if self.nested[-1].messages == ["OR"] and self.messages == ["OR"]:
+        if self.nested[-1].is_or_node and self.is_or_node:
             return RequirementCheckResult(
                 self.value,
-                ["OR"],
+                self.messages+self.nested[-1].messages,
                 self.nested[:-1] + self.nested[-1].nested
-            ).flatten()
+            )
 
-        if self.nested[-1].messages == ["AND"] and self.messages == ["AND"]:
+        if self.nested[-1].is_and_node and self.is_and_node:
             return RequirementCheckResult(
                 self.value,
-                ["AND"],
+                self.messages + self.nested[-1].messages,
                 self.nested[:-1] + self.nested[-1].nested
-            ).flatten()
+            )
 
         return self
 
 
 class Requirement(object):
-    def __init__(self, criteria):
-        # type: (Callable[None,RequirementCheckResult]) -> None
-        self.criteria = criteria  # type: Callable[None, RequirementCheckResult]
+    def __init__(self, criteria, *args, **kwargs):
+        self.criteria = lambda: criteria(*args,**kwargs)
+        self._prepended_messages = {"ANY":[],"SUCCESS":[],"ERROR":[],"UNKNOWN":[]}
+        self._appended_messages = {"ANY":[],"SUCCESS":[],"ERROR":[],"UNKNOWN":[]}
+        self._overwrite_messages = None
 
     def check(self):
-        # type: () -> RequirementCheckResult
-        return self.criteria()
+        result = self.criteria()
+        # print(self,self._overwrite_messages)
+        if self._overwrite_messages:
+            result.messages = self._overwrite_messages
+        result.messages = self._prepended_messages["ANY"] + result.messages
+        if result.value == TrinaryLogicValue(True):
+            result.messages = self._prepended_messages["SUCCESS"] + result.messages
+        if result.value == TrinaryLogicValue(False):
+            result.messages = self._prepended_messages["ERROR"] + result.messages
+        if result.value == TrinaryLogicValue(None):
+            result.messages = self._prepended_messages["UNKNOWN"] + result.messages
+
+        result.messages += self._appended_messages["ANY"]
+        if result.value == TrinaryLogicValue(True):
+            result.messages += self._appended_messages["SUCCESS"]
+        if result.value == TrinaryLogicValue(False):
+            result.messages += self._appended_messages["ERROR"]
+        if result.value == TrinaryLogicValue(None):
+            result.messages += self._appended_messages["UNKNOWN"]
+        # print(self,result.messages)
+        return result
+
+    def prepend_message(self, result_type, message):
+        assert result_type in self._prepended_messages.keys()
+        if not isinstance(message,list):
+            message = [message]
+        self._prepended_messages[result_type].extend(message)
+        return self
+
+    def overwrite_check_message(self, message):
+        if not isinstance(message,list):
+            message = [message]
+        self._overwrite_messages = message
+        return self
+
+    def append_message(self, result_type, message):
+        assert result_type in self._appended_messages.keys()
+        if not isinstance(message,list):
+            message = [message]
+        self._appended_messages[result_type].extend(message)
+        return self
 
     def __and__(self, rhs):
         # type: (Requirement) -> Requirement
         def and_impl():
             L = self.check()
             R = rhs.check()
-            return RequirementCheckResult(L.value and R.value,
+            return RequirementCheckResult(L.value & R.value,
                                           ["AND"],
                                           [L, R]
                                           )
@@ -229,7 +336,7 @@ class Requirement(object):
         def or_impl():
             L = self.check()
             R = rhs.check()
-            return RequirementCheckResult(L.value or R.value,
+            return RequirementCheckResult(L.value | R.value,
                                           ["OR"],
                                           [L, R]
                                           )
@@ -240,7 +347,7 @@ class Requirement(object):
         # type: (Requirement) -> Requirement
         def invert_impl():
             L = self.check()
-            return RequirementCheckResult(not L.value,
+            return RequirementCheckResult(~L.value,
                                           ["NOT"],
                                           [L]
                                           )
@@ -249,17 +356,17 @@ class Requirement(object):
 
 
 def check_requirements():
-    def find_in_PATH(executable):
+    def find_executable(executable_name):
         messages = []
         for path in os.environ["PATH"].split(":"):
-            full_path_guess = os.path.join(path, executable)
-            logger.debug("Looking for `%s` in `%s`" % (executable, path))
+            full_path_guess = os.path.join(path, executable_name)
+            logger.debug("Looking for `%s` in `%s`" % (executable_name, path))
             if os.path.isfile(full_path_guess):
-                logger.debug("Found `%s` at `%s`" % (executable, path))
-                messages.append("Found `%s` at `%s`" % (executable, path))
+                logger.debug("`%s` is found at `%s`" % (executable_name, path))
+                messages.append("`%s` is found at `%s`" % (executable_name, path))
         if len(messages) > 0:
             return RequirementCheckResult(True, messages)
-        messages.append("`%s` is not found PATH" % (executable))
+        messages.append("`%s` is not found in PATH" % (executable_name))
         return RequirementCheckResult(False, messages)
 
     def find_PyGtk2():
@@ -316,38 +423,42 @@ def check_requirements():
         return RequirementCheckResult(False, ["Can't determinate pstoedit version"])
 
     textext_requirements = (
-            Requirement(lambda: find_in_PATH("python2.7"))
+            Requirement(find_executable, "python2.7").prepend_message("ANY",'Detect `pytohn2.7`')
             &
             (
-                    Requirement(lambda: find_in_PATH("pdflatex")) |
-                    Requirement(lambda: find_in_PATH("laulatex")) |
-                    Requirement(lambda: find_in_PATH("xelatex"))
-            )
+                    Requirement(find_executable, "pdflatex") |
+                    Requirement(find_executable, "laulatex") |
+                    Requirement(find_executable, "xelatex")
+            ).overwrite_check_message("Detect *latex")
             &
             (
                     Requirement(find_PyGtk2) |
                     Requirement(find_TkInter)
-            ) &
+            ).overwrite_check_message("Detect GUI library")
+            &
             (
-                    Requirement(lambda: find_in_PATH("convert")) |
-                    Requirement(lambda: find_in_PATH("magick"))
-            ) &
+                    Requirement(find_executable, "convert") |
+                    Requirement(find_executable, "magick")
+            ).overwrite_check_message("Detect pdf->png conversion utility")
+            &
             (
+                    (
                     ~(
-                            Requirement(lambda: find_pstoedit("3.70")) &
-                            Requirement(lambda: find_ghostscript("9.22"))
-                    )
+                            Requirement(find_pstoedit, "3.70") &
+                            Requirement(find_ghostscript, "9.22")
+                    ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
                     &
                     (
-                            Requirement(lambda: find_in_PATH("pstoedit")) &
-                            Requirement(lambda: find_in_PATH("ghostscript"))
+                            Requirement(find_executable, "pstoedit") &
+                            Requirement(find_executable, "ghostscript")
                     )
+                    ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
                     |
                     (
-                        Requirement(lambda: find_in_PATH("pdf2svg"))
-                    )
-            )
-    )
+                        Requirement(find_executable, "pdf2svg")
+                    ).prepend_message("ANY","Detect pdf2svg:")
+            ).overwrite_check_message("Detect pdf->svg conversion utility")
+    ).overwrite_check_message("TexText requirements")
 
     check_result = textext_requirements.check()
 
@@ -355,12 +466,14 @@ def check_requirements():
 
     check_result.print_to_logger()
 
+    return check_result.value
+
 
 colorize_logging()
 logger = logging.getLogger('TexText')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
