@@ -7,6 +7,7 @@ import os
 import glob
 import shutil
 import subprocess
+import sys
 
 
 def colorize_logging():
@@ -53,6 +54,7 @@ def colorize_logging():
         logging.WARNING,
         logging.ERROR,
         logging.ERROR + 1,  # SUCCESS
+        logging.ERROR + 2,  # UNKNOWN
         logging.CRITICAL
     ]
     names = [
@@ -61,6 +63,7 @@ def colorize_logging():
         "WARNING ",
         "ERROR   ",
         "SUCCESS ",
+        "UNKNOWN ",
         "CRITICAL"
     ]
     colors = [
@@ -69,6 +72,7 @@ def colorize_logging():
         BG_DEFAULT + FG_YELLOW,
         BG_DEFAULT + FG_RED,
         BG_DEFAULT + FG_GREEN,
+        BG_DEFAULT + FG_YELLOW,
         BG_RED + FG_WHITE,
     ]
     for level, name, color in zip(levels, names, colors):
@@ -130,7 +134,10 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
 
 class TrinaryLogicValue(object):
     def __init__(self, value=None):
-        self.value = value
+        if isinstance(value, TrinaryLogicValue):
+            self.value = value.value
+        else:
+            self.value = value
 
     def __and__(self, rhs):
         if rhs.value == False or self.value == False:
@@ -156,11 +163,17 @@ class TrinaryLogicValue(object):
             return self.value is None and rhs.value is None or self.value == rhs.value
         return self.value is None and rhs is None or self.value == rhs
 
+    def __ne__(self, rhs):
+        return not self.__eq__(rhs)
+
+    def __str__(self):
+        return "TrinaryLogicValue(%s)"%self.value
+
 
 
 class RequirementCheckResult(object):
     def __init__(self, value, messages, nested=None):
-        self.value = value
+        self.value = TrinaryLogicValue(value)
         self.messages = self._cleanup_flatten_messages(messages)
         self.nested = nested if nested is not None else []
 
@@ -174,12 +187,14 @@ class RequirementCheckResult(object):
             self.is_or_node = True
 
     def print_to_logger(self, offset=0, parent=None):
-        if self.value:
+        if self.value == True:
             lvl = logging.ERROR + 1  # success
-        else:
+        elif self.value == False:
             lvl = logging.ERROR
             if offset == 0:
                 lvl = logging.CRITICAL
+        else:
+            lvl = logging.ERROR + 2 # unknown
 
         if self.nested:
             nest_symbol = "-+"
@@ -366,7 +381,7 @@ def check_requirements():
                 messages.append("`%s` is found at `%s`" % (executable_name, path))
         if len(messages) > 0:
             return RequirementCheckResult(True, messages)
-        messages.append("`%s` is not found in PATH" % (executable_name))
+        messages.append("`%s` is NOT found in PATH" % (executable_name))
         return RequirementCheckResult(False, messages)
 
     def find_PyGtk2():
@@ -402,7 +417,7 @@ def check_requirements():
             else:
                 return RequirementCheckResult(False, [
                     "ghostscript=%s is not found (but ghostscript=%s is found)" % (version, found_version)])
-        return RequirementCheckResult(False, ["Can't determinate ghostscript version"])
+        return RequirementCheckResult(None, ["Can't determinate ghostscript version"])
 
     def find_pstoedit(version):
         try:
@@ -420,7 +435,7 @@ def check_requirements():
             else:
                 return RequirementCheckResult(False, [
                     "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
-        return RequirementCheckResult(False, ["Can't determinate pstoedit version"])
+        return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
     textext_requirements = (
             Requirement(find_executable, "python2.7").prepend_message("ANY",'Detect `pytohn2.7`')
@@ -505,9 +520,28 @@ if __name__ == "__main__":
         help="Path to inkscape extensions directory"
     )
 
+    parser.add_argument(
+        "--skip-requirements-check",
+        default=False,
+        action='store_true',
+        help="Bypass minimal requirements check"
+    )
+
     args = parser.parse_args()
 
-    check_requirements()
+    if not args.skip_requirements_check:
+        check_result = check_requirements()
+        if check_result == None:
+            logger.info("Automatic requirements check is incomplete")
+            logger.info("Please check requirements list manually and run:")
+            logger.info(" ".join(sys.argv+["--skip-requirements-check"]))
+            exit(64)
+
+        if check_result == False:
+            logger.info("Automatic requirements check found issue")
+            logger.info("Follow instruction above and run install script again")
+            logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
+            exit(65)
 
     try:
         copy_extension_files(
@@ -518,3 +552,6 @@ if __name__ == "__main__":
     except CopyFileAlreadyExistsError:
         logger.info("Hint: add `--overwrite-if-exist` option to overwrite existing files and directories")
         logger.info("Hint: add `--skip-if-exist` option to retain existing files and directories")
+        exit(66)
+
+    exit(0)
