@@ -106,3 +106,12 @@ test_configuration([
     ("pstoedit",),
     ("ghostscript",)
 ], REQUIREMENT_CHECK_UNKNOWN)
+
+test_configuration([
+    ("python2.7",),
+    ("pdflatex",),
+    ("convert",),
+    ("pstoedit",),
+    ("ghostscript",),
+    ("pdf2svg",)
+], REQUIREMENT_CHECK_SUCCESS)
