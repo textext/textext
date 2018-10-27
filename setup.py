@@ -527,6 +527,13 @@ if __name__ == "__main__":
         help="Bypass minimal requirements check"
     )
 
+    parser.add_argument(
+        "--skip-extension-install",
+        default=False,
+        action='store_true',
+        help="Don't install extension"
+    )
+
     args = parser.parse_args()
 
     if not args.skip_requirements_check:
@@ -543,15 +550,16 @@ if __name__ == "__main__":
             logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
             exit(65)
 
-    try:
-        copy_extension_files(
-            src="extension/*",
-            dst=args.inkscape_extensions_path,
-            if_already_exists=args.if_already_exists
-        )
-    except CopyFileAlreadyExistsError:
-        logger.info("Hint: add `--overwrite-if-exist` option to overwrite existing files and directories")
-        logger.info("Hint: add `--skip-if-exist` option to retain existing files and directories")
-        exit(66)
+    if not args.skip_extension_install:
+        try:
+            copy_extension_files(
+                src="extension/*",
+                dst=args.inkscape_extensions_path,
+                if_already_exists=args.if_already_exists
+            )
+        except CopyFileAlreadyExistsError:
+            logger.info("Hint: add `--overwrite-if-exist` option to overwrite existing files and directories")
+            logger.info("Hint: add `--skip-if-exist` option to retain existing files and directories")
+            exit(66)
 
     exit(0)
