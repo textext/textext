@@ -159,7 +159,7 @@ class TrinaryLogicValue(object):
         return TrinaryLogicValue(not self.value)
 
     def __eq__(self, rhs):
-        if isinstance(rhs,TrinaryLogicValue):
+        if isinstance(rhs, TrinaryLogicValue):
             return self.value is None and rhs.value is None or self.value == rhs.value
         return self.value is None and rhs is None or self.value == rhs
 
@@ -167,8 +167,7 @@ class TrinaryLogicValue(object):
         return not self.__eq__(rhs)
 
     def __str__(self):
-        return "TrinaryLogicValue(%s)"%self.value
-
+        return "TrinaryLogicValue(%s)" % self.value
 
 
 class RequirementCheckResult(object):
@@ -194,13 +193,12 @@ class RequirementCheckResult(object):
             if offset == 0:
                 lvl = logging.CRITICAL
         else:
-            lvl = logging.ERROR + 2 # unknown
+            lvl = logging.ERROR + 2  # unknown
 
         if self.nested:
             nest_symbol = "-+"
         else:
             nest_symbol = ""
-
 
         tail = "/-----"
 
@@ -230,19 +228,19 @@ class RequirementCheckResult(object):
             nst.print_to_logger(offset + 1, self)
 
     def _cleanup_flatten_messages(self, messages):
-        new_msgs=[]
+        new_msgs = []
         prev_msg = None
 
         # remove consequent repeats
         for m in messages:
-            if m!=prev_msg:
+            if m != prev_msg:
                 new_msgs.append(m)
             prev_msg = m
 
         # remove "OR"/"AND" messages if there are anything else
-        or_and = {"OR","AND"}
-        if len(set(new_msgs) - or_and )>0:
-            return [ m for m in new_msgs if m not in or_and]
+        or_and = {"OR", "AND"}
+        if len(set(new_msgs) - or_and) > 0:
+            return [m for m in new_msgs if m not in or_and]
 
         return new_msgs
 
@@ -270,7 +268,7 @@ class RequirementCheckResult(object):
         if self.nested[-1].is_or_node and self.is_or_node:
             return RequirementCheckResult(
                 self.value,
-                self.messages+self.nested[-1].messages,
+                self.messages + self.nested[-1].messages,
                 self.nested[:-1] + self.nested[-1].nested
             )
 
@@ -286,9 +284,9 @@ class RequirementCheckResult(object):
 
 class Requirement(object):
     def __init__(self, criteria, *args, **kwargs):
-        self.criteria = lambda: criteria(*args,**kwargs)
-        self._prepended_messages = {"ANY":[],"SUCCESS":[],"ERROR":[],"UNKNOWN":[]}
-        self._appended_messages = {"ANY":[],"SUCCESS":[],"ERROR":[],"UNKNOWN":[]}
+        self.criteria = lambda: criteria(*args, **kwargs)
+        self._prepended_messages = {"ANY": [], "SUCCESS": [], "ERROR": [], "UNKNOWN": []}
+        self._appended_messages = {"ANY": [], "SUCCESS": [], "ERROR": [], "UNKNOWN": []}
         self._overwrite_messages = None
 
     def check(self):
@@ -316,20 +314,20 @@ class Requirement(object):
 
     def prepend_message(self, result_type, message):
         assert result_type in self._prepended_messages.keys()
-        if not isinstance(message,list):
+        if not isinstance(message, list):
             message = [message]
         self._prepended_messages[result_type].extend(message)
         return self
 
     def overwrite_check_message(self, message):
-        if not isinstance(message,list):
+        if not isinstance(message, list):
             message = [message]
         self._overwrite_messages = message
         return self
 
     def append_message(self, result_type, message):
         assert result_type in self._appended_messages.keys()
-        if not isinstance(message,list):
+        if not isinstance(message, list):
             message = [message]
         self._appended_messages[result_type].extend(message)
         return self
@@ -438,7 +436,7 @@ def check_requirements():
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
     textext_requirements = (
-            Requirement(find_executable, "python2.7").prepend_message("ANY",'Detect `pytohn2.7`')
+            Requirement(find_executable, "python2.7").prepend_message("ANY", 'Detect `pytohn2.7`')
             &
             (
                     Requirement(find_executable, "pdflatex") |
@@ -458,20 +456,20 @@ def check_requirements():
             &
             (
                     (
-                    ~(
-                            Requirement(find_pstoedit, "3.70") &
-                            Requirement(find_ghostscript, "9.22")
-                    ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
-                    &
-                    (
-                            Requirement(find_executable, "pstoedit") &
-                            Requirement(find_executable, "ghostscript")
-                    )
+                            ~(
+                                    Requirement(find_pstoedit, "3.70") &
+                                    Requirement(find_ghostscript, "9.22")
+                            ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
+                            &
+                            (
+                                    Requirement(find_executable, "pstoedit") &
+                                    Requirement(find_executable, "ghostscript")
+                            )
                     ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
                     |
                     (
                         Requirement(find_executable, "pdf2svg")
-                    ).prepend_message("ANY","Detect pdf2svg:")
+                    ).prepend_message("ANY", "Detect pdf2svg:")
             ).overwrite_check_message("Detect pdf->svg conversion utility")
     ).overwrite_check_message("TexText requirements")
 
@@ -541,7 +539,7 @@ if __name__ == "__main__":
         if check_result == None:
             logger.info("Automatic requirements check is incomplete")
             logger.info("Please check requirements list manually and run:")
-            logger.info(" ".join(sys.argv+["--skip-requirements-check"]))
+            logger.info(" ".join(sys.argv + ["--skip-requirements-check"]))
             exit(64)
 
         if check_result == False:
