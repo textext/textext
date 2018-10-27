@@ -442,7 +442,7 @@ def check_requirements():
             &
             (
                     Requirement(find_executable, "pdflatex") |
-                    Requirement(find_executable, "laulatex") |
+                    Requirement(find_executable, "lualatex") |
                     Requirement(find_executable, "xelatex")
             ).overwrite_check_message("Detect *latex")
             &
