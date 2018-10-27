@@ -408,7 +408,7 @@ def check_requirements():
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
 
-        first_stdout_line = stdout.split("\n")[0]
+        first_stdout_line = stdout.decode("utf-8").split("\n")[0]
         m = re.search(r"(\d+.\d+)", first_stdout_line)
         if m:
             found_version = m.group(1)
@@ -426,7 +426,7 @@ def check_requirements():
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
 
-        first_stderr_line = stderr.split("\n")[0]
+        first_stderr_line = stderr.decode("utf-8").split("\n")[0]
         m = re.search(r"version (\d+.\d+)", first_stderr_line)
         if m:
             found_version = m.group(1)
