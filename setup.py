@@ -9,9 +9,10 @@ import shutil
 import subprocess
 import sys
 
+COLOR_RESET = "\033[0m"
 
-def colorize_logging():
-    RESET = "\033[0m"
+def get_levels_colors():
+    RESET = COLOR_RESET
     FG_DEFAULT = "\033[39m"
     FG_BLACK = "\033[30m"
     FG_RED = "\033[31m"
@@ -75,8 +76,12 @@ def colorize_logging():
         BG_DEFAULT + FG_YELLOW,
         BG_RED + FG_WHITE,
     ]
-    for level, name, color in zip(levels, names, colors):
-        logging.addLevelName(level, color + name + RESET)
+    return {name: (level,color) for level, name, color in zip(levels, names, colors)}
+
+def colorize_logging():
+    level_colors = get_levels_colors()
+    for name, (level,color) in level_colors.items():
+        logging.addLevelName(level, color + name + COLOR_RESET)
 
 
 class CopyFileOverDirectoryError(RuntimeError):
@@ -171,21 +176,26 @@ class TrinaryLogicValue(object):
 
 
 class RequirementCheckResult(object):
-    def __init__(self, value, messages, nested=None):
+    def __init__(self, value, messages, nested=None, is_and_node=False, is_or_node=False, is_not_node=False):
         self.value = TrinaryLogicValue(value)
-        self.messages = self._cleanup_flatten_messages(messages)
+        self.messages = messages
         self.nested = nested if nested is not None else []
 
-        self.is_and_node = False
-        self.is_or_node = False
+        self.is_and_node = is_and_node
+        self.is_or_node = is_or_node
+        self.is_not_node = is_not_node
 
-        if "AND" in messages:
-            self.is_and_node = True
+    @property
+    def color(self):
+        if self.value == True:
+            return get_levels_colors()["SUCCESS "][1]
+        elif self.value == False:
+            return get_levels_colors()["ERROR   "][1]
+        else:
+            return get_levels_colors()["UNKNOWN "][1]
 
-        if "OR" in messages:
-            self.is_or_node = True
-
-    def print_to_logger(self, offset=0, parent=None):
+    def print_to_logger(self, offset=0, prefix="", parent=None):
+        reset_color = COLOR_RESET
         if self.value == True:
             lvl = logging.ERROR + 1  # success
         elif self.value == False:
@@ -196,53 +206,43 @@ class RequirementCheckResult(object):
             lvl = logging.ERROR + 2  # unknown
 
         if self.nested:
-            nest_symbol = "-+"
+            nest_symbol = "+"
         else:
-            nest_symbol = ""
-
-        tail = "/-----"
+            nest_symbol = "*"
 
         if parent:
             if parent.is_and_node:
-                tail = "/-and-"
-            if parent.is_or_node:
-                tail = "/--or-"
+                tail = parent.color+"/-and-"+self.color+nest_symbol+reset_color
+            elif parent.is_or_node:
+                tail = parent.color+"/--or-"+self.color+nest_symbol+reset_color
+            elif parent.is_not_node:
+                tail = parent.color+"/-not-"+self.color+nest_symbol+reset_color
+            else:
+                tail = parent.color+"/-----"+self.color+nest_symbol+reset_color
+        else:
+            tail = self.color+nest_symbol+reset_color
 
-        for msg in self.messages:
+        if not parent:
+            suffix = ""
+        elif parent.nested[-1] is self:
+            suffix = "      "
+        else:
+            suffix = parent.color+"|"+reset_color+"     "
+
+        if not self.messages:
+            messages = [""]
+        else:
+            messages = self.messages
+        for msg in messages:
             line = ""
-            if offset > 0:
-                line += (offset - 1) * "|      " + tail
-
-            line += nest_symbol
+            line += prefix + tail
             line += " " + msg
 
             logger.log(lvl, line)
 
-            if self.nested:
-                nest_symbol = "|"
-            else:
-                nest_symbol = ""
-            tail = "|     "
-
+            tail = suffix
         for nst in self.nested:
-            nst.print_to_logger(offset + 1, self)
-
-    def _cleanup_flatten_messages(self, messages):
-        new_msgs = []
-        prev_msg = None
-
-        # remove consequent repeats
-        for m in messages:
-            if m != prev_msg:
-                new_msgs.append(m)
-            prev_msg = m
-
-        # remove "OR"/"AND" messages if there are anything else
-        or_and = {"OR", "AND"}
-        if len(set(new_msgs) - or_and) > 0:
-            return [m for m in new_msgs if m not in or_and]
-
-        return new_msgs
+            nst.print_to_logger(offset + 1, prefix=prefix+suffix, parent=self)
 
     def flatten(self):
         if len(self.nested) == 0:
@@ -255,28 +255,32 @@ class RequirementCheckResult(object):
             return RequirementCheckResult(
                 self.value,
                 self.nested[0].messages + self.messages,
-                self.nested[0].nested + self.nested[1:]
+                self.nested[0].nested + self.nested[1:],
+                is_or_node=True
             )
 
         if self.nested[0].is_and_node and self.is_and_node:
             return RequirementCheckResult(
                 self.value,
                 self.nested[0].messages + self.messages,
-                self.nested[0].nested + self.nested[1:]
+                self.nested[0].nested + self.nested[1:],
+                is_and_node=True
             )
 
         if self.nested[-1].is_or_node and self.is_or_node:
             return RequirementCheckResult(
                 self.value,
                 self.messages + self.nested[-1].messages,
-                self.nested[:-1] + self.nested[-1].nested
+                self.nested[:-1] + self.nested[-1].nested,
+                is_or_node=True
             )
 
         if self.nested[-1].is_and_node and self.is_and_node:
             return RequirementCheckResult(
                 self.value,
                 self.messages + self.nested[-1].messages,
-                self.nested[:-1] + self.nested[-1].nested
+                self.nested[:-1] + self.nested[-1].nested,
+                is_and_node=True
             )
 
         return self
@@ -338,8 +342,9 @@ class Requirement(object):
             L = self.check()
             R = rhs.check()
             return RequirementCheckResult(L.value & R.value,
-                                          ["AND"],
-                                          [L, R]
+                                          [],
+                                          [L, R],
+                                          is_and_node=True
                                           )
 
         return Requirement(and_impl)
@@ -350,8 +355,9 @@ class Requirement(object):
             L = self.check()
             R = rhs.check()
             return RequirementCheckResult(L.value | R.value,
-                                          ["OR"],
-                                          [L, R]
+                                          [],
+                                          [L, R],
+                                          is_or_node=True
                                           )
 
         return Requirement(or_impl)
@@ -361,8 +367,9 @@ class Requirement(object):
         def invert_impl():
             L = self.check()
             return RequirementCheckResult(~L.value,
-                                          ["NOT"],
-                                          [L]
+                                          [],
+                                          [L],
+                                          is_not_node=True
                                           )
 
         return Requirement(invert_impl)
