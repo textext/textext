@@ -119,12 +119,18 @@ def is_current_version_compatible(svg_original,
         # overwrite with modified
         mod_args.update(config["modified"])
 
+        if not "preamble-file" not in mod_args \
+                or not mod_args["preamble-file"] \
+                or not os.path.isfile(mod_args["preamble-file"]):
+            mod_args["preamble-file"] = os.path.expanduser("~/.config/inkscape/extensions/textext/default_packages.tex")
+
         # run TexText
         tt = textext.TexText()
         tt.affect([
             r"--id=%s" % "content",  # todo: find a TexText node to avoid hard-coded ids
             r"--text=%s" % mod_args["text"],
             r"--scale-factor=%f" % mod_args["scale-factor"],
+            r"--preamble-file=%s" % mod_args["preamble-file"],
             svg_original
         ], output=False)
 

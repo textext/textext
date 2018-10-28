@@ -1,0 +1,32 @@
+language: python
+
+branches:
+  only:
+  - master
+  - travis_ci
+
+virtualenv:
+  system_site_packages: true
+
+addons:
+  apt:
+    packages:
+    - inkscape
+    - pstoedit
+    - ghostscript
+    - python-gtk2-dev
+    - imagemagick
+    - texlive-latex-base
+
+before_script:
+   - python2 -m pip install pytest lxml
+   - python2 test_installation_script.py 2> /dev/null
+   - python3 test_installation_script.py 2> /dev/null # also test python3 as installer
+   - python2 setup.py
+
+
+script:
+  - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
+  - python2 -m pytest pytests
+
+
