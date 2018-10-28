@@ -55,12 +55,12 @@ MAC = "Mac OS"
 WINDOWS = "Windows"
 PLATFORM = platform.system()
 
-if PLATFORM == MAC:
-    sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
-    sys.path.append('/usr/local/lib/python2.7/site-packages')
-    sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
+# if PLATFORM == MAC:
+#     sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
+#     sys.path.append('/usr/local/lib/python2.7/site-packages')
+#     sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
 
-sys.path.append(os.path.dirname(__file__))
+#sys.path.append(os.path.dirname(__file__))
 
 import inkex
 import simplestyle as ss
@@ -304,7 +304,13 @@ class TexText(inkex.Effect):
             # ToDo: I think this is completely broken...
             self.do_convert(self.options.text,
                             self.options.preamble_file,
-                            self.options.scale_factor, usable_converter_class, old_svg_ele)
+                            self.options.scale_factor,
+                            usable_converter_class,
+                            old_svg_ele,
+                            self.DEFAULT_ALIGNMENT,
+                            self.DEFAULT_TEXCMD,
+                            original_scale=current_scale
+                            )
 
         show_log()
 
