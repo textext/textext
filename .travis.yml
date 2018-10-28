@@ -8,12 +8,55 @@ branches:
 virtualenv:
   system_site_packages: true
 
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - pstoedit
+
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - pdf2svg
+
+    - os: linux
+      dist: precise
+      addons:
+        apt:
+          packages:
+          - pstoedit
+
+    - os: linux
+      dist: precise
+      addons:
+        apt:
+          packages:
+          - pdf2svg
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - pstoedit
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - pdf2svg
+
+
 addons:
   apt:
     packages:
     - inkscape
-    - pstoedit
-    - ghostscript
     - python-gtk2-dev
     - imagemagick
     - texlive-latex-base
