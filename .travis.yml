@@ -16,16 +16,6 @@ matrix:
         apt:
           packages:
           - pstoedit
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
-          - texlive-latex-base
-
-    - os: linux
-      dist: trusty
-      addons:
-        apt:
-          packages:
           - pdf2svg
           - inkscape
           - python-gtk2-dev
@@ -38,16 +28,6 @@ matrix:
         apt:
           packages:
           - pstoedit
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
-          - texlive-latex-base
-
-    - os: linux
-      dist: precise
-      addons:
-        apt:
-          packages:
           - pdf2svg
           - inkscape
           - python-gtk2-dev
@@ -60,16 +40,6 @@ matrix:
         apt:
           packages:
           - pstoedit
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
-          - texlive-latex-base
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          packages:
           - pdf2svg
           - inkscape
           - python-gtk2-dev
@@ -77,7 +47,7 @@ matrix:
           - texlive-latex-base
 
 before_script:
-   - python2 -m pip install pytest lxml
+   - python2 -m pip install pytest lxml Pillow
    - python2 test_installation_script.py 2> /dev/null
    - python3 test_installation_script.py 2> /dev/null # also test python3 as installer
    - python2 setup.py

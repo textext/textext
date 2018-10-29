@@ -6,6 +6,7 @@ import tempfile
 import subprocess
 import shutil
 import json
+import PIL.Image
 
 
 class TempDirectory(object):
@@ -49,16 +50,41 @@ def svg_to_png(svg, png, dpi=None, height=None, render_area="drawing"):
     assert os.path.isfile(png)
 
 
-def images_are_same(png1, png2, fuzz="0%"):
+def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, pixel_diff_abs_tol=0,
+                    pixel_diff_rel_tol=0.0):
     """
     :param (str) png1: path to first image
     :param (str) png2: path to second image
     :param (str) fuzz: colors within this distance are considered equal
+    :param (int) size_abs_tol: absolute size tolerance (in pixels)
+    :param (float) size_rel_tol: relative size tolerance
+    :param (int) pixel_diff_abs_tol: max number of different pixels
+    :param (float) pixel_diff_rel_tol: max relative number of different pixels of image size
     :return (bool):
     """
 
     assert os.path.isfile(png1)
     assert os.path.isfile(png2)
+
+    im1 = PIL.Image.open(png1)
+    im2 = PIL.Image.open(png2)
+
+    dw = im2.width - im1.width
+    dh = im2.height - im1.height
+
+    w = min(im2.width, im1.width)
+    h = min(im2.height, im1.height)
+
+    if dw > size_abs_tol or \
+            dh > size_abs_tol or \
+            dw > w * size_rel_tol or \
+            dh > h * size_rel_tol:
+        sys.stderr.write("Images have too different sizes: %s vs %s" %
+                         (str(im1.size), str(im2.size)))
+        return False
+
+    im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
+    im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
 
     proc = subprocess.Popen([
         "compare",
@@ -67,30 +93,53 @@ def images_are_same(png1, png2, fuzz="0%"):
         png1,
         png2,
         os.devnull  # we don't want to generate diff image
-    ])
+    ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
     stdout, stderr = proc.communicate()
 
-    if proc.returncode != 0:
+    if proc.returncode == 0:
+        return True
+    elif proc.returncode == 1:
+        diff_pixels = int(stderr.decode("utf-8"))
+
+        if diff_pixels >= pixel_diff_abs_tol:
+            sys.stderr.write("diff pixels (%d) >= %d\n" % (diff_pixels, pixel_diff_abs_tol))
+            return False
+
+        if diff_pixels >= w * h * pixel_diff_rel_tol:
+            sys.stderr.write(
+                "diff pixels (%d) >= W*H*%f (%f)\n" % (diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol))
+            return False
+
+        return True
+    else:
         if stdout: sys.stdout.write(stdout)
         if stderr: sys.stderr.write(stderr)
-
-    return proc.returncode == 0
+        return False
 
 
 def is_current_version_compatible(svg_original,
                                   svg_modified,
-                                  json_config
+                                  json_config,
+                                  converter,
+                                  fuzz=None,
+                                  pixel_diff_abs_tol=0,
+                                  pixel_diff_rel_tol=0.0
                                   ):
     """
     :param (str) svg_original: path to snippet
     :param (str) svg_modified: path to empty svg created with same version of inkscape as `svg_snippet`
     :param (str) json_config: path to json config
+    :param (str) converter: "pstoedit" or "pdf2svg"
+    :param (str) fuzz: overwrite fuzz from config
+    :param (int) pixel_diff_abs_tol: max number of different pixels
+    :param (float) pixel_diff_rel_tol: max relative number of different pixels of image size
     """
 
     assert os.path.isfile(svg_original)
     assert os.path.isfile(svg_modified)
     assert os.path.isfile(json_config)
+    assert converter in ["pstoedit", "pdf2svg"]
 
     with TempDirectory() as tempdir:
         tmp_dir = tempdir.name
@@ -124,6 +173,11 @@ def is_current_version_compatible(svg_original,
                 or not os.path.isfile(mod_args["preamble-file"]):
             mod_args["preamble-file"] = os.path.expanduser("~/.config/inkscape/extensions/textext/default_packages.tex")
 
+        if converter == "pstoedit":
+            textext.CONVERTERS = [textext.PstoeditPlotSvg]
+        elif converter == "pdf2svg":
+            textext.CONVERTERS = [textext.Pdf2SvgPlotSvg]
+
         # run TexText
         tt = textext.TexText()
         tt.affect([
@@ -141,19 +195,49 @@ def is_current_version_compatible(svg_original,
 
         svg_to_png(svg2, png2, **render_options)
 
-        fuzz = config["check"]["compare"].get("fuzz", "0%")
+        if not fuzz:
+            fuzz = config["check"]["compare"].get("fuzz", "0%")
         test_case_description = config.get("description", "")
-        assert images_are_same(png1, png2, fuzz=fuzz), test_case_description
+
+        assert images_are_same(png1, png2,
+                               fuzz=fuzz,
+                               pixel_diff_abs_tol=pixel_diff_abs_tol,
+                               pixel_diff_rel_tol=pixel_diff_rel_tol
+                               ), test_case_description
 
 
-def test_compatibility(root, inkscape, snippet):
-    if inkscape.startswith("_"):
-        pytest.skip("skip %s/%s (remove underscore to enable)" % (inkscape, snippet))
-    if snippet.startswith("_"):
-        pytest.skip("skip %s/%s (remove underscore to enable)" % (inkscape, snippet))
+def test_compatibility(root, inkscape_version, textext_version, converter, test_case):
+    if inkscape_version.startswith("_") or textext_version.startswith("_") or converter.startswith(
+            "_") or test_case.startswith("_"):
+        pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
+                                                                           test_case))
 
     is_current_version_compatible(
-        svg_original=os.path.join(root, inkscape, snippet, "original.svg"),
-        svg_modified=os.path.join(root, inkscape, snippet, "modified.svg"),
-        json_config=os.path.join(root, inkscape, snippet, "config.json")
+        svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
+        svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
+        json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
+        converter=converter
+    )
+
+
+def test_converters_compatibility(root, inkscape_version, textext_version, converter, test_case):
+    if inkscape_version.startswith("_") or textext_version.startswith("_") or converter.startswith(
+            "_") or test_case.startswith("_"):
+        pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
+                                                                           test_case))
+    assert converter in ["pdf2svg", "pstoedit"]
+    # switch converters
+    if converter == "pdf2svg":
+        replaced_converter = "pstoedit"
+    elif converter == "pstoedit":
+        replaced_converter = "pdf2svg"
+
+    is_current_version_compatible(
+        svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
+        svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
+        json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
+        converter=replaced_converter,
+        fuzz="50%",
+        pixel_diff_abs_tol=1000,
+        pixel_diff_rel_tol=0.005
     )
