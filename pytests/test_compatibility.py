@@ -97,18 +97,19 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
 
     stdout, stderr = proc.communicate()
 
-    if proc.returncode == 0:
-        return True
-    elif proc.returncode == 1:
-        diff_pixels = int(stderr.decode("utf-8"))
-
-        if diff_pixels >= pixel_diff_abs_tol:
-            sys.stderr.write("diff pixels (%d) >= %d\n" % (diff_pixels, pixel_diff_abs_tol))
+    if proc.returncode in [0, 1]:
+        try:
+            diff_pixels = int(stderr.decode("utf-8"))
+        except (ValueError, AttributeError):
             return False
 
-        if diff_pixels >= w * h * pixel_diff_rel_tol:
+        if diff_pixels > pixel_diff_abs_tol:
+            sys.stderr.write("diff pixels (%d) > %d\n" % (diff_pixels, pixel_diff_abs_tol))
+            return False
+
+        if diff_pixels > w * h * pixel_diff_rel_tol:
             sys.stderr.write(
-                "diff pixels (%d) >= W*H*%f (%f)\n" % (diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol))
+                "diff pixels (%d) > W*H*%f (%f)\n" % (diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol))
             return False
 
         return True
