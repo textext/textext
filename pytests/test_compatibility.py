@@ -124,8 +124,8 @@ def is_current_version_compatible(svg_original,
                                   json_config,
                                   converter,
                                   fuzz=None,
-                                  pixel_diff_abs_tol=0,
-                                  pixel_diff_rel_tol=0.0
+                                  pixel_diff_abs_tol=50,
+                                  pixel_diff_rel_tol=0.001
                                   ):
     """
     :param (str) svg_original: path to snippet
