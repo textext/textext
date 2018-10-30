@@ -4,6 +4,7 @@
 *.tar.gz
 tests/out.svg
 *.iss
+.directory
 bezmisc.py
 cubicsuperpath.py
 inkex.py
