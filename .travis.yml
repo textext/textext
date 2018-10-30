@@ -56,6 +56,6 @@ before_script:
 
 script:
   - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
-  - python2 -m pytest --verbose pytests
+  - python2 -m pytest --verbose -s pytests
 
 

@@ -60,7 +60,7 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     :param (float) size_rel_tol: relative size tolerance
     :param (int) pixel_diff_abs_tol: max number of different pixels
     :param (float) pixel_diff_rel_tol: max relative number of different pixels of image size
-    :return (bool):
+    :return (bool, str): pair of check result and message
     """
 
     assert os.path.isfile(png1)
@@ -75,13 +75,24 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     w = min(im2.width, im1.width)
     h = min(im2.height, im1.height)
 
+    if dw != 0:
+        sys.stderr.write("Images width differ by %d px\n" % dw)
+
+    if dh != 0:
+        sys.stderr.write("Images height differ by %d px\n" % dh)
+
     if dw > size_abs_tol or \
             dh > size_abs_tol or \
             dw > w * size_rel_tol or \
             dh > h * size_rel_tol:
-        sys.stderr.write("Images have too different sizes: %s vs %s" %
-                         (str(im1.size), str(im2.size)))
-        return False
+        return False, "Images have too different sizes: %s vs %s\n" % (str(im1.size), str(im2.size))
+
+    if dh != 0 or dw != 0:
+        size_abs_tol //= 2
+        pixel_diff_abs_tol //= 2
+        w //= 2
+        h //= 2
+        sys.stderr.write("Images are downsampled to (%d, %d)\n" % (w, h))
 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
@@ -101,22 +112,20 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
         try:
             diff_pixels = int(stderr.decode("utf-8"))
         except (ValueError, AttributeError):
-            return False
+            return False, "Can't parse `compare` output"
 
         if diff_pixels > pixel_diff_abs_tol:
-            sys.stderr.write("diff pixels (%d) > %d\n" % (diff_pixels, pixel_diff_abs_tol))
-            return False
+            return False, "diff pixels (%d) > %d" % (diff_pixels, pixel_diff_abs_tol)
 
         if diff_pixels > w * h * pixel_diff_rel_tol:
-            sys.stderr.write(
-                "diff pixels (%d) > W*H*%f (%f)\n" % (diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol))
-            return False
+            return False, "diff pixels (%d) > W*H*%f (%f)" % (
+            diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
 
-        return True
+        return True, "diff pixels (%d)" % diff_pixels
     else:
         if stdout: sys.stdout.write(stdout)
         if stderr: sys.stderr.write(stderr)
-        return False
+        return False, "`compare` return code is %d " % proc.returncode
 
 
 def is_current_version_compatible(svg_original,
@@ -198,13 +207,12 @@ def is_current_version_compatible(svg_original,
 
         if not fuzz:
             fuzz = config["check"]["compare"].get("fuzz", "0%")
-        test_case_description = config.get("description", "")
 
-        assert images_are_same(png1, png2,
+        return images_are_same(png1, png2,
                                fuzz=fuzz,
                                pixel_diff_abs_tol=pixel_diff_abs_tol,
                                pixel_diff_rel_tol=pixel_diff_rel_tol
-                               ), test_case_description
+                               )
 
 
 def test_compatibility(root, inkscape_version, textext_version, converter, test_case):
@@ -213,12 +221,14 @@ def test_compatibility(root, inkscape_version, textext_version, converter, test_
         pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
                                                                            test_case))
 
-    is_current_version_compatible(
+    result, message = is_current_version_compatible(
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
         svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
         json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
         converter=converter
     )
+    sys.stderr.write(message + "\n")
+    assert result, message
 
 
 def test_converters_compatibility(root, inkscape_version, textext_version, converter, test_case):
@@ -233,12 +243,14 @@ def test_converters_compatibility(root, inkscape_version, textext_version, conve
     elif converter == "pstoedit":
         replaced_converter = "pdf2svg"
 
-    is_current_version_compatible(
+    result, message = is_current_version_compatible(
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
         svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
         json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
         converter=replaced_converter,
         fuzz="50%",
-        pixel_diff_abs_tol=1000,
+        pixel_diff_abs_tol=100,
         pixel_diff_rel_tol=0.005
     )
+    sys.stderr.write(message+"\n")
+    assert result, message
