@@ -3,6 +3,7 @@ language: python
 branches:
   only:
   - master
+  - dev
   - travis_ci
 
 virtualenv:
