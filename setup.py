@@ -184,6 +184,7 @@ class RequirementCheckResult(object):
         self.is_and_node = is_and_node
         self.is_or_node = is_or_node
         self.is_not_node = is_not_node
+        self.is_critical = None
 
     @property
     def color(self):
@@ -196,12 +197,13 @@ class RequirementCheckResult(object):
 
     def print_to_logger(self, offset=0, prefix="", parent=None):
         reset_color = COLOR_RESET
-        if self.value == True:
+
+        if self.is_critical:
+            lvl = logging.CRITICAL
+        elif self.value == True:
             lvl = logging.ERROR + 1  # success
         elif self.value == False:
-            lvl = logging.ERROR
-            if offset == 0:
-                lvl = logging.CRITICAL
+            lvl = logging.INFO
         else:
             lvl = logging.ERROR + 2  # unknown
 
@@ -284,6 +286,25 @@ class RequirementCheckResult(object):
             )
 
         return self
+
+    def mark_critical_errors(self, non_critical_value=True):
+        if self.value == non_critical_value:
+            return
+        if self.value == None:
+            return
+
+        self.is_critical = True
+
+        if self.is_and_node or self.is_or_node:
+            for nst in self.nested:
+                if nst.value == False:
+                    nst.mark_critical_errors(non_critical_value)
+
+        if self.is_not_node:
+            for nst in self.nested:
+                nst.mark_critical_errors(not non_critical_value)
+
+
 
 
 class Requirement(object):
@@ -483,6 +504,8 @@ def check_requirements():
     check_result = textext_requirements.check()
 
     check_result = check_result.flatten()
+
+    check_result.mark_critical_errors()
 
     check_result.print_to_logger()
 
