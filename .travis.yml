@@ -24,18 +24,6 @@ matrix:
           - texlive-latex-base
 
     - os: linux
-      dist: precise
-      addons:
-        apt:
-          packages:
-          - pstoedit
-          - pdf2svg
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
-          - texlive-latex-base
-
-    - os: linux
       dist: xenial
       addons:
         apt:
