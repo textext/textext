@@ -297,7 +297,7 @@ class RequirementCheckResult(object):
 
         if self.is_and_node or self.is_or_node:
             for nst in self.nested:
-                if nst.value == False:
+                if nst.value != non_critical_value:
                     nst.mark_critical_errors(non_critical_value)
 
         if self.is_not_node:
