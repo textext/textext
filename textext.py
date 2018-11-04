@@ -1134,11 +1134,13 @@ class SvgElement(object):
         """
         scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
-        old_transform = ref_node.get_attrib('transform')
-        composition = st.parseTransform(old_transform, scale_transform)
+        old_transform = st.parseTransform(ref_node.get_attrib('transform'))
 
         # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
-        composition = self._check_and_fix_transform(ref_node, composition)
+        revert_flip = self._check_and_fix_transform(ref_node, [[1,0,0],[0,1,0]])
+        composition = st.composeTransform(old_transform, revert_flip)
+
+        composition = st.composeTransform(scale_transform, composition)
 
         # keep alignment point of drawing intact, calculate required shift
         self.set_attrib('transform', st.formatTransform(composition))
