@@ -304,7 +304,13 @@ class TexText(inkex.Effect):
             # ToDo: I think this is completely broken...
             self.do_convert(self.options.text,
                             self.options.preamble_file,
-                            self.options.scale_factor, usable_converter_class, old_svg_ele)
+                            self.options.scale_factor,
+                            usable_converter_class,
+                            old_svg_ele,
+                            self.DEFAULT_ALIGNMENT,
+                            self.DEFAULT_TEXCMD,
+                            original_scale=current_scale
+                            )
 
         show_log()
 
@@ -1134,11 +1140,13 @@ class SvgElement(object):
         """
         scale_transform = st.parseTransform("scale(%f)" % relative_scale)
 
-        old_transform = ref_node.get_attrib('transform')
-        composition = st.parseTransform(old_transform, scale_transform)
+        old_transform = st.parseTransform(ref_node.get_attrib('transform'))
 
         # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
-        composition = self._check_and_fix_transform(ref_node, composition)
+        revert_flip = self._get_flip_transformation(ref_node)
+        composition = st.composeTransform(old_transform, revert_flip)
+
+        composition = st.composeTransform(scale_transform, composition)
 
         # keep alignment point of drawing intact, calculate required shift
         self.set_attrib('transform', st.formatTransform(composition))
@@ -1222,17 +1230,14 @@ class SvgElement(object):
                 dest_node.attrib["style"] = dest_style_string
 
     @abc.abstractmethod
-    def _check_and_fix_transform(self, ref_node, transform_as_list):
+    def _get_flip_transformation(self, ref_node):
         """
-        Modifies - if necessary - the transformation matrix stored in transform_as_list which has its origin
-        from ref_node such that no unexepcted behavior occurs if applied to the node managed by self.
-
-        This is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa, see
-        derived classes.
+        Returns Unity ([[1,0,0],[0,1,0]]) or Reflection ([[1,0,0],[0,-1,0]]) transformation which
+        is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa,
+        see derived classes.
 
         :param ref_node: An object subclassed from ref_node the transform in transform_as_list originally belonged to
-        :param transform_as_list: The transformation matrix as a 2-dim list [[a,c,e],[b,d,f]]
-        :return: The modified or original transformation matrix as a 2-dim list.
+        :return: transformation matrix as a 2-dim list
         """
 
     @staticmethod
@@ -1287,8 +1292,9 @@ class PsToEditSvgElement(SvgElement):
         # be enough. But to be on the save side...
         return self.has_colorized_attribute(self._node) or self.has_colorized_style(self._node)
 
-    def _check_and_fix_transform(self, ref_node, transform_as_list):
+    def _get_flip_transformation(self, ref_node):
         """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
+        transform_as_list = st.parseTransform("scale(1)")
         if isinstance(ref_node, Pdf2SvgSvgElement):
             transform_as_list[1][1] *= -1
         return transform_as_list
@@ -1315,8 +1321,9 @@ class Pdf2SvgSvgElement(SvgElement):
         # be enough. But to be on the save side...
         return self.has_colorized_style(self._node) or self.has_colorized_attribute(self._node)
 
-    def _check_and_fix_transform(self, ref_node, transform_as_list):
+    def _get_flip_transformation(self, ref_node):
         """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
+        transform_as_list = st.parseTransform("scale(1)")
         if isinstance(ref_node, PsToEditSvgElement):
             transform_as_list[1][1] *= -1
         return transform_as_list
