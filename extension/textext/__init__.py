@@ -51,16 +51,16 @@ import subprocess
 
 DEBUG = False
 
-MAC = "Mac OS"
+MAC = "Darwin"
 WINDOWS = "Windows"
 PLATFORM = platform.system()
 
-# if PLATFORM == MAC:
-#     sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
-#     sys.path.append('/usr/local/lib/python2.7/site-packages')
-#     sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
+if PLATFORM == MAC:
+    sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
+    sys.path.append('/usr/local/lib/python2.7/site-packages')
+    sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
 
-#sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.dirname(__file__))
 
 import inkex
 import simplestyle as ss
