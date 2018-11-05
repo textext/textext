@@ -282,7 +282,7 @@ class TexText(inkex.Effect):
             if not os.path.isfile(preamble_file):
                 preamble_file = ""
 
-            asker = AskerFactory().asker(text, preamble_file, global_scale_factor, current_scale,
+            asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
                                          current_alignment=alignment, current_texcmd=current_tex_command)
             try:
 
