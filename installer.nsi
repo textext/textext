@@ -67,11 +67,13 @@ Section -SETTINGS
 SectionEnd
 
 Section "TexText" -SEC01
-  File "textext.py"
-  File "asktext.py"
-  File "textext.inx"
-  File "typesetter.py"
-  File "latexlogparser.py"
-  File "default_packages.tex"
-  File "win_app_paths.py"
+  File "extension\textext.inx"
+
+  SetOutPath "$INSTDIR\textext"
+  File "extension\textext\__init__.py"
+  File "extension\textext\asktext.py"
+  File "extension\textext\typesetter.py"
+  File "extension\textext\latexlogparser.py"
+  File "extension\textext\default_packages.tex"
+  File "extension\textext\win_app_paths.py"
 SectionEnd
