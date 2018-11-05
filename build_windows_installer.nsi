@@ -67,6 +67,9 @@ Section -SETTINGS
 SectionEnd
 
 Section "TexText" -SEC01
+  ; The extension files are installed in the subdir "textext" of the
+  ; Inkscape extension directory $INSTDIR. Only the .inx file is put
+  ; into the extension directory itself
   File "extension\textext.inx"
 
   SetOutPath "$INSTDIR\textext"
@@ -76,4 +79,36 @@ Section "TexText" -SEC01
   File "extension\textext\latexlogparser.py"
   File "extension\textext\default_packages.tex"
   File "extension\textext\win_app_paths.py"
+  
+  ; Make sure that extension files from old TexText versions < 0.9
+  ; are removed (they were put directly into Inkscape's extension
+  ; directory and not in a subdirectory)
+  ; Any Tex files existing in the old extension directory are most likely
+  ; default packages files for TexText from previous versions. Hence, 
+  ; we _copy_ them into the textext subdir and ask the user if 
+  ; it is OK to delete them. (He might want to use it in other extensions,
+  ; so we should not delete them by default).
+  IfFileExists "$INSTDIR\textext.py" OldExtensionFound InstallFinished
+  
+  OldExtensionFound:
+  CopyFiles $INSTDIR\*.tex $INSTDIR\textext
+  MessageBox MB_YESNO "Old installation of TexText detected! $\n$\nThe preamble files in the old TexText extension directory will be copied into the new TexText extension directory so you do not loose your modifications in the preamble files. $\n$\nWould you like to delete the old files in their original place after this operation? If you do use TexText as the only LaTeX extension it is safe to click <Yes>." IDYES DeleteOldTexFiles IDNO DeleteOldExtension
+  
+  DeleteOldTexFiles:
+  Delete "$INSTDIR\*.tex"
+  Goto DeleteOldExtension
+
+  DeleteOldExtension:
+  Delete "$INSTDIR\textext.py"
+  Delete "$INSTDIR\textext.pyc"
+  Delete "$INSTDIR\asktext.py"
+  Delete "$INSTDIR\asktext.pyc"
+  Delete "$INSTDIR\typesetter.py"
+  Delete "$INSTDIR\typesetter.pyc"
+  Delete "$INSTDIR\latexlogparser.py"
+  Delete "$INSTDIR\latexlogparser.pyc"
+  Delete "$INSTDIR\win_app_paths.py"
+  Delete "$INSTDIR\win_app_paths.pyc"
+  
+  InstallFinished:
 SectionEnd
