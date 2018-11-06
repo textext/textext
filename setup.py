@@ -158,7 +158,7 @@ class LoggingColors(object):
         colors = [
             COLOR_RESET,
             BG_DEFAULT + FG_LIGHT_BLUE,
-            BG_DEFAULT + FG_YELLOW,
+            BG_YELLOW + FG_WHITE,
             BG_DEFAULT + FG_RED,
             BG_DEFAULT + FG_GREEN,
             BG_DEFAULT + FG_YELLOW,
