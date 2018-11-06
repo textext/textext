@@ -661,10 +661,10 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--keep-old-preamble",
+        "--keep-previous-installation-files",
         default=None,
         action='store_true',
-        help="Allows installation without prompt"
+        help="Keep/discard files from previous installation, suppress prompt"
     )
 
     parser.add_argument(
@@ -691,18 +691,32 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
 
-    if args.keep_old_preamble is None:
-        old_installation_detected = False
-        for f in files_to_keep.keys():
-            if os.path.isfile(os.path.join(args.inkscape_extensions_path,f)):
-                old_installation_detected = True
-                break
-        if old_installation_detected:
-            args.keep_old_preamble = query_yes_no("Keep preamble from previous installation?")
-        else:
-            args.keep_old_preamble = False
+    if args.keep_previous_installation_files is None:
+        found_files_to_keep = {}
+        for old_filename, new_filename in files_to_keep.iteritems():
+            if not os.path.isfile(os.path.join(args.inkscape_extensions_path, old_filename)):
+                logger.debug("%s not found" % old_filename)
+            else:
+                logger.debug("%s found" % old_filename)
+                with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
+                        open(os.path.join("extension", new_filename)) as f_new:
+                    if f_old.read() != f_new.read():
+                        logger.debug("Content of `%s` are not identical version in distribution" % old_filename)
+                        found_files_to_keep[old_filename] = new_filename
+                    else:
+                        logger.debug("Content of `%s` is identical to distribution" % old_filename)
 
-    if not args.keep_old_preamble:
+        files_to_keep = found_files_to_keep
+
+        if len(files_to_keep) > 0:
+            file_s = "file" if len(files_to_keep) == 1 else "files"
+            for old_filename in files_to_keep.keys():
+                logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
+            args.keep_previous_installation_files = query_yes_no("Keep above %s from previous installation?" % file_s)
+        else:
+            args.keep_previous_installation_files = False
+
+    if not args.keep_previous_installation_files:
         files_to_keep = {}
 
     if args.color == "always":
@@ -738,6 +752,5 @@ if __name__ == "__main__":
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
-
 
     exit(0)
