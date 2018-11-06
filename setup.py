@@ -9,77 +9,86 @@ import shutil
 import subprocess
 import sys
 
-COLOR_RESET = "\033[0m"
 
-def get_levels_colors():
-    RESET = COLOR_RESET
-    FG_DEFAULT = "\033[39m"
-    FG_BLACK = "\033[30m"
-    FG_RED = "\033[31m"
-    FG_GREEN = "\033[32m"
-    FG_YELLOW = "\033[33m"
-    FG_BLUE = "\033[34m"
-    FG_MAGENTA = "\033[35m"
-    FG_CYAN = "\033[36m"
-    FG_LIGHT_GRAY = "\033[37m"
-    FG_DARK_GRAY = "\033[90m"
-    FG_LIGHT_RED = "\033[91m"
-    FG_LIGHT_GREEN = "\033[92m"
-    FG_LIGHT_YELLOW = "\033[93m"
-    FG_LIGHT_BLUE = "\033[94m"
-    FG_LIGHT_MAGENTA = "\033[95m"
-    FG_LIGHT_CYAN = "\033[96m"
-    FG_WHITE = "\033[97m"
+class LoggingColors(object):
 
-    BG_DEFAULT = "\033[49m"
-    BG_BLACK = "\033[40m"
-    BG_RED = "\033[41m"
-    BG_GREEN = "\033[42m"
-    BG_YELLOW = "\033[43m"
-    BG_BLUE = "\033[44m"
-    BG_MAGENTA = "\033[45m"
-    BG_CYAN = "\033[46m"
-    BG_LIGHT_GRAY = "\033[47m"
-    BG_DARK_GRAY = "\033[100m"
-    BG_LIGHT_RED = "\033[101m"
-    BG_LIGHT_GREEN = "\033[102m"
-    BG_LIGHT_YELLOW = "\033[103m"
-    BG_LIGHT_BLUE = "\033[104m"
-    BG_LIGHT_MAGENTA = "\033[105m"
-    BG_LIGHT_CYAN = "\033[106m"
-    BG_WHITE = "\033[107m"
+    enable_colors = True
 
-    levels = [
-        logging.DEBUG,
-        logging.INFO,
-        logging.WARNING,
-        logging.ERROR,
-        logging.ERROR + 1,  # SUCCESS
-        logging.ERROR + 2,  # UNKNOWN
-        logging.CRITICAL
-    ]
-    names = [
-        "DEBUG   ",
-        "INFO    ",
-        "WARNING ",
-        "ERROR   ",
-        "SUCCESS ",
-        "UNKNOWN ",
-        "CRITICAL"
-    ]
-    colors = [
-        RESET,
-        BG_DEFAULT + FG_LIGHT_BLUE,
-        BG_DEFAULT + FG_YELLOW,
-        BG_DEFAULT + FG_RED,
-        BG_DEFAULT + FG_GREEN,
-        BG_DEFAULT + FG_YELLOW,
-        BG_RED + FG_WHITE,
-    ]
-    return {name: (level,color) for level, name, color in zip(levels, names, colors)}
+    def __call__(self):
+        COLOR_RESET = "\033[0m"
+        FG_DEFAULT = "\033[39m"
+        FG_BLACK = "\033[30m"
+        FG_RED = "\033[31m"
+        FG_GREEN = "\033[32m"
+        FG_YELLOW = "\033[33m"
+        FG_BLUE = "\033[34m"
+        FG_MAGENTA = "\033[35m"
+        FG_CYAN = "\033[36m"
+        FG_LIGHT_GRAY = "\033[37m"
+        FG_DARK_GRAY = "\033[90m"
+        FG_LIGHT_RED = "\033[91m"
+        FG_LIGHT_GREEN = "\033[92m"
+        FG_LIGHT_YELLOW = "\033[93m"
+        FG_LIGHT_BLUE = "\033[94m"
+        FG_LIGHT_MAGENTA = "\033[95m"
+        FG_LIGHT_CYAN = "\033[96m"
+        FG_WHITE = "\033[97m"
+
+        BG_DEFAULT = "\033[49m"
+        BG_BLACK = "\033[40m"
+        BG_RED = "\033[41m"
+        BG_GREEN = "\033[42m"
+        BG_YELLOW = "\033[43m"
+        BG_BLUE = "\033[44m"
+        BG_MAGENTA = "\033[45m"
+        BG_CYAN = "\033[46m"
+        BG_LIGHT_GRAY = "\033[47m"
+        BG_DARK_GRAY = "\033[100m"
+        BG_LIGHT_RED = "\033[101m"
+        BG_LIGHT_GREEN = "\033[102m"
+        BG_LIGHT_YELLOW = "\033[103m"
+        BG_LIGHT_BLUE = "\033[104m"
+        BG_LIGHT_MAGENTA = "\033[105m"
+        BG_LIGHT_CYAN = "\033[106m"
+        BG_WHITE = "\033[107m"
+
+        levels = [
+            logging.DEBUG,
+            logging.INFO,
+            logging.WARNING,
+            logging.ERROR,
+            logging.ERROR + 1,  # SUCCESS
+            logging.ERROR + 2,  # UNKNOWN
+            logging.CRITICAL
+        ]
+        names = [
+            "DEBUG   ",
+            "INFO    ",
+            "WARNING ",
+            "ERROR   ",
+            "SUCCESS ",
+            "UNKNOWN ",
+            "CRITICAL"
+        ]
+        colors = [
+            COLOR_RESET,
+            BG_DEFAULT + FG_LIGHT_BLUE,
+            BG_DEFAULT + FG_YELLOW,
+            BG_DEFAULT + FG_RED,
+            BG_DEFAULT + FG_GREEN,
+            BG_DEFAULT + FG_YELLOW,
+            BG_RED + FG_WHITE,
+        ]
+        if not LoggingColors.enable_colors:
+            colors = [""]*len(colors)
+            COLOR_RESET=""
+        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, COLOR_RESET
+
+
+get_levels_colors = LoggingColors()
 
 def colorize_logging():
-    level_colors = get_levels_colors()
+    level_colors, COLOR_RESET = get_levels_colors()
     for name, (level,color) in level_colors.items():
         logging.addLevelName(level, color + name + COLOR_RESET)
 
@@ -188,14 +197,14 @@ class RequirementCheckResult(object):
     @property
     def color(self):
         if self.value == True:
-            return get_levels_colors()["SUCCESS "][1]
+            return get_levels_colors()[0]["SUCCESS "][1]
         elif self.value == False:
-            return get_levels_colors()["ERROR   "][1]
+            return get_levels_colors()[0]["ERROR   "][1]
         else:
-            return get_levels_colors()["UNKNOWN "][1]
+            return get_levels_colors()[0]["UNKNOWN "][1]
 
     def print_to_logger(self, offset=0, prefix="", parent=None):
-        reset_color = COLOR_RESET
+        _, reset_color = get_levels_colors()
         if self.value == True:
             lvl = logging.ERROR + 1  # success
         elif self.value == False:
@@ -205,10 +214,15 @@ class RequirementCheckResult(object):
         else:
             lvl = logging.ERROR + 2  # unknown
 
+        value_repr = {
+            True: "Succ",
+            False: "Fail",
+            None: "Ukwn"
+        }
         if self.nested:
-            nest_symbol = "+"
+            nest_symbol = "+ [%s]" % value_repr[self.value.value]
         else:
-            nest_symbol = "*"
+            nest_symbol = "* [%s]" % value_repr[self.value.value]
 
         if parent:
             if parent.is_and_node:
@@ -489,15 +503,6 @@ def check_requirements():
     return check_result.value
 
 
-colorize_logging()
-logger = logging.getLogger('TexText')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Install TexText')
@@ -539,7 +544,28 @@ if __name__ == "__main__":
         help="Don't install extension"
     )
 
+    parser.add_argument(
+        "--color",
+        default="always",
+        choices=("always", "never"),
+        help="Enables/disable console colors"
+    )
+
     args = parser.parse_args()
+
+    if args.color == "always":
+        LoggingColors.enable_colors = True
+    elif args.color == "never":
+        LoggingColors.enable_colors = False
+
+    colorize_logging()
+    logger = logging.getLogger('TexText')
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
     if not args.skip_requirements_check:
         check_result = check_requirements()
