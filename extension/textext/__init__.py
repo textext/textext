@@ -58,6 +58,7 @@ import StringIO
 import subprocess
 import sys
 import tempfile
+import traceback
 
 
 class ChangeDirectory(object):
@@ -104,6 +105,22 @@ class TexTextError(RuntimeError):
 
 class TexTextNonFatalError(TexTextError):
     """ TexText can continue execution properly """
+    pass
+
+
+class TexTextCommandError(TexTextError):
+    pass
+
+
+class TexTextCommandNotFound(TexTextCommandError):
+    pass
+
+
+class TexTextCommandFailed(TexTextCommandError):
+    pass
+
+
+class TexTextConversionError(TexTextNonFatalError):
     pass
 
 
@@ -314,7 +331,7 @@ try:
                     converter_class.check_available()
                     usable_converter_class = converter_class
                     break
-                except StandardError, err:
+                except TexTextCommandError as err:
                     converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
 
             if not usable_converter_class:
@@ -418,18 +435,18 @@ try:
                     if PLATFORM == WINDOWS:
                         win_command = wap.get_imagemagick_command()
                         if not win_command:
-                            raise RuntimeError("Can't find imagemagick executable")
+                            raise TexTextCommandNotFound("Can't find imagemagick executable")
                         exec_command([win_command] + options)
                     else:
                         try:
                             exec_command(['convert'] + options)   # ImageMagick 6
-                        except OSError:
+                        except TexTextCommandNotFound:
                             exec_command(['magick'] + options)    # ImageMagick 7
 
                     image_setter(converter.tmp('png'))
-                except RuntimeError as error:
+                except TexTextCommandFailed as error:
                     raise TexTextNonFatalError("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.\nDetailed error message:\n%s" % (str(error)))
-                except OSError:
+                except TexTextCommandNotFound:
                     pass
 
         def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
@@ -460,8 +477,6 @@ try:
 
             new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
 
-            if new_svg_ele is None:
-                raise TexTextUnreachableBranchError("No new Node!")  # converter.convert(...) raises if fails
 
             # -- Store textext attributes
             new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
@@ -656,7 +671,7 @@ try:
             concatenated stdout and stderr.
             :param cmd: Command to execute
             :param ok_return_value: The expected return value after successful completion
-            :raises: TexTextNonFatalError
+            :raises: TexTextCommandNotFound, TexTextCommandFailed
             """
 
             try:
@@ -673,11 +688,11 @@ try:
                                      stdin=subprocess.PIPE,
                                      startupinfo=info)
                 out, err = p.communicate()
-            except OSError, err:
-                raise TexTextNonFatalError("Command %s failed: %s" % (' '.join(cmd), err))
+            except OSError as err:
+                raise TexTextCommandNotFound("Command %s failed: %s" % (' '.join(cmd), err))
 
             if ok_return_value is not None and p.returncode != ok_return_value:
-                raise TexTextNonFatalError("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
+                raise TexTextCommandFailed("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
             return out + err
 
     except ImportError:
@@ -800,15 +815,15 @@ try:
             # Exec tex_command: tex -> pdf
             try:
                 exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
-            except TexTextNonFatalError as error:
+            except TexTextCommandFailed as error:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log(self.tmp('log'))
-                    raise TexTextNonFatalError(parsed_log)
+                    raise TexTextConversionError(parsed_log)
                 else:
-                    raise TexTextNonFatalError(error.message)
+                    raise TexTextConversionError(error.message)
 
             if not os.path.exists(self.tmp('pdf')):
-                raise TexTextNonFatalError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
+                raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
         def parse_pdf_log(self, logfile):
             """
@@ -847,8 +862,6 @@ try:
                 self.pdf_to_svg()
 
                 new_svg_ele = self.svg_to_group()
-                if new_svg_ele is None:
-                    return None
 
                 if scale_factor is not None:
                     new_svg_ele.set_scale_factor(scale_factor)
@@ -878,54 +891,50 @@ try:
             return "pstoedit"
 
         def pdf_to_svg(self):
+            """
+            :raises: TexTextCommandNotFound, TexTextCommandFailed
+            """
             # Options for pstoedit command
             pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
 
             # Exec pstoedit: pdf -> svg
-            delay_bind_error = False
             result = ""
             try:
                 result = exec_command(['pstoedit', '-f', 'plot-svg',
                                        self.tmp('pdf'), self.tmp('svg')]
                                       + pstoeditOpts)
-            except TexTextNonFatalError as excpt:
+            except TexTextCommandFailed as excpt:
                 # Linux runs into this in case of DELAYBIND error
                 if "DELAYBIND" in excpt.message:
-                    delay_bind_error = True
-                    result += excpt.message
+                    result = "%s %s" % (
+                    "The ghostscript version installed on your system is not compatible with pstoedit! "
+                    "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
+                    "ghostscript).\n\n Detailed error message:\n", result)
+                    raise TexTextCommandFailed(result)
                 else:
                     # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
                     if "-1073741515" in excpt.message:
-                        raise TexTextNonFatalError("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
+                        raise TexTextCommandFailed("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
                                         "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
                                         "to install the Microsoft Visual C++ 2010 Redistributable Package "
                                         "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
                                         "This is a problem of pstoedit, not of TexText!!")
-            if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                # Windows runds into this in case of DELAYBIND error
-                if "DELAYBIND" in result:
-                    delay_bind_error = True
-                else:
-                    raise TexTextNonFatalError("pstoedit didn't produce output.\n%s" % (result))
 
-            if delay_bind_error:
-                result = "%s %s" % ("The ghostscript version installed on your system is not compatible with pstoedit! "
-                                    "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
-                                    "ghostscript).\n\n Detailed error message:\n", result)
-                raise TexTextNonFatalError(result)
+            if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+                raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
 
         def svg_to_group(self):
             """
             Convert the SVG file to an SVG group node.
 
-            :Returns: Subclass of SvgElement
+            :returns: Subclass of SvgElement
             """
             tree = etree.parse(self.tmp('svg'))
             self._fix_xml_namespace(tree.getroot())
             try:
                 return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
             except IndexError:
-                return None
+                raise TexTextConversionError("Can't find a group in resulting svg")
 
         def _fix_xml_namespace(self, node):
             svg = '{%s}' % SVG_NS
@@ -947,9 +956,9 @@ try:
             """Check whether pstoedit has plot-svg"""
             out = exec_command(['pstoedit', '-help'], ok_return_value=None)
             if 'version 3.44' in out and 'Ubuntu' in out:
-                raise TexTextNonFatalError("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
+                raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
             if 'plot-svg' not in out:
-                raise TexTextNonFatalError("Pstoedit not compiled with plot-svg support")
+                raise TexTextCommandFailed("Pstoedit not compiled with plot-svg support")
 
 
     class Pdf2SvgPlotSvg(PdfConverterBase):
@@ -1035,15 +1044,15 @@ try:
                 # return new_group
                 return Pdf2SvgSvgElement(new_group)
 
-            except:
-                return None
+            except:  # todo: <-- be more precise here
+                raise TexTextNonFatalError("Can't find a group in resulting svg")
 
         @classmethod
         def check_available(cls):
             """
             Check if pdf2svg is available
             """
-            out = exec_command(['pdf2svg', '--help'], ok_return_value=None)
+            exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
     class SvgElement(object):
@@ -1355,6 +1364,7 @@ except TexTextInternalError as e:
     # TexTextInternalError should never be raised.
     # It's TexText logic error and should be reported.
     logger.error(e.message)
+    logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
 except TexTextFatalError as e:
@@ -1364,5 +1374,6 @@ except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
     logger.error(e.message)
+    logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
