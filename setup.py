@@ -8,6 +8,91 @@ import glob
 import shutil
 import subprocess
 import sys
+import stat
+import tempfile
+
+
+# taken from https://stackoverflow.com/a/3041990/1741477
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+
+
+class TemporaryDirectory(object):
+    """ Mimic tempfile.TemporaryDirectory from python3 """
+    def __init__(self):
+        self.dir_name = None
+
+    def __enter__(self):
+        self.dir_name = tempfile.mkdtemp("textext_")
+        return self.dir_name
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+
+        def retry_with_chmod(func, path, exec_info):
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+
+        if self.dir_name:
+            shutil.rmtree(self.dir_name, onerror=retry_with_chmod)
+
+
+class StashFiles(object):
+    def __init__(self, stash_from, rel_filenames, tmp_dir, unstash_to=None):
+        self.stash_from = stash_from
+        self.unstash_to = stash_from if unstash_to is None else unstash_to
+        self.rel_filenames = rel_filenames
+        self.tmp_dir = tmp_dir
+
+    def __enter__(self):
+        for old_name, new_name in self.rel_filenames.iteritems():
+            src = os.path.join(self.stash_from, old_name)
+            dst = os.path.join(self.tmp_dir, old_name)
+            if os.path.isfile(src):
+                if not os.path.isdir(os.path.dirname(dst)):
+                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    os.makedirs(os.path.dirname(dst))
+                logger.info("Stashing `%s`" % dst)
+                shutil.copy2(src, dst)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for old_name, new_name in self.rel_filenames.iteritems():
+            src = os.path.join(self.tmp_dir, old_name)
+            dst = os.path.join(self.unstash_to, new_name)
+            if os.path.isfile(src):
+                if not os.path.isdir(os.path.dirname(dst)):
+                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    os.makedirs(os.path.dirname(dst))
+                logger.info("Restoring old `%s` -> `%s`" % (old_name, dst))
+                shutil.copy2(src, dst)
 
 
 class LoggingColors(object):
@@ -526,26 +611,34 @@ def check_requirements():
     return check_result.value
 
 
+def remove_previous_installation(extension_dir):
+    previous_installation_files_and_folders = [
+        "asktext.py",
+        "default_packages.tex",
+        "inkex45.py",
+        "latexlogparser.py",
+        "scribus_textext.py",
+        "textext",
+        "textext.inx",
+        "textext.py",
+        "typesetter.py",
+        "win_app_paths.py",
+    ]
+    for file_or_dir in previous_installation_files_and_folders:
+        file_or_dir = os.path.abspath(os.path.join(extension_dir, file_or_dir))
+        if os.path.isfile(file_or_dir):
+            logger.info("Removing `%s`" % file_or_dir)
+            os.remove(file_or_dir)
+        elif os.path.isdir(file_or_dir):
+            logger.info("Removing `%s`" % file_or_dir)
+            shutil.rmtree(file_or_dir)
+        else:
+            logger.debug("`%s` is not found" % file_or_dir)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Install TexText')
-
-    if_already_exists = parser.add_mutually_exclusive_group()
-    if_already_exists.add_argument(
-        "--overwrite-if-exist",
-        dest='if_already_exists',
-        action='store_const',
-        const="overwrite",
-        default="raise",
-        help="Overwrite already existing extension files"
-    )
-    if_already_exists.add_argument(
-        "--skip-if-exist",
-        dest='if_already_exists',
-        action='store_const',
-        const="skip",
-        help="Retain already existing extension files"
-    )
 
     parser.add_argument(
         "--inkscape-extensions-path",
@@ -568,18 +661,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--keep-old-preamble",
+        default=None,
+        action='store_true',
+        help="Allows installation without prompt"
+    )
+
+    parser.add_argument(
         "--color",
         default="always",
         choices=("always", "never"),
         help="Enables/disable console colors"
     )
-
-    args = parser.parse_args()
-
-    if args.color == "always":
-        LoggingColors.enable_colors = True
-    elif args.color == "never":
-        LoggingColors.enable_colors = False
 
     colorize_logging()
     logger = logging.getLogger('TexText')
@@ -589,6 +682,33 @@ if __name__ == "__main__":
     formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+    files_to_keep = {  # old_name : new_name
+        "default_packages.tex": "textext/default_packages.tex",  # old layout
+        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
+    }
+
+    args = parser.parse_args()
+    args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
+
+    if args.keep_old_preamble is None:
+        old_installation_detected = False
+        for f in files_to_keep.keys():
+            if os.path.isfile(os.path.join(args.inkscape_extensions_path,f)):
+                old_installation_detected = True
+                break
+        if old_installation_detected:
+            args.keep_old_preamble = query_yes_no("Keep preamble from previous installation?")
+        else:
+            args.keep_old_preamble = False
+
+    if not args.keep_old_preamble:
+        files_to_keep = {}
+
+    if args.color == "always":
+        LoggingColors.enable_colors = True
+    elif args.color == "never":
+        LoggingColors.enable_colors = False
 
     if not args.skip_requirements_check:
         check_result = check_requirements()
@@ -605,15 +725,19 @@ if __name__ == "__main__":
             exit(65)
 
     if not args.skip_extension_install:
-        try:
+
+        with TemporaryDirectory() as tmp_dir, \
+                StashFiles(stash_from=args.inkscape_extensions_path,
+                           rel_filenames=files_to_keep,
+                           tmp_dir=tmp_dir
+                           ):
+            remove_previous_installation(args.inkscape_extensions_path)
+
             copy_extension_files(
                 src="extension/*",
                 dst=args.inkscape_extensions_path,
-                if_already_exists=args.if_already_exists
+                if_already_exists="overwrite"
             )
-        except CopyFileAlreadyExistsError:
-            logger.info("Hint: add `--overwrite-if-exist` option to overwrite existing files and directories")
-            logger.info("Hint: add `--skip-if-exist` option to retain existing files and directories")
-            exit(66)
+
 
     exit(0)
