@@ -674,6 +674,19 @@ if __name__ == "__main__":
         help="Enables/disable console colors"
     )
 
+    files_to_keep = {  # old_name : new_name
+        "default_packages.tex": "textext/default_packages.tex",  # old layout
+        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
+    }
+
+    args = parser.parse_args()
+    args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
+
+    if args.color == "always":
+        LoggingColors.enable_colors = True
+    elif args.color == "never":
+        LoggingColors.enable_colors = False
+
     colorize_logging()
     logger = logging.getLogger('TexText')
     logger.setLevel(logging.DEBUG)
@@ -682,14 +695,6 @@ if __name__ == "__main__":
     formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-
-    files_to_keep = {  # old_name : new_name
-        "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
-    }
-
-    args = parser.parse_args()
-    args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
 
     if args.keep_previous_installation_files is None:
         found_files_to_keep = {}
@@ -718,11 +723,6 @@ if __name__ == "__main__":
 
     if not args.keep_previous_installation_files:
         files_to_keep = {}
-
-    if args.color == "always":
-        LoggingColors.enable_colors = True
-    elif args.color == "never":
-        LoggingColors.enable_colors = False
 
     if not args.skip_requirements_check:
         check_result = check_requirements()
