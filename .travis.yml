@@ -5,7 +5,6 @@ branches:
   - master
   - dev
   - travis_ci
-  - rework_error_handling
 
 virtualenv:
   system_site_packages: true
