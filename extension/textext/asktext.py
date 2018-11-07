@@ -33,6 +33,7 @@ TK = "TK"
 TOOLKIT = None
 
 import os
+import warnings
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -921,17 +922,19 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             return window
 
         def ask(self, callback, preview_callback=None):
-            self.callback = callback
-            self._preview_callback = preview_callback
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", module="asktext")
+                self.callback = callback
+                self._preview_callback = preview_callback
 
-            # create first window
-            window = self.create_window()
-            window.set_default_size(500, 500)
-            window.show()
+                # create first window
+                window = self.create_window()
+                window.set_default_size(500, 500)
+                window.show()
 
-            self._window = window
-            self._window.set_focus(self._source_view)
+                self._window = window
+                self._window.set_focus(self._source_view)
 
-            # main loop
-            gtk.main()
-            return self.text, self.preamble_file, self.global_scale_factor
+                # main loop
+                gtk.main()
+                return self.text, self.preamble_file, self.global_scale_factor
