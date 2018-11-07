@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import abc
 import argparse
 import logging
 import re
@@ -10,6 +11,91 @@ import subprocess
 import sys
 import stat
 import tempfile
+
+
+class Defaults(object):
+    __metaclass__ = abc.ABCMeta
+    @abc.abstractproperty
+    def python(self): pass
+
+    @abc.abstractproperty
+    def inkscape(self): pass
+
+    @abc.abstractproperty
+    def ghostscript(self): pass
+
+    @abc.abstractproperty
+    def pstoedit(self): pass
+
+    @abc.abstractproperty
+    def pdflatex(self): pass
+
+    @abc.abstractproperty
+    def lualatex(self): pass
+
+    @abc.abstractproperty
+    def xelatex(self): pass
+
+    @abc.abstractproperty
+    def console_colors(self):pass
+
+    @abc.abstractproperty
+    def inkscape_extensions_path(self): pass
+
+
+class LinuxDefaults(Defaults):
+    python = "python2.7"
+    inkscape = "inkscape"
+    ghostscript = "ghostscript"
+    pstoedit = "pstoedit"
+    pdflatex = "pdflatex"
+    lualatex = "lualatex"
+    xelatex = "xelatex"
+    pdf2svg = "pdf2svg"
+    console_colors = "always"
+
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.expanduser("~/.config/inkscape/extensions")
+
+
+class WindowsDefaults(Defaults):
+
+    def __init__(self):
+        # Append the location of our apps to the system path
+        sys.path.append("extension/textext")
+        import win_app_paths as wap
+
+        paths = os.environ.get('PATH', '').split(os.path.pathsep)
+        for result in [wap.get_pstoedit_dir(), wap.get_ghostscript_dir()]:
+            if result and result is not wap.IS_IN_PATH:
+                paths += [os.path.join(result)]
+
+        result = wap.get_imagemagick_command()
+        if result:
+            paths += [os.path.join(os.path.dirname(result))]
+
+        os.environ['PATH'] = os.path.pathsep.join(paths)
+
+    python = "python.exe"
+    inkscape = "inkscape.exe"
+    ghostscript = "gs.exe"
+    pstoedit = "pstoedit.exe"
+    pdflatex = "pdflatex.exe"
+    lualatex = "lualatex.exe"
+    xelatex = "xelatex.exe"
+    pdf2svg = "pdf2svg"
+    console_colors = "never"
+
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+
+
+if sys.platform.startswith("win"):
+    defaults = WindowsDefaults()
+else:
+    defaults = LinuxDefaults()
 
 
 # taken from https://stackoverflow.com/a/3041990/1741477
@@ -171,6 +257,7 @@ class LoggingColors(object):
 
 
 get_levels_colors = LoggingColors()
+
 
 def colorize_logging():
     level_colors, COLOR_RESET = get_levels_colors()
@@ -498,7 +585,7 @@ class Requirement(object):
 def check_requirements():
     def find_executable(executable_name):
         messages = []
-        for path in os.environ["PATH"].split(":"):
+        for path in os.environ["PATH"].split(os.path.pathsep):
             full_path_guess = os.path.join(path, executable_name)
             logger.debug("Looking for `%s` in `%s`" % (executable_name, path))
             if os.path.isfile(full_path_guess):
@@ -511,7 +598,7 @@ def check_requirements():
 
     def find_PyGtk2():
         try:
-            subprocess.check_call(["python2.7", "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+            subprocess.check_call([defaults.python, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
 
@@ -519,7 +606,7 @@ def check_requirements():
 
     def find_TkInter():
         try:
-            subprocess.check_call(["python2.7", "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
+            subprocess.check_call([defaults.python, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
@@ -528,7 +615,7 @@ def check_requirements():
 
     def find_ghostscript(version):
         try:
-            p = subprocess.Popen(["ghostscript", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([defaults.ghostscript, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
@@ -546,7 +633,7 @@ def check_requirements():
 
     def find_pstoedit(version):
         try:
-            p = subprocess.Popen(["pstoedit"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([defaults.pstoedit], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
@@ -563,23 +650,20 @@ def check_requirements():
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
     textext_requirements = (
-            Requirement(find_executable, "python2.7").prepend_message("ANY", 'Detect `pytohn2.7`')
+            Requirement(find_executable, defaults.inkscape).prepend_message("ANY", 'Detect inkscape')
+            &
+            Requirement(find_executable, defaults.python).prepend_message("ANY", 'Detect `python2.7`')
             &
             (
-                    Requirement(find_executable, "pdflatex") |
-                    Requirement(find_executable, "lualatex") |
-                    Requirement(find_executable, "xelatex")
+                    Requirement(find_executable, defaults.pdflatex) |
+                    Requirement(find_executable, defaults.lualatex) |
+                    Requirement(find_executable, defaults.xelatex)
             ).overwrite_check_message("Detect *latex")
             &
             (
                     Requirement(find_PyGtk2) |
                     Requirement(find_TkInter)
             ).overwrite_check_message("Detect GUI library")
-            &
-            (
-                    Requirement(find_executable, "convert") |
-                    Requirement(find_executable, "magick")
-            ).overwrite_check_message("Detect pdf->png conversion utility")
             &
             (
                     (
@@ -589,13 +673,13 @@ def check_requirements():
                             ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
                             &
                             (
-                                    Requirement(find_executable, "pstoedit") &
-                                    Requirement(find_executable, "ghostscript")
+                                    Requirement(find_executable, defaults.pstoedit) &
+                                    Requirement(find_executable, defaults.ghostscript)
                             )
                     ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
                     |
                     (
-                        Requirement(find_executable, "pdf2svg")
+                        Requirement(find_executable, defaults.pdf2svg)
                     ).prepend_message("ANY", "Detect pdf2svg:")
             ).overwrite_check_message("Detect pdf->svg conversion utility")
     ).overwrite_check_message("TexText requirements")
@@ -642,7 +726,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=os.path.expanduser("~/.config/inkscape/extensions"),
+        default=defaults.inkscape_extensions_path,
         help="Path to inkscape extensions directory"
     )
 
@@ -669,7 +753,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--color",
-        default="always",
+        default=defaults.console_colors,
         choices=("always", "never"),
         help="Enables/disable console colors"
     )
