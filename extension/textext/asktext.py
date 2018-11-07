@@ -123,9 +123,10 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd):
+    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd):
         """
         Return the best possible GUI variant depending on the installed components
+        :param version_str: A string describing the version of textext
         :param current_scale_factor:
         :param text: Prefilled text
         :param preamble_file: Preamble file path
@@ -136,10 +137,10 @@ class AskerFactory(object):
         :return: an instance of AskText
         """
         if TOOLKIT == TK:
-            return AskTextTK(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+            return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                              current_texcmd)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
-            return AskTextGTKSource(text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+            return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                                     current_texcmd)
 
 
@@ -151,7 +152,7 @@ class AskText(object):
                         "middle left", "middle center", "middle right",
                         "bottom left", "bottom center", "bottom right"]
 
-    def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd):
         if len(text) > 0:
             self.text = text
@@ -161,6 +162,7 @@ class AskText(object):
             else:
                 self.text = ""
 
+        self.textext_version = version_str
         self.callback = None
         self.global_scale_factor = global_scale_factor
         self.current_scale_factor = current_scale_factor
@@ -216,9 +218,9 @@ if TOOLKIT == TK:
     class AskTextTK(AskText):
         """TK GUI for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+        def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd):
-            super(AskTextTK, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor,
+            super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                             current_alignment, current_texcmd)
             self._frame = None
             self._scale = None
@@ -252,7 +254,7 @@ if TOOLKIT == TK:
             self.callback = callback
 
             root = Tk.Tk()
-            root.title("TexText")
+            root.title("TexText {0}".format(self.textext_version))
 
             self._frame = Tk.Frame(root)
             self._frame.pack()
@@ -393,9 +395,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
-        def __init__(self, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+        def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd):
-            super(AskTextGTKSource, self).__init__(text, preamble_file, global_scale_factor, current_scale_factor,
+            super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                                    current_alignment, current_texcmd)
             self._preview = None
             self._scale_adj = None
@@ -717,7 +719,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             """
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_border_width(2)
-            window.set_title('Enter LaTeX Formula - TexText')
+            window.set_title('Enter LaTeX Formula - TexText {0}'.format(self.textext_version))
 
             # File chooser and Scale Adjustment
             if hasattr(gtk, 'FileChooserButton'):
