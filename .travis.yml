@@ -4,6 +4,7 @@ branches:
   only:
   - master
   - dev
+  - develop
   - travis_ci
   - rework_error_handling
 
