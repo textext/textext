@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import abc
 import argparse
 import logging
 import re
@@ -8,78 +9,258 @@ import glob
 import shutil
 import subprocess
 import sys
+import stat
+import tempfile
 
-COLOR_RESET = "\033[0m"
 
-def get_levels_colors():
-    RESET = COLOR_RESET
-    FG_DEFAULT = "\033[39m"
-    FG_BLACK = "\033[30m"
-    FG_RED = "\033[31m"
-    FG_GREEN = "\033[32m"
-    FG_YELLOW = "\033[33m"
-    FG_BLUE = "\033[34m"
-    FG_MAGENTA = "\033[35m"
-    FG_CYAN = "\033[36m"
-    FG_LIGHT_GRAY = "\033[37m"
-    FG_DARK_GRAY = "\033[90m"
-    FG_LIGHT_RED = "\033[91m"
-    FG_LIGHT_GREEN = "\033[92m"
-    FG_LIGHT_YELLOW = "\033[93m"
-    FG_LIGHT_BLUE = "\033[94m"
-    FG_LIGHT_MAGENTA = "\033[95m"
-    FG_LIGHT_CYAN = "\033[96m"
-    FG_WHITE = "\033[97m"
+class Defaults(object):
+    __metaclass__ = abc.ABCMeta
+    @abc.abstractproperty
+    def python(self): pass
 
-    BG_DEFAULT = "\033[49m"
-    BG_BLACK = "\033[40m"
-    BG_RED = "\033[41m"
-    BG_GREEN = "\033[42m"
-    BG_YELLOW = "\033[43m"
-    BG_BLUE = "\033[44m"
-    BG_MAGENTA = "\033[45m"
-    BG_CYAN = "\033[46m"
-    BG_LIGHT_GRAY = "\033[47m"
-    BG_DARK_GRAY = "\033[100m"
-    BG_LIGHT_RED = "\033[101m"
-    BG_LIGHT_GREEN = "\033[102m"
-    BG_LIGHT_YELLOW = "\033[103m"
-    BG_LIGHT_BLUE = "\033[104m"
-    BG_LIGHT_MAGENTA = "\033[105m"
-    BG_LIGHT_CYAN = "\033[106m"
-    BG_WHITE = "\033[107m"
+    @abc.abstractproperty
+    def inkscape(self): pass
 
-    levels = [
-        logging.DEBUG,
-        logging.INFO,
-        logging.WARNING,
-        logging.ERROR,
-        logging.ERROR + 1,  # SUCCESS
-        logging.ERROR + 2,  # UNKNOWN
-        logging.CRITICAL
-    ]
-    names = [
-        "DEBUG   ",
-        "INFO    ",
-        "WARNING ",
-        "ERROR   ",
-        "SUCCESS ",
-        "UNKNOWN ",
-        "CRITICAL"
-    ]
-    colors = [
-        RESET,
-        BG_DEFAULT + FG_LIGHT_BLUE,
-        BG_DEFAULT + FG_YELLOW,
-        BG_DEFAULT + FG_RED,
-        BG_DEFAULT + FG_GREEN,
-        BG_DEFAULT + FG_YELLOW,
-        BG_RED + FG_WHITE,
-    ]
-    return {name: (level,color) for level, name, color in zip(levels, names, colors)}
+    @abc.abstractproperty
+    def ghostscript(self): pass
+
+    @abc.abstractproperty
+    def pstoedit(self): pass
+
+    @abc.abstractproperty
+    def pdflatex(self): pass
+
+    @abc.abstractproperty
+    def lualatex(self): pass
+
+    @abc.abstractproperty
+    def xelatex(self): pass
+
+    @abc.abstractproperty
+    def console_colors(self):pass
+
+    @abc.abstractproperty
+    def inkscape_extensions_path(self): pass
+
+
+class LinuxDefaults(Defaults):
+    python = "python2.7"
+    inkscape = "inkscape"
+    ghostscript = "ghostscript"
+    pstoedit = "pstoedit"
+    pdflatex = "pdflatex"
+    lualatex = "lualatex"
+    xelatex = "xelatex"
+    pdf2svg = "pdf2svg"
+    console_colors = "always"
+
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.expanduser("~/.config/inkscape/extensions")
+
+
+class WindowsDefaults(Defaults):
+
+    def __init__(self):
+        # Append the location of our apps to the system path
+        sys.path.append("extension/textext")
+        import win_app_paths as wap
+
+        paths = os.environ.get('PATH', '').split(os.path.pathsep)
+        for result in [wap.get_pstoedit_dir(), wap.get_ghostscript_dir()]:
+            if result and result is not wap.IS_IN_PATH:
+                paths += [os.path.join(result)]
+
+        result = wap.get_imagemagick_command()
+        if result:
+            paths += [os.path.join(os.path.dirname(result))]
+
+        os.environ['PATH'] = os.path.pathsep.join(paths)
+
+    python = "python.exe"
+    inkscape = "inkscape.exe"
+    ghostscript = "gs.exe"
+    pstoedit = "pstoedit.exe"
+    pdflatex = "pdflatex.exe"
+    lualatex = "lualatex.exe"
+    xelatex = "xelatex.exe"
+    pdf2svg = "pdf2svg.exe"
+    console_colors = "never"
+
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+
+
+if sys.platform.startswith("win"):
+    defaults = WindowsDefaults()
+else:
+    defaults = LinuxDefaults()
+
+
+# taken from https://stackoverflow.com/a/3041990/1741477
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+
+
+class TemporaryDirectory(object):
+    """ Mimic tempfile.TemporaryDirectory from python3 """
+    def __init__(self):
+        self.dir_name = None
+
+    def __enter__(self):
+        self.dir_name = tempfile.mkdtemp("textext_")
+        return self.dir_name
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+
+        def retry_with_chmod(func, path, exec_info):
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+
+        if self.dir_name:
+            shutil.rmtree(self.dir_name, onerror=retry_with_chmod)
+
+
+class StashFiles(object):
+    def __init__(self, stash_from, rel_filenames, tmp_dir, unstash_to=None):
+        self.stash_from = stash_from
+        self.unstash_to = stash_from if unstash_to is None else unstash_to
+        self.rel_filenames = rel_filenames
+        self.tmp_dir = tmp_dir
+
+    def __enter__(self):
+        for old_name, new_name in self.rel_filenames.iteritems():
+            src = os.path.join(self.stash_from, old_name)
+            dst = os.path.join(self.tmp_dir, old_name)
+            if os.path.isfile(src):
+                if not os.path.isdir(os.path.dirname(dst)):
+                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    os.makedirs(os.path.dirname(dst))
+                logger.info("Stashing `%s`" % dst)
+                shutil.copy2(src, dst)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for old_name, new_name in self.rel_filenames.iteritems():
+            src = os.path.join(self.tmp_dir, old_name)
+            dst = os.path.join(self.unstash_to, new_name)
+            if os.path.isfile(src):
+                if not os.path.isdir(os.path.dirname(dst)):
+                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    os.makedirs(os.path.dirname(dst))
+                logger.info("Restoring old `%s` -> `%s`" % (old_name, dst))
+                shutil.copy2(src, dst)
+
+
+class LoggingColors(object):
+
+    enable_colors = True
+
+    def __call__(self):
+        COLOR_RESET = "\033[0m"
+        FG_DEFAULT = "\033[39m"
+        FG_BLACK = "\033[30m"
+        FG_RED = "\033[31m"
+        FG_GREEN = "\033[32m"
+        FG_YELLOW = "\033[33m"
+        FG_BLUE = "\033[34m"
+        FG_MAGENTA = "\033[35m"
+        FG_CYAN = "\033[36m"
+        FG_LIGHT_GRAY = "\033[37m"
+        FG_DARK_GRAY = "\033[90m"
+        FG_LIGHT_RED = "\033[91m"
+        FG_LIGHT_GREEN = "\033[92m"
+        FG_LIGHT_YELLOW = "\033[93m"
+        FG_LIGHT_BLUE = "\033[94m"
+        FG_LIGHT_MAGENTA = "\033[95m"
+        FG_LIGHT_CYAN = "\033[96m"
+        FG_WHITE = "\033[97m"
+
+        BG_DEFAULT = "\033[49m"
+        BG_BLACK = "\033[40m"
+        BG_RED = "\033[41m"
+        BG_GREEN = "\033[42m"
+        BG_YELLOW = "\033[43m"
+        BG_BLUE = "\033[44m"
+        BG_MAGENTA = "\033[45m"
+        BG_CYAN = "\033[46m"
+        BG_LIGHT_GRAY = "\033[47m"
+        BG_DARK_GRAY = "\033[100m"
+        BG_LIGHT_RED = "\033[101m"
+        BG_LIGHT_GREEN = "\033[102m"
+        BG_LIGHT_YELLOW = "\033[103m"
+        BG_LIGHT_BLUE = "\033[104m"
+        BG_LIGHT_MAGENTA = "\033[105m"
+        BG_LIGHT_CYAN = "\033[106m"
+        BG_WHITE = "\033[107m"
+
+        levels = [
+            logging.DEBUG,
+            logging.INFO,
+            logging.WARNING,
+            logging.ERROR,
+            logging.ERROR + 1,  # SUCCESS
+            logging.ERROR + 2,  # UNKNOWN
+            logging.CRITICAL
+        ]
+        names = [
+            "DEBUG   ",
+            "INFO    ",
+            "WARNING ",
+            "ERROR   ",
+            "SUCCESS ",
+            "UNKNOWN ",
+            "CRITICAL"
+        ]
+        colors = [
+            COLOR_RESET,
+            BG_DEFAULT + FG_LIGHT_BLUE,
+            BG_YELLOW + FG_WHITE,
+            BG_DEFAULT + FG_RED,
+            BG_DEFAULT + FG_GREEN,
+            BG_DEFAULT + FG_YELLOW,
+            BG_RED + FG_WHITE,
+        ]
+        if not LoggingColors.enable_colors:
+            colors = [""]*len(colors)
+            COLOR_RESET=""
+        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, COLOR_RESET
+
+
+get_levels_colors = LoggingColors()
+
 
 def colorize_logging():
-    level_colors = get_levels_colors()
+    level_colors, COLOR_RESET = get_levels_colors()
     for name, (level,color) in level_colors.items():
         logging.addLevelName(level, color + name + COLOR_RESET)
 
@@ -189,14 +370,14 @@ class RequirementCheckResult(object):
     @property
     def color(self):
         if self.value == True:
-            return get_levels_colors()["SUCCESS "][1]
+            return get_levels_colors()[0]["SUCCESS "][1]
         elif self.value == False:
-            return get_levels_colors()["ERROR   "][1]
+            return get_levels_colors()[0]["ERROR   "][1]
         else:
-            return get_levels_colors()["UNKNOWN "][1]
+            return get_levels_colors()[0]["UNKNOWN "][1]
 
     def print_to_logger(self, offset=0, prefix="", parent=None):
-        reset_color = COLOR_RESET
+        _, reset_color = get_levels_colors()
 
         if self.is_critical:
             lvl = logging.CRITICAL
@@ -207,10 +388,15 @@ class RequirementCheckResult(object):
         else:
             lvl = logging.ERROR + 2  # unknown
 
+        value_repr = {
+            True: "Succ",
+            False: "Fail",
+            None: "Ukwn"
+        }
         if self.nested:
-            nest_symbol = "+"
+            nest_symbol = "+ [%s]" % value_repr[self.value.value]
         else:
-            nest_symbol = "*"
+            nest_symbol = "* [%s]" % value_repr[self.value.value]
 
         if parent:
             if parent.is_and_node:
@@ -399,7 +585,7 @@ class Requirement(object):
 def check_requirements():
     def find_executable(executable_name):
         messages = []
-        for path in os.environ["PATH"].split(":"):
+        for path in os.environ["PATH"].split(os.path.pathsep):
             full_path_guess = os.path.join(path, executable_name)
             logger.debug("Looking for `%s` in `%s`" % (executable_name, path))
             if os.path.isfile(full_path_guess):
@@ -412,7 +598,7 @@ def check_requirements():
 
     def find_PyGtk2():
         try:
-            subprocess.check_call(["python2.7", "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+            subprocess.check_call([defaults.python, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
 
@@ -420,7 +606,7 @@ def check_requirements():
 
     def find_TkInter():
         try:
-            subprocess.check_call(["python2.7", "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
+            subprocess.check_call([defaults.python, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
@@ -429,7 +615,7 @@ def check_requirements():
 
     def find_ghostscript(version):
         try:
-            p = subprocess.Popen(["ghostscript", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([defaults.ghostscript, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
@@ -447,7 +633,7 @@ def check_requirements():
 
     def find_pstoedit(version):
         try:
-            p = subprocess.Popen(["pstoedit"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen([defaults.pstoedit], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
@@ -464,23 +650,20 @@ def check_requirements():
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
     textext_requirements = (
-            Requirement(find_executable, "python2.7").prepend_message("ANY", 'Detect `pytohn2.7`')
+            Requirement(find_executable, defaults.inkscape).prepend_message("ANY", 'Detect inkscape')
+            &
+            Requirement(find_executable, defaults.python).prepend_message("ANY", 'Detect `python2.7`')
             &
             (
-                    Requirement(find_executable, "pdflatex") |
-                    Requirement(find_executable, "lualatex") |
-                    Requirement(find_executable, "xelatex")
+                    Requirement(find_executable, defaults.pdflatex) |
+                    Requirement(find_executable, defaults.lualatex) |
+                    Requirement(find_executable, defaults.xelatex)
             ).overwrite_check_message("Detect *latex")
             &
             (
                     Requirement(find_PyGtk2) |
                     Requirement(find_TkInter)
             ).overwrite_check_message("Detect GUI library")
-            &
-            (
-                    Requirement(find_executable, "convert") |
-                    Requirement(find_executable, "magick")
-            ).overwrite_check_message("Detect pdf->png conversion utility")
             &
             (
                     (
@@ -490,13 +673,13 @@ def check_requirements():
                             ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
                             &
                             (
-                                    Requirement(find_executable, "pstoedit") &
-                                    Requirement(find_executable, "ghostscript")
+                                    Requirement(find_executable, defaults.pstoedit) &
+                                    Requirement(find_executable, defaults.ghostscript)
                             )
                     ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
                     |
                     (
-                        Requirement(find_executable, "pdf2svg")
+                        Requirement(find_executable, defaults.pdf2svg)
                     ).prepend_message("ANY", "Detect pdf2svg:")
             ).overwrite_check_message("Detect pdf->svg conversion utility")
     ).overwrite_check_message("TexText requirements")
@@ -512,39 +695,38 @@ def check_requirements():
     return check_result.value
 
 
-colorize_logging()
-logger = logging.getLogger('TexText')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+def remove_previous_installation(extension_dir):
+    previous_installation_files_and_folders = [
+        "asktext.py",
+        "default_packages.tex",
+        "inkex45.py",
+        "latexlogparser.py",
+        "scribus_textext.py",
+        "textext",
+        "textext.inx",
+        "textext.py",
+        "typesetter.py",
+        "win_app_paths.py",
+    ]
+    for file_or_dir in previous_installation_files_and_folders:
+        file_or_dir = os.path.abspath(os.path.join(extension_dir, file_or_dir))
+        if os.path.isfile(file_or_dir):
+            logger.info("Removing `%s`" % file_or_dir)
+            os.remove(file_or_dir)
+        elif os.path.isdir(file_or_dir):
+            logger.info("Removing `%s`" % file_or_dir)
+            shutil.rmtree(file_or_dir)
+        else:
+            logger.debug("`%s` is not found" % file_or_dir)
+
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Install TexText')
 
-    if_already_exists = parser.add_mutually_exclusive_group()
-    if_already_exists.add_argument(
-        "--overwrite-if-exist",
-        dest='if_already_exists',
-        action='store_const',
-        const="overwrite",
-        default="raise",
-        help="Overwrite already existing extension files"
-    )
-    if_already_exists.add_argument(
-        "--skip-if-exist",
-        dest='if_already_exists',
-        action='store_const',
-        const="skip",
-        help="Retain already existing extension files"
-    )
-
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=os.path.expanduser("~/.config/inkscape/extensions"),
+        default=defaults.inkscape_extensions_path,
         help="Path to inkscape extensions directory"
     )
 
@@ -562,7 +744,41 @@ if __name__ == "__main__":
         help="Don't install extension"
     )
 
+    parser.add_argument(
+        "--keep-previous-installation-files",
+        default=None,
+        action='store_true',
+        help="Keep/discard files from previous installation, suppress prompt"
+    )
+
+    parser.add_argument(
+        "--color",
+        default=defaults.console_colors,
+        choices=("always", "never"),
+        help="Enables/disable console colors"
+    )
+
+    files_to_keep = {  # old_name : new_name
+        "default_packages.tex": "textext/default_packages.tex",  # old layout
+        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
+    }
+
     args = parser.parse_args()
+    args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
+
+    if args.color == "always":
+        LoggingColors.enable_colors = True
+    elif args.color == "never":
+        LoggingColors.enable_colors = False
+
+    colorize_logging()
+    logger = logging.getLogger('TexText')
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
     if not args.skip_requirements_check:
         check_result = check_requirements()
@@ -579,15 +795,47 @@ if __name__ == "__main__":
             exit(65)
 
     if not args.skip_extension_install:
-        try:
+
+        if args.keep_previous_installation_files is None:
+            found_files_to_keep = {}
+            for old_filename, new_filename in files_to_keep.iteritems():
+                if not os.path.isfile(os.path.join(args.inkscape_extensions_path, old_filename)):
+                    logger.debug("%s not found" % old_filename)
+                else:
+                    logger.debug("%s found" % old_filename)
+                    with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
+                            open(os.path.join("extension", new_filename)) as f_new:
+                        if f_old.read() != f_new.read():
+                            logger.debug("Content of `%s` are not identical version in distribution" % old_filename)
+                            found_files_to_keep[old_filename] = new_filename
+                        else:
+                            logger.debug("Content of `%s` is identical to distribution" % old_filename)
+
+            files_to_keep = found_files_to_keep
+
+            if len(files_to_keep) > 0:
+                file_s = "file" if len(files_to_keep) == 1 else "files"
+                for old_filename in files_to_keep.keys():
+                    logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
+                args.keep_previous_installation_files = query_yes_no(
+                    "Keep above %s from previous installation?" % file_s)
+            else:
+                args.keep_previous_installation_files = False
+
+        if not args.keep_previous_installation_files:
+            files_to_keep = {}
+
+        with TemporaryDirectory() as tmp_dir, \
+                StashFiles(stash_from=args.inkscape_extensions_path,
+                           rel_filenames=files_to_keep,
+                           tmp_dir=tmp_dir
+                           ):
+            remove_previous_installation(args.inkscape_extensions_path)
+
             copy_extension_files(
                 src="extension/*",
                 dst=args.inkscape_extensions_path,
-                if_already_exists=args.if_already_exists
+                if_already_exists="overwrite"
             )
-        except CopyFileAlreadyExistsError:
-            logger.info("Hint: add `--overwrite-if-exist` option to overwrite existing files and directories")
-            logger.info("Hint: add `--skip-if-exist` option to retain existing files and directories")
-            exit(66)
 
     exit(0)
