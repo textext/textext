@@ -65,18 +65,18 @@ REQUIREMENT_CHECK_UNKNOWN = 64
 REQUIREMENT_CHECK_ERROR = 65
 
 good_configurations = []
-for pdf2png in [("convert",), ("magick",)]:
-    for pdf2svg in [[("pstoedit", "version 1.1", "stderr"),
-                     ("ghostscript", "9.25")
-                     ],
-                    [("pdf2svg",)]
-                    ]:
-        for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
-            good_configurations.append([
-                                           ("python2.7",),
-                                           pdf2png,
-                                           latex
-                                       ] + pdf2svg)
+
+for pdf2svg in [[("pstoedit", "version 1.1", "stderr"),
+                 ("ghostscript", "9.25")
+                 ],
+                [("pdf2svg",)]
+                ]:
+    for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
+        good_configurations.append([
+                                       ("inkscape",),
+                                       ("python2.7",),
+                                       latex
+                                   ] + pdf2svg)
 
 for good_configuration in good_configurations:
     test_configuration(good_configuration, REQUIREMENT_CHECK_SUCCESS)
@@ -88,29 +88,30 @@ for good_configuration in good_configurations:
         test_configuration(bad_configuration, REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
+    ("inkscape",),
     ("python2.7",)
 ], REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
+    ("inkscape",),
     ("python2.7",),
     ("pdflatex",),
-    ("convert",),
     ("pstoedit", "version 3.70", "stderr"),
     ("ghostscript", "9.22")
 ], REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
+    ("inkscape",),
     ("python2.7",),
     ("pdflatex",),
-    ("convert",),
     ("pstoedit",),
     ("ghostscript",)
 ], REQUIREMENT_CHECK_UNKNOWN)
 
 test_configuration([
+    ("inkscape",),
     ("python2.7",),
     ("pdflatex",),
-    ("convert",),
     ("pstoedit",),
     ("ghostscript",),
     ("pdf2svg",)
