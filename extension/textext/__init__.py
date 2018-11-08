@@ -321,6 +321,7 @@ try:
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
             global CONVERTERS
+            logger.debug("TexText.effect")
 
             # Pick a converter
             converter_errors = []
@@ -330,8 +331,10 @@ try:
                 try:
                     converter_class.check_available()
                     usable_converter_class = converter_class
+                    logger.debug("%s is usable" % converter_class.__name__)
                     break
                 except TexTextCommandError as err:
+                    logger.debug("%s is not usable" % converter_class.__name__)
                     converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
 
             if not usable_converter_class:
@@ -344,35 +347,53 @@ try:
             # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
             # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
             if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
+                logger.debug("Adjust scale factor for node created with TexText<=0.7")
                 current_scale *= self.uu_to_unit(1, "pt")
 
             if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
+                logger.debug("Adjust scale factor to account transformations in inkscape")
                 current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
+            else:
+                logger.warning("Can't adjust scale to account node transformations done in inkscape. "
+                               "May result in loss of scale.")
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
             if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
                 alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
+            else:
+                logger.debug("Using default node alignment `%s`" %alignment)
 
             current_tex_command = TexText.DEFAULT_TEXCMD
             if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
                 current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
+            else:
+                logger.debug("Using default tex converter `%s` " % current_tex_command)
 
             # Ask for TeX code
             if self.options.text is None:
                 global_scale_factor = self.options.scale_factor
 
                 if not preamble_file:
+                    logger.debug("Using default preamble file `%s`" % self.options.preamble_file)
                     preamble_file = self.options.preamble_file
                 else:
+                    logger.debug("Using node preamble file")
                     # Check if preamble file exists at the specified absolute path location. If not, check to find
                     # the file in the default path. If this fails, too, fallback to the default.
                     if not os.path.exists(preamble_file):
+                        logger.debug("Preamble file is NOT found by absolute path")
                         preamble_file = os.path.join(os.path.dirname(self.options.preamble_file), os.path.basename(preamble_file))
                         if not os.path.exists(preamble_file):
+                            logger.debug("Preamble file is NOT found along with default preamble file")
                             preamble_file = self.options.preamble_file
+                        else:
+                            logger.debug("Preamble file is found along with default preamble file")
+                    else:
+                        logger.debug("Preamble file found by absolute path")
 
                 if not os.path.isfile(preamble_file):
+                    logger.debug("Preamble file is not found")
                     preamble_file = ""
 
                 asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
@@ -383,6 +404,7 @@ try:
                     return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
                                            tex_cmd, original_scale=current_scale)
 
+                logger.debug("Run TexText GUI")
                 asker.ask(callback,
                           lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
                                                                                                          _preamble,
@@ -415,7 +437,10 @@ try:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
+            logger.debug("TexText.preview")
+
             if not text:
+                logger.debug("no text, return")
                 return
 
             if isinstance(text, unicode):
@@ -424,9 +449,11 @@ try:
             converter = converter_class()
 
             with ChangeToTemporaryDirectory():
+                logger.debug("Converting tex to pdf")
                 converter.tex_to_pdf(tex_command, text, preamble_file)
-
+                logger.debug("Converting to pdf done")
                 # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
+                logger.debug("Converting pdf to png")
                 try:
                     # -trim MUST be placed between the filenames!
                     options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'),
@@ -449,6 +476,8 @@ try:
                 except TexTextCommandNotFound:
                     pass
 
+                logger.debug("Converting pdf to png done")
+
         def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
                        original_scale=None):
             """
@@ -462,7 +491,11 @@ try:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
+
+            logger.debug("TexText.do_convert")
+
             if not text:
+                logger.debug("no text, return")
                 return
 
             if isinstance(text, unicode):
@@ -474,8 +507,9 @@ try:
 
             # Convert
             converter = converter_class()
-
+            logger.debug("Converting tex to svg")
             new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
+            logger.debug("Converting tex to svg done")
 
 
             # -- Store textext attributes
@@ -495,6 +529,7 @@ try:
 
             # -- Copy style
             if old_svg_ele is None:
+                logger.debug("Adding new node to document")
                 root = self.document.getroot()
                 width = self.unit_to_uu(self.get_document_width())
                 height = self.unit_to_uu(self.get_document_height())
@@ -504,7 +539,9 @@ try:
                 new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
 
                 self.current_layer.append(new_svg_ele.get_xml_raw_node())
+                logger.debug("Adding new node to document done ")
             else:
+                logger.debug("Replacing node in document")
                 relative_scale = user_scale_factor / original_scale
                 new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
 
@@ -514,7 +551,9 @@ try:
                     new_svg_ele.import_group_color_style(old_svg_ele)
 
                 self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
+                logger.debug("Replacing node in document done ")
 
+            logger.debug("Saving global settings")
             # -- Save settings
             if os.path.isfile(preamble_file):
                 self.settings.set('preamble', preamble_file)
@@ -525,6 +564,7 @@ try:
             if scale_factor is not None:
                 self.settings.set('scale', user_scale_factor)
             self.settings.save()
+            logger.debug("Saving global settings done")
 
         def get_old(self):
             """
