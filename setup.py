@@ -84,7 +84,7 @@ class WindowsDefaults(Defaults):
     pdflatex = "pdflatex.exe"
     lualatex = "lualatex.exe"
     xelatex = "xelatex.exe"
-    pdf2svg = "pdf2svg"
+    pdf2svg = "pdf2svg.exe"
     console_colors = "never"
 
     @property
