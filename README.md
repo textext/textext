@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/textext/textext.svg?branch=develop)](https://travis-ci.com/textext/textext)
+
 # TexText - A LaTeX/ XeLaTex/ LuaLaTex extension for Inkscape (releases 0.92, 0.91 and 0.48)
 
 TexText is a Python plugin for the vector graphics editor [Inkscape](http://www.inkscape.org/) providing the possibility to add LaTeX generated SVG elements to your drawing.
