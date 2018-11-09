@@ -340,17 +340,17 @@ try:
             logger.debug("TexText version = %s (md5sum = %s)" %
                          (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
                          )
-            logger.debug("platform.system() = %s" % platform.system())
-            logger.debug("platform.release() = %s" % platform.release())
-            logger.debug("platform.version() = %s" % platform.version())
+            logger.debug("platform.system() = %s" % repr(platform.system()))
+            logger.debug("platform.release() = %s" % repr(platform.release()))
+            logger.debug("platform.version() = %s" % repr(platform.version()))
 
-            logger.debug("platform.machine() = %s" % platform.machine())
-            logger.debug("platform.uname() = %s" % platform.uname())
-            logger.debug("platform.mac_ver() = %s" % platform.mac_ver())
+            logger.debug("platform.machine() = %s" % repr(platform.machine()))
+            logger.debug("platform.uname() = %s" % repr(platform.uname()))
+            logger.debug("platform.mac_ver() = %s" % repr(platform.mac_ver()))
 
-            logger.debug("sys.executable = %s" % sys.executable)
-            logger.debug("sys.version = %s" % sys.version)
-            logger.debug("os.environ = %s" % os.environ)
+            logger.debug("sys.executable = %s" % repr(sys.executable))
+            logger.debug("sys.version = %s" % repr(sys.version))
+            logger.debug("os.environ = %s" % repr(os.environ))
 
             # todo: put here requirements check
 
@@ -533,6 +533,9 @@ try:
             :param tex_command: Command for tex -> pdf
             """
             with logger.debug("TexText.preview"):
+                with logger.debug("args:"):
+                    for k,v in locals().items():
+                        logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
                     logger.debug("no text, return")
@@ -586,6 +589,9 @@ try:
             """
 
             with logger.debug("TexText.do_convert"):
+                with logger.debug("args:"):
+                    for k,v in locals().items():
+                        logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
                     logger.debug("no text, return")
