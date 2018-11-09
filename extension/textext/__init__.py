@@ -340,8 +340,19 @@ try:
             logger.debug("TexText version = %s (md5sum = %s)" %
                          (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
                          )
+            logger.debug("platform.system() = %s" % platform.system())
+            logger.debug("platform.release() = %s" % platform.release())
+            logger.debug("platform.version() = %s" % platform.version())
+
+            logger.debug("platform.machine() = %s" % platform.machine())
+            logger.debug("platform.uname() = %s" % platform.uname())
+            logger.debug("platform.mac_ver() = %s" % platform.mac_ver())
+
+            logger.debug("sys.executable = %s" % sys.executable)
             logger.debug("sys.version = %s" % sys.version)
-            logger.debug("sys.platform = %s" % sys.platform)
+            logger.debug("os.environ = %s" % os.environ)
+
+            # todo: put here requirements check
 
             inkex.Effect.__init__(self)
 
