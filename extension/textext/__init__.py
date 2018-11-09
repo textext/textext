@@ -438,6 +438,11 @@ try:
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
+                if text:
+                    logger.debug("Old node text = %s" % repr(text))
+                    logger.debug("Old node scale = %s" % repr(current_scale))
+
+
                 # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
                 # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
                 # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
@@ -456,6 +461,7 @@ try:
 
                 if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
                     alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
+                    logger.debug("Old node alignment `%s`" % alignment)
                 else:
                     logger.debug("Using default node alignment `%s`" %alignment)
 
