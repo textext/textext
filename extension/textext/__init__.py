@@ -834,6 +834,7 @@ try:
             Create a PDF file from latex text
             """
 
+            logger.debug("Converting .tex to .pdf")
             # Read preamble
             preamble_file = os.path.abspath(preamble_file)
             preamble = ""
@@ -865,12 +866,15 @@ try:
             if not os.path.exists(self.tmp('pdf')):
                 raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
+            logger.debug("Converting .tex to .pdf done")
+
         def parse_pdf_log(self, logfile):
             """
             Strip down tex output to only the warnings, errors etc. and discard all the noise
             :param logfile:
             :return: string
             """
+            logger.debug("Parsing LaTeX log file")
 
             log_buffer = StringIO.StringIO()
             log_handler = logging.StreamHandler(log_buffer)
@@ -890,13 +894,15 @@ try:
             log_handler.flush()
             log_buffer.flush()
 
+            logger.debug("Parsing LaTeX log file done")
+
             return log_buffer.getvalue()
 
 
     class PdfConverterBase(LatexConverterBase):
 
         def convert(self, latex_text, preamble_file, scale_factor, tex_command):
-
+            logger.debug("Converting .tex to svg element")
             with ChangeToTemporaryDirectory():
                 self.tex_to_pdf(tex_command, latex_text, preamble_file)
                 self.pdf_to_svg()
@@ -906,6 +912,7 @@ try:
                 if scale_factor is not None:
                     new_svg_ele.set_scale_factor(scale_factor)
 
+                logger.debug("Converting .tex to svg element done")
                 return new_svg_ele
 
         def pdf_to_svg(self):
@@ -935,6 +942,9 @@ try:
             :raises: TexTextCommandNotFound, TexTextCommandFailed
             """
             # Options for pstoedit command
+
+            logger.debug("Converting .pdf to .svg")
+
             pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
 
             # Exec pstoedit: pdf -> svg
@@ -962,6 +972,7 @@ try:
 
             if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
                 raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
+            logger.debug("Converting .pdf to .svg done")
 
         def svg_to_group(self):
             """
@@ -969,12 +980,15 @@ try:
 
             :returns: Subclass of SvgElement
             """
+            logger.debug("Grouping resulting svg")
             tree = etree.parse(self.tmp('svg'))
             self._fix_xml_namespace(tree.getroot())
             try:
-                return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+                result = PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
             except IndexError:
                 raise TexTextConversionError("Can't find a group in resulting svg")
+            logger.debug("Grouping resulting svg done")
+            return result
 
         def _fix_xml_namespace(self, node):
             svg = '{%s}' % SVG_NS
@@ -994,6 +1008,7 @@ try:
         @classmethod
         def check_available(cls):
             """Check whether pstoedit has plot-svg"""
+            logger.debug("Checking pstoedit")
             out = exec_command(['pstoedit', '-help'], ok_return_value=None)
             if 'version 3.44' in out and 'Ubuntu' in out:
                 raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
@@ -1014,6 +1029,7 @@ try:
             """
             Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
             """
+            logger.debug("Converting .pdf to .svg")
             try:
                 # Exec pdf2cvg infile.pdf outfile.svg
                 result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
@@ -1022,6 +1038,7 @@ try:
 
             if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
                 raise TexTextNonFatalError("pdf2svg didn't produce output.\n%s" % result)
+            logger.debug("Converting .pdf to .svg done")
 
         def svg_to_group(self):
             """
@@ -1036,6 +1053,7 @@ try:
             the references in the <g>-node are replaced  by the definitions from <defs> so we can return the group without
             any <defs>.
             """
+            logger.debug("Groupping resulting svg")
             tree = etree.parse(self.tmp('svg'))
             svg_raw = tree.getroot()
 
@@ -1081,17 +1099,18 @@ try:
                             node_style_dict["stroke-width"] = "0"
                             node.attrib["style"] = ss.formatStyle(node_style_dict)
 
-                # return new_group
-                return Pdf2SvgSvgElement(new_group)
-
             except:  # todo: <-- be more precise here
                 raise TexTextNonFatalError("Can't find a group in resulting svg")
+
+            logger.debug("Grouping resulting svg done")
+            return Pdf2SvgSvgElement(new_group)
 
         @classmethod
         def check_available(cls):
             """
             Check if pdf2svg is available
             """
+            logger.debug("Checking pdf2svg")
             exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
