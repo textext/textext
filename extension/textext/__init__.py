@@ -438,7 +438,7 @@ try:
                     logger.debug("Adjust scale factor to account transformations in inkscape")
                     current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
                 else:
-                    logger.warning("Can't adjust scale to account node transformations done in inkscape. "
+                    logger.debug("Can't adjust scale to account node transformations done in inkscape. "
                                    "May result in loss of scale.")
 
                 alignment = TexText.DEFAULT_ALIGNMENT
