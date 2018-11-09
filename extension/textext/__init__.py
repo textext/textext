@@ -1484,9 +1484,11 @@ except TexTextInternalError as e:
     logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
+    exit(60)  # TexText internal error
 except TexTextFatalError as e:
     logger.error(e.message)
     user_log_channel.show_messages()
+    exit(1)   # Bad setup
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
@@ -1494,3 +1496,4 @@ except Exception as e:
     logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
+    exit(60)  # TexText internal error
