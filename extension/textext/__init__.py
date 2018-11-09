@@ -244,6 +244,9 @@ class NestedLoggingGuard(object):
         return NestedLoggingGuard(self._logger, lvl, message)
 
 
+EXIT_CODE_OK = 0
+EXIT_CODE_EXPECTED_ERROR = 1
+EXIT_CODE_UNEXPECTED_ERROR = 60
 
 LOG_LOCATION = os.path.dirname(__file__)  # todo: check destination is writeable
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
@@ -324,6 +327,15 @@ try:
 
         def __init__(self):
 
+            self.settings = Settings()
+            previous_exit_code = self.settings.get("previous_exit_code", int, EXIT_CODE_OK)
+
+            if previous_exit_code not in [EXIT_CODE_OK, EXIT_CODE_EXPECTED_ERROR]:
+                logging.disable(logging.NOTSET)
+                logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
+            else:
+                logging.disable(logging.DEBUG)
+
             logger.debug("TexText initialized")
             logger.debug("TexText version = %s (md5sum = %s)" %
                          (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
@@ -332,8 +344,6 @@ try:
             logger.debug("sys.platform = %s" % sys.platform)
 
             inkex.Effect.__init__(self)
-
-            self.settings = Settings()
 
             self.OptionParser.add_option(
                 "-t", "--text", action="store", type="string",
@@ -1476,6 +1486,9 @@ try:
     if __name__ == "__main__":
         effect = TexText()
         effect.affect()
+        effect.settings.set("previous_exit_code", EXIT_CODE_OK)
+        effect.settings.save()
+
 
 except TexTextInternalError as e:
     # TexTextInternalError should never be raised.
@@ -1484,11 +1497,23 @@ except TexTextInternalError as e:
     logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
-    exit(60)  # TexText internal error
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 except TexTextFatalError as e:
     logger.error(e.message)
     user_log_channel.show_messages()
-    exit(1)   # Bad setup
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_EXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_EXPECTED_ERROR)   # Bad setup
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
@@ -1496,4 +1521,10 @@ except Exception as e:
     logger.error(traceback.format_exc())
     logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
-    exit(60)  # TexText internal error
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
