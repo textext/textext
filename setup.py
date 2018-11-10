@@ -17,7 +17,7 @@ sys.path.append(os.path.join(
 ))
 
 from requirements_check import \
-    colorize_logging, \
+    set_logging_levels, \
     check_requirements, \
     defaults, \
     LoggingColors
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     elif args.color == "never":
         LoggingColors.enable_colors = False
 
-    colorize_logging()
+    set_logging_levels()
     logger = logging.getLogger('TexText')
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()

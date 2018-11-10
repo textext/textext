@@ -161,7 +161,7 @@ class LoggingColors(object):
         return {name: (level, color) for level, name, color in zip(levels, names, colors)}, COLOR_RESET
 
 
-def colorize_logging():
+def set_logging_levels():
     level_colors, COLOR_RESET = get_levels_colors()
     for name, (level,color) in level_colors.items():
         logging.addLevelName(level, color + name + COLOR_RESET)

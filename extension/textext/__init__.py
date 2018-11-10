@@ -60,6 +60,8 @@ import sys
 import tempfile
 import traceback
 
+from requirements_check import check_requirements, set_logging_levels
+
 
 class ChangeDirectory(object):
     def __init__(self, dir):
@@ -256,6 +258,7 @@ LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destinat
 # `file_log_channel` dumps detailed log to a file
 # `user_log_channel` accumulates log messages to show them to user via .show_messages() function
 #
+set_logging_levels()
 logging.setLoggerClass(MyLogger)
 __logger = logging.getLogger('TexText')
 logger = NestedLoggingGuard(__logger)
@@ -354,8 +357,6 @@ try:
             logger.debug("sys.executable = %s" % repr(sys.executable))
             logger.debug("sys.version = %s" % repr(sys.version))
             logger.debug("os.environ = %s" % repr(os.environ))
-
-            from requirements_check import check_requirements
 
             if previous_exit_code != EXIT_CODE_OK:
                 if check_requirements(logger) == False:
