@@ -205,7 +205,7 @@ class NestedLoggingGuard(object):
         self._level = lvl
         self._message = message
         if lvl is not None and message is not None:
-            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message.strip())
+            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message)
 
     def __enter__(self):
         assert self._level is not None
