@@ -449,7 +449,8 @@ def check_requirements(logger):
 
     def find_PyGtk2():
         try:
-            subprocess.check_call([defaults.python, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+            subprocess.check_call([defaults.python, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except (OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
 
