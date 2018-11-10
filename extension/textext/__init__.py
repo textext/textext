@@ -314,8 +314,6 @@ try:
         u'xlink': XLINK_NS,
     }
 
-    from asktext import AskerFactory
-
     # Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
     from typesetter import Typesetter
 
@@ -425,6 +423,8 @@ try:
 
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
+            from asktext import AskerFactory
+
             global CONVERTERS
             with logger.debug("TexText.effect"):
 
