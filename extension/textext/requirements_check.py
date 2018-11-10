@@ -129,15 +129,17 @@ class LoggingColors(object):
         BG_WHITE = "\033[107m"
 
         levels = [
-            logging.DEBUG,
-            logging.INFO,
-            logging.WARNING,
-            logging.ERROR,
-            logging.ERROR + 1,  # SUCCESS
-            logging.ERROR + 2,  # UNKNOWN
-            logging.CRITICAL
+            VERBOSE,          # 5
+            logging.DEBUG,    # 10
+            logging.INFO,     # 20
+            logging.WARNING,  # 30
+            logging.ERROR,    # 40
+            SUCCESS,          # 41
+            UNKNOWN,          # 42
+            logging.CRITICAL  # 50
         ]
         names = [
+            "VERBOSE ",
             "DEBUG   ",
             "INFO    ",
             "WARNING ",
@@ -147,6 +149,7 @@ class LoggingColors(object):
             "CRITICAL"
         ]
         colors = [
+            COLOR_RESET,
             COLOR_RESET,
             BG_DEFAULT + FG_LIGHT_BLUE,
             BG_YELLOW + FG_WHITE,
@@ -232,11 +235,11 @@ class RequirementCheckResult(object):
         if self.is_critical:
             lvl = logging.CRITICAL
         elif self.value == True:
-            lvl = logging.ERROR + 1  # success
+            lvl = SUCCESS
         elif self.value == False:
             lvl = logging.INFO
         else:
-            lvl = logging.ERROR + 2  # unknown
+            lvl = UNKNOWN
 
         value_repr = {
             True: "Succ",
@@ -435,9 +438,9 @@ def check_requirements(logger):
         messages = []
         for path in os.environ["PATH"].split(os.path.pathsep):
             full_path_guess = os.path.join(path, executable_name)
-            logger.debug("Looking for `%s` in `%s`" % (executable_name, path))
+            logger.log(VERBOSE,"Looking for `%s` in `%s`" % (executable_name, path))
             if os.path.isfile(full_path_guess):
-                logger.debug("`%s` is found at `%s`" % (executable_name, path))
+                logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
                 messages.append("`%s` is found at `%s`" % (executable_name, path))
         if len(messages) > 0:
             return RequirementCheckResult(True, messages)
@@ -549,3 +552,8 @@ if sys.platform.startswith("win"):
     defaults = WindowsDefaults()
 else:
     defaults = LinuxDefaults()
+
+
+VERBOSE = 5
+SUCCESS = 41
+UNKNOWN = 42
