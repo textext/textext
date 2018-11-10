@@ -88,7 +88,7 @@ class WindowsDefaults(Defaults):
 
 class LoggingColors(object):
 
-    enable_colors = True
+    enable_colors = False
 
     def __call__(self):
         COLOR_RESET = "\033[0m"

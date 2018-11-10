@@ -328,9 +328,12 @@ try:
         def __init__(self):
 
             self.settings = Settings()
-            previous_exit_code = self.settings.get("previous_exit_code", int, EXIT_CODE_OK)
+            previous_exit_code = self.settings.get("previous_exit_code", int, None)
 
-            if previous_exit_code not in [EXIT_CODE_OK, EXIT_CODE_EXPECTED_ERROR]:
+            if previous_exit_code is None:
+                logging.disable(logging.NOTSET)
+                logger.debug("First run of TexText. Enforcing DEBUG mode.")
+            elif previous_exit_code == EXIT_CODE_EXPECTED_ERROR:
                 logging.disable(logging.NOTSET)
                 logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
             else:
@@ -352,7 +355,13 @@ try:
             logger.debug("sys.version = %s" % repr(sys.version))
             logger.debug("os.environ = %s" % repr(os.environ))
 
-            # todo: put here requirements check
+            from requirements_check import check_requirements
+
+            if previous_exit_code != EXIT_CODE_OK:
+                if check_requirements(logger) == False:
+                    raise TexTextFatalError("TexText requirements are not met. "
+                                            "Please follow instructions "
+                                            "https://github.com/textext/textext/wiki/Installation-instructions")
 
             inkex.Effect.__init__(self)
 
@@ -1518,7 +1527,8 @@ except TexTextInternalError as e:
     # It's TexText logic error and should be reported.
     logger.error(e.message)
     logger.error(traceback.format_exc())
-    logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
+    logger.info("TexText finished with error, please run extension again")
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
         settings = Settings()
@@ -1542,7 +1552,8 @@ except Exception as e:
     # If any propagates here it's TexText logic error and should be reported.
     logger.error(e.message)
     logger.error(traceback.format_exc())
-    logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
+    logger.info("TexText finished with error, please run extension again")
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
         settings = Settings()
