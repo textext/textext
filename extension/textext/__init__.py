@@ -347,9 +347,7 @@ try:
                                 original_scale=current_scale
                                 )
 
-
-        @staticmethod
-        def preview_convert(text, preamble_file, converter_class, image_setter, tex_command):
+        def preview_convert(self, text, preamble_file, converter_class, image_setter, tex_command):
             """
             Generates a preview PNG of the LaTeX output using the selected converter.
 
@@ -385,7 +383,7 @@ try:
                                        '--export-area-drawing',
                                        '--export-dpi=200'
                                        ]
-                            executable = "inkscape"
+                            executable = self.requirements_checker.inkscape_executable
 
                             exec_command([executable] + options)
 
