@@ -18,7 +18,7 @@ sys.path.append(os.path.join(
 
 from requirements_check import \
     set_logging_levels, \
-    check_requirements, \
+    TexTextRequirementsChecker, \
     defaults, \
     LoggingColors
 
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     logger.addHandler(ch)
 
     if not args.skip_requirements_check:
-        check_result = check_requirements(logger)
+        check_result = TexTextRequirementChecker(logger).check()
         if check_result == None:
             logger.info("Automatic requirements check is incomplete")
             logger.info("Please check requirements list manually and run:")

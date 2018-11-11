@@ -433,21 +433,26 @@ class Requirement(object):
         return Requirement(invert_impl)
 
 
-def check_requirements(logger):
-    def find_executable(executable_name):
+class TexTextRequirementsChecker(object):
+
+    def __init__(self, logger):
+        self.logger = logger
+        pass
+
+    def find_executable(self, executable_name):
         messages = []
         for path in os.environ["PATH"].split(os.path.pathsep):
             full_path_guess = os.path.join(path, executable_name)
-            logger.log(VERBOSE,"Looking for `%s` in `%s`" % (executable_name, path))
+            self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (executable_name, path))
             if os.path.isfile(full_path_guess):
-                logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
+                self.logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
                 messages.append("`%s` is found at `%s`" % (executable_name, path))
         if len(messages) > 0:
             return RequirementCheckResult(True, messages)
         messages.append("`%s` is NOT found in PATH" % (executable_name))
         return RequirementCheckResult(False, messages)
 
-    def find_PyGtk2():
+    def find_PyGtk2(self):
         try:
             subprocess.check_call([defaults.python, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -456,7 +461,7 @@ def check_requirements(logger):
 
         return RequirementCheckResult(True, ["PyGTK2 is found"])
 
-    def find_TkInter():
+    def find_TkInter(self):
         try:
             subprocess.check_call([defaults.python, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -465,7 +470,7 @@ def check_requirements(logger):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_ghostscript(version):
+    def find_ghostscript(self, version):
         try:
             p = subprocess.Popen([defaults.ghostscript, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
@@ -483,7 +488,7 @@ def check_requirements(logger):
                     "ghostscript=%s is not found (but ghostscript=%s is found)" % (version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate ghostscript version"])
 
-    def find_pstoedit(version):
+    def find_pstoedit(self, version):
         try:
             p = subprocess.Popen([defaults.pstoedit], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
@@ -501,50 +506,52 @@ def check_requirements(logger):
                     "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
-    textext_requirements = (
-            Requirement(find_executable, defaults.inkscape).prepend_message("ANY", 'Detect inkscape')
-            &
-            Requirement(find_executable, defaults.python).prepend_message("ANY", 'Detect `python2.7`')
-            &
-            (
-                    Requirement(find_executable, defaults.pdflatex) |
-                    Requirement(find_executable, defaults.lualatex) |
-                    Requirement(find_executable, defaults.xelatex)
-            ).overwrite_check_message("Detect *latex")
-            &
-            (
-                    Requirement(find_PyGtk2) |
-                    Requirement(find_TkInter)
-            ).overwrite_check_message("Detect GUI library")
-            &
-            (
-                    (
-                            ~(
-                                    Requirement(find_pstoedit, "3.70") &
-                                    Requirement(find_ghostscript, "9.22")
-                            ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
-                            &
-                            (
-                                    Requirement(find_executable, defaults.pstoedit) &
-                                    Requirement(find_executable, defaults.ghostscript)
-                            )
-                    ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
-                    |
-                    (
-                        Requirement(find_executable, defaults.pdf2svg)
-                    ).prepend_message("ANY", "Detect pdf2svg:")
-            ).overwrite_check_message("Detect pdf->svg conversion utility")
-    ).overwrite_check_message("TexText requirements")
+    def check(self):
 
-    check_result = textext_requirements.check()
+        textext_requirements = (
+                Requirement(self.find_executable, defaults.inkscape).prepend_message("ANY", 'Detect inkscape')
+                &
+                Requirement(self.find_executable, defaults.python).prepend_message("ANY", 'Detect `python2.7`')
+                &
+                (
+                        Requirement(self.find_executable, defaults.pdflatex) |
+                        Requirement(self.find_executable, defaults.lualatex) |
+                        Requirement(self.find_executable, defaults.xelatex)
+                ).overwrite_check_message("Detect *latex")
+                &
+                (
+                        Requirement(self.find_PyGtk2) |
+                        Requirement(self.find_TkInter)
+                ).overwrite_check_message("Detect GUI library")
+                &
+                (
+                        (
+                                ~(
+                                        Requirement(self.find_pstoedit, "3.70") &
+                                        Requirement(self.find_ghostscript, "9.22")
+                                ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
+                                &
+                                (
+                                        Requirement(self.find_executable, defaults.pstoedit) &
+                                        Requirement(self.find_executable, defaults.ghostscript)
+                                )
+                        ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
+                        |
+                        (
+                            Requirement(self.find_executable, defaults.pdf2svg)
+                        ).prepend_message("ANY", "Detect pdf2svg:")
+                ).overwrite_check_message("Detect pdf->svg conversion utility")
+        ).overwrite_check_message("TexText requirements")
 
-    check_result = check_result.flatten()
+        check_result = textext_requirements.check()
 
-    check_result.mark_critical_errors()
+        check_result = check_result.flatten()
 
-    check_result.print_to_logger(logger)
+        check_result.mark_critical_errors()
 
-    return check_result.value
+        check_result.print_to_logger(self.logger)
+
+        return check_result.value
 
 
 get_levels_colors = LoggingColors()

@@ -60,7 +60,7 @@ import sys
 import tempfile
 import traceback
 
-from requirements_check import check_requirements, set_logging_levels
+from requirements_check import TexTextRequirementsChecker, set_logging_levels
 
 
 class ChangeDirectory(object):
@@ -357,7 +357,7 @@ try:
             logger.debug("os.environ = %s" % repr(os.environ))
 
             if previous_exit_code != EXIT_CODE_OK:
-                if check_requirements(logger) == False:
+                if TexTextRequirementsChecker(logger).check() == False:
                     raise TexTextFatalError("TexText requirements are not met. "
                                             "Please follow instructions "
                                             "https://github.com/textext/textext/wiki/Installation-instructions")
