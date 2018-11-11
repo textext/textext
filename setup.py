@@ -303,6 +303,11 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+    fh = logging.FileHandler("setup.log")
+    fh.setLevel(ch.level)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
     settings = Settings()
 
     if args.inkscape_executable:
