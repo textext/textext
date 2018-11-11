@@ -56,7 +56,7 @@ import sys
 import traceback
 
 from requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
-from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, exec_command
+from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, exec_command
 from errors import *
 
 
@@ -128,8 +128,9 @@ try:
 
         def __init__(self):
 
-            self.settings = Settings()
-            previous_exit_code = self.settings.get("previous_exit_code", None)
+            self.config = Settings("config.json")
+            self.cache = Cache()
+            previous_exit_code = self.cache.get("previous_exit_code", None)
 
             if previous_exit_code is None:
                 logging.disable(logging.NOTSET)
@@ -158,7 +159,7 @@ try:
             logger.debug("sys.version = %s" % repr(sys.version))
             logger.debug("os.environ = %s" % repr(os.environ))
 
-            self.requirements_checker = TexTextRequirementsChecker(logger, self.settings)
+            self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
 
             if self.requirements_checker.check() == False:
                 raise TexTextFatalError("TexText requirements are not met. "
@@ -174,11 +175,11 @@ try:
             self.OptionParser.add_option(
                 "-p", "--preamble-file", action="store", type="string",
                 dest="preamble_file",
-                default=self.settings.get('preamble',  "default_packages.tex"))
+                default=self.config.get('preamble', "default_packages.tex"))
             self.OptionParser.add_option(
                 "-s", "--scale-factor", action="store", type="float",
                 dest="scale_factor",
-                default=self.settings.get('scale', 1.0))
+                default=self.config.get('scale', 1.0))
 
         # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
         # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
@@ -465,14 +466,14 @@ try:
                 with logger.debug("Saving global settings"):
                     # -- Save settings
                     if os.path.isfile(preamble_file):
-                        self.settings['preamble'] = preamble_file
+                        self.config['preamble'] = preamble_file
                     else:
-                        self.settings['preamble'] = ''
+                        self.config['preamble'] = ''
 
                     # ToDo: Do we really need this if statement?
                     if scale_factor is not None:
-                        self.settings['scale'] = user_scale_factor
-                    self.settings.save()
+                        self.config['scale'] = user_scale_factor
+                    self.config.save()
 
         def get_old(self):
             """
@@ -1136,8 +1137,8 @@ try:
     if __name__ == "__main__":
         effect = TexText()
         effect.affect()
-        effect.settings["previous_exit_code"] = EXIT_CODE_OK
-        effect.settings.save()
+        effect.cache["previous_exit_code"] = EXIT_CODE_OK
+        effect.cache.save()
 
 
 except TexTextInternalError as e:
@@ -1149,9 +1150,9 @@ except TexTextInternalError as e:
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        effect.settings["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
@@ -1159,9 +1160,9 @@ except TexTextFatalError as e:
     logger.error(e.message)
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        effect.settings["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_EXPECTED_ERROR)   # Bad setup
@@ -1174,9 +1175,9 @@ except Exception as e:
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        effect.settings["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error

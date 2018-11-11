@@ -140,11 +140,14 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
 
 
 class Settings(object):
-    def __init__(self):
+    def __init__(self, basename="config.json"):
         from requirements_check import defaults
         self.values = {}
-        self.config_path = os.path.join(defaults.inkscape_extensions_path, "textext", "config.json")
-        self.load()
+        self.config_path = os.path.join(defaults.inkscape_extensions_path, "textext", basename)
+        try:
+            self.load()
+        except ValueError as e:
+            raise TexTextFatalError("Bad config `%s`: %s. Please fix it and re-run TexText." % (self.config_path, e.message) )
 
     def load(self):
         if os.path.isfile(self.config_path):
@@ -166,6 +169,15 @@ class Settings(object):
 
     def __setitem__(self, key, value):
         self.values[key] = value
+
+
+class Cache(Settings):
+    def __init__(self, basename=".cache.json"):
+        super(Cache, self).__init__(basename)
+        try:
+            self.load()
+        except ValueError:
+            pass
 
 def exec_command(cmd, ok_return_value=0):
     """
