@@ -283,7 +283,8 @@ if __name__ == "__main__":
 
     files_to_keep = {  # old_name : new_name
         "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
+        "textext/default_packages.tex": "textext/default_packages.tex",  # new layout
+        "textext/config.json": "textext/config.json"  # new layout
     }
 
     args = parser.parse_args()
@@ -359,6 +360,10 @@ if __name__ == "__main__":
                     logger.debug("%s not found" % old_filename)
                 else:
                     logger.debug("%s found" % old_filename)
+                    if not os.path.isfile(os.path.join("extension", new_filename)):
+                        logger.info("`%s` is not found in distribution" % new_filename)
+                        found_files_to_keep[old_filename] = new_filename
+                        continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
                             open(os.path.join("extension", new_filename)) as f_new:
                         if f_old.read() != f_new.read():
