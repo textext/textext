@@ -22,6 +22,7 @@ from requirements_check import \
     defaults, \
     LoggingColors
 
+from utility import Settings
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
@@ -245,7 +246,9 @@ if __name__ == "__main__":
     logger.addHandler(ch)
 
     if not args.skip_requirements_check:
-        check_result = TexTextRequirementChecker(logger).check()
+        settings = Settings()
+        checker = TexTextRequirementsChecker(logger, settings)
+        check_result = checker.check()
         if check_result == None:
             logger.info("Automatic requirements check is incomplete")
             logger.info("Please check requirements list manually and run:")
