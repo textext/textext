@@ -84,7 +84,7 @@ file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
                                                         backupCount=2         # up to two log files
                                                         )
-file_log_channel.setLevel(logging.DEBUG)
+file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
 
 user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
@@ -134,7 +134,9 @@ try:
             if previous_exit_code is None:
                 logging.disable(logging.NOTSET)
                 logger.debug("First run of TexText. Enforcing DEBUG mode.")
-            elif previous_exit_code == EXIT_CODE_EXPECTED_ERROR:
+            elif previous_exit_code == EXIT_CODE_OK:
+                logging.disable(logging.CRITICAL)
+            elif previous_exit_code == EXIT_CODE_UNEXPECTED_ERROR:
                 logging.disable(logging.NOTSET)
                 logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
             else:
@@ -232,19 +234,16 @@ try:
                 # Pick a converter
                 converter_errors = []
 
-                usable_converter_class = None
-                for converter_class in CONVERTERS:
+                tex_to_pdf_converter = None
+                for converter_class_name, converter_class in CONVERTERS.items():
                     try:
-                        converter_class.check_available()
-                        usable_converter_class = converter_class
-                        logger.debug("%s is usable" % converter_class.__name__)
-                        break
+                        if converter_class_name in self.requirements_checker.available_pdf_to_svg_converters:
+                            tex_to_pdf_converter = converter_class(self.requirements_checker)
+                            logger.debug("%s is usable" % converter_class.__name__)
+                            break
                     except TexTextCommandError as err:
                         logger.debug("%s is not usable" % converter_class.__name__)
                         converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
-
-                if not usable_converter_class:
-                    raise TexTextFatalError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
@@ -319,14 +318,14 @@ try:
 
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
-                        return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
+                        return self.do_convert(_text, _preamble, _scale, tex_to_pdf_converter, old_svg_ele, alignment,
                                                tex_command=self.requirements_checker.available_tex_to_pdf_converters[tex_cmd],
                                                original_scale=current_scale)
 
                     def preview_callback(_text, _preamble, _preview_callback, _tex_command):
                         return self.preview_convert(_text,
                                                     _preamble,
-                                                    usable_converter_class,
+                                                    tex_to_pdf_converter,
                                                     _preview_callback,
                                                     self.requirements_checker.available_tex_to_pdf_converters[
                                                         _tex_command])
@@ -340,20 +339,20 @@ try:
                     self.do_convert(self.options.text,
                                     self.options.preamble_file,
                                     self.options.scale_factor,
-                                usable_converter_class,
-                                old_svg_ele,
-                                self.DEFAULT_ALIGNMENT,
-                                self.DEFAULT_TEXCMD,
-                                original_scale=current_scale
-                                )
+                                    tex_to_pdf_converter,
+                                    old_svg_ele,
+                                    self.DEFAULT_ALIGNMENT,
+                                    self.DEFAULT_TEXCMD,
+                                    original_scale=current_scale
+                                    )
 
-        def preview_convert(self, text, preamble_file, converter_class, image_setter, tex_command):
+        def preview_convert(self, text, preamble_file, converter, image_setter, tex_command):
             """
             Generates a preview PNG of the LaTeX output using the selected converter.
 
             :param text:
             :param preamble_file:
-            :param converter_class:
+            :param converter:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
@@ -368,8 +367,6 @@ try:
 
                 if isinstance(text, unicode):
                     text = text.encode('utf-8')
-
-                converter = converter_class()
 
                 with ChangeToTemporaryDirectory():
                     with logger.debug("Converting tex to pdf"):
@@ -392,7 +389,7 @@ try:
                             raise TexTextNonFatalError(
                                 "Could not convert SVG to PNG. \nDetailed error message:\n%s" % error.message)
 
-        def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
+        def do_convert(self, text, preamble_file, user_scale_factor, converter, old_svg_ele, alignment, tex_command,
                        original_scale=None):
             """
             Does the conversion using the selected converter.
@@ -423,7 +420,6 @@ try:
                 scale_factor = user_scale_factor * self.unit_to_uu("1pt")
 
                 # Convert
-                converter = converter_class()
                 with logger.debug("Converting tex to svg"):
                     new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
 
@@ -545,8 +541,9 @@ try:
         LATEX_OPTIONS = ['-interaction=nonstopmode',
                          '-halt-on-error']
 
-        def __init__(self):
+        def __init__(self, checker):
             self.tmp_base = 'tmp'
+            self.checker = checker # type: requirements_check.TexTextRequirementsChecker
 
         def convert(self, latex_text, preamble_file, scale_factor, tex_command):
             """
@@ -560,13 +557,6 @@ try:
             :return: XML DOM node
             """
             raise NotImplementedError
-
-        @classmethod
-        def check_available(cls):
-            """
-            :Returns: Check if converter is available, raise RuntimeError if not
-            """
-            pass
 
         # --- Internal
         def tmp(self, suffix):
@@ -674,9 +664,11 @@ try:
         """
         Convert PDF -> SVG using pstoedit's plot-svg backend
         """
+        def __init__(self, checker=None):
+            super(PstoeditPlotSvg, self).__init__(checker)
 
-        @staticmethod
-        def get_pdf_converter_name():
+        @classmethod
+        def get_pdf_converter_name(cls):
             return "pstoedit"
 
         def pdf_to_svg(self):
@@ -692,8 +684,11 @@ try:
                 # Exec pstoedit: pdf -> svg
                 result = ""
                 try:
-                    result = exec_command(['pstoedit', '-f', 'plot-svg',
-                                           self.tmp('pdf'), self.tmp('svg')]
+                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
+                                           '-f', 'plot-svg',
+                                           self.tmp('pdf'),
+                                           self.tmp('svg')
+                                           ]
                                           + pstoeditOpts)
                 except TexTextCommandFailed as excpt:
                     # Linux runs into this in case of DELAYBIND error
@@ -714,7 +709,6 @@ try:
 
                 if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
                     raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
-
 
         def svg_to_group(self):
             """
@@ -746,24 +740,17 @@ try:
             for c in node:
                 self._fix_xml_namespace(c)
 
-        @classmethod
-        def check_available(cls):
-            """Check whether pstoedit has plot-svg"""
-            with logger.debug("Checking pstoedit"):
-                out = exec_command(['pstoedit', '-help'], ok_return_value=None)
-                if 'version 3.44' in out and 'Ubuntu' in out:
-                    raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
-                if 'plot-svg' not in out:
-                    raise TexTextCommandFailed("Pstoedit not compiled with plot-svg support")
-
 
     class Pdf2SvgPlotSvg(PdfConverterBase):
         """
         Convert PDF -> SVG using pdf2svg
         """
 
-        @staticmethod
-        def get_pdf_converter_name():
+        def __init__(self, checker):
+            super(Pdf2SvgPlotSvg, self).__init__(checker)
+
+        @classmethod
+        def get_pdf_converter_name(self):
             return "pdf2svg"
 
         def pdf_to_svg(self):
@@ -773,7 +760,8 @@ try:
             with logger.debug("Converting .pdf to .svg"):
                 try:
                     # Exec pdf2cvg infile.pdf outfile.svg
-                    result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
+                                           self.tmp('pdf'), self.tmp('svg')])
                 except TexTextNonFatalError as e:
                     raise TexTextNonFatalError("Command pdf2svg failed: %s" % e.message)
 
@@ -841,15 +829,6 @@ try:
                     return Pdf2SvgSvgElement(new_group)
                 except:  # todo: <-- be more precise here
                     raise TexTextNonFatalError("Can't find a group in resulting svg")
-
-
-        @classmethod
-        def check_available(cls):
-            """
-            Check if pdf2svg is available
-            """
-            logger.debug("Checking pdf2svg")
-            exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
     class SvgElement(object):
@@ -1147,7 +1126,8 @@ try:
             return transform_as_list
 
 
-    CONVERTERS = [Pdf2SvgPlotSvg, PstoeditPlotSvg]
+    CONVERTERS = {PstoeditPlotSvg.get_pdf_converter_name(): PstoeditPlotSvg,
+                  Pdf2SvgPlotSvg.get_pdf_converter_name(): Pdf2SvgPlotSvg}
 
     #------------------------------------------------------------------------------
     # Entry point
