@@ -129,7 +129,7 @@ try:
         def __init__(self):
 
             self.settings = Settings()
-            previous_exit_code = self.settings.get("previous_exit_code", int, None)
+            previous_exit_code = self.settings.get("previous_exit_code", None)
 
             if previous_exit_code is None:
                 logging.disable(logging.NOTSET)
@@ -156,11 +156,12 @@ try:
             logger.debug("sys.version = %s" % repr(sys.version))
             logger.debug("os.environ = %s" % repr(os.environ))
 
-            if previous_exit_code != EXIT_CODE_OK:
-                if TexTextRequirementsChecker(logger).check() == False:
-                    raise TexTextFatalError("TexText requirements are not met. "
-                                            "Please follow instructions "
-                                            "https://github.com/textext/textext/wiki/Installation-instructions")
+            self.requirements_checker = TexTextRequirementsChecker(logger, self.settings)
+
+            if self.requirements_checker.check() == False:
+                raise TexTextFatalError("TexText requirements are not met. "
+                                        "Please follow instructions "
+                                        "https://github.com/textext/textext/wiki/Installation-instructions")
 
             inkex.Effect.__init__(self)
 
@@ -171,11 +172,11 @@ try:
             self.OptionParser.add_option(
                 "-p", "--preamble-file", action="store", type="string",
                 dest="preamble_file",
-                default=self.settings.get('preamble', str, "default_packages.tex"))
+                default=self.settings.get('preamble',  "default_packages.tex"))
             self.OptionParser.add_option(
                 "-s", "--scale-factor", action="store", type="float",
                 dest="scale_factor",
-                default=self.settings.get('scale', float, 1.0))
+                default=self.settings.get('scale', 1.0))
 
         # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
         # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
@@ -275,7 +276,11 @@ try:
                 else:
                     logger.debug("Using default node alignment `%s`" %alignment)
 
-                current_tex_command = TexText.DEFAULT_TEXCMD
+                if TexText.DEFAULT_TEXCMD in self.requirements_checker.available_tex_to_pdf_converters.keys():
+                    current_tex_command = TexText.DEFAULT_TEXCMD
+                else:
+                    current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
+
                 if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
                     current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
                 else:
@@ -308,20 +313,26 @@ try:
                         preamble_file = ""
 
                     asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                             current_alignment=alignment, current_texcmd=current_tex_command)
+                                             current_alignment=alignment, current_texcmd=current_tex_command,
+                                                 tex_commands=sorted(list(self.requirements_checker.available_tex_to_pdf_converters.keys()))
+                                                 )
 
-                    def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
+                    def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
                         return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
-                                               tex_cmd, original_scale=current_scale)
+                                               tex_command=self.requirements_checker.available_tex_to_pdf_converters[tex_cmd],
+                                               original_scale=current_scale)
+
+                    def preview_callback(_text, _preamble, _preview_callback, _tex_command):
+                        return self.preview_convert(_text,
+                                                    _preamble,
+                                                    usable_converter_class,
+                                                    _preview_callback,
+                                                    self.requirements_checker.available_tex_to_pdf_converters[
+                                                        _tex_command])
 
                     with logger.debug("Run TexText GUI"):
-                        asker.ask(callback,
-                                  lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
-                                                                                                             _preamble,
-                                                                                                             usable_converter_class,
-                                                                                                             _preview_callback,
-                                                                                                             _tex_command))
+                        asker.ask(save_callback, preview_callback)
 
 
                 else:
@@ -460,13 +471,13 @@ try:
                 with logger.debug("Saving global settings"):
                     # -- Save settings
                     if os.path.isfile(preamble_file):
-                        self.settings.set('preamble', preamble_file)
+                        self.settings['preamble'] = preamble_file
                     else:
-                        self.settings.set('preamble', '')
+                        self.settings['preamble'] = ''
 
                     # ToDo: Do we really need this if statement?
                     if scale_factor is not None:
-                        self.settings.set('scale', user_scale_factor)
+                        self.settings['scale'] = user_scale_factor
                     self.settings.save()
 
         def get_old(self):
@@ -1147,7 +1158,7 @@ try:
     if __name__ == "__main__":
         effect = TexText()
         effect.affect()
-        effect.settings.set("previous_exit_code", EXIT_CODE_OK)
+        effect.settings["previous_exit_code"] = EXIT_CODE_OK
         effect.settings.save()
 
 
@@ -1161,7 +1172,7 @@ except TexTextInternalError as e:
     user_log_channel.show_messages()
     try:
         settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        effect.settings["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
         settings.save()
     except:
         pass
@@ -1171,7 +1182,7 @@ except TexTextFatalError as e:
     user_log_channel.show_messages()
     try:
         settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_EXPECTED_ERROR)
+        effect.settings["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
         settings.save()
     except:
         pass
@@ -1186,7 +1197,7 @@ except Exception as e:
     user_log_channel.show_messages()
     try:
         settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        effect.settings["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
         settings.save()
     except:
         pass

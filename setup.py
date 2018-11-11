@@ -192,8 +192,66 @@ if __name__ == "__main__":
     parser.add_argument(
         "--inkscape-extensions-path",
         default=defaults.inkscape_extensions_path,
+        type=str,
         help="Path to inkscape extensions directory"
     )
+
+    parser.add_argument(
+        "--inkscape-executable",
+        default=None,
+        type=str,
+        help="Full path to inkscape executable"
+    )
+
+    parser.add_argument(
+        "--python27-executable",
+        default=None,
+        type=str,
+        help="Full path to python2.7 executable"
+    )
+
+    parser.add_argument(
+        "--pdflatex-executable",
+        default=None,
+        type=str,
+        help="Full path to pdflatex executable"
+    )
+
+    parser.add_argument(
+        "--lualatex-executable",
+        default=None,
+        type=str,
+        help="Full path to lualatex executable"
+    )
+
+    parser.add_argument(
+        "--xelatex-executable",
+        default=None,
+        type=str,
+        help="Full path to xelatex executable"
+    )
+
+    parser.add_argument(
+        "--pstoedit-executable",
+        default=None,
+        type=str,
+        help="Full path to pstoedit executable"
+    )
+
+    parser.add_argument(
+        "--ghostscript-executable",
+        default=None,
+        type=str,
+        help="Full path to ghostscript executable"
+    )
+
+    parser.add_argument(
+        "--pdf2svg-executable",
+        default=None,
+        type=str,
+        help="Full path to pdf2svg executable"
+    )
+
 
     parser.add_argument(
         "--skip-requirements-check",
@@ -245,8 +303,34 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+    settings = Settings()
+
+    if args.inkscape_executable:
+        settings["inkscape-executable"] = args.inkscape_executable
+
+    if args.python27_executable:
+        settings["python27-executable"] = args.python27_executable
+
+    if args.pdflatex_executable:
+        settings["pdflatex-executable"] = args.pdflatex_executable
+
+    if args.lualatex_executable:
+        settings["lualatex-executable"] = args.lualatex_executable
+
+    if args.xelatex_executable:
+        settings["xelatex-executable"] = args.xelatex_executable
+
+    if args.pstoedit_executable:
+        settings["pstoedit-executable"] = args.pstoedit_executable
+
+    if args.ghostscript_executable:
+        settings["ghostscript-executable"] = args.ghostscript_executable
+
+    if args.pdf2svg_executable:
+        settings["pdf2svg_executable"] = args.pdf2svg_executable
+
     if not args.skip_requirements_check:
-        settings = Settings()
+
         checker = TexTextRequirementsChecker(logger, settings)
         check_result = checker.check()
         if check_result == None:
@@ -304,5 +388,6 @@ if __name__ == "__main__":
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
+        settings.save()
 
     exit(0)

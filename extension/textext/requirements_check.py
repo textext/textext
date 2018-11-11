@@ -323,6 +323,8 @@ class Requirement(object):
     def check(self):
         result = self.criteria()
         # print(self,self._overwrite_messages)
+        if not isinstance(result.messages,list):
+            result.messages = [result.messages]
         if self._overwrite_messages:
             result.messages = self._overwrite_messages
         result.messages = self._prepended_messages["ANY"] + result.messages
@@ -513,7 +515,7 @@ class TexTextRequirementsChecker(object):
         # try value from config
         executable_path = self.config.get(executable_name+"-executable", None)
         if self._check_executable(executable_path):
-            self.logger.debug("Using `%s-executable` from config = `%s`" % (executable_name, executable_path))
+            self.logger.info("Using `%s-executable` = `%s`" % (executable_name, executable_path))
             return RequirementCheckResult(True, "%s is found at `%s`" % (executable_name, executable_path), path=executable_path)
         # look for executable in path
         return self._find_executable_in_path(executable_name)

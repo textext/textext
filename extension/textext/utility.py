@@ -1,5 +1,6 @@
 
 import contextlib
+import json
 import logging.handlers
 import os
 import platform
@@ -140,84 +141,31 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
 
 class Settings(object):
     def __init__(self):
+        from requirements_check import defaults
         self.values = {}
-
-        if PLATFORM == WINDOWS:
-            self.keyname = r"Software\TexText\TexText"
-        else:
-            self.filename = os.path.expanduser("~/.inkscape/textextrc")
-
+        self.config_path = os.path.join(defaults.inkscape_extensions_path, "textext", "config.json")
         self.load()
 
     def load(self):
-        if PLATFORM == WINDOWS:
-            import _winreg
-
-            try:
-                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname)
-            except WindowsError:
-                return
-            try:
-                self.values = {}
-                for j in range(1000):
-                    try:
-                        name, data, dtype = _winreg.EnumValue(key, j)
-                    except EnvironmentError:
-                        break
-                    self.values[name] = str(data)
-            finally:
-                key.Close()
-        else:
-            try:
-                f = open(self.filename, 'r')
-            except (IOError, OSError):
-                return
-            try:
-                self.values = {}
-                for line in f.read().split("\n"):
-                    if '=' not in line:
-                        continue
-                    k, v = line.split("=", 1)
-                    self.values[k.strip()] = v.strip()
-            finally:
-                f.close()
+        if os.path.isfile(self.config_path):
+            with open(self.config_path) as f:
+                self.values = json.load(f)
 
     def save(self):
-        if PLATFORM == WINDOWS:
-            import _winreg
+        with open(self.config_path, "wb") as f:
+            json.dump(self.values, f, indent=2)
 
-            try:
-                key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER,
-                                      self.keyname,
-                                      0,
-                                      _winreg.KEY_SET_VALUE | _winreg.KEY_WRITE)
-            except WindowsError:
-                key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, self.keyname)
-            try:
-                for k, v in self.values.iteritems():
-                    _winreg.SetValueEx(key, str(k), 0, _winreg.REG_SZ, str(v))
-            finally:
-                key.Close()
-        else:
-            d = os.path.dirname(self.filename)
-            if not os.path.isdir(d):
-                os.makedirs(d)
-
-            f = open(self.filename, 'w')
-            try:
-                data = '\n'.join(["%s=%s" % (k, v) for k, v in self.values.iteritems()])
-                f.write(data)
-            finally:
-                f.close()
-
-    def get(self, key, typecast, default=None):
-        try:
-            return typecast(self.values[key])
-        except (KeyError, ValueError, TypeError):
+    def get(self, key, default=None):
+        result = self.values.get(key, default)
+        if result is None:
             return default
+        return result
 
-    def set(self, key, value):
-        self.values[key] = str(value)
+    def __getitem__(self, key):
+        return self.values.get(key)
+
+    def __setitem__(self, key, value):
+        self.values[key] = value
 
 def exec_command(cmd, ok_return_value=0):
     """
