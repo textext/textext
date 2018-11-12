@@ -558,7 +558,7 @@ class TexTextRequirementsChecker(object):
             Requirement(self.find_executable, self.inkscape_executable_name)
             .prepend_message("ANY", 'Detect inkscape')
             .on_success(lambda result: set_inkscape(result["path"]))
-            & Requirement(self.find_executable, self.inkscape_executable_name)
+            & Requirement(self.find_executable, self.python27_executable_name)
             .prepend_message("ANY", 'Detect `python2.7`')
             & (
                     Requirement(self.find_executable, self.pdflatex_executable_name)
