@@ -584,7 +584,7 @@ class TexTextRequirementsChecker(object):
                             & Requirement(self.find_ghostscript)
                     )
                 ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
-                .on_failure(lambda result: self.available_pdf_to_svg_converters.pop("pstoedit"))
+                .on_failure(lambda result: "pstoedit" in self.available_pdf_to_svg_converters and self.available_pdf_to_svg_converters.pop("pstoedit"))
                 | (
                     Requirement(self.find_executable, self.pdf2svg_executable_name)
                 ).prepend_message("ANY", "Detect pdf2svg:")
