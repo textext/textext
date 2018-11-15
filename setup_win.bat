@@ -1,10 +1,10 @@
 @echo off
 rem setup_win.bat
 rem Wrapper for setup.py on Windows systems using the Python installation
-rem shipped with Inkscape
+rem shipped with Inkscape. You can pass all arguments to setup.py
+rem using the syntax setup_win.bat /p:"arg list".
 rem
 rem ToDo:
-rem -Pass command line args for setup.py
 rem -Refer to different python location in Inkscape < 0.92.2
 
 setlocal EnableExtensions
@@ -13,32 +13,42 @@ set "INKSCAPE_DIR="
 set "INKSCAPE_CMD="
 set "PYTHON_ARGS="
 
-
-set arg=%~1
-if defined arg (
-    rem What a syntax...
-    for /f "usebackq delims=: tokens=1*" %%A in ('type %arg%') do (
-        if /I "%%B"=="" (
-            echo No path specified
-            goto PRINT_USAGE
-        )
-        if exist "%%~B" (
-            if not exist "%%~B\inkscape.exe" (
-                echo inkscape.exe not found in directory %%~B
-                goto FINAL
+rem Iterate over command line arguments (if there are any). If nothing useful
+rem is found in the passed arguments fall through to usage info and quit.
+set args=%*
+if defined args (
+    for %%X in (%args%) do (
+        for /f "usebackq delims=: tokens=1*" %%A in ('%%X') do (
+            if "%%A"=="/d" (
+                if /I "%%B"=="" (
+                    echo No path specified
+                    goto PRINT_USAGE
+                )
+                if exist "%%~B" (
+                    if not exist "%%~B\inkscape.exe" (
+                        echo inkscape.exe not found in directory %%B
+                        goto FINAL
+                    ) else (
+                        echo inkscape.exe found in specified directory %%B
+                        set INKSCAPE_DIR=%%~B
+                    )
+                ) else (
+                    echo The directory %%B does not exist!
+                    goto FINAL
+                )
             ) else (
-                echo inkscape.exe found in specified directory %2
-                set INKSCAPE_DIR=%%~B
-                goto END_PARSE_ARGS
+                if "%%A"=="/p" (
+                    set PYTHON_ARGS=%%~B
+                )
             )
-        ) else (
-            echo The directory %%~B does not exist!
-            goto FINAL
         )
     )
 ) else (
     goto END_PARSE_ARGS
 )
+
+if defined INKSCAPE_DIR goto INKSCAPE_FOUND
+if defined PYTHON_ARGS goto END_PARSE_ARGS
 
 :PRINT_USAGE
 echo.
@@ -50,6 +60,7 @@ echo identified in the Inkscape installation. If you have a system wide
 echo Python installation you can directly call setup.py using this installation.
 echo.
 echo Usage:
+echo ======
 echo setup_win
 echo Installs TexText with the default options and using the Python installation
 echo shipped with Inkscape. Installation fails if no Inkscape is detected by the
@@ -69,13 +80,11 @@ echo Inkscape and directly passes the parameter string "--option1 --option2"
 echo to setup.py. You can pass any parameters understood by setup.py
 echo.
 echo You can combine the last two calling syntaxes, of course.
+echo.
 goto FINAL
 
 
 :END_PARSE_ARGS
-if defined INKSCAPE_DIR (
-    goto INKSCAPE_FOUND
-)
 
 rem Inkscape installation path is usually found in the registry
 rem "Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
@@ -112,8 +121,9 @@ if defined INKSCAPE_DIR (
 goto FAILED
 
 :INKSCAPE_FOUND
-echo Trying to run %INKSCAPE_DIR%\python setup.py ...
-"%INKSCAPE_DIR%\python" setup.py
+set PYTHON_COMMAND="%INKSCAPE_DIR%\python" setup.py %PYTHON_ARGS%
+echo Trying to run %PYTHON_COMMAND%...
+%PYTHON_COMMAND%
 goto FINAL
 
 :FAILED
