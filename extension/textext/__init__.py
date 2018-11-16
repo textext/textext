@@ -276,8 +276,10 @@ try:
                 else:
                     logger.debug("Using default node alignment `%s`" %alignment)
 
-                if TexText.DEFAULT_TEXCMD in self.requirements_checker.available_tex_to_pdf_converters.keys():
-                    current_tex_command = TexText.DEFAULT_TEXCMD
+                preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
+
+                if preferred_tex_cmd in self.requirements_checker.available_tex_to_pdf_converters.keys():
+                    current_tex_command = preferred_tex_cmd
                 else:
                     current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
 
@@ -320,7 +322,7 @@ try:
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
                         return self.do_convert(_text, _preamble, _scale, tex_to_pdf_converter, old_svg_ele, alignment,
-                                               tex_command=self.requirements_checker.available_tex_to_pdf_converters[tex_cmd],
+                                               tex_command=tex_cmd,
                                                original_scale=current_scale)
 
                     def preview_callback(_text, _preamble, _preview_callback, _tex_command):
@@ -328,8 +330,7 @@ try:
                                                     _preamble,
                                                     tex_to_pdf_converter,
                                                     _preview_callback,
-                                                    self.requirements_checker.available_tex_to_pdf_converters[
-                                                        _tex_command])
+                                                    _tex_command)
 
                     with logger.debug("Run TexText GUI"):
                         asker.ask(save_callback, preview_callback)
@@ -357,6 +358,9 @@ try:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
+
+            tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+
             with logger.debug("TexText.preview"):
                 with logger.debug("args:"):
                     for k,v in locals().items():
@@ -371,7 +375,7 @@ try:
 
                 with ChangeToTemporaryDirectory():
                     with logger.debug("Converting tex to pdf"):
-                        converter.tex_to_pdf(tex_command, text, preamble_file)
+                        converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
 
                         # convert resulting svg to png using Inkscape
@@ -404,6 +408,8 @@ try:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
 
+            tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+
             with logger.debug("TexText.do_convert"):
                 with logger.debug("args:"):
                     for k,v in locals().items():
@@ -422,7 +428,7 @@ try:
 
                 # Convert
                 with logger.debug("Converting tex to svg"):
-                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
+                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_executable)
 
                 # -- Store textext attributes
                 new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
@@ -473,6 +479,9 @@ try:
                     # ToDo: Do we really need this if statement?
                     if scale_factor is not None:
                         self.config['scale'] = user_scale_factor
+
+                    self.config["previous_tex_command"] = tex_command
+
                     self.config.save()
 
         def get_old(self):
