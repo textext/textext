@@ -16,17 +16,20 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+# import textext
 
 # -- Project information -----------------------------------------------------
 
-project = 'textext'
+project = 'TexText'
 copyright = '2018, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 author = 'Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 
 # The short X.Y version
 version = '0.9'
+# version = '.'.join(textext.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags
 release = '0.9.0-dev'
+# release = textext.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -41,6 +44,7 @@ release = '0.9.0-dev'
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.githubpages',
+    'sphinx.ext.extlinks',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,6 +65,8 @@ master_doc = 'index'
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
 language = None
+
+nitpicky = True
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -130,7 +136,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'textext.tex', 'textext Documentation',
+    (master_doc, 'TexText.tex', 'TexText Documentation',
      'Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev', 'manual'),
 ]
 
@@ -140,7 +146,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'textext', 'textext Documentation',
+    (master_doc, 'TexText', 'TexText Documentation',
      [author], 1)
 ]
 
@@ -151,8 +157,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'textext', 'textext Documentation',
-     author, 'textext', 'One line description of project.',
+    (master_doc, 'TexText', 'TexText Documentation',
+     author, 'TexText', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -176,3 +182,12 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+extlinks = {
+    'issue_num': ('https://github.com/textext/textext/issues/%s', ' #'),
+    'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
+    'textext_download_zip':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
+    'textext_download_tgz':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.tgz'.format(**locals()), 'v{release}-'.format(**locals())),
+    'textext_download_exe':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),
+    'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'v{release}'.format(**locals())),
+}

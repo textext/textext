@@ -7,14 +7,20 @@ Welcome to textext's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :caption: Installation
+    :maxdepth: 2
+    :glob:
+
+    install/*
+
+.. toctree::
+    :caption: Usage
+    :maxdepth: 3
+    :glob:
+
+    usage.rst
 
 
 
-Indices and tables
-==================
+.. include:: changelog.rst
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
