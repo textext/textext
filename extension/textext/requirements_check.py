@@ -629,7 +629,9 @@ class TexTextRequirementsChecker(object):
                     & (
                             Requirement(self.find_pstoedit)
                             .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pstoedit": result["path"]}))
+                            .append_message("ERROR", help_message_with_url("pstoedit","pstoedit"))
                             & Requirement(self.find_ghostscript)
+                            .append_message("ERROR", help_message_with_url("pstoedit","ghostscript"))
                     )
                 ).overwrite_check_message("Detect compatible pstoedit+ghostscript versions")
                 .append_message("ERROR", help_message_with_url("pstoedit"))
