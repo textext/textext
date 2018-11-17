@@ -187,6 +187,11 @@ def remove_previous_installation(extension_dir):
 
 if __name__ == "__main__":
 
+    EXIT_SUCCESS = 0
+    EXIT_REQUIREMENT_CHECK_UNKNOWN = 64
+    EXIT_REQUIREMENT_CHECK_FAILED = 65
+    EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE = 2
+
     parser = argparse.ArgumentParser(description='Install TexText')
 
     parser.add_argument(
@@ -311,45 +316,40 @@ if __name__ == "__main__":
 
     settings = Settings()
 
-    if args.inkscape_executable:
-        settings["inkscape-executable"] = args.inkscape_executable
+    checker = TexTextRequirementsChecker(logger, settings)
 
-    if args.python27_executable:
-        settings["python27-executable"] = args.python27_executable
+    for executable_name in [
+                                "ghostscript",
+                                "inkscape",
+                                "lualatex",
+                                "pdf2svg",
+                                "pdflatex",
+                                "pstoedit",
+                                "python27",
+                                "xelatex",
+                            ]:
+        executable_path = getattr(args, "%s_executable" % executable_name)
+        if executable_path is not None:
+            if not checker.check_executable(executable_path):
+                logger.error("Bad `%s` executable provided: `%s`. Abort installation." % (executable_name, executable_path))
+                exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
 
-    if args.pdflatex_executable:
-        settings["pdflatex-executable"] = args.pdflatex_executable
-
-    if args.lualatex_executable:
-        settings["lualatex-executable"] = args.lualatex_executable
-
-    if args.xelatex_executable:
-        settings["xelatex-executable"] = args.xelatex_executable
-
-    if args.pstoedit_executable:
-        settings["pstoedit-executable"] = args.pstoedit_executable
-
-    if args.ghostscript_executable:
-        settings["ghostscript-executable"] = args.ghostscript_executable
-
-    if args.pdf2svg_executable:
-        settings["pdf2svg_executable"] = args.pdf2svg_executable
+            settings["%s-executable" % executable_name] = executable_path
 
     if not args.skip_requirements_check:
 
-        checker = TexTextRequirementsChecker(logger, settings)
         check_result = checker.check()
         if check_result == None:
             logger.info("Automatic requirements check is incomplete")
             logger.info("Please check requirements list manually and run:")
             logger.info(" ".join(sys.argv + ["--skip-requirements-check"]))
-            exit(64)
+            exit(EXIT_REQUIREMENT_CHECK_UNKNOWN)
 
         if check_result == False:
             logger.info("Automatic requirements check found issue")
             logger.info("Follow instruction above and run install script again")
             logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
-            exit(65)
+            exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
                 else:
                     logger.debug("%s found" % old_filename)
                     if not os.path.isfile(os.path.join("extension", new_filename)):
-                        logger.info("`%s` is not found in distribution" % new_filename)
+                        logger.info("`%s` is not found in distribution, keep old file" % new_filename)
                         found_files_to_keep[old_filename] = new_filename
                         continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
@@ -372,14 +372,17 @@ if __name__ == "__main__":
                         else:
                             logger.debug("Content of `%s` is identical to distribution" % old_filename)
 
-            files_to_keep = found_files_to_keep
+            files_to_keep = {}
 
-            if len(files_to_keep) > 0:
-                file_s = "file" if len(files_to_keep) == 1 else "files"
-                for old_filename in files_to_keep.keys():
-                    logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
-                args.keep_previous_installation_files = query_yes_no(
-                    "Keep above %s from previous installation?" % file_s)
+            if len(found_files_to_keep) > 0:
+                file_s = "file" if len(found_files_to_keep) == 1 else "files"
+                for old_filename, new_filename in found_files_to_keep.iteritems():
+                    if os.path.isfile(os.path.join("extension", new_filename)):
+                        logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
+                        if query_yes_no("Keep `%s` from previous installation?" % old_filename):
+                            files_to_keep[old_filename] = new_filename
+
+                args.keep_previous_installation_files = True
             else:
                 args.keep_previous_installation_files = False
 
@@ -400,4 +403,4 @@ if __name__ == "__main__":
             )
         settings.save()
 
-    exit(0)
+    exit(EXIT_SUCCESS)

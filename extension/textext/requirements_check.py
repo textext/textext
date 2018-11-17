@@ -514,9 +514,13 @@ class TexTextRequirementsChecker(object):
     def find_executable(self, executable_name):
         # try value from config
         executable_path = self.config.get(executable_name+"-executable", None)
-        if self._check_executable(executable_path):
-            self.logger.info("Using `%s-executable` = `%s`" % (executable_name, executable_path))
-            return RequirementCheckResult(True, "%s is found at `%s`" % (executable_name, executable_path), path=executable_path)
+        if executable_path is not None:
+            if self.check_executable(executable_path):
+                self.logger.info("Using `%s-executable` = `%s`" % (executable_name, executable_path))
+                return RequirementCheckResult(True, "%s is found at `%s`" % (executable_name, executable_path), path=executable_path)
+            else:
+                self.logger.warning("Bad `%s` executable: `%s`" % (executable_name,executable_path))
+                self.logger.warning("Fall back to automatic detection of `%s`" % executable_name)
         # look for executable in path
         return self._find_executable_in_path(executable_name)
 
@@ -527,7 +531,7 @@ class TexTextRequirementsChecker(object):
         for path in os.environ["PATH"].split(os.path.pathsep):
             full_path_guess = os.path.join(path, executable_name)
             self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (executable_name, path))
-            if self._check_executable(full_path_guess):
+            if self.check_executable(full_path_guess):
                 self.logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
                 messages.append("`%s` is found at `%s`" % (executable_name, path))
                 if first_path is None:
@@ -537,7 +541,7 @@ class TexTextRequirementsChecker(object):
         messages.append("`%s` is NOT found in PATH" % (executable_name))
         return RequirementCheckResult(False, messages)
 
-    def _check_executable(self, filename):
+    def check_executable(self, filename):
         return filename is not None and os.path.isfile(filename) and os.access(filename, os.X_OK)
 
     def check(self):
