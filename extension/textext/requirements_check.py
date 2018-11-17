@@ -17,7 +17,7 @@ class Defaults(object):
 
 
 class LinuxDefaults(Defaults):
-
+    os_name = "linux"
     console_colors = "always"
 
     @property
@@ -26,7 +26,7 @@ class LinuxDefaults(Defaults):
 
 
 class WindowsDefaults(Defaults):
-
+    os_name = "windows"
     console_colors = "never"
 
     @property
@@ -37,44 +37,46 @@ class WindowsDefaults(Defaults):
 class LoggingColors(object):
     enable_colors = False
 
+    COLOR_RESET = "\033[0m"
+    FG_DEFAULT = "\033[39m"
+    FG_BLACK = "\033[30m"
+    FG_RED = "\033[31m"
+    FG_GREEN = "\033[32m"
+    FG_YELLOW = "\033[33m"
+    FG_BLUE = "\033[34m"
+    FG_MAGENTA = "\033[35m"
+    FG_CYAN = "\033[36m"
+    FG_LIGHT_GRAY = "\033[37m"
+    FG_DARK_GRAY = "\033[90m"
+    FG_LIGHT_RED = "\033[91m"
+    FG_LIGHT_GREEN = "\033[92m"
+    FG_LIGHT_YELLOW = "\033[93m"
+    FG_LIGHT_BLUE = "\033[94m"
+    FG_LIGHT_MAGENTA = "\033[95m"
+    FG_LIGHT_CYAN = "\033[96m"
+    FG_WHITE = "\033[97m"
+
+    BG_DEFAULT = "\033[49m"
+    BG_BLACK = "\033[40m"
+    BG_RED = "\033[41m"
+    BG_GREEN = "\033[42m"
+    BG_YELLOW = "\033[43m"
+    BG_BLUE = "\033[44m"
+    BG_MAGENTA = "\033[45m"
+    BG_CYAN = "\033[46m"
+    BG_LIGHT_GRAY = "\033[47m"
+    BG_DARK_GRAY = "\033[100m"
+    BG_LIGHT_RED = "\033[101m"
+    BG_LIGHT_GREEN = "\033[102m"
+    BG_LIGHT_YELLOW = "\033[103m"
+    BG_LIGHT_BLUE = "\033[104m"
+    BG_LIGHT_MAGENTA = "\033[105m"
+    BG_LIGHT_CYAN = "\033[106m"
+    BG_WHITE = "\033[107m"
+
+    UNDERLINED = "\033[4m"
+
     def __call__(self):
-        COLOR_RESET = "\033[0m"
-        FG_DEFAULT = "\033[39m"
-        FG_BLACK = "\033[30m"
-        FG_RED = "\033[31m"
-        FG_GREEN = "\033[32m"
-        FG_YELLOW = "\033[33m"
-        FG_BLUE = "\033[34m"
-        FG_MAGENTA = "\033[35m"
-        FG_CYAN = "\033[36m"
-        FG_LIGHT_GRAY = "\033[37m"
-        FG_DARK_GRAY = "\033[90m"
-        FG_LIGHT_RED = "\033[91m"
-        FG_LIGHT_GREEN = "\033[92m"
-        FG_LIGHT_YELLOW = "\033[93m"
-        FG_LIGHT_BLUE = "\033[94m"
-        FG_LIGHT_MAGENTA = "\033[95m"
-        FG_LIGHT_CYAN = "\033[96m"
-        FG_WHITE = "\033[97m"
-
-        BG_DEFAULT = "\033[49m"
-        BG_BLACK = "\033[40m"
-        BG_RED = "\033[41m"
-        BG_GREEN = "\033[42m"
-        BG_YELLOW = "\033[43m"
-        BG_BLUE = "\033[44m"
-        BG_MAGENTA = "\033[45m"
-        BG_CYAN = "\033[46m"
-        BG_LIGHT_GRAY = "\033[47m"
-        BG_DARK_GRAY = "\033[100m"
-        BG_LIGHT_RED = "\033[101m"
-        BG_LIGHT_GREEN = "\033[102m"
-        BG_LIGHT_YELLOW = "\033[103m"
-        BG_LIGHT_BLUE = "\033[104m"
-        BG_LIGHT_MAGENTA = "\033[105m"
-        BG_LIGHT_CYAN = "\033[106m"
-        BG_WHITE = "\033[107m"
-
         levels = [
             VERBOSE,  # 5
             logging.DEBUG,  # 10
@@ -96,19 +98,19 @@ class LoggingColors(object):
             "CRITICAL"
         ]
         colors = [
-            COLOR_RESET,
-            COLOR_RESET,
-            BG_DEFAULT + FG_LIGHT_BLUE,
-            BG_YELLOW + FG_WHITE,
-            BG_DEFAULT + FG_RED,
-            BG_DEFAULT + FG_GREEN,
-            BG_DEFAULT + FG_YELLOW,
-            BG_RED + FG_WHITE,
+            self.COLOR_RESET,
+            self.COLOR_RESET,
+            self.BG_DEFAULT + self.FG_LIGHT_BLUE,
+            self.BG_YELLOW + self.FG_WHITE,
+            self.BG_DEFAULT + self.FG_RED,
+            self.BG_DEFAULT + self.FG_GREEN,
+            self.BG_DEFAULT + self.FG_YELLOW,
+            self.BG_RED + self.FG_WHITE,
         ]
         if not LoggingColors.enable_colors:
             colors = [""] * len(colors)
             COLOR_RESET = ""
-        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, COLOR_RESET
+        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, self.COLOR_RESET
 
 
 def set_logging_levels():
@@ -452,7 +454,7 @@ class TexTextRequirementsChecker(object):
             executable = self.find_executable(self.python27_executable_name)["path"]
             subprocess.check_call([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except (OSError, subprocess.CalledProcessError):
+        except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
         return RequirementCheckResult(True, ["PyGTK2 is found"])
 
@@ -461,7 +463,7 @@ class TexTextRequirementsChecker(object):
             executable = self.find_executable(self.python27_executable_name)["path"]
             subprocess.check_call([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except (OSError, subprocess.CalledProcessError):
+        except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
         return RequirementCheckResult(True, ["TkInter is found"])
@@ -558,42 +560,81 @@ class TexTextRequirementsChecker(object):
         def set_tkinter(result):
             self.tkinter_is_found= True
 
+        def help_message_with_url(section_name, executable_name=None):
+            user = "sizmailov"  # todo: change to textext
+            url_template = "https://{user}.github.io/textext/install/{os_name}.html#{os_name}-install-{section}"
+            url = url_template.format(
+                user=user,
+                os_name=defaults.os_name,
+                section=section_name
+            )
+
+            if defaults.console_colors == "always":
+                url_line = "       {}%s{}".format(LoggingColors.FG_LIGHT_BLUE + LoggingColors.UNDERLINED,
+                                                     LoggingColors.COLOR_RESET)
+            else:
+                url_line = "       {}%s{}".format("", "")
+
+            result = [
+                "Please follow installation instructions at ",
+                url_line % url
+            ]
+            if executable_name:
+                result += [
+                    "If %s is installed in custom location, specify it via " % executable_name,
+                    "       --{name}-executable=<path-to-{name}>".format(name=executable_name),
+                    "and run setup.py again",
+                ]
+            return result
+
         textext_requirements = (
             Requirement(self.find_executable, self.inkscape_executable_name)
             .prepend_message("ANY", 'Detect inkscape')
+            .append_message("ERROR", help_message_with_url("inkscape","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & Requirement(self.find_executable, self.python27_executable_name)
-            .prepend_message("ANY", 'Detect `python2.7`')
+            .append_message("ANY", 'Detect `python2.7`')
+            .append_message("ERROR", help_message_with_url("python27","python27"))
             & (
                     Requirement(self.find_executable, self.pdflatex_executable_name)
                     .on_success(lambda result: add_latex("pdflatex", result["path"]))
+                    .append_message("ERROR", help_message_with_url("latex", "pdflatex"))
                     | Requirement(self.find_executable, self.lualatex_executable_name)
                     .on_success(lambda result: add_latex("lualatex", result["path"]))
+                    .append_message("ERROR", help_message_with_url("latex", "lualatex"))
                     | Requirement(self.find_executable, self.xelatex_executable_name)
                     .on_success(lambda result: add_latex("xelatex", result["path"]))
+                    .append_message("ERROR", help_message_with_url("latex", "xelatex"))
             ).overwrite_check_message("Detect *latex")
+            .append_message("ERROR", help_message_with_url("latex"))
             & (
-                    Requirement(self.find_pygtk2).on_success(set_pygtk) |
-                    Requirement(self.find_tkinter).on_success(set_tkinter)
+                    Requirement(self.find_pygtk2).on_success(set_pygtk)
+                    .append_message("ERROR", help_message_with_url("pygtk2"))
+                    | Requirement(self.find_tkinter).on_success(set_tkinter)
+                    .append_message("ERROR", help_message_with_url("tkinter"))
             ).overwrite_check_message("Detect GUI library")
+            .append_message("ERROR", help_message_with_url("gui-library"))
             & (
                 (
                     ~ (
                             Requirement(self.find_pstoedit, "3.70") &
                             Requirement(self.find_ghostscript, "9.22")
-                    ).overwrite_check_message("Detect incompatible versions of psedit+ghostscript")
+                    ).overwrite_check_message("Detect incompatible versions of pstoedit+ghostscript")
                     & (
                             Requirement(self.find_pstoedit)
                             .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pstoedit": result["path"]}))
                             & Requirement(self.find_ghostscript)
                     )
-                ).overwrite_check_message("Detect compatible psedit+ghostscript versions")
+                ).overwrite_check_message("Detect compatible pstoedit+ghostscript versions")
+                .append_message("ERROR", help_message_with_url("pstoedit"))
                 .on_failure(lambda result: "pstoedit" in self.available_pdf_to_svg_converters and self.available_pdf_to_svg_converters.pop("pstoedit"))
                 | (
                     Requirement(self.find_executable, self.pdf2svg_executable_name)
                 ).prepend_message("ANY", "Detect pdf2svg:")
                 .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pdf2svg": result["path"]}))
+                .append_message("ERROR", help_message_with_url("pdf2svg"))
             ).overwrite_check_message("Detect pdf->svg conversion utility")
+            .append_message("ERROR", help_message_with_url("pdf-to-svg-converter"))
         ).overwrite_check_message("TexText requirements")
 
         check_result = textext_requirements.check()
