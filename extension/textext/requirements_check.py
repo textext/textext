@@ -474,7 +474,10 @@ class TexTextRequirementsChecker(object):
             p = subprocess.Popen([executable, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (KeyError, OSError, subprocess.CalledProcessError):
-            return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
+            if version is None:
+                return RequirementCheckResult(False, ["ghostscript is not found"])
+            else:
+                return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
 
         if version is None:
             return RequirementCheckResult(True, ["ghostscript is found"], path=executable)
@@ -497,7 +500,10 @@ class TexTextRequirementsChecker(object):
             p = subprocess.Popen([executable], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
         except (KeyError, OSError, subprocess.CalledProcessError):
-            return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
+            if version is None:
+                return RequirementCheckResult(False, ["pstoedit is not found"])
+            else:
+                return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
 
         if version is None:
             return RequirementCheckResult(True, ["pstoedit is found"], path=executable)
