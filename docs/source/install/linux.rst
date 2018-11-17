@@ -49,7 +49,7 @@ To install on Ubuntu/Debian:
 
     sudo apt-get install inkscape
 
-.. _linux-install-python2.7:
+.. _linux-install-python27:
 
 Install python2.7
 ~~~~~~~~~~~~~~~~~
