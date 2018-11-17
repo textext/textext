@@ -19,7 +19,7 @@ To install |TexText| on Linux do the following steps:
 #. `Install dependencies <linux-install-dependencies_>`_ of |TexText|
 
     - `Install inkscape <linux-install-inkscape_>`_
-    - `Install python2.7 <linux-install-python2.7_>`_
+    - `Install python2.7 <linux-install-python27_>`_
     - `Install GUI library (PyGTK2 or TkInter) <linux-install-gui-library_>`_
     - `Install pdflatex/lualatex/xelatex <linux-install-latex_>`_
     - `Install pdf->svg converter (pdf2svg or pstoedit) <linux-install-pdf-to-svg-converter_>`_
