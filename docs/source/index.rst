@@ -1,5 +1,5 @@
-TexText - A LaTeX/ XeLaTex/ LuaLaTex extension for Inkscape (releases 0.92, 0.91 and 0.48)
-==========================================================================================
+TexText - A Tex extension for Inkscape
+======================================
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
