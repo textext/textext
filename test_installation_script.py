@@ -116,3 +116,6 @@ test_configuration([
     ("ghostscript",),
     ("pdf2svg",)
 ], REQUIREMENT_CHECK_SUCCESS)
+
+test_configuration([
+], REQUIREMENT_CHECK_ERROR)
