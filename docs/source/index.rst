@@ -1,10 +1,34 @@
-.. textext documentation master file, created by
-   sphinx-quickstart on Tue Nov 13 01:53:57 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+TexText - A LaTeX/ XeLaTex/ LuaLaTex extension for Inkscape (releases 0.92, 0.91 and 0.48)
+==========================================================================================
 
-Welcome to textext's documentation!
-===================================
+TexText is a Python plugin for the vector graphics editor
+`Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
+LaTeX generated SVG elements to your drawing.
+
+.. figure:: images/textext-with-inkscape.png
+   :alt: TexText dialog with Inkscape
+
+
+Key features
+------------
+
+-  Multi-line editor, optionally with syntax highlighting
+-  Compatibility with TexText down to version 0.4.x
+-  Compilation of TeX code using PdfLaTeX, XeLaTeX or LuaLaTex
+-  Free scaling of the produced output either by dragging with the mouse
+   in Inkscape or by setting a scale factor manually in the TexText GUI.
+   Both approaches are compatible to each other. Scaling is kept after
+   re-editing the code or can be adjusted later.
+-  Possibility of exact font size matching with Inkscape text
+-  TeX preamble file can be freely configured (additional packages,
+   parskip, parindent, etc.)
+-  Colorization of the produced output via TeX commands or directly by
+   Inkscape. Colorization is kept after re-editing the TeX code.
+-  It is possible to specify the alignment anchor of the produced
+   output. By this it is possible to fix e.g. the top left corner of the
+   produced svg output from compilation to compilation.
+-  TeXText uses either pdf2svg or pstoedit+ghostscript as converter for
+   producing svg code from the generated pdf.
 
 .. toctree::
     :caption: Installation
@@ -19,6 +43,15 @@ Welcome to textext's documentation!
     :glob:
 
     usage.rst
+
+History
+-------
+
+This repository continues the development of the plugin which took place
+at https://bitbucket.org/pitgarbe/textext until January 2018.
+Originally, TexText had been developed by `Pauli
+Virtanen <http://www.iki.fi/pav/software/textext/>`__ based on the
+plugin InkLaTeX written by Toru Araki.
 
 
 
