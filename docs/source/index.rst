@@ -12,23 +12,14 @@ LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
--  Multi-line editor, optionally with syntax highlighting
+-  Multi-line editor with syntax highlighting (see :ref:`§ <usage-dialog-overview>`)
+-  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see :ref:`§ <usage-tex-compilers>`)
+-  Interoperable scaling in TexText and Inkscape (see :ref:`§ <usage-scaling>`)
+-  Font size match with Inkscape text (see :ref:`§ <usage-font>`)
+-  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see :ref:`§ <usage-preamble-file>`)
+-  Colorization via TeX commands/Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
+-  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
 -  Compatibility with TexText down to version 0.4.x
--  Compilation of TeX code using PdfLaTeX, XeLaTeX or LuaLaTex
--  Free scaling of the produced output either by dragging with the mouse
-   in Inkscape or by setting a scale factor manually in the TexText GUI.
-   Both approaches are compatible to each other. Scaling is kept after
-   re-editing the code or can be adjusted later.
--  Possibility of exact font size matching with Inkscape text
--  TeX preamble file can be freely configured (additional packages,
-   parskip, parindent, etc.)
--  Colorization of the produced output via TeX commands or directly by
-   Inkscape. Colorization is kept after re-editing the TeX code.
--  It is possible to specify the alignment anchor of the produced
-   output. By this it is possible to fix e.g. the top left corner of the
-   produced svg output from compilation to compilation.
--  TeXText uses either pdf2svg or pstoedit+ghostscript as converter for
-   producing svg code from the generated pdf.
 
 .. toctree::
     :caption: Installation

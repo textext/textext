@@ -11,36 +11,36 @@
 .. |usage-label-1| image:: images/annotation_label_1.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. |usage-label-2| image:: images/annotation_label_2.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. |usage-label-3| image:: images/annotation_label_3.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. |usage-label-4| image:: images/annotation_label_4.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. |usage-label-5| image:: images/annotation_label_5.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. |usage-label-6| image:: images/annotation_label_6.png
             :height: 1em
             :width: 1em
-            :target: dialog-overview_
+            :target: usage-dialog-overview_
 
 .. _usage:
 
-.. _extension-entry:
+.. _usage-extension-entry:
 
 |TexText| extension entry
 -------------------------
@@ -53,7 +53,7 @@ After installation |TexText| will appear under :menuselection:`Extensions --> Te
 When you select it, a dialog will appear that lets you enter any LaTeX
 code you want (presumably your formula).
 
-.. _dialog-overview:
+.. _usage-dialog-overview:
 
 Dialog overview
 ---------------
@@ -65,8 +65,32 @@ Dialog overview
 You enter your LaTeX code into the edit box |usage-label-5|. In the case you
 installed PyGTK it will show you line and column numbers. If you
 additionally insalled PyGTKSourceView it will also highlight the syntax
-with colors. You can add any valid and also multiline LaTeX code. Be
-aware of including the required packages in the *preamble file* if you
+with colors. You can add any valid and also multiline LaTeX code.
+There are additional settings which can be adjusted to your needs:
+
+-  Custom :ref:`usage-preamble-file`
+-  The TeX command to be used for compiling your code (group box |usage-label-2|).
+   Possible options are: :bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex`. See
+   section :ref:`usage-tex-compilers` for more details.
+-  The scale factor (group box |usage-label-3|). See section :ref:`usage-scaling`.
+-  The alignment relative to the previous version of your code (group
+   box |usage-label-4|, only available when re-editing your code). See section :ref:`usage-alignment`.
+-  The coloring of the output using TeX commands or Inkscape settings.
+   See section :ref:`usage-colorization`.
+
+Your LaTeX code and the accompanying settings will be stored within the
+new SVG node in the document. This allows you to edit the LaTeX node
+later by selecting it and running the *Tex Text* extension (which will
+then show the dialog containing the saved values).
+
+There is a preview button |usage-label-6| as well, which shortens the feedback cycle
+from entry to result considerably, so use it!
+
+.. _usage-preamble-file:
+
+Preamble file
+-------------
+Be aware of including the required packages in the *preamble file* if you
 use special commands in your code that rely on such packages. The
 preamble file can be choosen by the selector |usage-label-1|. The default preamble
 file shipped with TexText includes the following packages:
@@ -90,26 +114,8 @@ Basically, your LaTeX code will be inserted into this environment:
 This will be typeset, converted to SVG and inserted into your Inkscape
 document.
 
-There are additional settings which can be adjusted to your needs:
 
--  The TeX command to be used for compiling your code (group box |usage-label-2|).
-   Possible options are: :bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex`. See
-   section :ref:`available-tex-compilers` for more details.
--  The scale factor (group box |usage-label-3|). See section :ref:`the-scaling-of-the-output`.
--  The alignment relative to the previous version of your code (group
-   box |usage-label-4|, only available when re-editing your code). See section :ref:`the-alignment-of-the-output`.
--  The coloring of the output using TeX commands or Inkscape settings.
-   See section :ref:`the-colorization-of-the-output`.
-
-Your LaTeX code and the accompanying settings will be stored within the
-new SVG node in the document. This allows you to edit the LaTeX node
-later by selecting it and running the *Tex Text* extension (which will
-then show the dialog containing the saved values).
-
-There is a preview button |usage-label-6| as well, which shortens the feedback cycle
-from entry to result considerably, so use it!
-
-.. _available-tex-compilers:
+.. _usage-tex-compilers:
 
 Available TeX compilers
 -----------------------
@@ -136,7 +142,7 @@ Some things to be kept in mind:
    this post on
    `Stackexchange <https://tex.stackexchange.com/questions/357098/compiling-tex-files-with-xelatex-is-insanely-slow-on-my-windows-machine/357100>`__.
 
-.. _the-scaling-of-the-output:
+.. _usage-scaling:
 
 The scaling of the output
 -------------------------
@@ -178,9 +184,9 @@ There are two additional buttons in the groupbox |usage-label-3|:
 
 If you have re-sized the SVG output in Inkscape *without* keeping the
 proportions the re-compiled output will be placed with correct
-proportions according to the `alignment <the-alignment-of-the-output_>`_.
+proportions according to the `alignment <usage-alignment_>`_.
 
-.. _the-alignment-of-the-output:
+.. _usage-alignment:
 
 The alignment of the output
 ---------------------------
@@ -200,7 +206,7 @@ behaviour is ``middle center``. Available options are: ``top left``,
 Of course, the content of the groupbox |usage-label-4| is only available when
 editing existing nodes.
 
-.. _the-colorization-of-the-output:
+.. _usage-colorization:
 
 The colorization of the output
 ------------------------------
@@ -226,12 +232,12 @@ There are two ways for colorization of the output:
     be lost after re-compilation. This method is the recommended one if you
     would like a character wise colorization of your output.
 
-.. _using-specific-font-sizes-or-special-fonts:
+.. _usage-font:
 
 Using specific font sizes or special fonts
 ------------------------------------------
 
-.. _explicit-setting-of-font-size:
+.. _usage-font-size:
 
 Explicit setting of font size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -251,7 +257,7 @@ specific size then you have to do two things:
 
 The resulting text should be of equal height as if has been typeset directly in Inkscape.
 
-.. _selection-of-special-fonts:
+.. _usage-font-custom-font:
 
 Selection of special fonts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -276,4 +282,4 @@ from MS Word, then proceed as follows:
 
 
 2. Save the file and recompile your node. You can also define different
-   preamble files and load them dependent on your node, see `dialog-overview`_.
+   preamble files and load them dependent on your node, see :ref:`usage-dialog-overview`.
