@@ -269,8 +269,8 @@ from MS Word, then proceed as follows:
 
 
 1. Open the file ``default_packages.tex`` which resides in the extension
-   subdirectory (``%USERPROFILE%\AppData\Roaming\Inkscape`` on Windows,
-   ``~/.config/inkscape/extensions/`` on Linux) and enter the following
+   subdirectory (``%USERPROFILE%\AppData\Roaming\Inkscape\extensions\textext`` on Windows,
+   ``~/.config/inkscape/extensions/textext`` on Linux) and enter the following
    two lines:
 
 
