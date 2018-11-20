@@ -123,7 +123,7 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd):
+    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd, tex_commands):
         """
         Return the best possible GUI variant depending on the installed components
         :param version_str: A string describing the version of textext
@@ -134,26 +134,27 @@ class AskerFactory(object):
         :param current_scale_factor: The node's saved scale factor (0.1 to 10)
         :param current_alignment: The node's saved alignment position
         :param current_texcmd: The node's saved texcommand used in last compilation
+        :param tex_commands: List of available tex commands
         :return: an instance of AskText
         """
         if TOOLKIT == TK:
             return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                             current_texcmd)
+                             current_texcmd, tex_commands)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
             return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                                    current_texcmd)
+                                    current_texcmd, tex_commands)
 
 
 class AskText(object):
     """GUI for editing TexText objects"""
 
-    TEX_COMMANDS = ["pdflatex", "xelatex", "lualatex"]
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
                         "middle left", "middle center", "middle right",
                         "bottom left", "bottom center", "bottom right"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd):
+                 current_texcmd, tex_commands):
+        self.TEX_COMMANDS = tex_commands
         if len(text) > 0:
             self.text = text
         else:
@@ -219,9 +220,9 @@ if TOOLKIT == TK:
         """TK GUI for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd):
+                     current_texcmd, tex_commands):
             super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                            current_alignment, current_texcmd)
+                                            current_alignment, current_texcmd, tex_commands)
             self._frame = None
             self._scale = None
 
@@ -396,9 +397,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         """GTK + Source Highlighting for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd):
+                     current_texcmd, tex_commands):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                                   current_alignment, current_texcmd)
+                                                   current_alignment, current_texcmd, tex_commands)
             self._preview = None
             self._scale_adj = None
             self._texcmd_cbox = None

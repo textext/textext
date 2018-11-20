@@ -184,9 +184,12 @@ def is_current_version_compatible(svg_original,
             mod_args["preamble-file"] = os.path.expanduser("~/.config/inkscape/extensions/textext/default_packages.tex")
 
         if converter == "pstoedit":
-            textext.CONVERTERS = [textext.PstoeditPlotSvg]
+            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg}
         elif converter == "pdf2svg":
-            textext.CONVERTERS = [textext.Pdf2SvgPlotSvg]
+            textext.CONVERTERS = {textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
+        else:
+            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg,
+                                  textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
 
         # run TexText
         tt = textext.TexText()
