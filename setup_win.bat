@@ -37,18 +37,18 @@ if defined args (
                     goto FINAL
                 )
             ) else (
-                if "%%A"=="/p" (
+                if /I "%%A"=="/p" (
                     set PYTHON_ARGS=%%~B
                 )
             )
         )
     )
 ) else (
-    goto END_PARSE_ARGS
+    goto DETECT_INKSCAPE_LOCATION
 )
 
 if defined INKSCAPE_DIR goto INKSCAPE_FOUND
-if defined PYTHON_ARGS goto END_PARSE_ARGS
+if defined PYTHON_ARGS goto DETECT_INKSCAPE_LOCATION
 
 :PRINT_USAGE
 echo.
@@ -57,7 +57,7 @@ echo Tries to install the TexText extension using the Python distribution
 echo shipped with Inkscape and the Python script setup.py. In fact this is
 echo only a wrapper around setup.py which ensures that Python is correctly
 echo identified in the Inkscape installation. If you have a system wide
-echo Python installation you can directly call setup.py using this installation.
+echo Python installation you can directly call setup.py using that installation.
 echo.
 echo Usage:
 echo ======
@@ -84,7 +84,7 @@ echo.
 goto FINAL
 
 
-:END_PARSE_ARGS
+:DETECT_INKSCAPE_LOCATION
 
 rem Inkscape installation path is usually found in the registry
 rem "Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
@@ -101,11 +101,13 @@ for %%R in (HKLM HKCU) do (
     rem and the reamining output (tokens=2*), so %%A is REG_SZ and %%B is the path
     rem even if it contains spaces (tokens are delimited by spaces)
     echo Trying registry root %%R...
+    echo.
     for /f "usebackq skip=2 tokens=2*" %%A in (`REG QUERY "%%R\Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe" /ve 2^>nul`) do (
         set INKSCAPE_CMD=%%B
     )
     if defined INKSCAPE_CMD (
         echo Inkscape found as !INKSCAPE_CMD!
+        echo.
         for %%S in ("!INKSCAPE_CMD!") do set INKSCAPE_DIR=%%~dpS
         goto INKSCAPE_FOUND
     )
@@ -115,6 +117,7 @@ rem Check if Inkscape is in the system path (not very likely)
 for %%c in (inkscape.exe) do set INKSCAPE_DIR=%%~dp$PATH:c
 if defined INKSCAPE_DIR (
     echo Inkscape found in system path, installed in %INKSCAPE_DIR%
+    echo.
     goto INKSCAPE_FOUND
 )
 
@@ -123,11 +126,14 @@ goto FAILED
 :INKSCAPE_FOUND
 set PYTHON_COMMAND="%INKSCAPE_DIR%\python" setup.py %PYTHON_ARGS%
 echo Trying to run %PYTHON_COMMAND%...
+echo.
 %PYTHON_COMMAND%
 goto FINAL
 
 :FAILED
 echo Inkscape neither found in the registry nor on the system path! Cannot continue!
+echo.
 
 :FINAL
-
+echo.
+pause
