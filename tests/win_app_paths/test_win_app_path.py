@@ -1,44 +1,20 @@
+import os
+import sys
+
+sys.path.append(os.path.join("../../", "extension", "textext"))
+
 import win_app_paths as wap
 
-res = wap.check_command(['C:\\Program Files (x86)\\gs\\gs9.14\\bin\\gswin32c.exe', '--help'])
-if res:
-    print('GS OK')
-else:
-    print('GS not found!')
-    print(wap.get_last_error())
+for cls in [wap.InkscapeCommandInfo, wap.Pdf2SvgCommandInfo, wap.PsToEditCommandInfo, wap.GhostScriptCommandInfo]:
+    obj = cls()
+    dirname = obj.get_path()
+    if not dirname:
+        print("%s not found" % obj._cmd)
+    else:
+        if dirname == wap.IS_IN_PATH:
+            print("%s is in path" % obj._cmd)
+        else:
+            print("%s found in %s" % (obj._cmd, dirname))
 
-res = wap.check_command(['C:\\Program Files (x86)\\pstoedit\\pstoedit.exe', '-v'])
-if res:
-    print('pstoedit OK')
-else:
-    print('pstoedit not found!')
-
-res = wap.check_command(['pdflatex', '--help'])
-if res:
-    print('pdflatex OK')
-else:
-    print('pdflatex not found!')
-
-res = wap.check_command(['c:\\Program Files (x86)\\ImageMagick-6.8.8-Q16\\convert.exe', '--version'])
-if res:
-    print('ImageMagick OK')
-else:
-    print('ImageMagick not found!')
-
-dirname = wap.get_pstoedit_dir()
-if not dir:
-    print(wap.get_last_error())
-else:
-    print(dirname)
-
-dirname = wap.get_imagemagick_dir()
-if not dir:
-    print(wap.get_last_error())
-else:
-    print(dirname)
-
-dirname = wap.get_ghostscript_dir()
-if not dir:
-    print(wap.get_last_error())
-else:
-    print(dirname)
+print("Dirs not in system path")
+print(wap.get_non_syspath_dirs())
