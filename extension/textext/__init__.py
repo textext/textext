@@ -60,6 +60,8 @@ import sys
 import tempfile
 import traceback
 
+from requirements_check import check_requirements, set_logging_levels
+
 
 class ChangeDirectory(object):
     def __init__(self, dir):
@@ -172,6 +174,82 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
         self.flush()
 
 
+class MyLogger(logging.Logger):
+    """
+        Needs to produce correct line numbers
+    """
+    def findCaller(self):
+        n_frames_upper = 2
+        f = logging.currentframe()
+        for _ in range(2 + n_frames_upper):  # <-- correct frame
+            if f is not None:
+                f = f.f_back
+        rv = "(unknown file)", 0, "(unknown function)"
+        while hasattr(f, "f_code"):
+            co = f.f_code
+            filename = os.path.normcase(co.co_filename)
+            if filename == logging._srcfile:
+                f = f.f_back
+                continue
+            rv = (co.co_filename, f.f_lineno, co.co_name)
+            break
+        return rv
+
+
+class NestedLoggingGuard(object):
+    message_offset = 0
+    message_indent = 2
+
+    def __init__(self, _logger, lvl=None, message=None):
+        self._logger = _logger
+        self._level = lvl
+        self._message = message
+        if lvl is not None and message is not None:
+            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message)
+
+    def __enter__(self):
+        assert self._level is not None
+        assert self._message is not None
+        NestedLoggingGuard.message_offset += NestedLoggingGuard.message_indent
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert self._level is not None
+        assert self._message is not None
+        if exc_type is None:
+            result = "done"
+        else:
+            result = "failed"
+        NestedLoggingGuard.message_offset -= NestedLoggingGuard.message_indent
+
+        def tmp1():  # this nesting needed to even number of stack frames in __enter__ and __exit__
+            def tmp2():
+                self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message.strip() + " " + result)
+            tmp2()
+        tmp1()
+
+    def debug(self, message):
+        return self.log(logging.DEBUG, message)
+
+    def info(self, message):
+        return self.log(logging.INFO, message)
+
+    def error(self, message):
+        return self.log(logging.ERROR, message)
+
+    def warning(self, message):
+        return self.log(logging.WARNING, message)
+
+    def critical(self, message):
+        return self.log(logging.CRITICAL, message)
+
+    def log(self, lvl, message):
+        return NestedLoggingGuard(self._logger, lvl, message)
+
+
+EXIT_CODE_OK = 0
+EXIT_CODE_EXPECTED_ERROR = 1
+EXIT_CODE_UNEXPECTED_ERROR = 60
+
 LOG_LOCATION = os.path.dirname(__file__)  # todo: check destination is writeable
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
 
@@ -180,11 +258,13 @@ LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destinat
 # `file_log_channel` dumps detailed log to a file
 # `user_log_channel` accumulates log messages to show them to user via .show_messages() function
 #
+set_logging_levels()
+logging.setLoggerClass(MyLogger)
+__logger = logging.getLogger('TexText')
+logger = NestedLoggingGuard(__logger)
+__logger.setLevel(logging.DEBUG)
 
-logger = logging.getLogger('TexText')
-logger.setLevel(logging.DEBUG)
-
-log_formatter = logging.Formatter('[%(asctime)s][%(levelname)6s][%(filename)s:%(lineno)d]: %(message)s')
+log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
@@ -198,8 +278,8 @@ user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 message
 user_log_channel.setLevel(logging.DEBUG)
 user_log_channel.setFormatter(user_formatter)
 
-logger.addHandler(file_log_channel)
-logger.addHandler(user_log_channel)
+__logger.addHandler(file_log_channel)
+__logger.addHandler(user_log_channel)
 
 try:
 
@@ -234,8 +314,6 @@ try:
         u'xlink': XLINK_NS,
     }
 
-    from asktext import AskerFactory
-
     # Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
     from typesetter import Typesetter
 
@@ -250,16 +328,41 @@ try:
 
         def __init__(self):
 
+            self.settings = Settings()
+            previous_exit_code = self.settings.get("previous_exit_code", int, None)
+
+            if previous_exit_code is None:
+                logging.disable(logging.NOTSET)
+                logger.debug("First run of TexText. Enforcing DEBUG mode.")
+            elif previous_exit_code == EXIT_CODE_EXPECTED_ERROR:
+                logging.disable(logging.NOTSET)
+                logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
+            else:
+                logging.disable(logging.DEBUG)
+
             logger.debug("TexText initialized")
             logger.debug("TexText version = %s (md5sum = %s)" %
                          (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
                          )
-            logger.debug("sys.version = %s" % sys.version)
-            logger.debug("sys.platform = %s" % sys.platform)
+            logger.debug("platform.system() = %s" % repr(platform.system()))
+            logger.debug("platform.release() = %s" % repr(platform.release()))
+            logger.debug("platform.version() = %s" % repr(platform.version()))
+
+            logger.debug("platform.machine() = %s" % repr(platform.machine()))
+            logger.debug("platform.uname() = %s" % repr(platform.uname()))
+            logger.debug("platform.mac_ver() = %s" % repr(platform.mac_ver()))
+
+            logger.debug("sys.executable = %s" % repr(sys.executable))
+            logger.debug("sys.version = %s" % repr(sys.version))
+            logger.debug("os.environ = %s" % repr(os.environ))
+
+            if previous_exit_code != EXIT_CODE_OK:
+                if check_requirements(logger) == False:
+                    raise TexTextFatalError("TexText requirements are not met. "
+                                            "Please follow instructions "
+                                            "https://github.com/textext/textext/wiki/Installation-instructions")
 
             inkex.Effect.__init__(self)
-
-            self.settings = Settings()
 
             self.OptionParser.add_option(
                 "-t", "--text", action="store", type="string",
@@ -320,88 +423,118 @@ try:
 
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
+            from asktext import AskerFactory
+
             global CONVERTERS
+            with logger.debug("TexText.effect"):
 
-            # Pick a converter
-            converter_errors = []
+                # Pick a converter
+                converter_errors = []
 
-            usable_converter_class = None
-            for converter_class in CONVERTERS:
-                try:
-                    converter_class.check_available()
-                    usable_converter_class = converter_class
-                    break
-                except TexTextCommandError as err:
-                    converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
+                usable_converter_class = None
+                for converter_class in CONVERTERS:
+                    try:
+                        converter_class.check_available()
+                        usable_converter_class = converter_class
+                        logger.debug("%s is usable" % converter_class.__name__)
+                        break
+                    except TexTextCommandError as err:
+                        logger.debug("%s is not usable" % converter_class.__name__)
+                        converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
 
-            if not usable_converter_class:
-                raise TexTextFatalError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
+                if not usable_converter_class:
+                    raise TexTextFatalError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
-            # Find root element
-            old_svg_ele, text, preamble_file, current_scale = self.get_old()
+                # Find root element
+                old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
-            # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
-            # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
-            # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
-            if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
-                current_scale *= self.uu_to_unit(1, "pt")
+                if text:
+                    logger.debug("Old node text = %s" % repr(text))
+                    logger.debug("Old node scale = %s" % repr(current_scale))
 
-            if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
-                current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
 
-            alignment = TexText.DEFAULT_ALIGNMENT
+                # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
+                # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
+                # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
+                if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
+                    logger.debug("Adjust scale factor for node created with TexText<=0.7")
+                    current_scale *= self.uu_to_unit(1, "pt")
 
-            if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
-                alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
-
-            current_tex_command = TexText.DEFAULT_TEXCMD
-            if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
-                current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
-
-            # Ask for TeX code
-            if self.options.text is None:
-                global_scale_factor = self.options.scale_factor
-
-                if not preamble_file:
-                    preamble_file = self.options.preamble_file
+                if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
+                    logger.debug("Adjust scale factor to account transformations in inkscape")
+                    current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
                 else:
-                    # Check if preamble file exists at the specified absolute path location. If not, check to find
-                    # the file in the default path. If this fails, too, fallback to the default.
-                    if not os.path.exists(preamble_file):
-                        preamble_file = os.path.join(os.path.dirname(self.options.preamble_file), os.path.basename(preamble_file))
+                    logger.debug("Can't adjust scale to account node transformations done in inkscape. "
+                                   "May result in loss of scale.")
+
+                alignment = TexText.DEFAULT_ALIGNMENT
+
+                if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
+                    alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
+                    logger.debug("Old node alignment `%s`" % alignment)
+                else:
+                    logger.debug("Using default node alignment `%s`" %alignment)
+
+                current_tex_command = TexText.DEFAULT_TEXCMD
+                if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
+                    current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
+                else:
+                    logger.debug("Using default tex converter `%s` " % current_tex_command)
+
+                # Ask for TeX code
+                if self.options.text is None:
+                    global_scale_factor = self.options.scale_factor
+
+                    if not preamble_file:
+                        logger.debug("Using default preamble file `%s`" % self.options.preamble_file)
+                        preamble_file = self.options.preamble_file
+                    else:
+                        logger.debug("Using node preamble file")
+                        # Check if preamble file exists at the specified absolute path location. If not, check to find
+                        # the file in the default path. If this fails, too, fallback to the default.
                         if not os.path.exists(preamble_file):
-                            preamble_file = self.options.preamble_file
+                            logger.debug("Preamble file is NOT found by absolute path")
+                            preamble_file = os.path.join(os.path.dirname(self.options.preamble_file), os.path.basename(preamble_file))
+                            if not os.path.exists(preamble_file):
+                                logger.debug("Preamble file is NOT found along with default preamble file")
+                                preamble_file = self.options.preamble_file
+                            else:
+                                logger.debug("Preamble file is found along with default preamble file")
+                        else:
+                            logger.debug("Preamble file found by absolute path")
 
-                if not os.path.isfile(preamble_file):
-                    preamble_file = ""
+                    if not os.path.isfile(preamble_file):
+                        logger.debug("Preamble file is not found")
+                        preamble_file = ""
 
-                asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                         current_alignment=alignment, current_texcmd=current_tex_command)
+                    asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                             current_alignment=alignment, current_texcmd=current_tex_command)
 
-                def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                             tex_cmd=TexText.DEFAULT_TEXCMD):
-                    return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
-                                           tex_cmd, original_scale=current_scale)
+                    def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
+                                 tex_cmd=TexText.DEFAULT_TEXCMD):
+                        return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
+                                               tex_cmd, original_scale=current_scale)
 
-                asker.ask(callback,
-                          lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
-                                                                                                         _preamble,
-                                                                                                         usable_converter_class,
-                                                                                                         _preview_callback,
-                                                                                                         _tex_command))
+                    with logger.debug("Run TexText GUI"):
+                        asker.ask(callback,
+                                  lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
+                                                                                                             _preamble,
+                                                                                                             usable_converter_class,
+                                                                                                             _preview_callback,
+                                                                                                             _tex_command))
 
 
-            else:
-                # ToDo: I think this is completely broken...
-                self.do_convert(self.options.text,
-                                self.options.preamble_file,
-                                self.options.scale_factor,
-                            usable_converter_class,
-                            old_svg_ele,
-                            self.DEFAULT_ALIGNMENT,
-                            self.DEFAULT_TEXCMD,
-                            original_scale=current_scale
-                            )
+                else:
+                    # ToDo: I think this is completely broken...
+                    self.do_convert(self.options.text,
+                                    self.options.preamble_file,
+                                    self.options.scale_factor,
+                                usable_converter_class,
+                                old_svg_ele,
+                                self.DEFAULT_ALIGNMENT,
+                                self.DEFAULT_TEXCMD,
+                                original_scale=current_scale
+                                )
 
 
         @staticmethod
@@ -415,39 +548,47 @@ try:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
-            if not text:
-                return
+            with logger.debug("TexText.preview"):
+                with logger.debug("args:"):
+                    for k,v in locals().items():
+                        logger.debug("%s = %s" % (k, repr(v)))
 
-            if isinstance(text, unicode):
-                text = text.encode('utf-8')
+                if not text:
+                    logger.debug("no text, return")
+                    return
 
-            converter = converter_class()
+                if isinstance(text, unicode):
+                    text = text.encode('utf-8')
 
-            with ChangeToTemporaryDirectory():
-                converter.tex_to_pdf(tex_command, text, preamble_file)
+                converter = converter_class()
 
-                # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
-                try:
-                    # -trim MUST be placed between the filenames!
-                    options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'),
-                               '-trim', converter.tmp('png')]
+                with ChangeToTemporaryDirectory():
+                    with logger.debug("Converting tex to pdf"):
+                        converter.tex_to_pdf(tex_command, text, preamble_file)
 
-                    if PLATFORM == WINDOWS:
-                        win_command = wap.get_imagemagick_command()
-                        if not win_command:
-                            raise TexTextCommandNotFound("Can't find imagemagick executable")
-                        exec_command([win_command] + options)
-                    else:
+                    # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
+                    with logger.debug("Converting pdf to png"):
                         try:
-                            exec_command(['convert'] + options)   # ImageMagick 6
-                        except TexTextCommandNotFound:
-                            exec_command(['magick'] + options)    # ImageMagick 7
+                            # -trim MUST be placed between the filenames!
+                            options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'),
+                                       '-trim', converter.tmp('png')]
 
-                    image_setter(converter.tmp('png'))
-                except TexTextCommandFailed as error:
-                    raise TexTextNonFatalError("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.\nDetailed error message:\n%s" % (str(error)))
-                except TexTextCommandNotFound:
-                    pass
+                            if PLATFORM == WINDOWS:
+                                win_command = wap.get_imagemagick_command()
+                                if not win_command:
+                                    raise TexTextCommandNotFound("Can't find imagemagick executable")
+                                exec_command([win_command] + options)
+                            else:
+                                try:
+                                    exec_command(['convert'] + options)   # ImageMagick 6
+                                except TexTextCommandNotFound:
+                                    exec_command(['magick'] + options)    # ImageMagick 7
+
+                            image_setter(converter.tmp('png'))
+                        except TexTextCommandFailed as error:
+                            raise TexTextNonFatalError("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.\nDetailed error message:\n%s" % (str(error)))
+                        except TexTextCommandNotFound:
+                            pass
 
         def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
                        original_scale=None):
@@ -462,69 +603,78 @@ try:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
-            if not text:
-                return
 
-            if isinstance(text, unicode):
-                text = text.encode('utf-8')
+            with logger.debug("TexText.do_convert"):
+                with logger.debug("args:"):
+                    for k,v in locals().items():
+                        logger.debug("%s = %s" % (k, repr(v)))
 
-            # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
-            # even if the document user units are not in pt
-            scale_factor = user_scale_factor * self.unit_to_uu("1pt")
+                if not text:
+                    logger.debug("no text, return")
+                    return
 
-            # Convert
-            converter = converter_class()
+                if isinstance(text, unicode):
+                    text = text.encode('utf-8')
 
-            new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
+                # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
+                # even if the document user units are not in pt
+                scale_factor = user_scale_factor * self.unit_to_uu("1pt")
 
+                # Convert
+                converter = converter_class()
+                with logger.debug("Converting tex to svg"):
+                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
 
-            # -- Store textext attributes
-            new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
-            new_svg_ele.set_attrib("texconverter", tex_command, TEXTEXT_NS)
-            new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
-            new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
-            new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
-            new_svg_ele.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
-            new_svg_ele.set_attrib("alignment", str(alignment), TEXTEXT_NS)
+                # -- Store textext attributes
+                new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
+                new_svg_ele.set_attrib("texconverter", tex_command, TEXTEXT_NS)
+                new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
+                new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
+                new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
+                new_svg_ele.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
+                new_svg_ele.set_attrib("alignment", str(alignment), TEXTEXT_NS)
 
-            if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
-                new_svg_ele.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
-                                                                                  inkex.NSS["inkscape"]).split(' ')[0])
-                # Unfortunately when this node comes from an Inkscape document that has never been saved before
-                # no version attribute is provided by Inkscape :-(
+                if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
+                    new_svg_ele.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
+                                                                                      inkex.NSS["inkscape"]).split(' ')[0])
+                    # Unfortunately when this node comes from an Inkscape document that has never been saved before
+                    # no version attribute is provided by Inkscape :-(
 
-            # -- Copy style
-            if old_svg_ele is None:
-                root = self.document.getroot()
-                width = self.unit_to_uu(self.get_document_width())
-                height = self.unit_to_uu(self.get_document_height())
+                # -- Copy style
+                if old_svg_ele is None:
+                    with logger.debug("Adding new node to document"):
+                        root = self.document.getroot()
+                        width = self.unit_to_uu(self.get_document_width())
+                        height = self.unit_to_uu(self.get_document_height())
 
-                x, y, w, h = new_svg_ele.get_frame()
-                new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
-                new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
+                        x, y, w, h = new_svg_ele.get_frame()
+                        new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
+                        new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
 
-                self.current_layer.append(new_svg_ele.get_xml_raw_node())
-            else:
-                relative_scale = user_scale_factor / original_scale
-                new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
+                        self.current_layer.append(new_svg_ele.get_xml_raw_node())
+                else:
+                    with logger.debug("Replacing node in document"):
+                        relative_scale = user_scale_factor / original_scale
+                        new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
 
-                # If no non-black color has been explicitily set by TeX we copy the color information from the old node
-                # so that coloring done in Inkscape is preserved.
-                if not new_svg_ele.is_colorized():
-                    new_svg_ele.import_group_color_style(old_svg_ele)
+                        # If no non-black color has been explicitily set by TeX we copy the color information from the old node
+                        # so that coloring done in Inkscape is preserved.
+                        if not new_svg_ele.is_colorized():
+                            new_svg_ele.import_group_color_style(old_svg_ele)
 
-                self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
+                        self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
 
-            # -- Save settings
-            if os.path.isfile(preamble_file):
-                self.settings.set('preamble', preamble_file)
-            else:
-                self.settings.set('preamble', '')
+                with logger.debug("Saving global settings"):
+                    # -- Save settings
+                    if os.path.isfile(preamble_file):
+                        self.settings.set('preamble', preamble_file)
+                    else:
+                        self.settings.set('preamble', '')
 
-            # ToDo: Do we really need this if statement?
-            if scale_factor is not None:
-                self.settings.set('scale', user_scale_factor)
-            self.settings.save()
+                    # ToDo: Do we really need this if statement?
+                    if scale_factor is not None:
+                        self.settings.set('scale', user_scale_factor)
+                    self.settings.save()
 
         def get_old(self):
             """
@@ -794,36 +944,37 @@ try:
             Create a PDF file from latex text
             """
 
-            # Read preamble
-            preamble_file = os.path.abspath(preamble_file)
-            preamble = ""
+            with logger.debug("Converting .tex to .pdf"):
+                # Read preamble
+                preamble_file = os.path.abspath(preamble_file)
+                preamble = ""
 
-            if os.path.isfile(preamble_file):
-                with open(preamble_file, 'r') as f:
-                    preamble += f.read()
+                if os.path.isfile(preamble_file):
+                    with open(preamble_file, 'r') as f:
+                        preamble += f.read()
 
-            # Options pass to LaTeX-related commands
+                # Options pass to LaTeX-related commands
 
-            texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
+                texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
 
-            # Convert TeX to PDF
+                # Convert TeX to PDF
 
-            # Write tex
-            with open(self.tmp('tex'), 'w') as f_tex:
-                f_tex.write(texwrapper)
+                # Write tex
+                with open(self.tmp('tex'), 'w') as f_tex:
+                    f_tex.write(texwrapper)
 
-            # Exec tex_command: tex -> pdf
-            try:
-                exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
-            except TexTextCommandFailed as error:
-                if os.path.exists(self.tmp('log')):
-                    parsed_log = self.parse_pdf_log(self.tmp('log'))
-                    raise TexTextConversionError(parsed_log)
-                else:
-                    raise TexTextConversionError(error.message)
+                # Exec tex_command: tex -> pdf
+                try:
+                    exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
+                except TexTextCommandFailed as error:
+                    if os.path.exists(self.tmp('log')):
+                        parsed_log = self.parse_pdf_log(self.tmp('log'))
+                        raise TexTextConversionError(parsed_log)
+                    else:
+                        raise TexTextConversionError(error.message)
 
-            if not os.path.exists(self.tmp('pdf')):
-                raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
+                if not os.path.exists(self.tmp('pdf')):
+                    raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
         def parse_pdf_log(self, logfile):
             """
@@ -831,42 +982,43 @@ try:
             :param logfile:
             :return: string
             """
+            with logger.debug("Parsing LaTeX log file"):
 
-            log_buffer = StringIO.StringIO()
-            log_handler = logging.StreamHandler(log_buffer)
+                log_buffer = StringIO.StringIO()
+                log_handler = logging.StreamHandler(log_buffer)
 
-            typesetter = Typesetter(self.tmp('tex'))
-            typesetter.halt_on_errors = False
+                typesetter = Typesetter(self.tmp('tex'))
+                typesetter.halt_on_errors = False
 
-            handlers = typesetter.logger.handlers
-            for handler in handlers:
-                typesetter.logger.removeHandler(handler)
+                handlers = typesetter.logger.handlers
+                for handler in handlers:
+                    typesetter.logger.removeHandler(handler)
 
-            typesetter.logger.addHandler(log_handler)
-            typesetter.process_log(logfile)
+                typesetter.logger.addHandler(log_handler)
+                typesetter.process_log(logfile)
 
-            typesetter.logger.removeHandler(log_handler)
+                typesetter.logger.removeHandler(log_handler)
 
-            log_handler.flush()
-            log_buffer.flush()
+                log_handler.flush()
+                log_buffer.flush()
 
-            return log_buffer.getvalue()
+                return log_buffer.getvalue()
 
 
     class PdfConverterBase(LatexConverterBase):
 
         def convert(self, latex_text, preamble_file, scale_factor, tex_command):
+            with logger.debug("Converting .tex to svg element"):
+                with ChangeToTemporaryDirectory():
+                    self.tex_to_pdf(tex_command, latex_text, preamble_file)
+                    self.pdf_to_svg()
 
-            with ChangeToTemporaryDirectory():
-                self.tex_to_pdf(tex_command, latex_text, preamble_file)
-                self.pdf_to_svg()
+                    new_svg_ele = self.svg_to_group()
 
-                new_svg_ele = self.svg_to_group()
+                    if scale_factor is not None:
+                        new_svg_ele.set_scale_factor(scale_factor)
 
-                if scale_factor is not None:
-                    new_svg_ele.set_scale_factor(scale_factor)
-
-                return new_svg_ele
+                    return new_svg_ele
 
         def pdf_to_svg(self):
             """Convert the PDF file to a SVG file"""
@@ -895,33 +1047,37 @@ try:
             :raises: TexTextCommandNotFound, TexTextCommandFailed
             """
             # Options for pstoedit command
-            pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
 
-            # Exec pstoedit: pdf -> svg
-            result = ""
-            try:
-                result = exec_command(['pstoedit', '-f', 'plot-svg',
-                                       self.tmp('pdf'), self.tmp('svg')]
-                                      + pstoeditOpts)
-            except TexTextCommandFailed as excpt:
-                # Linux runs into this in case of DELAYBIND error
-                if "DELAYBIND" in excpt.message:
-                    result = "%s %s" % (
-                    "The ghostscript version installed on your system is not compatible with pstoedit! "
-                    "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
-                    "ghostscript).\n\n Detailed error message:\n", result)
-                    raise TexTextCommandFailed(result)
-                else:
-                    # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
-                    if "-1073741515" in excpt.message:
-                        raise TexTextCommandFailed("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
-                                        "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
-                                        "to install the Microsoft Visual C++ 2010 Redistributable Package "
-                                        "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
-                                        "This is a problem of pstoedit, not of TexText!!")
+            with logger.debug("Converting .pdf to .svg"):
 
-            if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
+                pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
+
+                # Exec pstoedit: pdf -> svg
+                result = ""
+                try:
+                    result = exec_command(['pstoedit', '-f', 'plot-svg',
+                                           self.tmp('pdf'), self.tmp('svg')]
+                                          + pstoeditOpts)
+                except TexTextCommandFailed as excpt:
+                    # Linux runs into this in case of DELAYBIND error
+                    if "DELAYBIND" in excpt.message:
+                        result = "%s %s" % (
+                        "The ghostscript version installed on your system is not compatible with pstoedit! "
+                        "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
+                        "ghostscript).\n\n Detailed error message:\n", result)
+                        raise TexTextCommandFailed(result)
+                    else:
+                        # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
+                        if "-1073741515" in excpt.message:
+                            raise TexTextCommandFailed("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
+                                            "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
+                                            "to install the Microsoft Visual C++ 2010 Redistributable Package "
+                                            "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
+                                            "This is a problem of pstoedit, not of TexText!!")
+
+                if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+                    raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
+
 
         def svg_to_group(self):
             """
@@ -929,12 +1085,14 @@ try:
 
             :returns: Subclass of SvgElement
             """
-            tree = etree.parse(self.tmp('svg'))
-            self._fix_xml_namespace(tree.getroot())
-            try:
-                return PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
-            except IndexError:
-                raise TexTextConversionError("Can't find a group in resulting svg")
+            with logger.debug("Grouping resulting svg"):
+                tree = etree.parse(self.tmp('svg'))
+                self._fix_xml_namespace(tree.getroot())
+                try:
+                    result = PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
+                except IndexError:
+                    raise TexTextConversionError("Can't find a group in resulting svg")
+                return result
 
         def _fix_xml_namespace(self, node):
             svg = '{%s}' % SVG_NS
@@ -954,11 +1112,12 @@ try:
         @classmethod
         def check_available(cls):
             """Check whether pstoedit has plot-svg"""
-            out = exec_command(['pstoedit', '-help'], ok_return_value=None)
-            if 'version 3.44' in out and 'Ubuntu' in out:
-                raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
-            if 'plot-svg' not in out:
-                raise TexTextCommandFailed("Pstoedit not compiled with plot-svg support")
+            with logger.debug("Checking pstoedit"):
+                out = exec_command(['pstoedit', '-help'], ok_return_value=None)
+                if 'version 3.44' in out and 'Ubuntu' in out:
+                    raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
+                if 'plot-svg' not in out:
+                    raise TexTextCommandFailed("Pstoedit not compiled with plot-svg support")
 
 
     class Pdf2SvgPlotSvg(PdfConverterBase):
@@ -974,14 +1133,15 @@ try:
             """
             Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
             """
-            try:
-                # Exec pdf2cvg infile.pdf outfile.svg
-                result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
-            except TexTextNonFatalError as e:
-                raise TexTextNonFatalError("Command pdf2svg failed: %s" % e.message)
+            with logger.debug("Converting .pdf to .svg"):
+                try:
+                    # Exec pdf2cvg infile.pdf outfile.svg
+                    result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+                except TexTextNonFatalError as e:
+                    raise TexTextNonFatalError("Command pdf2svg failed: %s" % e.message)
 
-            if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                raise TexTextNonFatalError("pdf2svg didn't produce output.\n%s" % result)
+                if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
+                    raise TexTextNonFatalError("pdf2svg didn't produce output.\n%s" % result)
 
         def svg_to_group(self):
             """
@@ -996,62 +1156,62 @@ try:
             the references in the <g>-node are replaced  by the definitions from <defs> so we can return the group without
             any <defs>.
             """
-            tree = etree.parse(self.tmp('svg'))
-            svg_raw = tree.getroot()
+            with logger.debug("Groupping resulting svg"):
+                tree = etree.parse(self.tmp('svg'))
+                svg_raw = tree.getroot()
 
-            # At first we collect all defs with an id-attribute found in the svg raw tree. They are put later directly
-            # into the nodes in the <g>-Element referencing them
-            path_defs = {}
-            for def_node in svg_raw.xpath("//*[local-name() = \"defs\"]//*[@id]"):
-                path_defs["#" + def_node.attrib["id"]] = def_node
+                # At first we collect all defs with an id-attribute found in the svg raw tree. They are put later directly
+                # into the nodes in the <g>-Element referencing them
+                path_defs = {}
+                for def_node in svg_raw.xpath("//*[local-name() = \"defs\"]//*[@id]"):
+                    path_defs["#" + def_node.attrib["id"]] = def_node
 
-            try:
-                # Now we pick all nodes that have a href attribute and replace the reference in them by the appropriate
-                # path definitions from def_nodes
-                for node in svg_raw.xpath("//*"):
-                    if ("{%s}href" % XLINK_NS) in node.attrib:
-                        # Fetch data from node
-                        node_href = node.attrib["{%s}href" % XLINK_NS]
-                        node_x = node.attrib["x"]
-                        node_y = node.attrib["y"]
-                        node_translate = "translate(%s,%s)" % (node_x, node_y)
+                try:
+                    # Now we pick all nodes that have a href attribute and replace the reference in them by the appropriate
+                    # path definitions from def_nodes
+                    for node in svg_raw.xpath("//*"):
+                        if ("{%s}href" % XLINK_NS) in node.attrib:
+                            # Fetch data from node
+                            node_href = node.attrib["{%s}href" % XLINK_NS]
+                            node_x = node.attrib["x"]
+                            node_y = node.attrib["y"]
+                            node_translate = "translate(%s,%s)" % (node_x, node_y)
 
-                        # remove the node
-                        parent = node.getparent()
-                        parent.remove(node)
+                            # remove the node
+                            parent = node.getparent()
+                            parent.remove(node)
 
-                        # Add positional data to the svg paths
-                        for svgdef in path_defs[node_href].iterchildren():
-                            svgdef.attrib["transform"] = node_translate
+                            # Add positional data to the svg paths
+                            for svgdef in path_defs[node_href].iterchildren():
+                                svgdef.attrib["transform"] = node_translate
 
-                            # Add new node into document
-                            parent.append(copy.copy(svgdef))
+                                # Add new node into document
+                                parent.append(copy.copy(svgdef))
 
-                # Finally, we build the group
-                new_group = etree.Element(inkex.addNS("g"))
-                for node in svg_raw:
-                    if node.tag != "{%s}defs" % SVG_NS:
-                        new_group.append(node)
+                    # Finally, we build the group
+                    new_group = etree.Element(inkex.addNS("g"))
+                    for node in svg_raw:
+                        if node.tag != "{%s}defs" % SVG_NS:
+                            new_group.append(node)
 
-                # Ensure that strokes with color "none" have zero width to ensure proper colorization via Inkscape
-                for node in new_group.getiterator(tag="{%s}path" % SVG_NS):
-                    if "style" in node.attrib:
-                        node_style_dict = ss.parseStyle(node.attrib["style"])
-                        if "stroke" in node_style_dict and node_style_dict["stroke"].lower() == "none":
-                            node_style_dict["stroke-width"] = "0"
-                            node.attrib["style"] = ss.formatStyle(node_style_dict)
+                    # Ensure that strokes with color "none" have zero width to ensure proper colorization via Inkscape
+                    for node in new_group.getiterator(tag="{%s}path" % SVG_NS):
+                        if "style" in node.attrib:
+                            node_style_dict = ss.parseStyle(node.attrib["style"])
+                            if "stroke" in node_style_dict and node_style_dict["stroke"].lower() == "none":
+                                node_style_dict["stroke-width"] = "0"
+                                node.attrib["style"] = ss.formatStyle(node_style_dict)
+                    return Pdf2SvgSvgElement(new_group)
+                except:  # todo: <-- be more precise here
+                    raise TexTextNonFatalError("Can't find a group in resulting svg")
 
-                # return new_group
-                return Pdf2SvgSvgElement(new_group)
-
-            except:  # todo: <-- be more precise here
-                raise TexTextNonFatalError("Can't find a group in resulting svg")
 
         @classmethod
         def check_available(cls):
             """
             Check if pdf2svg is available
             """
+            logger.debug("Checking pdf2svg")
             exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
@@ -1359,21 +1519,47 @@ try:
     if __name__ == "__main__":
         effect = TexText()
         effect.affect()
+        effect.settings.set("previous_exit_code", EXIT_CODE_OK)
+        effect.settings.save()
+
 
 except TexTextInternalError as e:
     # TexTextInternalError should never be raised.
     # It's TexText logic error and should be reported.
     logger.error(e.message)
     logger.error(traceback.format_exc())
-    logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
+    logger.info("TexText finished with error, please run extension again")
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 except TexTextFatalError as e:
     logger.error(e.message)
     user_log_channel.show_messages()
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_EXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_EXPECTED_ERROR)   # Bad setup
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
     logger.error(e.message)
     logger.error(traceback.format_exc())
-    logger.info("Please file a bug to https://github.com/textext/textext/issues/new")
+    logger.info("TexText finished with error, please run extension again")
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
+    try:
+        settings = Settings()
+        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
+        settings.save()
+    except:
+        pass
+    exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
