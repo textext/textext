@@ -44,7 +44,6 @@ __version__ = "0.8.1"
 __docformat__ = "restructuredtext en"
 
 import abc
-import contextlib
 import copy
 import hashlib
 import logging
@@ -52,198 +51,13 @@ import logging.handlers
 import math
 import os
 import platform
-import shutil
-import stat
 import StringIO
-import subprocess
 import sys
-import tempfile
 import traceback
 
-from requirements_check import check_requirements, set_logging_levels
-
-
-class ChangeDirectory(object):
-    def __init__(self, dir):
-        self.new_dir = dir
-        self.old_dir = os.path.abspath(os.path.curdir)
-
-    def __enter__(self):
-        os.chdir(self.new_dir)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        os.chdir(self.old_dir)
-
-
-class TemporaryDirectory(object):
-    """ Mimic tempfile.TemporaryDirectory from python3 """
-    def __init__(self):
-        self.dir_name = None
-
-    def __enter__(self):
-        self.dir_name = tempfile.mkdtemp("textext_")
-        return self.dir_name
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-
-        def retry_with_chmod(func, path, exec_info):
-            os.chmod(path, stat.S_IWRITE)
-            func(path)
-
-        if self.dir_name:
-            shutil.rmtree(self.dir_name, onerror=retry_with_chmod)
-
-
-@contextlib.contextmanager
-def ChangeToTemporaryDirectory():
-    with TemporaryDirectory() as temp_dir:
-        with ChangeDirectory(temp_dir):
-            yield None
-
-class TexTextError(RuntimeError):
-    """ Basic class of all TexText errors"""
-    pass
-
-
-class TexTextNonFatalError(TexTextError):
-    """ TexText can continue execution properly """
-    pass
-
-
-class TexTextCommandError(TexTextError):
-    pass
-
-
-class TexTextCommandNotFound(TexTextCommandError):
-    pass
-
-
-class TexTextCommandFailed(TexTextCommandError):
-    pass
-
-
-class TexTextConversionError(TexTextNonFatalError):
-    pass
-
-
-class TexTextFatalError(TexTextError):
-    """
-        TexText can't continue properly
-
-        Primary usage is assert-like statements:
-        if <condition>: raise FatalTexTextError(...)
-
-        Example: missing *latex executable
-    """
-    pass
-
-
-class TexTextInternalError(TexTextFatalError):
-    pass
-
-
-class TexTextPreconditionError(TexTextInternalError):
-    pass
-
-
-class TexTextPostconditionError(TexTextInternalError):
-    pass
-
-
-class TexTextUnreachableBranchError(TexTextInternalError):
-    pass
-
-
-class BadTexInputError(TexTextNonFatalError):
-    pass
-
-
-class CycleBufferHandler(logging.handlers.BufferingHandler):
-
-    def __init__(self, capacity):
-        super(CycleBufferHandler, self).__init__(capacity)
-
-    def emit(self, record):
-        self.buffer.append(record)
-        if len(self.buffer) > self.capacity:
-            self.buffer = self.buffer[-self.capacity:]
-
-    def show_messages(self):
-        """show messages to user and empty buffer"""
-        inkex.errormsg("\n".join([self.format(record) for record in self.buffer]))
-        self.flush()
-
-
-class MyLogger(logging.Logger):
-    """
-        Needs to produce correct line numbers
-    """
-    def findCaller(self):
-        n_frames_upper = 2
-        f = logging.currentframe()
-        for _ in range(2 + n_frames_upper):  # <-- correct frame
-            if f is not None:
-                f = f.f_back
-        rv = "(unknown file)", 0, "(unknown function)"
-        while hasattr(f, "f_code"):
-            co = f.f_code
-            filename = os.path.normcase(co.co_filename)
-            if filename == logging._srcfile:
-                f = f.f_back
-                continue
-            rv = (co.co_filename, f.f_lineno, co.co_name)
-            break
-        return rv
-
-
-class NestedLoggingGuard(object):
-    message_offset = 0
-    message_indent = 2
-
-    def __init__(self, _logger, lvl=None, message=None):
-        self._logger = _logger
-        self._level = lvl
-        self._message = message
-        if lvl is not None and message is not None:
-            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message)
-
-    def __enter__(self):
-        assert self._level is not None
-        assert self._message is not None
-        NestedLoggingGuard.message_offset += NestedLoggingGuard.message_indent
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        assert self._level is not None
-        assert self._message is not None
-        if exc_type is None:
-            result = "done"
-        else:
-            result = "failed"
-        NestedLoggingGuard.message_offset -= NestedLoggingGuard.message_indent
-
-        def tmp1():  # this nesting needed to even number of stack frames in __enter__ and __exit__
-            def tmp2():
-                self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message.strip() + " " + result)
-            tmp2()
-        tmp1()
-
-    def debug(self, message):
-        return self.log(logging.DEBUG, message)
-
-    def info(self, message):
-        return self.log(logging.INFO, message)
-
-    def error(self, message):
-        return self.log(logging.ERROR, message)
-
-    def warning(self, message):
-        return self.log(logging.WARNING, message)
-
-    def critical(self, message):
-        return self.log(logging.CRITICAL, message)
-
-    def log(self, lvl, message):
-        return NestedLoggingGuard(self._logger, lvl, message)
+from requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
+from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, exec_command
+from errors import *
 
 
 EXIT_CODE_OK = 0
@@ -270,7 +84,7 @@ file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
                                                         backupCount=2         # up to two log files
                                                         )
-file_log_channel.setLevel(logging.DEBUG)
+file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
 
 user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
@@ -283,24 +97,10 @@ __logger.addHandler(user_log_channel)
 
 try:
 
-    MAC = "Darwin"
-    WINDOWS = "Windows"
-    PLATFORM = platform.system()
-
-    if PLATFORM == MAC:
-        sys.path.append('/Applications/Inkscape.app/Contents/Resources/extensions')
-        sys.path.append('/usr/local/lib/python2.7/site-packages')
-        sys.path.append('/usr/local/lib/python2.7/site-packages/gtk-2.0')
-
-    sys.path.append(os.path.dirname(__file__))
-
     import inkex
     import simplestyle as ss
     import simpletransform as st
     from lxml import etree
-
-    if PLATFORM == WINDOWS:
-        import win_app_paths as wap
 
     TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
     SVG_NS = u"http://www.w3.org/2000/svg"
@@ -328,13 +128,16 @@ try:
 
         def __init__(self):
 
-            self.settings = Settings()
-            previous_exit_code = self.settings.get("previous_exit_code", int, None)
+            self.config = Settings("config.json")
+            self.cache = Cache()
+            previous_exit_code = self.cache.get("previous_exit_code", None)
 
             if previous_exit_code is None:
                 logging.disable(logging.NOTSET)
                 logger.debug("First run of TexText. Enforcing DEBUG mode.")
-            elif previous_exit_code == EXIT_CODE_EXPECTED_ERROR:
+            elif previous_exit_code == EXIT_CODE_OK:
+                logging.disable(logging.CRITICAL)
+            elif previous_exit_code == EXIT_CODE_UNEXPECTED_ERROR:
                 logging.disable(logging.NOTSET)
                 logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
             else:
@@ -356,11 +159,12 @@ try:
             logger.debug("sys.version = %s" % repr(sys.version))
             logger.debug("os.environ = %s" % repr(os.environ))
 
-            if previous_exit_code != EXIT_CODE_OK:
-                if check_requirements(logger) == False:
-                    raise TexTextFatalError("TexText requirements are not met. "
-                                            "Please follow instructions "
-                                            "https://github.com/textext/textext/wiki/Installation-instructions")
+            self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
+
+            if self.requirements_checker.check() == False:
+                raise TexTextFatalError("TexText requirements are not met. "
+                                        "Please follow instructions "
+                                        "https://github.com/textext/textext/wiki/Installation-instructions")
 
             inkex.Effect.__init__(self)
 
@@ -371,11 +175,11 @@ try:
             self.OptionParser.add_option(
                 "-p", "--preamble-file", action="store", type="string",
                 dest="preamble_file",
-                default=self.settings.get('preamble', str, "default_packages.tex"))
+                default=self.config.get('preamble', "default_packages.tex"))
             self.OptionParser.add_option(
                 "-s", "--scale-factor", action="store", type="float",
                 dest="scale_factor",
-                default=self.settings.get('scale', float, 1.0))
+                default=self.config.get('scale', 1.0))
 
         # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
         # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
@@ -431,19 +235,16 @@ try:
                 # Pick a converter
                 converter_errors = []
 
-                usable_converter_class = None
-                for converter_class in CONVERTERS:
+                tex_to_pdf_converter = None
+                for converter_class_name, converter_class in CONVERTERS.items():
                     try:
-                        converter_class.check_available()
-                        usable_converter_class = converter_class
-                        logger.debug("%s is usable" % converter_class.__name__)
-                        break
+                        if converter_class_name in self.requirements_checker.available_pdf_to_svg_converters:
+                            tex_to_pdf_converter = converter_class(self.requirements_checker)
+                            logger.debug("%s is usable" % converter_class.__name__)
+                            break
                     except TexTextCommandError as err:
                         logger.debug("%s is not usable" % converter_class.__name__)
                         converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
-
-                if not usable_converter_class:
-                    raise TexTextFatalError("No Latex -> SVG converter available:\n%s" % ';\n'.join(converter_errors))
 
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
@@ -475,7 +276,13 @@ try:
                 else:
                     logger.debug("Using default node alignment `%s`" %alignment)
 
-                current_tex_command = TexText.DEFAULT_TEXCMD
+                preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
+
+                if preferred_tex_cmd in self.requirements_checker.available_tex_to_pdf_converters.keys():
+                    current_tex_command = preferred_tex_cmd
+                else:
+                    current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
+
                 if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
                     current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
                 else:
@@ -508,20 +315,25 @@ try:
                         preamble_file = ""
 
                     asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                             current_alignment=alignment, current_texcmd=current_tex_command)
+                                             current_alignment=alignment, current_texcmd=current_tex_command,
+                                                 tex_commands=sorted(list(self.requirements_checker.available_tex_to_pdf_converters.keys()))
+                                                 )
 
-                    def callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
+                    def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
-                        return self.do_convert(_text, _preamble, _scale, usable_converter_class, old_svg_ele, alignment,
-                                               tex_cmd, original_scale=current_scale)
+                        return self.do_convert(_text, _preamble, _scale, tex_to_pdf_converter, old_svg_ele, alignment,
+                                               tex_command=tex_cmd,
+                                               original_scale=current_scale)
+
+                    def preview_callback(_text, _preamble, _preview_callback, _tex_command):
+                        return self.preview_convert(_text,
+                                                    _preamble,
+                                                    tex_to_pdf_converter,
+                                                    _preview_callback,
+                                                    _tex_command)
 
                     with logger.debug("Run TexText GUI"):
-                        asker.ask(callback,
-                                  lambda _text, _preamble, _preview_callback, _tex_command: self.preview_convert(_text,
-                                                                                                             _preamble,
-                                                                                                             usable_converter_class,
-                                                                                                             _preview_callback,
-                                                                                                             _tex_command))
+                        asker.ask(save_callback, preview_callback)
 
 
                 else:
@@ -529,25 +341,26 @@ try:
                     self.do_convert(self.options.text,
                                     self.options.preamble_file,
                                     self.options.scale_factor,
-                                usable_converter_class,
-                                old_svg_ele,
-                                self.DEFAULT_ALIGNMENT,
-                                self.DEFAULT_TEXCMD,
-                                original_scale=current_scale
-                                )
+                                    tex_to_pdf_converter,
+                                    old_svg_ele,
+                                    self.DEFAULT_ALIGNMENT,
+                                    self.DEFAULT_TEXCMD,
+                                    original_scale=current_scale
+                                    )
 
-
-        @staticmethod
-        def preview_convert(text, preamble_file, converter_class, image_setter, tex_command):
+        def preview_convert(self, text, preamble_file, converter, image_setter, tex_command):
             """
             Generates a preview PNG of the LaTeX output using the selected converter.
 
             :param text:
             :param preamble_file:
-            :param converter_class:
+            :param converter:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
+
+            tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+
             with logger.debug("TexText.preview"):
                 with logger.debug("args:"):
                     for k,v in locals().items():
@@ -560,37 +373,28 @@ try:
                 if isinstance(text, unicode):
                     text = text.encode('utf-8')
 
-                converter = converter_class()
-
                 with ChangeToTemporaryDirectory():
                     with logger.debug("Converting tex to pdf"):
-                        converter.tex_to_pdf(tex_command, text, preamble_file)
+                        converter.tex_to_pdf(tex_executable, text, preamble_file)
+                        converter.pdf_to_svg()
 
-                    # convert resulting pdf to png using ImageMagick's 'convert' or 'magick'
-                    with logger.debug("Converting pdf to png"):
+                        # convert resulting svg to png using Inkscape
                         try:
-                            # -trim MUST be placed between the filenames!
-                            options = ['-density', '200', '-background', 'transparent', converter.tmp('pdf'),
-                                       '-trim', converter.tmp('png')]
+                            options = ['-f', converter.tmp("svg"),
+                                       '--export-png', converter.tmp('png'),
+                                       '--export-area-drawing',
+                                       '--export-dpi=200'
+                                       ]
+                            executable = self.requirements_checker.inkscape_executable
 
-                            if PLATFORM == WINDOWS:
-                                win_command = wap.get_imagemagick_command()
-                                if not win_command:
-                                    raise TexTextCommandNotFound("Can't find imagemagick executable")
-                                exec_command([win_command] + options)
-                            else:
-                                try:
-                                    exec_command(['convert'] + options)   # ImageMagick 6
-                                except TexTextCommandNotFound:
-                                    exec_command(['magick'] + options)    # ImageMagick 7
+                            exec_command([executable] + options)
 
                             image_setter(converter.tmp('png'))
-                        except TexTextCommandFailed as error:
-                            raise TexTextNonFatalError("Could not convert PDF to PNG. Please make sure that ImageMagick is installed.\nDetailed error message:\n%s" % (str(error)))
-                        except TexTextCommandNotFound:
-                            pass
+                        except TexTextCommandError as error:
+                            raise TexTextNonFatalError(
+                                "Could not convert SVG to PNG. \nDetailed error message:\n%s" % error.message)
 
-        def do_convert(self, text, preamble_file, user_scale_factor, converter_class, old_svg_ele, alignment, tex_command,
+        def do_convert(self, text, preamble_file, user_scale_factor, converter, old_svg_ele, alignment, tex_command,
                        original_scale=None):
             """
             Does the conversion using the selected converter.
@@ -603,6 +407,8 @@ try:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
+
+            tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
             with logger.debug("TexText.do_convert"):
                 with logger.debug("args:"):
@@ -621,9 +427,8 @@ try:
                 scale_factor = user_scale_factor * self.unit_to_uu("1pt")
 
                 # Convert
-                converter = converter_class()
                 with logger.debug("Converting tex to svg"):
-                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_command)
+                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_executable)
 
                 # -- Store textext attributes
                 new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
@@ -667,14 +472,17 @@ try:
                 with logger.debug("Saving global settings"):
                     # -- Save settings
                     if os.path.isfile(preamble_file):
-                        self.settings.set('preamble', preamble_file)
+                        self.config['preamble'] = preamble_file
                     else:
-                        self.settings.set('preamble', '')
+                        self.config['preamble'] = ''
 
                     # ToDo: Do we really need this if statement?
                     if scale_factor is not None:
-                        self.settings.set('scale', user_scale_factor)
-                    self.settings.save()
+                        self.config['scale'] = user_scale_factor
+
+                    self.config["previous_tex_command"] = tex_command
+
+                    self.config.save()
 
         def get_old(self):
             """
@@ -727,171 +535,6 @@ try:
             # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
             return
 
-
-    class Settings(object):
-        def __init__(self):
-            self.values = {}
-
-            if PLATFORM == WINDOWS:
-                self.keyname = r"Software\TexText\TexText"
-            else:
-                self.filename = os.path.expanduser("~/.inkscape/textextrc")
-
-            self.load()
-
-        def load(self):
-            if PLATFORM == WINDOWS:
-                import _winreg
-
-                try:
-                    key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.keyname)
-                except WindowsError:
-                    return
-                try:
-                    self.values = {}
-                    for j in range(1000):
-                        try:
-                            name, data, dtype = _winreg.EnumValue(key, j)
-                        except EnvironmentError:
-                            break
-                        self.values[name] = str(data)
-                finally:
-                    key.Close()
-            else:
-                try:
-                    f = open(self.filename, 'r')
-                except (IOError, OSError):
-                    return
-                try:
-                    self.values = {}
-                    for line in f.read().split("\n"):
-                        if '=' not in line:
-                            continue
-                        k, v = line.split("=", 1)
-                        self.values[k.strip()] = v.strip()
-                finally:
-                    f.close()
-
-        def save(self):
-            if PLATFORM == WINDOWS:
-                import _winreg
-
-                try:
-                    key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER,
-                                          self.keyname,
-                                          0,
-                                          _winreg.KEY_SET_VALUE | _winreg.KEY_WRITE)
-                except WindowsError:
-                    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, self.keyname)
-                try:
-                    for k, v in self.values.iteritems():
-                        _winreg.SetValueEx(key, str(k), 0, _winreg.REG_SZ, str(v))
-                finally:
-                    key.Close()
-            else:
-                d = os.path.dirname(self.filename)
-                if not os.path.isdir(d):
-                    os.makedirs(d)
-
-                f = open(self.filename, 'w')
-                try:
-                    data = '\n'.join(["%s=%s" % (k, v) for k, v in self.values.iteritems()])
-                    f.write(data)
-                finally:
-                    f.close()
-
-        def get(self, key, typecast, default=None):
-            try:
-                return typecast(self.values[key])
-            except (KeyError, ValueError, TypeError):
-                return default
-
-        def set(self, key, value):
-            self.values[key] = str(value)
-
-
-    #------------------------------------------------------------------------------
-    # LaTeX converters
-    #------------------------------------------------------------------------------
-
-    try:
-        def exec_command(cmd, ok_return_value=0):
-            """
-            Run given command, check return value, and return
-            concatenated stdout and stderr.
-            :param cmd: Command to execute
-            :param ok_return_value: The expected return value after successful completion
-            :raises: TexTextCommandNotFound, TexTextCommandFailed
-            """
-
-            try:
-                # hides the command window for cli tools that are run (in Windows)
-                info = None
-                if PLATFORM == WINDOWS:
-                    info = subprocess.STARTUPINFO()
-                    info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    info.wShowWindow = subprocess.SW_HIDE
-
-                p = subprocess.Popen(cmd,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE,
-                                     stdin=subprocess.PIPE,
-                                     startupinfo=info)
-                out, err = p.communicate()
-            except OSError as err:
-                raise TexTextCommandNotFound("Command %s failed: %s" % (' '.join(cmd), err))
-
-            if ok_return_value is not None and p.returncode != ok_return_value:
-                raise TexTextCommandFailed("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
-            return out + err
-
-    except ImportError:
-        # Python < 2.4 ...
-        import popen2
-
-
-        def exec_command(cmd, ok_return_value=0):
-            """
-            Run given command, check return value, and return
-            concatenated stdout and stderr.
-            """
-
-            # XXX: unix-only!
-
-            try:
-                p = popen2.Popen4(cmd, True)
-                p.tochild.close()
-                returncode = p.wait() >> 8
-                out = p.fromchild.read()
-            except OSError, err:
-                raise TexTextNonFatalError("Command %s failed: %s" % (' '.join(cmd), err))
-
-            if ok_return_value is not None and returncode != ok_return_value:
-                raise TexTextNonFatalError("Command %s failed (code %d): %s" % (' '.join(cmd), returncode, out))
-            return out
-
-    if PLATFORM == WINDOWS:
-        # Try to add some commonly needed paths to PATH
-        paths = os.environ.get('PATH', '').split(os.path.pathsep)
-
-        additional_path = ""
-        new_path_element = wap.get_pstoedit_dir()
-        if new_path_element:
-            if new_path_element != wap.IS_IN_PATH:
-                paths += [os.path.join(new_path_element)]
-        else:
-            raise TexTextFatalError(wap.get_last_error())
-
-        new_path_element = wap.get_ghostscript_dir()
-        if new_path_element:
-            if new_path_element != wap.IS_IN_PATH:
-                paths += [os.path.join(new_path_element)]
-        else:
-            raise TexTextFatalError(wap.get_last_error())
-
-        os.environ['PATH'] = os.path.pathsep.join(paths)
-
-
     class LatexConverterBase(object):
         """
         Base class for Latex -> SVG converters
@@ -908,8 +551,9 @@ try:
         LATEX_OPTIONS = ['-interaction=nonstopmode',
                          '-halt-on-error']
 
-        def __init__(self):
+        def __init__(self, checker):
             self.tmp_base = 'tmp'
+            self.checker = checker # type: requirements_check.TexTextRequirementsChecker
 
         def convert(self, latex_text, preamble_file, scale_factor, tex_command):
             """
@@ -923,13 +567,6 @@ try:
             :return: XML DOM node
             """
             raise NotImplementedError
-
-        @classmethod
-        def check_available(cls):
-            """
-            :Returns: Check if converter is available, raise RuntimeError if not
-            """
-            pass
 
         # --- Internal
         def tmp(self, suffix):
@@ -1037,9 +674,11 @@ try:
         """
         Convert PDF -> SVG using pstoedit's plot-svg backend
         """
+        def __init__(self, checker=None):
+            super(PstoeditPlotSvg, self).__init__(checker)
 
-        @staticmethod
-        def get_pdf_converter_name():
+        @classmethod
+        def get_pdf_converter_name(cls):
             return "pstoedit"
 
         def pdf_to_svg(self):
@@ -1055,8 +694,11 @@ try:
                 # Exec pstoedit: pdf -> svg
                 result = ""
                 try:
-                    result = exec_command(['pstoedit', '-f', 'plot-svg',
-                                           self.tmp('pdf'), self.tmp('svg')]
+                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
+                                           '-f', 'plot-svg',
+                                           self.tmp('pdf'),
+                                           self.tmp('svg')
+                                           ]
                                           + pstoeditOpts)
                 except TexTextCommandFailed as excpt:
                     # Linux runs into this in case of DELAYBIND error
@@ -1077,7 +719,6 @@ try:
 
                 if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
                     raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
-
 
         def svg_to_group(self):
             """
@@ -1109,24 +750,17 @@ try:
             for c in node:
                 self._fix_xml_namespace(c)
 
-        @classmethod
-        def check_available(cls):
-            """Check whether pstoedit has plot-svg"""
-            with logger.debug("Checking pstoedit"):
-                out = exec_command(['pstoedit', '-help'], ok_return_value=None)
-                if 'version 3.44' in out and 'Ubuntu' in out:
-                    raise TexTextCommandFailed("Pstoedit version 3.44 on Ubuntu found, but it contains too many bugs to be usable")
-                if 'plot-svg' not in out:
-                    raise TexTextCommandFailed("Pstoedit not compiled with plot-svg support")
-
 
     class Pdf2SvgPlotSvg(PdfConverterBase):
         """
         Convert PDF -> SVG using pdf2svg
         """
 
-        @staticmethod
-        def get_pdf_converter_name():
+        def __init__(self, checker):
+            super(Pdf2SvgPlotSvg, self).__init__(checker)
+
+        @classmethod
+        def get_pdf_converter_name(self):
             return "pdf2svg"
 
         def pdf_to_svg(self):
@@ -1136,7 +770,8 @@ try:
             with logger.debug("Converting .pdf to .svg"):
                 try:
                     # Exec pdf2cvg infile.pdf outfile.svg
-                    result = exec_command(['pdf2svg', self.tmp('pdf'), self.tmp('svg')])
+                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
+                                           self.tmp('pdf'), self.tmp('svg')])
                 except TexTextNonFatalError as e:
                     raise TexTextNonFatalError("Command pdf2svg failed: %s" % e.message)
 
@@ -1204,15 +839,6 @@ try:
                     return Pdf2SvgSvgElement(new_group)
                 except:  # todo: <-- be more precise here
                     raise TexTextNonFatalError("Can't find a group in resulting svg")
-
-
-        @classmethod
-        def check_available(cls):
-            """
-            Check if pdf2svg is available
-            """
-            logger.debug("Checking pdf2svg")
-            exec_command(['pdf2svg', '--help'], ok_return_value=None)
 
 
     class SvgElement(object):
@@ -1510,7 +1136,8 @@ try:
             return transform_as_list
 
 
-    CONVERTERS = [Pdf2SvgPlotSvg, PstoeditPlotSvg]
+    CONVERTERS = {PstoeditPlotSvg.get_pdf_converter_name(): PstoeditPlotSvg,
+                  Pdf2SvgPlotSvg.get_pdf_converter_name(): Pdf2SvgPlotSvg}
 
     #------------------------------------------------------------------------------
     # Entry point
@@ -1519,8 +1146,8 @@ try:
     if __name__ == "__main__":
         effect = TexText()
         effect.affect()
-        effect.settings.set("previous_exit_code", EXIT_CODE_OK)
-        effect.settings.save()
+        effect.cache["previous_exit_code"] = EXIT_CODE_OK
+        effect.cache.save()
 
 
 except TexTextInternalError as e:
@@ -1532,9 +1159,9 @@ except TexTextInternalError as e:
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
@@ -1542,9 +1169,9 @@ except TexTextFatalError as e:
     logger.error(e.message)
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_EXPECTED_ERROR)
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_EXPECTED_ERROR)   # Bad setup
@@ -1557,9 +1184,9 @@ except Exception as e:
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
-        settings = Settings()
-        settings.set("previous_exit_code", EXIT_CODE_UNEXPECTED_ERROR)
-        settings.save()
+        cache = Cache()
+        cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
+        cache.save()
     except:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error

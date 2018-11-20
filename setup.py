@@ -18,10 +18,11 @@ sys.path.append(os.path.join(
 
 from requirements_check import \
     set_logging_levels, \
-    check_requirements, \
+    TexTextRequirementsChecker, \
     defaults, \
     LoggingColors
 
+from utility import Settings
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
@@ -186,13 +187,76 @@ def remove_previous_installation(extension_dir):
 
 if __name__ == "__main__":
 
+    EXIT_SUCCESS = 0
+    EXIT_REQUIREMENT_CHECK_UNKNOWN = 64
+    EXIT_REQUIREMENT_CHECK_FAILED = 65
+    EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE = 2
+
     parser = argparse.ArgumentParser(description='Install TexText')
 
     parser.add_argument(
         "--inkscape-extensions-path",
         default=defaults.inkscape_extensions_path,
+        type=str,
         help="Path to inkscape extensions directory"
     )
+
+    parser.add_argument(
+        "--inkscape-executable",
+        default=None,
+        type=str,
+        help="Full path to inkscape executable"
+    )
+
+    parser.add_argument(
+        "--python27-executable",
+        default=None,
+        type=str,
+        help="Full path to python2.7 executable"
+    )
+
+    parser.add_argument(
+        "--pdflatex-executable",
+        default=None,
+        type=str,
+        help="Full path to pdflatex executable"
+    )
+
+    parser.add_argument(
+        "--lualatex-executable",
+        default=None,
+        type=str,
+        help="Full path to lualatex executable"
+    )
+
+    parser.add_argument(
+        "--xelatex-executable",
+        default=None,
+        type=str,
+        help="Full path to xelatex executable"
+    )
+
+    parser.add_argument(
+        "--pstoedit-executable",
+        default=None,
+        type=str,
+        help="Full path to pstoedit executable"
+    )
+
+    parser.add_argument(
+        "--ghostscript-executable",
+        default=None,
+        type=str,
+        help="Full path to ghostscript executable"
+    )
+
+    parser.add_argument(
+        "--pdf2svg-executable",
+        default=None,
+        type=str,
+        help="Full path to pdf2svg executable"
+    )
+
 
     parser.add_argument(
         "--skip-requirements-check",
@@ -224,7 +288,8 @@ if __name__ == "__main__":
 
     files_to_keep = {  # old_name : new_name
         "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex"  # new layout
+        "textext/default_packages.tex": "textext/default_packages.tex",  # new layout
+        "textext/config.json": "textext/config.json"  # new layout
     }
 
     args = parser.parse_args()
@@ -244,19 +309,47 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+    fh = logging.FileHandler("setup.log")
+    fh.setLevel(ch.level)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    settings = Settings()
+
+    checker = TexTextRequirementsChecker(logger, settings)
+
+    for executable_name in [
+                                "ghostscript",
+                                "inkscape",
+                                "lualatex",
+                                "pdf2svg",
+                                "pdflatex",
+                                "pstoedit",
+                                "python27",
+                                "xelatex",
+                            ]:
+        executable_path = getattr(args, "%s_executable" % executable_name)
+        if executable_path is not None:
+            if not checker.check_executable(executable_path):
+                logger.error("Bad `%s` executable provided: `%s`. Abort installation." % (executable_name, executable_path))
+                exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
+
+            settings["%s-executable" % executable_name] = executable_path
+
     if not args.skip_requirements_check:
-        check_result = check_requirements(logger)
+
+        check_result = checker.check()
         if check_result == None:
             logger.info("Automatic requirements check is incomplete")
             logger.info("Please check requirements list manually and run:")
             logger.info(" ".join(sys.argv + ["--skip-requirements-check"]))
-            exit(64)
+            exit(EXIT_REQUIREMENT_CHECK_UNKNOWN)
 
         if check_result == False:
             logger.info("Automatic requirements check found issue")
             logger.info("Follow instruction above and run install script again")
             logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
-            exit(65)
+            exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
 
@@ -267,6 +360,10 @@ if __name__ == "__main__":
                     logger.debug("%s not found" % old_filename)
                 else:
                     logger.debug("%s found" % old_filename)
+                    if not os.path.isfile(os.path.join("extension", new_filename)):
+                        logger.info("`%s` is not found in distribution, keep old file" % new_filename)
+                        found_files_to_keep[old_filename] = new_filename
+                        continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
                             open(os.path.join("extension", new_filename)) as f_new:
                         if f_old.read() != f_new.read():
@@ -275,14 +372,17 @@ if __name__ == "__main__":
                         else:
                             logger.debug("Content of `%s` is identical to distribution" % old_filename)
 
-            files_to_keep = found_files_to_keep
+            files_to_keep = {}
 
-            if len(files_to_keep) > 0:
-                file_s = "file" if len(files_to_keep) == 1 else "files"
-                for old_filename in files_to_keep.keys():
-                    logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
-                args.keep_previous_installation_files = query_yes_no(
-                    "Keep above %s from previous installation?" % file_s)
+            if len(found_files_to_keep) > 0:
+                file_s = "file" if len(found_files_to_keep) == 1 else "files"
+                for old_filename, new_filename in found_files_to_keep.iteritems():
+                    if os.path.isfile(os.path.join("extension", new_filename)):
+                        logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
+                        if query_yes_no("Keep `%s` from previous installation?" % old_filename):
+                            files_to_keep[old_filename] = new_filename
+
+                args.keep_previous_installation_files = True
             else:
                 args.keep_previous_installation_files = False
 
@@ -301,5 +401,6 @@ if __name__ == "__main__":
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
+        settings.save()
 
-    exit(0)
+    exit(EXIT_SUCCESS)
