@@ -173,10 +173,9 @@ class Settings(object):
 
 class Cache(Settings):
     def __init__(self, basename=".cache.json"):
-        super(Cache, self).__init__(basename)
         try:
-            self.load()
-        except ValueError:
+            super(Cache, self).__init__(basename)
+        except TexTextFatalError:
             pass
 
 def exec_command(cmd, ok_return_value=0):
