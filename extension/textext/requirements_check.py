@@ -64,6 +64,11 @@ class LinuxDefaults(Defaults):
 
 
 class WindowsDefaults(Defaults):
+
+    def __init__(self):
+        super(WindowsDefaults, self)
+        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+
     os_name = "windows"
     console_colors = "never"
     inkscape_executable_name = "inkscape.exe"
@@ -80,7 +85,7 @@ class WindowsDefaults(Defaults):
         return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
 
     def get_system_path(self):
-        return os.environ["PATH"].split(os.path.pathsep) + wap.get_non_syspath_dirs()
+        return self._tweaked_syspath
 
 
 class LoggingColors(object):
