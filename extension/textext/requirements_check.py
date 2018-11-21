@@ -13,12 +13,44 @@ class Defaults(object):
     def console_colors(self): pass
 
     @abc.abstractproperty
+    def inkscape_executable_name(self): pass
+
+    @abc.abstractproperty
+    def python27_executable_name(self): pass
+
+    @abc.abstractproperty
+    def pdflatex_executable_name(self): pass
+
+    @abc.abstractproperty
+    def lualatex_executable_name(self): pass
+
+    @abc.abstractproperty
+    def xelatex_executable_name(self): pass
+
+    @abc.abstractproperty
+    def pdf2svg_executable_name(self): pass
+
+    @abc.abstractproperty
+    def pstoedit_executable_name(self): pass
+
+    @abc.abstractproperty
+    def ghostscript_executable_name(self): pass
+
+    @abc.abstractproperty
     def inkscape_extensions_path(self): pass
 
 
 class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
+    inkscape_executable_name = "inkscape"
+    python27_executable_name = "python2.7"
+    pdflatex_executable_name = "pdflatex"
+    lualatex_executable_name = "lualatex"
+    xelatex_executable_name = "xelatex"
+    pdf2svg_executable_name = "pdf2svg"
+    pstoedit_executable_name = "pstoedit"
+    ghostscript_executable_name = "ghostscript"
 
     @property
     def inkscape_extensions_path(self):
@@ -28,6 +60,14 @@ class LinuxDefaults(Defaults):
 class WindowsDefaults(Defaults):
     os_name = "windows"
     console_colors = "never"
+    inkscape_executable_name = "inkscape.exe"
+    python27_executable_name = "python.exe"
+    pdflatex_executable_name = "pdflatex.exe"
+    lualatex_executable_name = "lualatex.exe"
+    xelatex_executable_name = "xelatex.exe"
+    pdf2svg_executable_name = "pdf2svg.exe"
+    pstoedit_executable_name = "pstoedit.exe"
+    ghostscript_executable_name = "gs.exe"
 
     @property
     def inkscape_extensions_path(self):
@@ -432,14 +472,14 @@ class TexTextRequirementsChecker(object):
         self.available_tex_to_pdf_converters = {}
         self.available_pdf_to_svg_converters = {}
 
-        self.inkscape_executable_name = "inkscape"
-        self.python27_executable_name = "python2.7"
-        self.pdflatex_executable_name = "pdflatex"
-        self.lualatex_executable_name = "lualatex"
-        self.xelatex_executable_name = "xelatex"
-        self.pdf2svg_executable_name = "pdf2svg"
-        self.pstoedit_executable_name = "pstoedit"
-        self.ghostscript_executable_name = "ghostscript"
+        self.inkscape_executable_name = defaults.inkscape_executable_name
+        self.python27_executable_name = defaults.python27_executable_name
+        self.pdflatex_executable_name = defaults.pdflatex_executable_name
+        self.lualatex_executable_name = defaults.lualatex_executable_name
+        self.xelatex_executable_name = defaults.xelatex_executable_name
+        self.pdf2svg_executable_name = defaults.pdf2svg_executable_name
+        self.pstoedit_executable_name = defaults.pstoedit_executable_name
+        self.ghostscript_executable_name = defaults.ghostscript_executable_name
 
         self.inkscape_executable = None
         self.python27_executable = None
