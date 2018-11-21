@@ -78,7 +78,7 @@ class WindowsDefaults(Defaults):
     xelatex_executable_name = "xelatex.exe"
     pdf2svg_executable_name = "pdf2svg.exe"
     pstoedit_executable_name = "pstoedit.exe"
-    ghostscript_executable_name = "gs.exe"
+    ghostscript_executable_name = ["gswin64c.exe", "gswin32c.exe", "gs.exe"]
 
     @property
     def inkscape_extensions_path(self):
@@ -573,34 +573,36 @@ class TexTextRequirementsChecker(object):
                     "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
-    def find_executable(self, executable_name):
-        # try value from config
-        executable_path = self.config.get(executable_name+"-executable", None)
-        if executable_path is not None:
-            if self.check_executable(executable_path):
-                self.logger.info("Using `%s-executable` = `%s`" % (executable_name, executable_path))
-                return RequirementCheckResult(True, "%s is found at `%s`" % (executable_name, executable_path), path=executable_path)
-            else:
-                self.logger.warning("Bad `%s` executable: `%s`" % (executable_name,executable_path))
-                self.logger.warning("Fall back to automatic detection of `%s`" % executable_name)
+    def find_executable(self, executable_names):
+        if not isinstance(executable_names, list): executable_names = [executable_names]
+        for exe_name in executable_names:
+            # try value from config
+            executable_path = self.config.get(exe_name+"-executable", None)
+            if executable_path is not None:
+                if self.check_executable(executable_path):
+                    self.logger.info("Using `%s-executable` = `%s`" % (exe_name, executable_path))
+                    return RequirementCheckResult(True, "%s is found at `%s`" % (exe_name, executable_path), path=executable_path)
+                else:
+                    self.logger.warning("Bad `%s` executable: `%s`, trying next one..." % (exe_name, executable_path))
+                    self.logger.warning("Fall back to automatic detection of `%s`" % exe_name)
         # look for executable in path
-        return self._find_executable_in_path(executable_name)
+        return self._find_executable_in_path(executable_names)
 
-    def _find_executable_in_path(self, executable_name):
-
+    def _find_executable_in_path(self, executable_names):
         messages = []
-        first_path = None
-        for path in defaults.get_system_path():
-            full_path_guess = os.path.join(path, executable_name)
-            self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (executable_name, path))
-            if self.check_executable(full_path_guess):
-                self.logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
-                messages.append("`%s` is found at `%s`" % (executable_name, path))
-                if first_path is None:
-                    first_path = path
-        if len(messages) > 0:
-            return RequirementCheckResult(True, messages, path=os.path.join(first_path,executable_name))
-        messages.append("`%s` is NOT found in PATH" % (executable_name))
+        for exe_name in executable_names:
+            first_path = None
+            for path in defaults.get_system_path():
+                full_path_guess = os.path.join(path, exe_name)
+                self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
+                if self.check_executable(full_path_guess):
+                    self.logger.log(VERBOSE, "`%s` is found at `%s`" % (exe_name, path))
+                    messages.append("`%s` is found at `%s`" % (exe_name, path))
+                    if first_path is None:
+                        first_path = path
+            if len(messages) > 0:
+                return RequirementCheckResult(True, messages, path=os.path.join(first_path,exe_name))
+            messages.append("`%s` is NOT found in PATH" % (exe_name))
         return RequirementCheckResult(False, messages)
 
     def check_executable(self, filename):
