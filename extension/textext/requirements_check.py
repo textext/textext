@@ -39,6 +39,9 @@ class Defaults(object):
     @abc.abstractproperty
     def inkscape_extensions_path(self): pass
 
+    @abc.abstractmethod
+    def get_system_path(self): pass
+
 
 class LinuxDefaults(Defaults):
     os_name = "linux"
@@ -56,6 +59,9 @@ class LinuxDefaults(Defaults):
     def inkscape_extensions_path(self):
         return os.path.expanduser("~/.config/inkscape/extensions")
 
+    def get_system_path(self):
+        return os.environ["PATH"].split(os.path.pathsep)
+
 
 class WindowsDefaults(Defaults):
     os_name = "windows"
@@ -72,6 +78,9 @@ class WindowsDefaults(Defaults):
     @property
     def inkscape_extensions_path(self):
         return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+
+    def get_system_path(self):
+        return os.environ["PATH"].split(os.path.pathsep) + wap.get_non_syspath_dirs()
 
 
 class LoggingColors(object):
@@ -576,7 +585,7 @@ class TexTextRequirementsChecker(object):
 
         messages = []
         first_path = None
-        for path in os.environ["PATH"].split(os.path.pathsep):
+        for path in defaults.get_system_path():
             full_path_guess = os.path.join(path, executable_name)
             self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (executable_name, path))
             if self.check_executable(full_path_guess):
@@ -699,6 +708,7 @@ class TexTextRequirementsChecker(object):
 get_levels_colors = LoggingColors()
 
 if sys.platform.startswith("win"):
+    import win_app_paths as wap
     defaults = WindowsDefaults()
 else:
     defaults = LinuxDefaults()
