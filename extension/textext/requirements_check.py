@@ -69,8 +69,29 @@ class WindowsDefaults(Defaults):
         super(WindowsDefaults, self)
         self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
 
+    # Windows 10 supports colored output since anniversary update (build 14393)
+    # so we try to use it (it has to be enabled since it is always disabled by default!)
+    wininfo = sys.getwindowsversion()
+    if wininfo.major >= 10 and wininfo.build >= 14393:
+        try:
+            import ctypes as ct
+            h_kernel32 = ct.windll.kernel32
+
+            #  STD_OUTPUT_HANDLE = -11
+            # -> https://docs.microsoft.com/en-us/windows/console/getstdhandle
+            h_stdout = h_kernel32.GetStdHandle(-11)
+
+            # ENABLE_PROCESSED_OUTPUT  | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING = 7
+            # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
+            result = h_kernel32.SetConsoleMode(h_stdout, 7)
+
+            console_colors = "always"
+        except (ImportError, AttributeError):
+            pass
+    else:
+        console_colors = "never"
+
     os_name = "windows"
-    console_colors = "never"
     inkscape_executable_name = "inkscape.exe"
     python27_executable_name = "python.exe"
     pdflatex_executable_name = "pdflatex.exe"
