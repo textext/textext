@@ -42,6 +42,10 @@ class Defaults(object):
     @abc.abstractmethod
     def get_system_path(self): pass
 
+    @staticmethod
+    @abc.abstractmethod
+    def check_call(command): pass
+
 
 class LinuxDefaults(Defaults):
     os_name = "linux"
@@ -62,6 +66,12 @@ class LinuxDefaults(Defaults):
     def get_system_path(self):
         return os.environ["PATH"].split(os.path.pathsep)
 
+    @staticmethod
+    def check_call(command):
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return p.communicate()
+
+
 
 class WindowsDefaults(Defaults):
 
@@ -71,9 +81,10 @@ class WindowsDefaults(Defaults):
 
     # Windows 10 supports colored output since anniversary update (build 14393)
     # so we try to use it (it has to be enabled since it is always disabled by default!)
-    wininfo = sys.getwindowsversion()
-    if wininfo.major >= 10 and wininfo.build >= 14393:
-        try:
+    try:
+        wininfo = sys.getwindowsversion()
+        if wininfo.major >= 10 and wininfo.build >= 14393:
+
             import ctypes as ct
             h_kernel32 = ct.windll.kernel32
 
@@ -86,10 +97,10 @@ class WindowsDefaults(Defaults):
             result = h_kernel32.SetConsoleMode(h_stdout, 7)
 
             console_colors = "always"
-        except (ImportError, AttributeError):
-            pass
-    else:
-        console_colors = "never"
+        else:
+            console_colors = "never"
+    except (ImportError, AttributeError):
+        pass
 
     os_name = "windows"
     inkscape_executable_name = "inkscape.exe"
@@ -107,6 +118,15 @@ class WindowsDefaults(Defaults):
 
     def get_system_path(self):
         return self._tweaked_syspath
+
+    @staticmethod
+    def check_call(command):
+        # Ensure that command window does not pop up on Windows!
+        info = subprocess.STARTUPINFO()
+        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        info.wShowWindow = subprocess.SW_HIDE
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+        return p.communicate()
 
 
 class LoggingColors(object):
@@ -527,7 +547,7 @@ class TexTextRequirementsChecker(object):
     def find_pygtk2(self):
         try:
             executable = self.find_executable(self.python27_executable_name)["path"]
-            self._check_call([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+            defaults.check_call([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
         return RequirementCheckResult(True, ["PyGTK2 is found"])
@@ -535,7 +555,7 @@ class TexTextRequirementsChecker(object):
     def find_tkinter(self):
         try:
             executable = self.find_executable(self.python27_executable_name)["path"]
-            self._check_call([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
+            defaults.check_call([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
@@ -544,7 +564,7 @@ class TexTextRequirementsChecker(object):
     def find_ghostscript(self, version=None):
         try:
             executable = self.find_executable(self.ghostscript_executable_name)["path"]
-            stdout, stderr = self._check_call([executable, "--version"])
+            stdout, stderr = defaults.check_call([executable, "--version"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["ghostscript is not found"])
@@ -569,7 +589,7 @@ class TexTextRequirementsChecker(object):
 
         try:
             executable = self.find_executable(self.pstoedit_executable_name)["path"]
-            stdout, stderr = self._check_call([executable])
+            stdout, stderr = defaults.check_call([executable])
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["pstoedit is not found"])
@@ -604,15 +624,6 @@ class TexTextRequirementsChecker(object):
                     self.logger.warning("Fall back to automatic detection of `%s`" % exe_name)
         # look for executable in path
         return self._find_executable_in_path(executable_names)
-
-    @staticmethod
-    def _check_call(command):
-        # Ensure that command window does not pop up on Windows!
-        info = subprocess.STARTUPINFO()
-        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        info.wShowWindow = subprocess.SW_HIDE
-        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
-        return p.communicate()
 
     def _find_executable_in_path(self, executable_names):
         messages = []
