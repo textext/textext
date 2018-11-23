@@ -72,12 +72,14 @@ class LinuxDefaults(Defaults):
         return p.communicate()
 
 
-
 class WindowsDefaults(Defaults):
 
     def __init__(self):
         super(WindowsDefaults, self)
         self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+
+    os_name = "windows"
+    console_colors = "never"
 
     # Windows 10 supports colored output since anniversary update (build 14393)
     # so we try to use it (it has to be enabled since it is always disabled by default!)
@@ -97,12 +99,9 @@ class WindowsDefaults(Defaults):
             result = h_kernel32.SetConsoleMode(h_stdout, 7)
 
             console_colors = "always"
-        else:
-            console_colors = "never"
     except (ImportError, AttributeError):
         pass
 
-    os_name = "windows"
     inkscape_executable_name = "inkscape.exe"
     python27_executable_name = "python.exe"
     pdflatex_executable_name = "pdflatex.exe"
