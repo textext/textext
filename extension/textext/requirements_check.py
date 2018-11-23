@@ -163,7 +163,7 @@ class LoggingColors(object):
         ]
         if not LoggingColors.enable_colors:
             colors = [""] * len(colors)
-            COLOR_RESET = ""
+            self.COLOR_RESET = ""
         return {name: (level, color) for level, name, color in zip(levels, names, colors)}, self.COLOR_RESET
 
 
