@@ -10,28 +10,104 @@ class Defaults(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
+    def os_name(self): pass
+
+    @abc.abstractproperty
     def console_colors(self): pass
 
     @abc.abstractproperty
+    def executable_names(self): pass
+
+    @abc.abstractproperty
     def inkscape_extensions_path(self): pass
+
+    @abc.abstractmethod
+    def get_system_path(self): pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def call_command(command): pass
 
 
 class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
+    executable_names = {"inkscape": ["inkscape"],
+                        "python27": ["python2.7"],
+                        "pdflatex": ["pdflatex"],
+                        "lualatex": ["lualatex"],
+                        "xelatex": ["xelatex"],
+                        "pdf2svg": ["pdf2svg"],
+                        "pstoedit": ["pstoedit"],
+                        "ghostscript": ["ghostscript"]}
 
     @property
     def inkscape_extensions_path(self):
         return os.path.expanduser("~/.config/inkscape/extensions")
 
+    def get_system_path(self):
+        return os.environ["PATH"].split(os.path.pathsep)
+
+    @staticmethod
+    def call_command(command):
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return p.communicate()
+
 
 class WindowsDefaults(Defaults):
+
     os_name = "windows"
     console_colors = "never"
+    executable_names = {"inkscape": ["inkscape.exe"],
+                        "python27": ["python.exe"],
+                        "pdflatex": ["pdflatex.exe"],
+                        "lualatex": ["lualatex.exe"],
+                        "xelatex": ["xelatex.exe"],
+                        "pdf2svg": ["pdf2svg.exe"],
+                        "pstoedit": ["pstoedit.exe"],
+                        "ghostscript": ["gswin64c.exe", "gswin64c.exe", "gs.exe"]}
+
+    def __init__(self):
+        super(WindowsDefaults, self)
+        import win_app_paths as wap
+        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+
+        # Windows 10 supports colored output since anniversary update (build 14393)
+        # so we try to use it (it has to be enabled since it is always disabled by default!)
+        try:
+            wininfo = sys.getwindowsversion()
+            if wininfo.major >= 10 and wininfo.build >= 14393:
+
+                import ctypes as ct
+                h_kernel32 = ct.windll.kernel32
+
+                #  STD_OUTPUT_HANDLE = -11
+                # -> https://docs.microsoft.com/en-us/windows/console/getstdhandle
+                h_stdout = h_kernel32.GetStdHandle(-11)
+
+                # ENABLE_PROCESSED_OUTPUT  | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING = 7
+                # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
+                result = h_kernel32.SetConsoleMode(h_stdout, 7)
+
+                self.console_colors = "always"
+        except (ImportError, AttributeError):
+            pass
 
     @property
     def inkscape_extensions_path(self):
         return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+
+    def get_system_path(self):
+        return self._tweaked_syspath
+
+    @staticmethod
+    def call_command(command):
+        # Ensure that command window does not pop up on Windows!
+        info = subprocess.STARTUPINFO()
+        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        info.wShowWindow = subprocess.SW_HIDE
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+        return p.communicate()
 
 
 class LoggingColors(object):
@@ -109,7 +185,7 @@ class LoggingColors(object):
         ]
         if not LoggingColors.enable_colors:
             colors = [""] * len(colors)
-            COLOR_RESET = ""
+            self.COLOR_RESET = ""
         return {name: (level, color) for level, name, color in zip(levels, names, colors)}, self.COLOR_RESET
 
 
@@ -432,14 +508,14 @@ class TexTextRequirementsChecker(object):
         self.available_tex_to_pdf_converters = {}
         self.available_pdf_to_svg_converters = {}
 
-        self.inkscape_executable_name = "inkscape"
-        self.python27_executable_name = "python2.7"
-        self.pdflatex_executable_name = "pdflatex"
-        self.lualatex_executable_name = "lualatex"
-        self.xelatex_executable_name = "xelatex"
-        self.pdf2svg_executable_name = "pdf2svg"
-        self.pstoedit_executable_name = "pstoedit"
-        self.ghostscript_executable_name = "ghostscript"
+        self.inkscape_prog_name = "inkscape"
+        self.python_prog_name = "python27"
+        self.pdflatex_prog_name = "pdflatex"
+        self.lualatex_prog_name = "lualatex"
+        self.xelatex_prog_name = "xelatex"
+        self.pdf2svg_prog_name = "pdf2svg"
+        self.pstoedit_prog_name = "pstoedit"
+        self.ghostscript_prog_name = "ghostscript"
 
         self.inkscape_executable = None
         self.python27_executable = None
@@ -451,18 +527,16 @@ class TexTextRequirementsChecker(object):
 
     def find_pygtk2(self):
         try:
-            executable = self.find_executable(self.python27_executable_name)["path"]
-            subprocess.check_call([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            executable = self.find_executable(self.python_prog_name)["path"]
+            defaults.call_command([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
         return RequirementCheckResult(True, ["PyGTK2 is found"])
 
     def find_tkinter(self):
         try:
-            executable = self.find_executable(self.python27_executable_name)["path"]
-            subprocess.check_call([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            executable = self.find_executable(self.python_prog_name)["path"]
+            defaults.call_command([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
@@ -470,9 +544,8 @@ class TexTextRequirementsChecker(object):
 
     def find_ghostscript(self, version=None):
         try:
-            executable = self.find_executable(self.ghostscript_executable_name)["path"]
-            p = subprocess.Popen([executable, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            executable = self.find_executable(self.ghostscript_prog_name)["path"]
+            stdout, stderr = defaults.call_command([executable, "--version"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["ghostscript is not found"])
@@ -496,9 +569,8 @@ class TexTextRequirementsChecker(object):
     def find_pstoedit(self, version=None):
 
         try:
-            executable = self.find_executable(self.pstoedit_executable_name)["path"]
-            p = subprocess.Popen([executable], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            executable = self.find_executable(self.pstoedit_prog_name)["path"]
+            stdout, stderr = defaults.call_command([executable])
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["pstoedit is not found"])
@@ -519,34 +591,34 @@ class TexTextRequirementsChecker(object):
                     "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
-    def find_executable(self, executable_name):
+    def find_executable(self, prog_name):
         # try value from config
-        executable_path = self.config.get(executable_name+"-executable", None)
+        executable_path = self.config.get(prog_name+"-executable", None)
         if executable_path is not None:
             if self.check_executable(executable_path):
-                self.logger.info("Using `%s-executable` = `%s`" % (executable_name, executable_path))
-                return RequirementCheckResult(True, "%s is found at `%s`" % (executable_name, executable_path), path=executable_path)
+                self.logger.info("Using `%s-executable` = `%s`" % (prog_name, executable_path))
+                return RequirementCheckResult(True, "%s is found at `%s`" % (prog_name, executable_path), path=executable_path)
             else:
-                self.logger.warning("Bad `%s` executable: `%s`" % (executable_name,executable_path))
-                self.logger.warning("Fall back to automatic detection of `%s`" % executable_name)
+                self.logger.warning("Bad `%s` executable: `%s`" % (prog_name, executable_path))
+                self.logger.warning("Fall back to automatic detection of `%s`" % prog_name)
         # look for executable in path
-        return self._find_executable_in_path(executable_name)
+        return self._find_executable_in_path(prog_name)
 
-    def _find_executable_in_path(self, executable_name):
-
+    def _find_executable_in_path(self, prog_name):
         messages = []
-        first_path = None
-        for path in os.environ["PATH"].split(os.path.pathsep):
-            full_path_guess = os.path.join(path, executable_name)
-            self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (executable_name, path))
-            if self.check_executable(full_path_guess):
-                self.logger.log(VERBOSE, "`%s` is found at `%s`" % (executable_name, path))
-                messages.append("`%s` is found at `%s`" % (executable_name, path))
-                if first_path is None:
-                    first_path = path
-        if len(messages) > 0:
-            return RequirementCheckResult(True, messages, path=os.path.join(first_path,executable_name))
-        messages.append("`%s` is NOT found in PATH" % (executable_name))
+        for exe_name in defaults.executable_names[prog_name]:
+            first_path = None
+            for path in defaults.get_system_path():
+                full_path_guess = os.path.join(path, exe_name)
+                self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
+                if self.check_executable(full_path_guess):
+                    self.logger.log(VERBOSE, "`%s` is found at `%s`" % (exe_name, path))
+                    messages.append("`%s` is found at `%s`" % (exe_name, path))
+                    if first_path is None:
+                        first_path = path
+            if len(messages) > 0:
+                return RequirementCheckResult(True, messages, path=os.path.join(first_path,exe_name))
+            messages.append("`%s` is NOT found in PATH" % (exe_name))
         return RequirementCheckResult(False, messages)
 
     def check_executable(self, filename):
@@ -594,21 +666,21 @@ class TexTextRequirementsChecker(object):
             return result
 
         textext_requirements = (
-            Requirement(self.find_executable, self.inkscape_executable_name)
+            Requirement(self.find_executable, self.inkscape_prog_name)
             .prepend_message("ANY", 'Detect inkscape')
             .append_message("ERROR", help_message_with_url("inkscape","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
-            & Requirement(self.find_executable, self.python27_executable_name)
+            & Requirement(self.find_executable, self.python_prog_name)
             .append_message("ANY", 'Detect `python2.7`')
             .append_message("ERROR", help_message_with_url("python27","python27"))
             & (
-                    Requirement(self.find_executable, self.pdflatex_executable_name)
+                    Requirement(self.find_executable, self.pdflatex_prog_name)
                     .on_success(lambda result: add_latex("pdflatex", result["path"]))
                     .append_message("ERROR", help_message_with_url("latex", "pdflatex"))
-                    | Requirement(self.find_executable, self.lualatex_executable_name)
+                    | Requirement(self.find_executable, self.lualatex_prog_name)
                     .on_success(lambda result: add_latex("lualatex", result["path"]))
                     .append_message("ERROR", help_message_with_url("latex", "lualatex"))
-                    | Requirement(self.find_executable, self.xelatex_executable_name)
+                    | Requirement(self.find_executable, self.xelatex_prog_name)
                     .on_success(lambda result: add_latex("xelatex", result["path"]))
                     .append_message("ERROR", help_message_with_url("latex", "xelatex"))
             ).overwrite_check_message("Detect *latex")
@@ -637,7 +709,7 @@ class TexTextRequirementsChecker(object):
                 .append_message("ERROR", help_message_with_url("pstoedit"))
                 .on_failure(lambda result: "pstoedit" in self.available_pdf_to_svg_converters and self.available_pdf_to_svg_converters.pop("pstoedit"))
                 | (
-                    Requirement(self.find_executable, self.pdf2svg_executable_name)
+                    Requirement(self.find_executable, self.pdf2svg_prog_name)
                 ).prepend_message("ANY", "Detect pdf2svg:")
                 .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pdf2svg": result["path"]}))
                 .append_message("ERROR", help_message_with_url("pdf2svg"))
