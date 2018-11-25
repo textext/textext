@@ -10,6 +10,9 @@ class Defaults(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
+    def os_name(self): pass
+
+    @abc.abstractproperty
     def console_colors(self): pass
 
     @abc.abstractproperty
@@ -53,35 +56,8 @@ class LinuxDefaults(Defaults):
 
 class WindowsDefaults(Defaults):
 
-    def __init__(self):
-        super(WindowsDefaults, self)
-        import win_app_paths as wap
-        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
-
     os_name = "windows"
     console_colors = "never"
-
-    # Windows 10 supports colored output since anniversary update (build 14393)
-    # so we try to use it (it has to be enabled since it is always disabled by default!)
-    try:
-        wininfo = sys.getwindowsversion()
-        if wininfo.major >= 10 and wininfo.build >= 14393:
-
-            import ctypes as ct
-            h_kernel32 = ct.windll.kernel32
-
-            #  STD_OUTPUT_HANDLE = -11
-            # -> https://docs.microsoft.com/en-us/windows/console/getstdhandle
-            h_stdout = h_kernel32.GetStdHandle(-11)
-
-            # ENABLE_PROCESSED_OUTPUT  | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING = 7
-            # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
-            result = h_kernel32.SetConsoleMode(h_stdout, 7)
-
-            console_colors = "always"
-    except (ImportError, AttributeError):
-        pass
-
     executable_names = {"inkscape": ["inkscape.exe"],
                         "python27": ["python.exe"],
                         "pdflatex": ["pdflatex.exe"],
@@ -90,6 +66,32 @@ class WindowsDefaults(Defaults):
                         "pdf2svg": ["pdf2svg.exe"],
                         "pstoedit": ["pstoedit.exe"],
                         "ghostscript": ["gswin64c.exe", "gswin64c.exe", "gs.exe"]}
+
+    def __init__(self):
+        super(WindowsDefaults, self)
+        import win_app_paths as wap
+        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+
+        # Windows 10 supports colored output since anniversary update (build 14393)
+        # so we try to use it (it has to be enabled since it is always disabled by default!)
+        try:
+            wininfo = sys.getwindowsversion()
+            if wininfo.major >= 10 and wininfo.build >= 14393:
+
+                import ctypes as ct
+                h_kernel32 = ct.windll.kernel32
+
+                #  STD_OUTPUT_HANDLE = -11
+                # -> https://docs.microsoft.com/en-us/windows/console/getstdhandle
+                h_stdout = h_kernel32.GetStdHandle(-11)
+
+                # ENABLE_PROCESSED_OUTPUT  | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING = 7
+                # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
+                result = h_kernel32.SetConsoleMode(h_stdout, 7)
+
+                self.console_colors = "always"
+        except (ImportError, AttributeError):
+            pass
 
     @property
     def inkscape_extensions_path(self):
