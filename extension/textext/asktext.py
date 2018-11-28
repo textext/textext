@@ -419,16 +419,21 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             else:
                 self._view_actions = [
                     ('FileMenu', None, '_File'),
+                    ('ViewMenu', None, '_View')
                 ]
 
             self._toggle_actions = [
-                (
-                    'ShowNumbers', None, 'Show _Line Numbers', None,
-                    'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb, False),
+                ('ShowNumbers', None, 'Show _Line Numbers', None,
+                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb, False),
                 ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
                  self.auto_indent_toggled_cb, False),
                 ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False)
+                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False) 
+            ]
+
+            self._word_wrap_action = [
+                ('WordWrap', None, '_Word Wrap', None,
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb, False)
             ]
 
             self._radio_actions = [
@@ -436,15 +441,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 range(2, 13, 2)]
 
             gtksourceview_ui_additions = "" if TOOLKIT == GTK else """
-            <menu action='ViewMenu'>
               <menuitem action='ShowNumbers'/>
               <menuitem action='AutoIndent'/>
               <menuitem action='InsertSpaces'/>
               <menu action='TabsWidth'>
                 %s
               </menu>
-            </menu>
-            """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+              """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
 
             self._view_ui_description = """
             <ui>
@@ -452,7 +455,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 <menu action='FileMenu'>
                   <menuitem action='Open'/>
                 </menu>
-                {additions}
+                <menu action='ViewMenu'>
+                  <menuitem action='WordWrap'/>
+                  {additions}
+                </menu>
               </menubar>
             </ui>
             """.format(additions=gtksourceview_ui_additions)
@@ -559,6 +565,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         @staticmethod
         def insert_spaces_toggled_cb(action, sourceview):
             sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
+
+        @staticmethod
+        def word_wrap_toggled_cb(action, sourceview):
+            sourceview.set_wrap_mode(gtk.WRAP_WORD if action.get_active() else gtk.WRAP_NONE)
 
         @staticmethod
         def tabs_toggled_cb(action, previous_value, sourceview):
@@ -833,6 +843,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_align_hbox.pack_start(scale_frame, False, False, 0)
             scale_align_hbox.pack_start(alignment_frame, True, True, 0)
 
+            # --- Word wrap box ---
+            self._word_wrap_checkbotton = gtk.CheckButton("Word wrap")
+
             # --- TeX code window ---
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
@@ -871,10 +884,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group = gtk.ActionGroup('ViewActions')
             action_group.add_actions(self._view_actions, source_view)
             action_group.add_actions(self.buffer_actions, text_buffer)
+            action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
                 action_group.add_radio_actions(self._radio_actions, -1, AskTextGTKSource.tabs_toggled_cb, source_view)
             ui_manager.insert_action_group(action_group, 0)
+            action_group.get_action("WordWrap").connect_proxy(self._word_wrap_checkbotton)
 
             # Menu
             menu = ui_manager.get_widget('/MainMenu')
@@ -894,6 +909,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.pack_start(preamble_frame, False, False, 0)
             vbox.pack_start(texcmd_frame, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
+            vbox.pack_start(self._word_wrap_checkbotton, False, False, 0)
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
@@ -903,10 +919,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.show_all()
 
             # preselect menu check items
+            groups = ui_manager.get_action_groups()
+            # retrieve the view action group at position 0 in the list
+            action_group = groups[0]
+            action = action_group.get_action('WordWrap')
+            action.set_active(False)
             if TOOLKIT == GTKSOURCEVIEW:
-                groups = ui_manager.get_action_groups()
-                # retrieve the view action group at position 0 in the list
-                action_group = groups[0]
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(True)
                 action = action_group.get_action('AutoIndent')
