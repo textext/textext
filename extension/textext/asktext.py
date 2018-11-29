@@ -332,11 +332,20 @@ if TOOLKIT == TK:
                     vbox.pack(side="left", fill="x", expand=True)
             box.pack(fill="x")
 
+            # Word wrap
+            self._word_wrap_tkval = Tk.BooleanVar()
+            self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
+                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
+            self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
+
             # Text input field
             label = Tk.Label(self._frame, text="Text:")
             label.pack(pady=2, padx=5, anchor="w")
             self._text_box = Tk.Text(self._frame)
+            hscrollbar = Tk.Scrollbar(self._frame, orient=Tk.HORIZONTAL, command=self._text_box.xview)
+            self._text_box["xscrollcommand"]=hscrollbar.set
             self._text_box.pack(expand=True, fill="both", pady=5, padx=5)
+            hscrollbar.pack(expand=True, fill="both", pady=5, padx=5)
             self._text_box.insert(Tk.END, self.text)
 
             # OK and Cancel button
@@ -375,6 +384,9 @@ if TOOLKIT == TK:
             self.preamble_file = self._preamble.get()
 
             self._frame.quit()
+
+        def cb_word_wrap(self, widget=None, data=None):
+            self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
 
         def reset_scale_factor(self, _=None):
             self._scale.delete(0, "end")
