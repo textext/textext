@@ -75,30 +75,22 @@ Section "TexText" -SEC01
   SetOutPath "$INSTDIR\textext"
   File "extension\textext\__init__.py"
   File "extension\textext\asktext.py"
-  File "extension\textext\typesetter.py"
+  File "extension\textext\errors.py"
   File "extension\textext\latexlogparser.py"
+  File "extension\textext\requirements_check.py"
+  File "extension\textext\typesetter.py"
+  File "extension\textext\utility.py"
   File "extension\textext\default_packages.tex"
   File "extension\textext\win_app_paths.py"
   
   ; Make sure that extension files from old TexText versions < 0.9
   ; are removed (they were put directly into Inkscape's extension
   ; directory and not in a subdirectory)
-  ; Any Tex files existing in the old extension directory are most likely
-  ; default packages files for TexText from previous versions. Hence, 
-  ; we _copy_ them into the textext subdir and ask the user if 
-  ; it is OK to delete them. (He might want to use it in other extensions,
-  ; so we should not delete them by default).
+  ; Keep old default_packages.tex, i.e. move it to the new location
   IfFileExists "$INSTDIR\textext.py" OldExtensionFound InstallFinished
   
   OldExtensionFound:
-  CopyFiles $INSTDIR\*.tex $INSTDIR\textext
-  MessageBox MB_YESNO "Old installation of TexText detected! $\n$\nThe preamble files in the old TexText extension directory will be copied into the new TexText extension directory so you do not loose your modifications in the preamble files. $\n$\nWould you like to delete the old files in their original place after this operation? If you do use TexText as the only LaTeX extension it is safe to click <Yes>." IDYES DeleteOldTexFiles IDNO DeleteOldExtension
-  
-  DeleteOldTexFiles:
-  Delete "$INSTDIR\*.tex"
-  Goto DeleteOldExtension
-
-  DeleteOldExtension:
+  CopyFiles $INSTDIR\default_packages.tex $INSTDIR\textext
   Delete "$INSTDIR\textext.py"
   Delete "$INSTDIR\textext.pyc"
   Delete "$INSTDIR\asktext.py"
