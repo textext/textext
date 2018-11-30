@@ -21,29 +21,26 @@ if __name__ == "__main__":
 
     TexTextVersion = "0.8.1"
 
-    parser = argparse.ArgumentParser(description="Build TexText distribution archive for all supported platforms.")
+    parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms.")
     available_formats = [fmt for fmt, desc in shutil.get_archive_formats()]
     parser.add_argument('--linux',
-                        dest="platforms",
-                        action="append_const",
-                        const="Linux",
-                        help="Build package for Linux only")
-    parser.add_argument('--windows',
-                        dest="platforms",
-                        action="append_const",
-                        const="Windows",
-                        help="Build package for Windows only")
-    parser.add_argument('formats',
                         type=str,
                         nargs="+",
                         choices=available_formats,
-                        help="archive formats [%s]" % ", ".join(available_formats))
+                        help="Build package for Linux with archive formats [%s]" % ", ".join(available_formats))
+    parser.add_argument('--windows',
+                        type=str,
+                        nargs="+",
+                        choices=available_formats,
+                        help="Build package for Windows with archive formats [%s]" % ", ".join(available_formats))
 
-    args = parser.parse_args()
-    if not args.platforms:
-        args.platforms = ["Linux", "Windows"]
+    args = vars(parser.parse_args())
+    if not any(args.values()):
+        # ToDo Not nice to require optional arguments, smarter solution would be subparsers
+        #      but for this little script...
+        parser.error("At least one of the \"optional\" arguments is required.")
 
-    for platform in args.platforms:
+    for platform, formats in {p:f for p, f in args.items() if f}.items():
         PackageName = "TexText-%s-" % platform.capitalize() + TexTextVersion
         git_ignore_patterns = shutil.ignore_patterns(*open(".gitignore").read().split("\n"))
 
@@ -56,6 +53,6 @@ if __name__ == "__main__":
             shutil.copy("LICENSE.txt", tmpdir)
             if platform == "Windows":
                 shutil.copy("setup_win.bat", tmpdir)
-            for fmt in args.formats:
+            for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
                 print("Successfully created %s" % os.path.basename(filename))
