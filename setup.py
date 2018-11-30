@@ -209,13 +209,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--python27-executable",
-        default=None,
-        type=str,
-        help="Full path to python2.7 executable"
-    )
-
-    parser.add_argument(
         "--pdflatex-executable",
         default=None,
         type=str,
@@ -325,7 +318,6 @@ if __name__ == "__main__":
                                 "pdf2svg",
                                 "pdflatex",
                                 "pstoedit",
-                                "python27",
                                 "xelatex",
                             ]:
         executable_path = getattr(args, "%s_executable" % executable_name)

@@ -33,7 +33,6 @@ class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
     executable_names = {"inkscape": ["inkscape"],
-                        "python27": ["python2.7"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"],
@@ -59,7 +58,6 @@ class WindowsDefaults(Defaults):
     os_name = "windows"
     console_colors = "never"
     executable_names = {"inkscape": ["inkscape.exe"],
-                        "python27": ["python.exe"],
                         "pdflatex": ["pdflatex.exe"],
                         "lualatex": ["lualatex.exe"],
                         "xelatex": ["xelatex.exe"],
@@ -509,7 +507,6 @@ class TexTextRequirementsChecker(object):
         self.available_pdf_to_svg_converters = {}
 
         self.inkscape_prog_name = "inkscape"
-        self.python_prog_name = "python27"
         self.pdflatex_prog_name = "pdflatex"
         self.lualatex_prog_name = "lualatex"
         self.xelatex_prog_name = "xelatex"
@@ -525,9 +522,20 @@ class TexTextRequirementsChecker(object):
 
         pass
 
+    def find_python27(self):
+        version = sys.version.split("\n")[0]
+        version_is_good = (2, 7) <= sys.version_info < (3, 0)
+        executable_path = os.path.abspath(sys.executable)
+        if version_is_good:
+            return RequirementCheckResult(True, "python2.7 is found at `%s`" % executable_path,
+                                          path=executable_path)
+        else:
+            return RequirementCheckResult(False, "Expected python 2.7 but found `%s`" % version,
+                                          path=executable_path)
+
     def find_pygtk2(self):
         try:
-            executable = self.find_executable(self.python_prog_name)["path"]
+            executable = self.find_python27()["path"]
             defaults.call_command([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["PyGTK2 is not found"])
@@ -535,7 +543,7 @@ class TexTextRequirementsChecker(object):
 
     def find_tkinter(self):
         try:
-            executable = self.find_executable(self.python_prog_name)["path"]
+            executable = self.find_python27()["path"]
             defaults.call_command([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
@@ -597,7 +605,8 @@ class TexTextRequirementsChecker(object):
         if executable_path is not None:
             if self.check_executable(executable_path):
                 self.logger.info("Using `%s-executable` = `%s`" % (prog_name, executable_path))
-                return RequirementCheckResult(True, "%s is found at `%s`" % (prog_name, executable_path), path=executable_path)
+                return RequirementCheckResult(True, "%s is found at `%s`" % (prog_name, executable_path),
+                                              path=executable_path)
             else:
                 self.logger.warning("Bad `%s` executable: `%s`" % (prog_name, executable_path))
                 self.logger.warning("Fall back to automatic detection of `%s`" % prog_name)
@@ -670,9 +679,9 @@ class TexTextRequirementsChecker(object):
             .prepend_message("ANY", 'Detect inkscape')
             .append_message("ERROR", help_message_with_url("inkscape","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
-            & Requirement(self.find_executable, self.python_prog_name)
-            .append_message("ANY", 'Detect `python2.7`')
-            .append_message("ERROR", help_message_with_url("python27","python27"))
+            & Requirement(self.find_python27)
+            .prepend_message("ANY", 'Detect `python2.7`')
+            .append_message("ERROR", help_message_with_url("python27"))
             & (
                     Requirement(self.find_executable, self.pdflatex_prog_name)
                     .on_success(lambda result: add_latex("pdflatex", result["path"]))

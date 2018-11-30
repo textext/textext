@@ -74,7 +74,6 @@ for pdf2svg in [[("pstoedit", "version 1.1", "stderr"),
     for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
         good_configurations.append([
                                        ("inkscape",),
-                                       ("python2.7",),
                                        latex
                                    ] + pdf2svg)
 
@@ -89,12 +88,10 @@ for good_configuration in good_configurations:
 
 test_configuration([
     ("inkscape",),
-    ("python2.7",)
 ], REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
     ("inkscape",),
-    ("python2.7",),
     ("pdflatex",),
     ("pstoedit", "version 3.70", "stderr"),
     ("ghostscript", "9.22")
@@ -102,7 +99,6 @@ test_configuration([
 
 test_configuration([
     ("inkscape",),
-    ("python2.7",),
     ("pdflatex",),
     ("pstoedit",),
     ("ghostscript",)
@@ -110,7 +106,6 @@ test_configuration([
 
 test_configuration([
     ("inkscape",),
-    ("python2.7",),
     ("pdflatex",),
     ("pstoedit",),
     ("ghostscript",),
