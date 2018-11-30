@@ -21,7 +21,9 @@ if __name__ == "__main__":
 
     TexTextVersion = "0.8.1"
 
-    parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms.")
+    parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms."
+                                                 "If not otherwise specified zip and tgz packages are built "
+                                                 "for Linux and a zip package for Windows.")
     available_formats = [fmt for fmt, desc in shutil.get_archive_formats()]
     parser.add_argument('--linux',
                         type=str,
@@ -36,11 +38,9 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
     if not any(args.values()):
-        # ToDo Not nice to require optional arguments, smarter solution would be subparsers
-        #      but for this little script...
-        parser.error("At least one of the \"optional\" arguments is required.")
+        args = {'linux': ['zip', 'gztar'], 'windows': ['zip']}
 
-    for platform, formats in {p:f for p, f in args.items() if f}.items():
+    for platform, formats in {p: f for p, f in args.items() if f}.items():
         PackageName = "TexText-%s-" % platform.capitalize() + TexTextVersion
         git_ignore_patterns = shutil.ignore_patterns(*open(".gitignore").read().split("\n"))
 
