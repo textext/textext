@@ -54,7 +54,7 @@ class MyLogger(logging.Logger):
     """
         Needs to produce correct line numbers
     """
-    def findCaller(self):
+    def findCaller(self, *args):
         n_frames_upper = 2
         f = logging.currentframe()
         for _ in range(2 + n_frames_upper):  # <-- correct frame
@@ -133,9 +133,14 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
             self.buffer = self.buffer[-self.capacity:]
 
     def show_messages(self):
-        import inkex
-        """show messages to user and empty buffer"""
-        inkex.errormsg("\n".join([self.format(record) for record in self.buffer]))
+        import sys
+        version_is_good = (2, 7) <= sys.version_info < (3, 0)
+        if version_is_good:
+            import inkex
+            """show messages to user and empty buffer"""
+            inkex.errormsg("\n".join([self.format(record) for record in self.buffer]))
+        else:
+            sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
         self.flush()
 
 
@@ -147,7 +152,7 @@ class Settings(object):
         try:
             self.load()
         except ValueError as e:
-            raise TexTextFatalError("Bad config `%s`: %s. Please fix it and re-run TexText." % (self.config_path, e.message) )
+            raise TexTextFatalError("Bad config `%s`: %s. Please fix it and re-run TexText." % (self.config_path, str(e)) )
 
     def load(self):
         if os.path.isfile(self.config_path):

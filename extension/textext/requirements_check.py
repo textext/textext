@@ -515,7 +515,6 @@ class TexTextRequirementsChecker(object):
         self.ghostscript_prog_name = "ghostscript"
 
         self.inkscape_executable = None
-        self.python27_executable = None
 
         self.pygtk_is_found = False
         self.tkinter_is_found = False
