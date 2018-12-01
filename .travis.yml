@@ -36,14 +36,14 @@ matrix:
           - texlive-latex-base
 
 before_script:
-   - # python2 -m pip install pytest lxml Pillow
-   - # python2 test_installation_script.py 2> /dev/null
-   - # python2 setup.py
+   - python2 -m pip install pytest lxml Pillow
+   - python2 test_installation_script.py 2> /dev/null
+   - python2 setup.py
 
 
 script:
-  - # export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
-  - # python2 -m pytest --verbose -s pytests
+  - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
+  - python2 -m pytest --verbose -s pytests
 
 after_success:
   - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
