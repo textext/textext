@@ -1,3 +1,14 @@
+Version 0.9.0 (t.b.a.)
+======================
+- New: Added possibility to wrap long lines (issue 47)
+- New: Imagemagick is not necessary anymore (issue 60)
+- New: Automatic dependency checks during installation (issue 54)
+- New: More detailed and informative logging (issue 35)
+- Fixed: TeX compile error messages reappear (issue 17)
+- Internal: Change extension layout (issue 28)
+- Internal: Store TexText config in extension folder (issue 69)
+- Internal: Add CI to monitor backward compatibility (issue 57)
+
 Version 0.8.1 (2018-08-23)
 ==========================
 - Fixed: Loss of user defined preamble file path when re-editing

@@ -187,7 +187,7 @@ extlinks = {
     'issue_num': ('https://github.com/textext/textext/issues/%s', ' #'),
     'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
     'textext_download_zip':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
-    'textext_download_tgz':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.tgz'.format(**locals()), 'v{release}-'.format(**locals())),
+    'textext_download_tgz':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_exe':    ('https://github.com/textext/textext/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'v{release}'.format(**locals())),
 }

@@ -3,6 +3,7 @@ Change log
 ----------
 
 |release|:
+  - Added possibility to wrap long lines :issue_num:`47`
   - Bug fix: :issue_num:`49`, :issue_num:`17`
   - Drop dependency of imagemagick :issue_num:`60`
   - Checks dependencies in installation script :issue_num:`54`

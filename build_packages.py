@@ -19,7 +19,7 @@ class TmpDir:
 
 if __name__ == "__main__":
 
-    TexTextVersion = "0.8.1"
+    TexTextVersion = "0.9.0-dev"
 
     parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms."
                                                  "If not otherwise specified zip and tgz packages are built "
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                             )
             shutil.copy("setup.py", tmpdir)
             shutil.copy("LICENSE.txt", tmpdir)
-            if platform == "Windows":
+            if platform == "windows":
                 shutil.copy("setup_win.bat", tmpdir)
             for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
