@@ -3,10 +3,8 @@ language: python
 branches:
   only:
   - master
-  - dev
   - develop
-  - travis_ci
-  - rework_error_handling
+  - feature/add_travis_deploy
 
 virtualenv:
   system_site_packages: true
@@ -48,3 +46,12 @@ script:
   - python2 -m pytest --verbose -s pytests
 
 
+deploy:
+  - provider: script
+    script: bash publish_docs.sh
+    verbose: true
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    keep-history: true
+    on:
+      branch: feature/add_travis_deploy
