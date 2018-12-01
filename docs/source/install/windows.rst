@@ -126,8 +126,16 @@ Download and install MiKTeX distribution https://miktex.org/download
 Install TexText
 =================
 
-1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_exe:`.exe <Windows>`)
-2. Use the installer and follow the instructions. It will copy the required files into the user's Inkscape
-   configuration directory (usually this is ``%USERPROFILE%\AppData\Roaming\Inkscape``) and put a key into
-   the Windows registry which is used to store configuration data of the extension.
+1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <Windows>`)
+2. Extract the package and change to created directory.
+3. Double click on the file :bash:`setup_win.bat`.
+
+.. note::
+
+    An installer will be provided in the release version.
+
+.. 1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_exe:`.exe <Windows>`)
+.. 2. Use the installer and follow the instructions. It will copy the required files into the user's Inkscape
+..    configuration directory (usually this is ``%USERPROFILE%\AppData\Roaming\Inkscape``) and put a key into
+..    the Windows registry which is used to store configuration data of the extension.
 
