@@ -40,9 +40,6 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.9.0-dev"
-__docformat__ = "restructuredtext en"
-
 import abc
 import copy
 import hashlib
@@ -58,6 +55,8 @@ from requirements_check import defaults, set_logging_levels, TexTextRequirements
 from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, exec_command
 from errors import *
 
+__version__ = open(os.path.join(os.path.dirname(__file__), "VERSION")).readline().strip()
+__docformat__ = "restructuredtext en"
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
