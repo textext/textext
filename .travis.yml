@@ -36,22 +36,25 @@ matrix:
           - texlive-latex-base
 
 before_script:
-   - python2 -m pip install pytest lxml Pillow
-   - python2 test_installation_script.py 2> /dev/null
-   - python2 setup.py
+   - # python2 -m pip install pytest lxml Pillow
+   - # python2 test_installation_script.py 2> /dev/null
+   - # python2 setup.py
 
 
 script:
-  - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
-  - python2 -m pytest --verbose -s pytests
+  - # export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
+  - # python2 -m pytest --verbose -s pytests
 
+before_deploy:
+  - bash build_docs.sh
 
 deploy:
-  - provider: script
-    script: bash publish_docs.sh
+  - provider: pages
     verbose: true
+    local-dir: docs/build/html
     skip-cleanup: true
     github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-    keep-history: true
+    keep-history: false
     on:
       branch: feature/add_travis_deploy
+      dist: xenial
