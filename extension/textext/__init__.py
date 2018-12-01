@@ -125,6 +125,7 @@ try:
 
         DEFAULT_ALIGNMENT = "middle center"
         DEFAULT_TEXCMD = "pdflatex"
+        DEFAULT_GUI_WORDWRAP = False
 
         def __init__(self):
 
@@ -288,6 +289,8 @@ try:
                 else:
                     logger.debug("Using default tex converter `%s` " % current_tex_command)
 
+                gui_wordwrap = self.config.get("gui_wordwrap", TexText.DEFAULT_GUI_WORDWRAP)
+
                 # Ask for TeX code
                 if self.options.text is None:
                     global_scale_factor = self.options.scale_factor
@@ -315,9 +318,10 @@ try:
                         preamble_file = ""
 
                     asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                             current_alignment=alignment, current_texcmd=current_tex_command,
-                                                 tex_commands=sorted(list(self.requirements_checker.available_tex_to_pdf_converters.keys()))
-                                                 )
+                                                 current_alignment=alignment, current_texcmd=current_tex_command,
+                                                 tex_commands=sorted(list(
+                                                     self.requirements_checker.available_tex_to_pdf_converters.keys())),
+                                                 word_wrap=gui_wordwrap)
 
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
@@ -333,7 +337,11 @@ try:
                                                     _tex_command)
 
                     with logger.debug("Run TexText GUI"):
-                        asker.ask(save_callback, preview_callback)
+                        _, _, _, gui_wordwrap = asker.ask(save_callback, preview_callback)
+
+                    with logger.debug("Saving global GUI settings"):
+                        self.config["gui_wordwrap"] = gui_wordwrap
+                        self.config.save()
 
 
                 else:
@@ -869,7 +877,8 @@ try:
         def set_attrib(self, attrib_name, attrib_value, namespace=""):
             """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the specified namespace"""
             aname = self.build_full_attribute_name(attrib_name, namespace)
-            self._node.attrib[aname] = attrib_value.encode('string-escape')
+            # ToDo: Unicode behavior?
+            self._node.attrib[aname] = str(attrib_value).encode('string-escape')
 
         @classmethod
         def is_node_attrib(cls, node, attrib_name, namespace=u""):

@@ -123,7 +123,8 @@ def error_dialog(parent, title, message, detailed_message=None):
 
 
 class AskerFactory(object):
-    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment, current_texcmd, tex_commands):
+    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+              current_texcmd, tex_commands, word_wrap):
         """
         Return the best possible GUI variant depending on the installed components
         :param version_str: A string describing the version of textext
@@ -139,10 +140,10 @@ class AskerFactory(object):
         """
         if TOOLKIT == TK:
             return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                             current_texcmd, tex_commands)
+                             current_texcmd, tex_commands, word_wrap)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
             return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                                    current_texcmd, tex_commands)
+                                    current_texcmd, tex_commands, word_wrap)
 
 
 class AskText(object):
@@ -153,7 +154,7 @@ class AskText(object):
                         "bottom left", "bottom center", "bottom right"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, tex_commands):
+                 current_texcmd, tex_commands, word_wrap):
         self.TEX_COMMANDS = tex_commands
         if len(text) > 0:
             self.text = text
@@ -177,6 +178,7 @@ class AskText(object):
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
+        self._word_wrap = word_wrap
         self._source_buffer = None
         self._ok_button = None
         self._cancel_button = None
@@ -220,9 +222,9 @@ if TOOLKIT == TK:
         """TK GUI for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands):
+                     current_texcmd, tex_commands, word_wrap):
             super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                            current_alignment, current_texcmd, tex_commands)
+                                            current_alignment, current_texcmd, tex_commands, word_wrap)
             self._frame = None
             self._scale = None
 
@@ -334,6 +336,7 @@ if TOOLKIT == TK:
 
             # Word wrap
             self._word_wrap_tkval = Tk.BooleanVar()
+            self._word_wrap_tkval.set(self._word_wrap)
             self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
                                                          onvalue=True, offvalue=False, command=self.cb_word_wrap)
             self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
@@ -347,6 +350,7 @@ if TOOLKIT == TK:
             self._text_box.pack(expand=True, fill="both", pady=5, padx=5)
             hscrollbar.pack(expand=True, fill="both", pady=5, padx=5)
             self._text_box.insert(Tk.END, self.text)
+            self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
 
             # OK and Cancel button
             box = Tk.Frame(self._frame)
@@ -371,7 +375,7 @@ if TOOLKIT == TK:
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
                           tex_command_tk_str.get())
-            return self.text, self.preamble_file, self.global_scale_factor
+            return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_tkval.get()
 
         def cb_ok(self, widget=None, data=None):
             try:
@@ -409,9 +413,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         """GTK + Source Highlighting for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands):
+                     current_texcmd, tex_commands, word_wrap):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                                   current_alignment, current_texcmd, tex_commands)
+                                                   current_alignment, current_texcmd, tex_commands, word_wrap)
             self._preview = None
             self._scale_adj = None
             self._texcmd_cbox = None
@@ -440,12 +444,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
                  self.auto_indent_toggled_cb, False),
                 ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False) 
+                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False)
             ]
 
             self._word_wrap_action = [
                 ('WordWrap', None, '_Word Wrap', None,
-                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb, False)
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb, self._word_wrap)
             ]
 
             self._radio_actions = [
@@ -788,7 +792,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._scale.set_digits(3)
             self._scale_adj.set_value(self.scale_factor_after_loading())
             self._scale.set_tooltip_text("Change the scale of the LaTeX output")
-    
+
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
             items = [('tt-reset', 'Reset ({0:.3f})'.format(reset_scale), 0, 0, None),
@@ -932,11 +936,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # preselect menu check items
             groups = ui_manager.get_action_groups()
-            # retrieve the view action group at position 0 in the list
-            action_group = groups[0]
-            action = action_group.get_action('WordWrap')
-            action.set_active(False)
+            # ToDo: Set values via add_toggle_actions default values?
             if TOOLKIT == GTKSOURCEVIEW:
+                # retrieve the view action group at position 0 in the list
+                action_group = groups[0]
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(True)
                 action = action_group.get_action('AutoIndent')
@@ -970,4 +973,4 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 # main loop
                 gtk.main()
-                return self.text, self.preamble_file, self.global_scale_factor
+                return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_checkbotton.get_active()
