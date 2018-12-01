@@ -40,7 +40,6 @@ matrix:
 before_script:
    - python2 -m pip install pytest lxml Pillow
    - python2 test_installation_script.py 2> /dev/null
-   - python3 test_installation_script.py 2> /dev/null # also test python3 as installer
    - python2 setup.py
 
 

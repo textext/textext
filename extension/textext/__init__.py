@@ -51,7 +51,6 @@ import logging.handlers
 import math
 import os
 import platform
-import StringIO
 import sys
 import traceback
 
@@ -96,6 +95,10 @@ __logger.addHandler(file_log_channel)
 __logger.addHandler(user_log_channel)
 
 try:
+
+    version_is_good = (2, 7) <= sys.version_info < (3, 0)
+    if not version_is_good:
+        raise TexTextFatalError("Python 2.7 is required, but found %s" % sys.version.split("\n")[0])
 
     import inkex
     import simplestyle as ss
@@ -392,7 +395,7 @@ try:
                             image_setter(converter.tmp('png'))
                         except TexTextCommandError as error:
                             raise TexTextNonFatalError(
-                                "Could not convert SVG to PNG. \nDetailed error message:\n%s" % error.message)
+                                "Could not convert SVG to PNG. \nDetailed error message:\n%s" % str(error))
 
         def do_convert(self, text, preamble_file, user_scale_factor, converter, old_svg_ele, alignment, tex_command,
                        original_scale=None):
@@ -608,7 +611,7 @@ try:
                         parsed_log = self.parse_pdf_log(self.tmp('log'))
                         raise TexTextConversionError(parsed_log)
                     else:
-                        raise TexTextConversionError(error.message)
+                        raise TexTextConversionError(str(error))
 
                 if not os.path.exists(self.tmp('pdf')):
                     raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
@@ -620,7 +623,7 @@ try:
             :return: string
             """
             with logger.debug("Parsing LaTeX log file"):
-
+                import StringIO
                 log_buffer = StringIO.StringIO()
                 log_handler = logging.StreamHandler(log_buffer)
 
@@ -700,9 +703,9 @@ try:
                                            self.tmp('svg')
                                            ]
                                           + pstoeditOpts)
-                except TexTextCommandFailed as excpt:
+                except TexTextCommandFailed as error:
                     # Linux runs into this in case of DELAYBIND error
-                    if "DELAYBIND" in excpt.message:
+                    if "DELAYBIND" in str(error):
                         result = "%s %s" % (
                         "The ghostscript version installed on your system is not compatible with pstoedit! "
                         "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
@@ -710,7 +713,7 @@ try:
                         raise TexTextCommandFailed(result)
                     else:
                         # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
-                        if "-1073741515" in excpt.message:
+                        if "-1073741515" in str(error):
                             raise TexTextCommandFailed("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
                                             "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
                                             "to install the Microsoft Visual C++ 2010 Redistributable Package "
@@ -773,7 +776,7 @@ try:
                     result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
                                            self.tmp('pdf'), self.tmp('svg')])
                 except TexTextNonFatalError as e:
-                    raise TexTextNonFatalError("Command pdf2svg failed: %s" % e.message)
+                    raise TexTextNonFatalError("Command pdf2svg failed: %s" % str(e))
 
                 if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
                     raise TexTextNonFatalError("pdf2svg didn't produce output.\n%s" % result)
@@ -1153,7 +1156,7 @@ try:
 except TexTextInternalError as e:
     # TexTextInternalError should never be raised.
     # It's TexText logic error and should be reported.
-    logger.error(e.message)
+    logger.error(str(e))
     logger.error(traceback.format_exc())
     logger.info("TexText finished with error, please run extension again")
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
@@ -1166,7 +1169,7 @@ except TexTextInternalError as e:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 except TexTextFatalError as e:
-    logger.error(e.message)
+    logger.error(str(e))
     user_log_channel.show_messages()
     try:
         cache = Cache()
@@ -1178,7 +1181,7 @@ except TexTextFatalError as e:
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
-    logger.error(e.message)
+    logger.error(str(e))
     logger.error(traceback.format_exc())
     logger.info("TexText finished with error, please run extension again")
     logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
