@@ -647,7 +647,7 @@ class TexTextRequirementsChecker(object):
             self.tkinter_is_found= True
 
         def help_message_with_url(section_name, executable_name=None):
-            user = "sizmailov"  # todo: change to textext
+            user = "textext"
             url_template = "https://{user}.github.io/textext/install/{os_name}.html#{os_name}-install-{section}"
             url = url_template.format(
                 user=user,
