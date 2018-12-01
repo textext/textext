@@ -179,10 +179,6 @@ goto RUN_SETUP_PY
 
 
 :RUN_SETUP_PY
-rem We already know where the Python interpreter is, so setup.py does not
-rem need to detect it again
-set PYTHON_ARGS=%PYTHON_ARGS% --python27-executable %PYTHON_EXE%
-
 rem Command to be executed
 set PYTHON_COMMAND=%PYTHON_EXE% setup.py %PYTHON_ARGS%
 echo Trying to run %PYTHON_COMMAND%...
