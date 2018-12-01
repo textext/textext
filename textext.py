@@ -40,7 +40,7 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 __docformat__ = "restructuredtext en"
 
 import os

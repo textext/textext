@@ -7,7 +7,7 @@ rem subdirectory while the license and the setup-script are placed into
 rem the "textext-[Version]-linux" directory
 
 rem Some variables
-set TexTextVersion=0.8.1
+set TexTextVersion=0.8.2
 set PackagePath=textext-%TexTextVersion%-linux
 set ExtensionPath=%PackagePath%\extension
 set PackageName=TexText-Linux-%TexTextVersion%

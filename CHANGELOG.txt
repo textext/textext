@@ -1,26 +1,31 @@
+Version 0.8.2 (2018-12-01)
+==========================
+- Fixed: Flipping compensation for distorted nodes (issue #56)
+- New: TexText version is show in window title
+
 Version 0.8.1 (2018-08-23)
 ==========================
 - Fixed: Loss of user defined preamble file path when re-editing
   nodes (issue #40, thanks to veltsov@github).
 - Added file chooser button for selection of preamble file in Tk
   interface
-  
+
 Version 0.8.0 (2018-08-21)
 ==========================
-- Fixed bad positioning, improved alignment capabilities 
+- Fixed bad positioning, improved alignment capabilities
 (Thanks to Sergei Izmailov for implementing this)
 - pdf2svg as backend
 - xelatex and lualatex support
 - Keep colors explicitly set in TeX or set by Inkscape
-- Temp directory is safely removed even if it contains additional files 
+- Temp directory is safely removed even if it contains additional files
   generated during compilation
 
 Version 0.7.3 (2018-05-17)
 ==========================
-Fixed: Failure when trying to re-edit nodes created with very old versions of 
+Fixed: Failure when trying to re-edit nodes created with very old versions of
 TexText. (issue #15: "Recompiling of nodes created with TexText < 0.5 fails")
 
-Fixed: Issue #19: Missing width and height attributes in svg document 
+Fixed: Issue #19: Missing width and height attributes in svg document
 lead to crash
 
 Version 0.7.2 (2018-04-06)
@@ -32,7 +37,7 @@ converting text from LaTeX to SVG")
 Version 0.7.1 (2018-02-06)
 ==========================
 Fixed:
-Wrong scaling so that text with explicitly defined font size does not match 
+Wrong scaling so that text with explicitly defined font size does not match
 size of text with equal font size in Inkscape 0.92.x (issue #1)
 
 Fixed:
@@ -44,23 +49,23 @@ Note: All issue references for version 0.7 and prior refer to
 bitbucket.org/pitgarbe/textext
 ---
 
- 
+
 Version 0.7 (2017-12-15)
 ========================
-Fixed: 
+Fixed:
 Plugin does not run with Inkscape 0.92.2 under Windows
 
-New: 
+New:
 Global and local scale factor. This feature enables the user to set the scale
 factor of a node to the value used while editing the previous node (Button
 "Global"). Hence, it is easier to change several nodes to the same scale
 factor. It is always possible to reset the scale factor to the value used for
 creating the node (Button "Reset").
 
-New: 
+New:
 Added compatibility to ImageMagick 7 (version 6 is still supported) (issue #32, #39)
 
-Workaround: 
+Workaround:
 A message is displayed if pstoedit failed to produce svg output and ghostscript
 < 9.21 is installed on the system (issues #44, #48, #50).
 
@@ -89,7 +94,7 @@ Fixed:
 TexText does not work with 64-bit versions of Inkscape under MS Windows
 
 Improved:
-TexText does not care anymore if 32-bit or 64-bit versions of pstoedit, 
+TexText does not care anymore if 32-bit or 64-bit versions of pstoedit,
 ImageMagick and ghostscript are installed
 
 Improved:
@@ -98,7 +103,7 @@ Installation of PyGTK simplified
 
 Version 0.5.2 (2017-01-06)
 ==========================
-Fixed: 
+Fixed:
 If working with Inkscape files stored with older versions of Inkscape or TexText
 it could happen that - after editing of a LaTeX node - the rendered object becomes
 invisible (in fact: transparent) because the fill attribute was not properly set.
@@ -132,4 +137,4 @@ Fixed:
 TexText does not work with Inkscape 0.9.1
 
 It is ensured now that Inkscape works under both, Inkscape 0.48 and Inkscape 0.91.
-	
+
