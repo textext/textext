@@ -26,4 +26,6 @@ cd "$GH_PAGES_ROOT"
 
 git add -A .
 git commit -m "Deploy to GitHub Pages: ${SHA}"
-git push "$SSH_REPO" --force "$TARGET_BRANCH"
+echo "$SSH_REPO" --force "$TARGET_BRANCH"
+#git push "$SSH_REPO" --force "$TARGET_BRANCH"
+git push "$REPO" --force "$TARGET_BRANCH"
