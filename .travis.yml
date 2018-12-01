@@ -47,6 +47,8 @@ script:
 
 before_deploy:
   - bash build_docs.sh
+  - python2 build_packages.py
+  - VERSION_CHANGED=$($(git diff-tree --no-commit-id --name-only -r HEAD | grep extension/textext/VERSION); echo $?)
 
 deploy:
   - provider: pages
@@ -58,3 +60,13 @@ deploy:
     on:
       branch: feature/add_travis_deploy
       dist: xenial
+
+  - provider: releases
+    api_key:  $GITHUB_TOKEN
+    skip_cleanup: true
+    file_glob: true
+    file: assets/*
+    on:
+      branch: feature/add_travis_deploy
+      dist: xenial
+      # condition: $VERSION_CHANGED = 0
