@@ -60,6 +60,7 @@ deploy:
     on:
       branch: feature/add_travis_deploy
       dist: xenial
+      condition: $VERSION_CHANGED = 0
 
   - provider: releases
     api_key:  $GITHUB_TOKEN
