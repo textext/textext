@@ -56,13 +56,13 @@ after_success:
          then DO_RELEASE=true;
       fi;
     fi;
-    - if echo $VERSION | grep -q "-" ;
-        then export GITHUB_DEPLOY_PRERELEASE=true;
-        else export GITHUB_DEPLOY_PRERELEASE=false;
-      fi
-    - if [ $GITHUB_DEPLOY_PRERELEASE = false ] && [ $RELEASE_MAKER ];
-         then DO_GH_PAGES=true;
-      fi;
+  - if echo $VERSION | grep -q "-" ;
+      then export GITHUB_DEPLOY_PRERELEASE=true;
+      else export GITHUB_DEPLOY_PRERELEASE=false;
+    fi
+  - if [ $GITHUB_DEPLOY_PRERELEASE = false ] && [ $RELEASE_MAKER ];
+       then DO_GH_PAGES=true;
+    fi;
 
 
 before_deploy:
