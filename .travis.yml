@@ -48,9 +48,8 @@ script:
 after_success:
   - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
-  - git tag
   - if [[ $VERSION_CHANGED = 0 ]]; then
-      git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
+      TRAVIS_TAG="$VERSION"
     fi
 
 before_deploy:
@@ -72,9 +71,9 @@ deploy:
     keep-history: false
     on:
       tags: false
-      branch: feature/add_travis_deploy
+      branch: master
       dist: xenial
-      condition: $VERSION_CHANGED = 0
+      condition: $GITHUB_DEPLOY_PRERELEASE = false
 
   - provider: releases
     api_key:  $GITHUB_TOKEN
@@ -84,6 +83,6 @@ deploy:
     file: assets/*
     on:
       tags: false
-      branch: feature/add_travis_deploy
+      all_branches: true # only develop and master are activated in travis
       dist: xenial
       condition: $VERSION_CHANGED = 0
