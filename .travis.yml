@@ -34,6 +34,8 @@ matrix:
           - python-gtk2-dev
           - imagemagick
           - texlive-latex-base
+      env:
+        - RELEASE_MAKER=true
 
 before_script:
    - python2 -m pip install pytest lxml Pillow
@@ -49,18 +51,25 @@ after_success:
   - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
   - if [[ $VERSION_CHANGED = 0 ]]; then
-      TRAVIS_TAG="$VERSION"
-    fi
+      git tag -l $VERSION | grep -q $VERSION || git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
+      if [[ $RELEASE_MAKER = true ]];
+         then DO_RELEASE=true;
+      fi;
+    fi;
+    - if echo $VERSION | grep -q "-" ;
+        then export GITHUB_DEPLOY_PRERELEASE=true;
+        else export GITHUB_DEPLOY_PRERELEASE=false;
+      fi
+    - if [ $GITHUB_DEPLOY_PRERELEASE = false ] && [ $RELEASE_MAKER ];
+         then DO_GH_PAGES=true;
+      fi;
+
 
 before_deploy:
   - bash build_docs.sh
   - python2 build_packages.py
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
-  - if echo $VERSION | grep -q "-" ;
-      then export GITHUB_DEPLOY_PRERELEASE=true;
-      else export GITHUB_DEPLOY_PRERELEASE=false;
-    fi
 
 deploy:
   - provider: pages
@@ -72,8 +81,7 @@ deploy:
     on:
       tags: false
       branch: master
-      dist: xenial
-      condition: $GITHUB_DEPLOY_PRERELEASE = false
+      condition: $DO_GH_PAGES
 
   - provider: releases
     api_key:  $GITHUB_TOKEN
@@ -84,5 +92,4 @@ deploy:
     on:
       tags: false
       all_branches: true # only develop and master are activated in travis
-      dist: xenial
-      condition: $VERSION_CHANGED = 0
+      condition: $DO_RELEASE
