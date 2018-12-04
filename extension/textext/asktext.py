@@ -34,6 +34,7 @@ TOOLKIT = None
 
 import os
 import warnings
+from errors import TexTextCommandFailed, TexTextConversionError
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -83,14 +84,15 @@ def set_monospace_font(text_view):
         pass
 
 
-def error_dialog(parent, title, message, detailed_message=None):
+def error_dialog(parent, title, label, error):
     """
     Present an error dialog
 
+    :param parent: Parent window
     :param title: Error title text
-    :param message: Message text
-    :param parent: The parent window
-    :param detailed_message: Detailed message text, can have HTML
+    :param label: Label text
+    :param error: exception
+    :type error: StandardError
     """
 
     dialog = gtk.Dialog(title, parent, gtk.DIALOG_MODAL)
@@ -98,27 +100,65 @@ def error_dialog(parent, title, message, detailed_message=None):
     button = dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_CLOSE)
     button.connect("clicked", lambda w, d=None: dialog.destroy())
     message_label = gtk.Label()
-    message_label.set_markup("<b>{message}</b>".format(message=message))
+    message_label.set_markup("<b>{message}</b>".format(message=label))
     message_label.set_justify(gtk.JUSTIFY_LEFT)
 
-    if not detailed_message:
-        detailed_message = "For details, please refer to the Inkscape error message that appears when you " \
-                           "close the TexText window."
+    def add_section(header, text):
 
-    scroll_window = gtk.ScrolledWindow()
-    scroll_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
-    scroll_window.set_shadow_type(gtk.SHADOW_IN)
-    text_view = gtk.TextView()
-    text_view.set_editable(False)
-    text_view.set_left_margin(5)
-    text_view.set_right_margin(5)
-    text_view.set_wrap_mode(gtk.WRAP_WORD)
-    text_view.get_buffer().set_text(detailed_message)
-    scroll_window.add(text_view)
+        text_view = gtk.TextView()
+        text_view.set_editable(False)
+        text_view.set_left_margin(5)
+        text_view.set_right_margin(5)
+        text_view.set_wrap_mode(gtk.WRAP_WORD)
+        text_view.get_buffer().set_text(text)
+        text_view.show()
+
+        scroll_window = gtk.ScrolledWindow()
+        scroll_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        scroll_window.set_shadow_type(gtk.SHADOW_IN)
+        scroll_window.add(text_view)
+        scroll_window.show()
+
+        if header is None:
+            dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
+            return
+
+        frame = gtk.Frame(label=header)
+        frame.add(scroll_window)
+        frame.show()
+
+        def callback(_, event):
+            assert event.type == gtk.gdk.BUTTON_PRESS
+            is_visible = scroll_window.get_property("visible")
+            w, h = scroll_window.get_allocation().width, scroll_window.get_allocation().height
+            W, H = dialog.get_size()
+            if is_visible:
+                scroll_window.hide()
+                H -= h
+            else:
+                scroll_window.show()
+                H += h
+            dialog.resize(W, H)
+
+        event_box = gtk.EventBox()
+
+        event_box.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        event_box.connect('button-press-event', callback)
+        event_box.add(frame)
+        event_box.show()
+        scroll_window.hide()
+        dialog.vbox.pack_start(event_box, expand=False, fill=True, padding=5)
 
     dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
-    dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
-    dialog.show_all()
+    message_label.show()
+    add_section(None, str(error))
+
+    if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
+        if error.stdout:
+            add_section("Stdout:", error.stdout)
+        if error.stderr:
+            add_section("Stdout:", error.stderr)
+    dialog.show()
     dialog.run()
 
 
@@ -632,8 +672,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 error_dialog(self._window,
                              "TexText Error",
-                             "<b>Error occurred while converting text from Latex to SVG:</b>",
-                             str(error) + "\n" + traceback.format_exc())
+                             "Error occurred while converting text from Latex to SVG:",
+                             error)
                 return False
 
             gtk.main_quit()
@@ -666,8 +706,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 except StandardError, error:
                     error_dialog(self._window,
                                  "TexText Error",
-                                 "<b>Error occurred while generating preview:</b>",
-                                 str(error))
+                                 "Error occurred while generating preview:",
+                                 error)
                     return False
 
         def set_preview_image_from_file(self, path):
