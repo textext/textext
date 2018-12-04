@@ -9,7 +9,7 @@ class TexTextNonFatalError(TexTextError):
     pass
 
 
-class TexTextCommandError(TexTextError):
+class TexTextCommandError(TexTextNonFatalError):
     pass
 
 
@@ -26,8 +26,9 @@ class TexTextCommandFailed(TexTextCommandError):
         self.stderr = stderr
 
 
-class TexTextConversionError(TexTextNonFatalError):
-    pass
+class TexTextConversionError(TexTextCommandFailed):
+    def __init__(self, message, return_code=None, stdout=None, stderr=None):
+        super(TexTextConversionError, self).__init__(message, return_code, stdout, stderr)
 
 
 class TexTextFatalError(TexTextError):
