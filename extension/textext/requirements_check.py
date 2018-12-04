@@ -26,7 +26,7 @@ class Defaults(object):
 
     @staticmethod
     @abc.abstractmethod
-    def call_command(command): pass
+    def call_command(command, return_code=0): pass
 
 
 class LinuxDefaults(Defaults):
@@ -48,10 +48,10 @@ class LinuxDefaults(Defaults):
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
-    def call_command(command):
+    def call_command(command, return_code=0):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
-        if p.returncode != 0:
+        if return_code is not None and p.returncode != return_code:
             raise subprocess.CalledProcessError(p.returncode,command)
         return stdout, stderr
 
@@ -102,14 +102,14 @@ class WindowsDefaults(Defaults):
         return self._tweaked_syspath
 
     @staticmethod
-    def call_command(command):
+    def call_command(command, return_code=0):
         # Ensure that command window does not pop up on Windows!
         info = subprocess.STARTUPINFO()
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
         stdout, stderr = p.communicate()
-        if p.returncode != 0:
+        if return_code is not None and p.returncode != return_code:
             raise subprocess.check_call(p.returncode, command)
         return stdout, stderr
 
@@ -584,7 +584,7 @@ class TexTextRequirementsChecker(object):
 
         try:
             executable = self.find_executable(self.pstoedit_prog_name)["path"]
-            stdout, stderr = defaults.call_command([executable])
+            stdout, stderr = defaults.call_command([executable], return_code=None)
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["pstoedit is not found"])
