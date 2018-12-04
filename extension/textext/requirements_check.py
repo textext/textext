@@ -50,7 +50,10 @@ class LinuxDefaults(Defaults):
     @staticmethod
     def call_command(command):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return p.communicate()
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(p.returncode,command)
+        return stdout, stderr
 
 
 class WindowsDefaults(Defaults):
@@ -105,7 +108,11 @@ class WindowsDefaults(Defaults):
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
-        return p.communicate()
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            raise subprocess.check_call(p.returncode, command)
+        return stdout, stderr
+
 
 
 class LoggingColors(object):
