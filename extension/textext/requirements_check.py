@@ -550,7 +550,7 @@ class TexTextRequirementsChecker(object):
     def find_tkinter(self):
         try:
             executable = self.find_python27()["path"]
-            defaults.call_command([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
+            defaults.call_command([executable, "-c", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
