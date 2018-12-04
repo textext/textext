@@ -155,9 +155,9 @@ def error_dialog(parent, title, label, error):
 
     if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
         if error.stdout:
-            add_section("Stdout:", error.stdout)
+            add_section("Stdout: (click to expand)", error.stdout)
         if error.stderr:
-            add_section("Stdout:", error.stderr)
+            add_section("Stderr: (click to expand)", error.stderr)
     dialog.show()
     dialog.run()
 
