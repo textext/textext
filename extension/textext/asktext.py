@@ -103,6 +103,8 @@ def error_dialog(parent, title, label, error):
     message_label.set_markup("<b>{message}</b>".format(message=label))
     message_label.set_justify(gtk.JUSTIFY_LEFT)
 
+    raw_output_box = gtk.VBox()
+
     def add_section(header, text):
 
         text_view = gtk.TextView()
@@ -123,42 +125,38 @@ def error_dialog(parent, title, label, error):
             dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
             return
 
-        frame = gtk.Frame(label=header)
-        frame.add(scroll_window)
-        frame.show()
+        expander = gtk.Expander()
 
-        def callback(_, event):
-            assert event.type == gtk.gdk.BUTTON_PRESS
-            is_visible = scroll_window.get_property("visible")
-            w, h = scroll_window.get_allocation().width, scroll_window.get_allocation().height
-            W, H = dialog.get_size()
-            if is_visible:
-                scroll_window.hide()
-                H -= h
+        def callback(event):
+            if expander.get_expanded():
+                desired_height = 20
             else:
-                scroll_window.show()
-                H += h
-            dialog.resize(W, H)
+                desired_height = 150
+            expander.set_size_request(-1, desired_height)
 
-        event_box = gtk.EventBox()
+        expander.connect('activate', callback)
+        expander.add(scroll_window)
+        expander.show()
 
-        event_box.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        event_box.connect('button-press-event', callback)
-        event_box.add(frame)
-        event_box.show()
+        expander.set_label(header)
+        expander.set_use_markup(True)
+
+        expander.set_size_request(20, -1)
         scroll_window.hide()
-        dialog.vbox.pack_start(event_box, expand=False, fill=True, padding=5)
+
+        raw_output_box.pack_start(expander, expand=True, fill=True, padding=5)
 
     dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
     message_label.show()
     add_section(None, str(error))
+    dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
 
     if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
         if error.stdout:
-            add_section("Stdout: (click to expand)", error.stdout)
+            add_section("Stdout: <small><i>(click to expand)</i></small>", error.stdout)
         if error.stderr:
-            add_section("Stderr: (click to expand)", error.stderr)
-    dialog.show()
+            add_section("Stderr: <small><i>(click to expand)</i></small>", error.stderr)
+    dialog.show_all()
     dialog.run()
 
 
