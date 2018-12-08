@@ -210,7 +210,10 @@ def exec_command(cmd, ok_return_value=0):
         raise TexTextCommandNotFound("Command %s failed: %s" % (' '.join(cmd), err))
 
     if ok_return_value is not None and p.returncode != ok_return_value:
-        raise TexTextCommandFailed("Command %s failed (code %d): %s" % (' '.join(cmd), p.returncode, out + err))
+        raise TexTextCommandFailed(message="Command %s failed (code %d)" % (' '.join(cmd), p.returncode),
+                                   return_code=p.returncode,
+                                   stdout=out,
+                                   stderr=err)
     return out + err
 
 
