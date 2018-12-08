@@ -110,7 +110,7 @@ class WindowsDefaults(Defaults):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
         stdout, stderr = p.communicate()
         if return_code is not None and p.returncode != return_code:
-            raise subprocess.check_call(p.returncode, command)
+            raise subprocess.CalledProcessError(p.returncode, command)
         return stdout, stderr
 
 
