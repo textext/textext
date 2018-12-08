@@ -26,7 +26,7 @@ class Defaults(object):
 
     @staticmethod
     @abc.abstractmethod
-    def call_command(command, return_code=0): pass
+    def call_command(command): pass
 
 
 class LinuxDefaults(Defaults):
@@ -48,12 +48,9 @@ class LinuxDefaults(Defaults):
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
-    def call_command(command, return_code=0):
+    def call_command(command):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        if return_code is not None and p.returncode != return_code:
-            raise subprocess.CalledProcessError(p.returncode,command)
-        return stdout, stderr
+        return p.communicate()
 
 
 class WindowsDefaults(Defaults):
@@ -102,17 +99,13 @@ class WindowsDefaults(Defaults):
         return self._tweaked_syspath
 
     @staticmethod
-    def call_command(command, return_code=0):
+    def call_command(command):
         # Ensure that command window does not pop up on Windows!
         info = subprocess.STARTUPINFO()
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         info.wShowWindow = subprocess.SW_HIDE
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
-        stdout, stderr = p.communicate()
-        if return_code is not None and p.returncode != return_code:
-            raise subprocess.check_call(p.returncode, command)
-        return stdout, stderr
-
+        return p.communicate()
 
 
 class LoggingColors(object):
@@ -550,7 +543,7 @@ class TexTextRequirementsChecker(object):
     def find_tkinter(self):
         try:
             executable = self.find_python27()["path"]
-            defaults.call_command([executable, "-c", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
+            defaults.call_command([executable, "-c", "import TkInter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
@@ -584,7 +577,7 @@ class TexTextRequirementsChecker(object):
 
         try:
             executable = self.find_executable(self.pstoedit_prog_name)["path"]
-            stdout, stderr = defaults.call_command([executable], return_code=None)
+            stdout, stderr = defaults.call_command([executable])
         except (KeyError, OSError, subprocess.CalledProcessError):
             if version is None:
                 return RequirementCheckResult(False, ["pstoedit is not found"])
