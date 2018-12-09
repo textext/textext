@@ -290,7 +290,7 @@ try:
                 else:
                     logger.debug("Using default tex converter `%s` " % current_tex_command)
 
-                gui_wordwrap = self.config.get("gui_wordwrap", TexText.DEFAULT_GUI_WORDWRAP)
+                gui_config = {"word_wrap": self.config.get("gui_wordwrap", TexText.DEFAULT_GUI_WORDWRAP)}
 
                 # Ask for TeX code
                 if self.options.text is None:
@@ -322,7 +322,7 @@ try:
                                                  current_alignment=alignment, current_texcmd=current_tex_command,
                                                  tex_commands=sorted(list(
                                                      self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                                 word_wrap=gui_wordwrap)
+                                                 gui_config=gui_config)
 
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
@@ -338,10 +338,10 @@ try:
                                                     _tex_command)
 
                     with logger.debug("Run TexText GUI"):
-                        _, _, _, gui_wordwrap = asker.ask(save_callback, preview_callback)
+                        _, _, _, gui_config = asker.ask(save_callback, preview_callback)
 
                     with logger.debug("Saving global GUI settings"):
-                        self.config["gui_wordwrap"] = gui_wordwrap
+                        self.config["gui_wordwrap"] = gui_config["word_wrap"]
                         self.config.save()
 
 

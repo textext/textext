@@ -162,7 +162,7 @@ def error_dialog(parent, title, label, error):
 
 class AskerFactory(object):
     def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-              current_texcmd, tex_commands, word_wrap):
+              current_texcmd, tex_commands, gui_config):
         """
         Return the best possible GUI variant depending on the installed components
         :param version_str: A string describing the version of textext
@@ -178,10 +178,10 @@ class AskerFactory(object):
         """
         if TOOLKIT == TK:
             return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                             current_texcmd, tex_commands, word_wrap)
+                             current_texcmd, tex_commands, gui_config)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
             return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                                    current_texcmd, tex_commands, word_wrap)
+                                    current_texcmd, tex_commands, gui_config)
 
 
 class AskText(object):
@@ -192,7 +192,7 @@ class AskText(object):
                         "bottom left", "bottom center", "bottom right"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, tex_commands, word_wrap):
+                 current_texcmd, tex_commands, gui_config):
         self.TEX_COMMANDS = tex_commands
         if len(text) > 0:
             self.text = text
@@ -216,7 +216,7 @@ class AskText(object):
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
-        self._word_wrap = word_wrap
+        self._gui_config = gui_config
         self._source_buffer = None
         self._ok_button = None
         self._cancel_button = None
@@ -260,9 +260,9 @@ if TOOLKIT == TK:
         """TK GUI for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands, word_wrap):
+                     current_texcmd, tex_commands, gui_config):
             super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                            current_alignment, current_texcmd, tex_commands, word_wrap)
+                                            current_alignment, current_texcmd, tex_commands, gui_config)
             self._frame = None
             self._scale = None
 
@@ -374,7 +374,7 @@ if TOOLKIT == TK:
 
             # Word wrap
             self._word_wrap_tkval = Tk.BooleanVar()
-            self._word_wrap_tkval.set(self._word_wrap)
+            self._word_wrap_tkval.set(self._gui_config.get("word_wrap", False))
             self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
                                                          onvalue=True, offvalue=False, command=self.cb_word_wrap)
             self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
@@ -413,7 +413,7 @@ if TOOLKIT == TK:
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
                           tex_command_tk_str.get())
-            return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_tkval.get()
+            return self.text, self.preamble_file, self.global_scale_factor, {"word_wrap": self._word_wrap_tkval.get()}
 
         def cb_ok(self, widget=None, data=None):
             try:
@@ -451,9 +451,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         """GTK + Source Highlighting for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands, word_wrap):
+                     current_texcmd, tex_commands, gui_config):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                                   current_alignment, current_texcmd, tex_commands, word_wrap)
+                                                   current_alignment, current_texcmd, tex_commands, gui_config)
             self._preview = None
             self._scale_adj = None
             self._texcmd_cbox = None
@@ -487,7 +487,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._word_wrap_action = [
                 ('WordWrap', None, '_Word Wrap', None,
-                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb, self._word_wrap)
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb,
+                 self._gui_config.get("word_wrap", False))
             ]
 
             self._radio_actions = [
@@ -923,7 +924,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._source_buffer = text_buffer
             self._source_view = source_view
-            self._source_view.set_wrap_mode(gtk.WRAP_WORD if self._word_wrap else gtk.WRAP_NONE)
+            self._source_view.set_wrap_mode(gtk.WRAP_WORD if self._gui_config.get("word_wrap", False) else gtk.WRAP_NONE)
             self._source_buffer.set_text(self.text)
 
             scroll_window.add(self._source_view)
@@ -1011,4 +1012,5 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 # main loop
                 gtk.main()
-                return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_checkbotton.get_active()
+                return self.text, self.preamble_file, self.global_scale_factor, {
+                    "word_wrap": self._word_wrap_checkbotton.get_active()}
