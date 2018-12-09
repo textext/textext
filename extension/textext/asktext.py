@@ -475,7 +475,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                      current_texcmd, tex_commands, gui_config):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                                    current_alignment, current_texcmd, tex_commands, gui_config)
-            self._preview = None
+            self._preview = None  # type: gtk.Image
+            self._preview_scroll_window = None  # type: gtk.ScrolledWindow
             self._scale_adj = None
             self._texcmd_cbox = None
             self._preview_callback = None
@@ -747,12 +748,23 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             if image_height > max_preview_height:
                 scale = min(scale, (max_preview_height * 1.0 / image_height))
-
-            if scale != 1:
-                pixbuf = pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
-                                             gtk.gdk.INTERP_BILINEAR)
+            #
+            # if scale != 1:
+            #     pixbuf = pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
+            #                                  gtk.gdk.INTERP_BILINEAR)
 
             self._preview.set_from_pixbuf(pixbuf)
+            self._preview.set_size_request(image_width, image_height)
+
+            scroll_bar_width = 30
+
+            desired_preview_area_height = image_height
+            if image_width + scroll_bar_width >= textview_width:
+                desired_preview_area_height += scroll_bar_width
+
+            self._preview_scroll_window.set_size_request(textview_width,
+                                                         min(desired_preview_area_height, max_preview_height))
+            self._preview_scroll_window.show()
 
         # ---------- create view window
         def create_buttons(self):
@@ -977,6 +989,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # latex preview
             self._preview = gtk.Image()
+            self._preview_scroll_window = gtk.ScrolledWindow()
+            self._preview_scroll_window.set_shadow_type(gtk.SHADOW_NONE)
+            self._preview_scroll_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            preview_viewport = gtk.Viewport()
+            preview_viewport.set_shadow_type(gtk.SHADOW_NONE)
+            preview_viewport.add(self._preview)
+            self._preview_scroll_window.add(preview_viewport)
 
             # Vertical Layout
             vbox = gtk.VBox(False, 4)
@@ -989,10 +1008,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
-            vbox.pack_start(self._preview, False, False, 0)
+            vbox.pack_start(self._preview_scroll_window, False, False, 0)
             vbox.pack_start(self.create_buttons(), False, False, 0)
 
             vbox.show_all()
+            self._preview_scroll_window.hide()
 
             # preselect menu check items
             groups = ui_manager.get_action_groups()
