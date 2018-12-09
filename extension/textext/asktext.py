@@ -714,14 +714,21 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             :param path: the path of the image
             """
             textview_width = self._source_view.get_allocation().width
+            max_preview_height = 150
 
             pixbuf = gtk.gdk.pixbuf_new_from_file(path)
             image_width = pixbuf.get_width()
             image_height = pixbuf.get_height()
+            scale = 1
 
             if image_width > textview_width:
-                ratio = float(image_height) / image_width
-                pixbuf = pixbuf.scale_simple(textview_width, int(textview_width * ratio),
+                scale = min(scale, (textview_width * 1.0 / image_width))
+
+            if image_height > max_preview_height:
+                scale = min(scale, (max_preview_height * 1.0 / image_height))
+
+            if scale != 1:
+                pixbuf = pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
                                              gtk.gdk.INTERP_BILINEAR)
 
             self._preview.set_from_pixbuf(pixbuf)
