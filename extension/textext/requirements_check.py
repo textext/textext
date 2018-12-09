@@ -61,7 +61,7 @@ class MacDefaults(LinuxDefaults):
                         "xelatex": ["xelatex"],
                         "pdf2svg": ["pdf2svg"],
                         "pstoedit": ["pstoedit"],
-                        "ghostscript": ["ghostscript"]}
+                        "ghostscript": ["gs", "ghostscript"]}
 
     def get_system_path(self):
         path = ["/Applications/Inkscape.app/Contents/Resources"]
