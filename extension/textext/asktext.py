@@ -377,23 +377,38 @@ if TOOLKIT == TK:
                     vbox.pack(side="left", fill="x", expand=True)
             box.pack(fill="x")
 
-            # Word wrap
+            # Word wrap status
             self._word_wrap_tkval = Tk.BooleanVar()
             self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
-            self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
-                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
-            self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
 
-            # Text input field
-            label = Tk.Label(self._frame, text="Text:")
-            label.pack(pady=2, padx=5, anchor="w")
-            self._text_box = Tk.Text(self._frame)
-            hscrollbar = Tk.Scrollbar(self._frame, orient=Tk.HORIZONTAL, command=self._text_box.xview)
+            # Frame with text input field and word wrap checkbox
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            ibox = Tk.Frame(box)
+            label = Tk.Label(ibox, text="LaTeX code:")
+            self._word_wrap_checkbotton = Tk.Checkbutton(ibox, text="Word wrap", variable=self._word_wrap_tkval,
+                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
+            label.pack(pady=0, padx=5, side = "left", anchor="w")
+            self._word_wrap_checkbotton.pack(pady=0, padx=5, side = "right", anchor="w")
+            ibox.pack(expand=True, fill="both", pady=0, padx=0)
+
+            ibox = Tk.Frame(box)
+            iibox = Tk.Frame(ibox)
+            self._text_box = Tk.Text(iibox, width=70, height=12) # 70 chars, 12 lines
+            hscrollbar = Tk.Scrollbar(iibox, orient=Tk.HORIZONTAL, command=self._text_box.xview)
             self._text_box["xscrollcommand"]=hscrollbar.set
-            self._text_box.pack(expand=True, fill="both", pady=5, padx=5)
-            hscrollbar.pack(expand=True, fill="both", pady=5, padx=5)
+            self._text_box.pack(expand=True, fill="both", pady=0, padx=1, anchor = "w")
+            hscrollbar.pack(expand=True, fill="both", pady=2, padx=5)
+
+            vscrollbar = Tk.Scrollbar(ibox, orient=Tk.VERTICAL, command=self._text_box.yview)
+            self._text_box["yscrollcommand"]=vscrollbar.set
+            iibox.pack(expand=True, fill="both", pady=0, padx=1, side="left", anchor="e")
+            vscrollbar.pack(expand=True, fill="y", pady=2, padx=1, side = "left", anchor = "e")
+            ibox.pack(expand=True, fill="both", pady=0, padx=5)
+
             self._text_box.insert(Tk.END, self.text)
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+
+            box.pack(fill="x", pady=2)
 
             # OK and Cancel button
             box = Tk.Frame(self._frame)
