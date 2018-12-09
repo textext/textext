@@ -338,7 +338,7 @@ try:
                                                     _tex_command)
 
                     with logger.debug("Run TexText GUI"):
-                        _, _, _, gui_config = asker.ask(save_callback, preview_callback)
+                        gui_config = asker.ask(save_callback, preview_callback)
 
                     with logger.debug("Saving global GUI settings"):
                         self.config["gui_wordwrap"] = gui_config["word_wrap"]

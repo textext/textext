@@ -43,7 +43,7 @@ from errors import TexTextCommandFailed, TexTextConversionError
 #   If unsuccessful, try TK
 #   When not even TK could be imported, abort with error message
 try:
-    import pygtk
+    import pygtkx
 
     pygtk.require('2.0')
     import gtk
@@ -413,7 +413,7 @@ if TOOLKIT == TK:
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
                           tex_command_tk_str.get())
-            return self.text, self.preamble_file, self.global_scale_factor, {"word_wrap": self._word_wrap_tkval.get()}
+            return {"word_wrap": self._word_wrap_tkval.get()}
 
         def cb_ok(self, widget=None, data=None):
             try:
@@ -1012,5 +1012,4 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 # main loop
                 gtk.main()
-                return self.text, self.preamble_file, self.global_scale_factor, {
-                    "word_wrap": self._word_wrap_checkbotton.get_active()}
+                return {"word_wrap": self._word_wrap_checkbotton.get_active()}
