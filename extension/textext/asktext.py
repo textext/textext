@@ -162,7 +162,7 @@ def error_dialog(parent, title, label, error):
 
 class AskerFactory(object):
     def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-              current_texcmd, tex_commands, word_wrap):
+              current_texcmd, tex_commands, gui_config):
         """
         Return the best possible GUI variant depending on the installed components
         :param version_str: A string describing the version of textext
@@ -178,10 +178,10 @@ class AskerFactory(object):
         """
         if TOOLKIT == TK:
             return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                             current_texcmd, tex_commands, word_wrap)
+                             current_texcmd, tex_commands, gui_config)
         elif TOOLKIT in (GTK, GTKSOURCEVIEW):
             return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                                    current_texcmd, tex_commands, word_wrap)
+                                    current_texcmd, tex_commands, gui_config)
 
 
 class AskText(object):
@@ -190,9 +190,14 @@ class AskText(object):
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
                         "middle left", "middle center", "middle right",
                         "bottom left", "bottom center", "bottom right"]
+    DEFAULT_WORDWRAP = False
+    DEFAULT_SHOWLINENUMBERS = True
+    DEFAULT_AUTOINDENT = True
+    DEFAULT_INSERTSPACES = True
+    DEFAULT_TABWIDTH = 4
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, tex_commands, word_wrap):
+                 current_texcmd, tex_commands, gui_config):
         self.TEX_COMMANDS = tex_commands
         if len(text) > 0:
             self.text = text
@@ -216,7 +221,7 @@ class AskText(object):
         self.preamble_file = preamble_file
         self._preamble_widget = None
         self._scale = None
-        self._word_wrap = word_wrap
+        self._gui_config = gui_config
         self._source_buffer = None
         self._ok_button = None
         self._cancel_button = None
@@ -260,9 +265,9 @@ if TOOLKIT == TK:
         """TK GUI for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands, word_wrap):
+                     current_texcmd, tex_commands, gui_config):
             super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                            current_alignment, current_texcmd, tex_commands, word_wrap)
+                                            current_alignment, current_texcmd, tex_commands, gui_config)
             self._frame = None
             self._scale = None
 
@@ -372,23 +377,38 @@ if TOOLKIT == TK:
                     vbox.pack(side="left", fill="x", expand=True)
             box.pack(fill="x")
 
-            # Word wrap
+            # Word wrap status
             self._word_wrap_tkval = Tk.BooleanVar()
-            self._word_wrap_tkval.set(self._word_wrap)
-            self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
-                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
-            self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
+            self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
 
-            # Text input field
-            label = Tk.Label(self._frame, text="Text:")
-            label.pack(pady=2, padx=5, anchor="w")
-            self._text_box = Tk.Text(self._frame)
-            hscrollbar = Tk.Scrollbar(self._frame, orient=Tk.HORIZONTAL, command=self._text_box.xview)
+            # Frame with text input field and word wrap checkbox
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            ibox = Tk.Frame(box)
+            label = Tk.Label(ibox, text="LaTeX code:")
+            self._word_wrap_checkbotton = Tk.Checkbutton(ibox, text="Word wrap", variable=self._word_wrap_tkval,
+                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
+            label.pack(pady=0, padx=5, side = "left", anchor="w")
+            self._word_wrap_checkbotton.pack(pady=0, padx=5, side = "right", anchor="w")
+            ibox.pack(expand=True, fill="both", pady=0, padx=0)
+
+            ibox = Tk.Frame(box)
+            iibox = Tk.Frame(ibox)
+            self._text_box = Tk.Text(iibox, width=70, height=12) # 70 chars, 12 lines
+            hscrollbar = Tk.Scrollbar(iibox, orient=Tk.HORIZONTAL, command=self._text_box.xview)
             self._text_box["xscrollcommand"]=hscrollbar.set
-            self._text_box.pack(expand=True, fill="both", pady=5, padx=5)
-            hscrollbar.pack(expand=True, fill="both", pady=5, padx=5)
+            self._text_box.pack(expand=True, fill="both", pady=0, padx=1, anchor = "w")
+            hscrollbar.pack(expand=True, fill="both", pady=2, padx=5)
+
+            vscrollbar = Tk.Scrollbar(ibox, orient=Tk.VERTICAL, command=self._text_box.yview)
+            self._text_box["yscrollcommand"]=vscrollbar.set
+            iibox.pack(expand=True, fill="both", pady=0, padx=1, side="left", anchor="e")
+            vscrollbar.pack(expand=True, fill="y", pady=2, padx=1, side = "left", anchor = "e")
+            ibox.pack(expand=True, fill="both", pady=0, padx=5)
+
             self._text_box.insert(Tk.END, self.text)
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+
+            box.pack(fill="x", pady=2)
 
             # OK and Cancel button
             box = Tk.Frame(self._frame)
@@ -413,7 +433,7 @@ if TOOLKIT == TK:
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
                           tex_command_tk_str.get())
-            return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_tkval.get()
+            return self._gui_config
 
         def cb_ok(self, widget=None, data=None):
             try:
@@ -429,6 +449,7 @@ if TOOLKIT == TK:
 
         def cb_word_wrap(self, widget=None, data=None):
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+            self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
 
         def reset_scale_factor(self, _=None):
             self._scale.delete(0, "end")
@@ -451,9 +472,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         """GTK + Source Highlighting for editing TexText objects"""
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                     current_texcmd, tex_commands, word_wrap):
+                     current_texcmd, tex_commands, gui_config):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                                   current_alignment, current_texcmd, tex_commands, word_wrap)
+                                                   current_alignment, current_texcmd, tex_commands, gui_config)
             self._preview = None
             self._scale_adj = None
             self._texcmd_cbox = None
@@ -478,16 +499,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._toggle_actions = [
                 ('ShowNumbers', None, 'Show _Line Numbers', None,
-                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb, False),
+                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb),
                 ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
-                 self.auto_indent_toggled_cb, False),
+                 self.auto_indent_toggled_cb),
                 ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False)
+                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb)
             ]
 
             self._word_wrap_action = [
                 ('WordWrap', None, '_Word Wrap', None,
-                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb, self._word_wrap)
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
             ]
 
             self._radio_actions = [
@@ -608,25 +629,25 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             AskTextGTKSource.load_file(text_buffer, path)
 
         # Callback methods for the various menu items at the top of the window
-        @staticmethod
-        def numbers_toggled_cb(action, sourceview):
+        def numbers_toggled_cb(self, action, sourceview):
             sourceview.set_show_line_numbers(action.get_active())
+            self._gui_config["line_numbers"] = action.get_active()
 
-        @staticmethod
-        def auto_indent_toggled_cb(action, sourceview):
+        def auto_indent_toggled_cb(self, action, sourceview):
             sourceview.set_auto_indent(action.get_active())
+            self._gui_config["auto_indent"] = action.get_active()
 
-        @staticmethod
-        def insert_spaces_toggled_cb(action, sourceview):
+        def insert_spaces_toggled_cb(self, action, sourceview):
             sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
+            self._gui_config["insert_spaces"] = action.get_active()
 
-        @staticmethod
-        def word_wrap_toggled_cb(action, sourceview):
+        def word_wrap_toggled_cb(self, action, sourceview):
             sourceview.set_wrap_mode(gtk.WRAP_WORD if action.get_active() else gtk.WRAP_NONE)
+            self._gui_config["word_wrap"] = action.get_active()
 
-        @staticmethod
-        def tabs_toggled_cb(action, previous_value, sourceview):
+        def tabs_toggled_cb(self, action, previous_value, sourceview):
             sourceview.set_tab_width(action.get_current_value())
+            self._gui_config["tab_width"] = action.get_current_value()
 
         def cb_key_press(self, widget, event, data=None):
             """
@@ -904,9 +925,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_align_hbox.pack_start(scale_frame, False, False, 0)
             scale_align_hbox.pack_start(alignment_frame, True, True, 0)
 
-            # --- Word wrap box ---
-            self._word_wrap_checkbotton = gtk.CheckButton("Word wrap")
-
             # --- TeX code window ---
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
@@ -930,7 +948,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._source_buffer = text_buffer
             self._source_view = source_view
-            self._source_view.set_wrap_mode(gtk.WRAP_WORD if self._word_wrap else gtk.WRAP_NONE)
             self._source_buffer.set_text(self.text)
 
             scroll_window.add(self._source_view)
@@ -948,9 +965,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
-                action_group.add_radio_actions(self._radio_actions, -1, AskTextGTKSource.tabs_toggled_cb, source_view)
+                action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
             ui_manager.insert_action_group(action_group, 0)
-            action_group.get_action("WordWrap").connect_proxy(self._word_wrap_checkbotton)
 
             # Menu
             menu = ui_manager.get_widget('/MainMenu')
@@ -970,7 +986,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.pack_start(preamble_frame, False, False, 0)
             vbox.pack_start(texcmd_frame, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
-            vbox.pack_start(self._word_wrap_checkbotton, False, False, 0)
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
@@ -981,18 +996,20 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # preselect menu check items
             groups = ui_manager.get_action_groups()
-            # ToDo: Set values via add_toggle_actions default values?
+            # retrieve the view action group at position 0 in the list
+            action_group = groups[0]
+            action = action_group.get_action('WordWrap')
+            action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
             if TOOLKIT == GTKSOURCEVIEW:
-                # retrieve the view action group at position 0 in the list
-                action_group = groups[0]
                 action = action_group.get_action('ShowNumbers')
-                action.set_active(True)
+                action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
                 action = action_group.get_action('AutoIndent')
-                action.set_active(True)
+                action.set_active(self._gui_config.get("auto_indent", self.DEFAULT_AUTOINDENT))
                 action = action_group.get_action('InsertSpaces')
+                action.set_active(self._gui_config.get("insert_spaces", self.DEFAULT_INSERTSPACES))
+                action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
                 action.set_active(True)
-                action = action_group.get_action('TabsWidth4')
-                action.set_active(True)
+                self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
@@ -1018,4 +1035,4 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 # main loop
                 gtk.main()
-                return self.text, self.preamble_file, self.global_scale_factor, self._word_wrap_checkbotton.get_active()
+                return self._gui_config
