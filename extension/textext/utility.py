@@ -169,6 +169,9 @@ class Settings(object):
             return default
         return result
 
+    def items(self):
+        return self.values.items()
+
     def __getitem__(self, key):
         return self.values.get(key)
 

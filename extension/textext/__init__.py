@@ -128,7 +128,6 @@ try:
 
         DEFAULT_ALIGNMENT = "middle center"
         DEFAULT_TEXCMD = "pdflatex"
-        DEFAULT_GUI_WORDWRAP = False
 
         def __init__(self):
 
@@ -290,7 +289,8 @@ try:
                 else:
                     logger.debug("Using default tex converter `%s` " % current_tex_command)
 
-                gui_config = {"word_wrap": self.config.get("gui_wordwrap", TexText.DEFAULT_GUI_WORDWRAP)}
+                # GUI related settings start with "gui_"
+                gui_config = {k.split("gui_")[1]:v for k,v in self.config.items() if k.startswith("gui_") and len(k) > 4}
 
                 # Ask for TeX code
                 if self.options.text is None:
@@ -341,7 +341,9 @@ try:
                         gui_config = asker.ask(save_callback, preview_callback)
 
                     with logger.debug("Saving global GUI settings"):
-                        self.config["gui_wordwrap"] = gui_config["word_wrap"]
+                        for key, value in gui_config.items():
+                            # GUI related settings have to start with "gui_"
+                            self.config["gui_%s" % key] = value
                         self.config.save()
 
 

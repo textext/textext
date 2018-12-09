@@ -43,7 +43,7 @@ from errors import TexTextCommandFailed, TexTextConversionError
 #   If unsuccessful, try TK
 #   When not even TK could be imported, abort with error message
 try:
-    import pygtkx
+    import pygtk
 
     pygtk.require('2.0')
     import gtk
@@ -190,6 +190,11 @@ class AskText(object):
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
                         "middle left", "middle center", "middle right",
                         "bottom left", "bottom center", "bottom right"]
+    DEFAULT_WORDWRAP = False
+    DEFAULT_SHOWLINENUMBERS = True
+    DEFAULT_AUTOINDENT = True
+    DEFAULT_INSERTSPACES = True
+    DEFAULT_TABWIDTH = 4
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, tex_commands, gui_config):
@@ -374,7 +379,7 @@ if TOOLKIT == TK:
 
             # Word wrap
             self._word_wrap_tkval = Tk.BooleanVar()
-            self._word_wrap_tkval.set(self._gui_config.get("word_wrap", False))
+            self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
             self._word_wrap_checkbotton = Tk.Checkbutton(self._frame, text="Word wrap", variable=self._word_wrap_tkval,
                                                          onvalue=True, offvalue=False, command=self.cb_word_wrap)
             self._word_wrap_checkbotton.pack(pady=2, padx=5, anchor="w")
@@ -413,7 +418,7 @@ if TOOLKIT == TK:
 
             self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
                           tex_command_tk_str.get())
-            return {"word_wrap": self._word_wrap_tkval.get()}
+            return self._gui_config
 
         def cb_ok(self, widget=None, data=None):
             try:
@@ -429,6 +434,7 @@ if TOOLKIT == TK:
 
         def cb_word_wrap(self, widget=None, data=None):
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+            self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
 
         def reset_scale_factor(self, _=None):
             self._scale.delete(0, "end")
@@ -478,17 +484,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._toggle_actions = [
                 ('ShowNumbers', None, 'Show _Line Numbers', None,
-                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb, False),
+                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb),
                 ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
-                 self.auto_indent_toggled_cb, False),
+                 self.auto_indent_toggled_cb),
                 ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb, False)
+                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb)
             ]
 
             self._word_wrap_action = [
                 ('WordWrap', None, '_Word Wrap', None,
-                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb,
-                 self._gui_config.get("word_wrap", False))
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
             ]
 
             self._radio_actions = [
@@ -609,25 +614,25 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             AskTextGTKSource.load_file(text_buffer, path)
 
         # Callback methods for the various menu items at the top of the window
-        @staticmethod
-        def numbers_toggled_cb(action, sourceview):
+        def numbers_toggled_cb(self, action, sourceview):
             sourceview.set_show_line_numbers(action.get_active())
+            self._gui_config["line_numbers"] = action.get_active()
 
-        @staticmethod
-        def auto_indent_toggled_cb(action, sourceview):
+        def auto_indent_toggled_cb(self, action, sourceview):
             sourceview.set_auto_indent(action.get_active())
+            self._gui_config["auto_indent"] = action.get_active()
 
-        @staticmethod
-        def insert_spaces_toggled_cb(action, sourceview):
+        def insert_spaces_toggled_cb(self, action, sourceview):
             sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
+            self._gui_config["insert_spaces"] = action.get_active()
 
-        @staticmethod
-        def word_wrap_toggled_cb(action, sourceview):
+        def word_wrap_toggled_cb(self, action, sourceview):
             sourceview.set_wrap_mode(gtk.WRAP_WORD if action.get_active() else gtk.WRAP_NONE)
+            self._gui_config["word_wrap"] = action.get_active()
 
-        @staticmethod
-        def tabs_toggled_cb(action, previous_value, sourceview):
+        def tabs_toggled_cb(self, action, previous_value, sourceview):
             sourceview.set_tab_width(action.get_current_value())
+            self._gui_config["tab_width"] = action.get_current_value()
 
         def cb_key_press(self, widget, event, data=None):
             """
@@ -924,7 +929,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._source_buffer = text_buffer
             self._source_view = source_view
-            self._source_view.set_wrap_mode(gtk.WRAP_WORD if self._gui_config.get("word_wrap", False) else gtk.WRAP_NONE)
             self._source_buffer.set_text(self.text)
 
             scroll_window.add(self._source_view)
@@ -942,7 +946,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
-                action_group.add_radio_actions(self._radio_actions, -1, AskTextGTKSource.tabs_toggled_cb, source_view)
+                action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
             ui_manager.insert_action_group(action_group, 0)
             action_group.get_action("WordWrap").connect_proxy(self._word_wrap_checkbotton)
 
@@ -975,17 +979,18 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # preselect menu check items
             groups = ui_manager.get_action_groups()
-            # ToDo: Set values via add_toggle_actions default values?
+            # retrieve the view action group at position 0 in the list
+            action_group = groups[0]
+            action = action_group.get_action('WordWrap')
+            action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
             if TOOLKIT == GTKSOURCEVIEW:
-                # retrieve the view action group at position 0 in the list
-                action_group = groups[0]
                 action = action_group.get_action('ShowNumbers')
-                action.set_active(True)
+                action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
                 action = action_group.get_action('AutoIndent')
-                action.set_active(True)
+                action.set_active(self._gui_config.get("auto_indent", self.DEFAULT_AUTOINDENT))
                 action = action_group.get_action('InsertSpaces')
-                action.set_active(True)
-                action = action_group.get_action('TabsWidth4')
+                action.set_active(self._gui_config.get("insert_spaces", self.DEFAULT_INSERTSPACES))
+                action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
                 action.set_active(True)
 
             # Connect event callbacks
@@ -1012,4 +1017,4 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 # main loop
                 gtk.main()
-                return {"word_wrap": self._word_wrap_checkbotton.get_active()}
+                return self._gui_config
