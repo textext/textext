@@ -903,9 +903,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             scale_align_hbox.pack_start(scale_frame, False, False, 0)
             scale_align_hbox.pack_start(alignment_frame, True, True, 0)
 
-            # --- Word wrap box ---
-            self._word_wrap_checkbotton = gtk.CheckButton("Word wrap")
-
             # --- TeX code window ---
             # Scrolling Window with Source View inside
             scroll_window = gtk.ScrolledWindow()
@@ -948,7 +945,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
                 action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
             ui_manager.insert_action_group(action_group, 0)
-            action_group.get_action("WordWrap").connect_proxy(self._word_wrap_checkbotton)
 
             # Menu
             menu = ui_manager.get_widget('/MainMenu')
@@ -968,7 +964,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.pack_start(preamble_frame, False, False, 0)
             vbox.pack_start(texcmd_frame, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
-            vbox.pack_start(self._word_wrap_checkbotton, False, False, 0)
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
