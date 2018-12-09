@@ -1002,6 +1002,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 action.set_active(self._gui_config.get("insert_spaces", self.DEFAULT_INSERTSPACES))
                 action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
                 action.set_active(True)
+                self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
