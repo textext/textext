@@ -1,5 +1,7 @@
 Version 0.9.0 (t.b.a.)
 ======================
+- New: GUI settings saved to disk and reloaded at next call
+- New: Improved error dialog 
 - New: Added possibility to wrap long lines (issue 47)
 - New: Imagemagick is not necessary anymore (issue 60)
 - New: Automatic dependency checks during installation (issue 54)
