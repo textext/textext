@@ -128,7 +128,6 @@ try:
 
         DEFAULT_ALIGNMENT = "middle center"
         DEFAULT_TEXCMD = "pdflatex"
-        DEFAULT_GUI_WORDWRAP = False
 
         def __init__(self):
 
@@ -241,14 +240,12 @@ try:
 
                 tex_to_pdf_converter = None
                 for converter_class_name, converter_class in CONVERTERS.items():
-                    try:
-                        if converter_class_name in self.requirements_checker.available_pdf_to_svg_converters:
-                            tex_to_pdf_converter = converter_class(self.requirements_checker)
-                            logger.debug("%s is usable" % converter_class.__name__)
-                            break
-                    except TexTextCommandError as err:
+                    if converter_class_name in self.requirements_checker.available_pdf_to_svg_converters:
+                        tex_to_pdf_converter = converter_class(self.requirements_checker)
+                        logger.debug("%s is usable" % converter_class.__name__)
+                        break
+                    else:
                         logger.debug("%s is not usable" % converter_class.__name__)
-                        converter_errors.append("%s: %s" % (converter_class.__name__, str(err)))
 
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
@@ -292,7 +289,7 @@ try:
                 else:
                     logger.debug("Using default tex converter `%s` " % current_tex_command)
 
-                gui_wordwrap = self.config.get("gui_wordwrap", TexText.DEFAULT_GUI_WORDWRAP)
+                gui_config = self.config.get("gui", {})
 
                 # Ask for TeX code
                 if self.options.text is None:
@@ -324,7 +321,7 @@ try:
                                                  current_alignment=alignment, current_texcmd=current_tex_command,
                                                  tex_commands=sorted(list(
                                                      self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                                 word_wrap=gui_wordwrap)
+                                                 gui_config=gui_config)
 
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                  tex_cmd=TexText.DEFAULT_TEXCMD):
@@ -340,10 +337,10 @@ try:
                                                     _tex_command)
 
                     with logger.debug("Run TexText GUI"):
-                        _, _, _, gui_wordwrap = asker.ask(save_callback, preview_callback)
+                        gui_config = asker.ask(save_callback, preview_callback)
 
                     with logger.debug("Saving global GUI settings"):
-                        self.config["gui_wordwrap"] = gui_wordwrap
+                        self.config["gui"] = gui_config
                         self.config.save()
 
 
@@ -390,20 +387,17 @@ try:
                         converter.pdf_to_svg()
 
                         # convert resulting svg to png using Inkscape
-                        try:
-                            options = ['-f', converter.tmp("svg"),
-                                       '--export-png', converter.tmp('png'),
-                                       '--export-area-drawing',
-                                       '--export-dpi=200'
-                                       ]
-                            executable = self.requirements_checker.inkscape_executable
+                        options = ['-f', converter.tmp("svg"),
+                                   '--export-png', converter.tmp('png'),
+                                   '--export-area-drawing',
+                                   '--export-dpi=200'
+                                   ]
+                        executable = self.requirements_checker.inkscape_executable
 
-                            exec_command([executable] + options)
+                        exec_command([executable] + options)
 
-                            image_setter(converter.tmp('png'))
-                        except TexTextCommandError as error:
-                            raise TexTextNonFatalError(
-                                "Could not convert SVG to PNG. \nDetailed error message:\n%s" % str(error))
+                        image_setter(converter.tmp('png'))
+
 
         def do_convert(self, text, preamble_file, user_scale_factor, converter, old_svg_ele, alignment, tex_command,
                        original_scale=None):
@@ -617,9 +611,9 @@ try:
                 except TexTextCommandFailed as error:
                     if os.path.exists(self.tmp('log')):
                         parsed_log = self.parse_pdf_log(self.tmp('log'))
-                        raise TexTextConversionError(parsed_log)
+                        raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr)
                     else:
-                        raise TexTextConversionError(str(error))
+                        raise TexTextConversionError(error.message, error.return_code, error.stdout, error.stderr)
 
                 if not os.path.exists(self.tmp('pdf')):
                     raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
@@ -713,23 +707,22 @@ try:
                                           + pstoeditOpts)
                 except TexTextCommandFailed as error:
                     # Linux runs into this in case of DELAYBIND error
-                    if "DELAYBIND" in str(error):
+                    result = str(error)
+                    if "DELAYBIND" in error.stdout+error.stderr:
                         result = "%s %s" % (
                         "The ghostscript version installed on your system is not compatible with pstoedit! "
                         "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
                         "ghostscript).\n\n Detailed error message:\n", result)
-                        raise TexTextCommandFailed(result)
-                    else:
-                        # Process rare STATUS_DLL_NOT_FOUND = 0xC0000135 error (DWORD)
-                        if "-1073741515" in str(error):
-                            raise TexTextCommandFailed("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
-                                            "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
-                                            "to install the Microsoft Visual C++ 2010 Redistributable Package "
-                                            "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
-                                            "This is a problem of pstoedit, not of TexText!!")
+                    elif "-1073741515" in error.stdout+error.stderr:
+                        result = ("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
+                                  "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
+                                  "to install the Microsoft Visual C++ 2010 Redistributable Package "
+                                  "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
+                                  "This is a problem of pstoedit, not of TexText!!")
+                    raise TexTextCommandFailed(result, error.return_code, error.stdout, error.stderr)
 
                 if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                    raise TexTextCommandFailed("pstoedit didn't produce output.\n%s" % (result))
+                    raise TexTextConversionError("pstoedit didn't produce output.\n%s" % (result))
 
         def svg_to_group(self):
             """
@@ -779,15 +772,12 @@ try:
             Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
             """
             with logger.debug("Converting .pdf to .svg"):
-                try:
-                    # Exec pdf2cvg infile.pdf outfile.svg
-                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
-                                           self.tmp('pdf'), self.tmp('svg')])
-                except TexTextNonFatalError as e:
-                    raise TexTextNonFatalError("Command pdf2svg failed: %s" % str(e))
+                # Exec pdf2cvg infile.pdf outfile.svg
+                result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
+                                       self.tmp('pdf'), self.tmp('svg')])
 
                 if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                    raise TexTextNonFatalError("pdf2svg didn't produce output.\n%s" % result)
+                    raise TexTextConversionError("pdf2svg didn't produce output.\n%s" % result)
 
         def svg_to_group(self):
             """
@@ -849,7 +839,7 @@ try:
                                 node.attrib["style"] = ss.formatStyle(node_style_dict)
                     return Pdf2SvgSvgElement(new_group)
                 except:  # todo: <-- be more precise here
-                    raise TexTextNonFatalError("Can't find a group in resulting svg")
+                    raise TexTextConversionError("Can't find a group in resulting svg")
 
 
     class SvgElement(object):
