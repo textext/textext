@@ -56,6 +56,22 @@ class LinuxDefaults(Defaults):
         return stdout, stderr
 
 
+class MacDefaults(LinuxDefaults):
+    os_name = "macos"
+    executable_names = {"inkscape": ["inkscape-bin"],
+                        "pdflatex": ["pdflatex"],
+                        "lualatex": ["lualatex"],
+                        "xelatex": ["xelatex"],
+                        "pdf2svg": ["pdf2svg"],
+                        "pstoedit": ["pstoedit"],
+                        "ghostscript": ["gs", "ghostscript"]}
+
+    def get_system_path(self):
+        path = ["/Applications/Inkscape.app/Contents/Resources"]
+        path += os.environ["PATH"].split(os.path.pathsep)
+        return path
+
+
 class WindowsDefaults(Defaults):
 
     os_name = "windows"
@@ -747,6 +763,8 @@ get_levels_colors = LoggingColors()
 
 if sys.platform.startswith("win"):
     defaults = WindowsDefaults()
+elif sys.platform.startswith("darwin"):
+    defaults = MacDefaults()
 else:
     defaults = LinuxDefaults()
 
