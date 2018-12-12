@@ -25,12 +25,17 @@ Key features
 -  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
 -  Compatibility with TexText down to version 0.4.x
 
+
+.. _installation-toc:
+
 .. toctree::
     :caption: Installation
     :maxdepth: 2
     :glob:
 
     install/*
+
+.. _usage-toc:
 
 .. toctree::
     :caption: Usage

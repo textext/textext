@@ -1,49 +1,34 @@
 |Build Status|
 
-TexText - A LaTeX/ XeLaTex/ LuaLaTex extension for Inkscape (releases 0.92, 0.91 and 0.48)
-==========================================================================================
+TexText - A Tex extension for Inkscape
+======================================
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
 LaTeX generated SVG elements to your drawing.
 
-.. figure:: docs/wiki-resources/textext-with-inkscape.png
-
-   TexText dialog with Inkscape
+.. figure:: docs/source/images/textext-with-inkscape.png
+    :alt: TexText dialog with Inkscape
 
 Key features
 ------------
 
--  Multi-line editor, optionally with syntax highlighting
+-  Windows/Linux/MacOs support
+-  Multi-line editor with syntax highlighting (see `§ <usage-dialog-overview_>`_)
+-  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see `§ <usage-tex-compilers_>`_)
+-  Interoperable scaling in TexText and Inkscape (see `§ <usage-scaling_>`_)
+-  Font size match with Inkscape text (see `§ <usage-font_>`_)
+-  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see `§ <usage-preamble-file_>`_)
+-  Colorization via TeX commands/Inkscape is kept after re-editing (see `§ <usage-colorization_>`_)
+-  Alignment anchor of the produced output (see `§ <usage-alignment_>`_)
 -  Compatibility with TexText down to version 0.4.x
--  Compilation of TeX code using PdfLaTeX, XeLaTeX or LuaLaTex
--  Free scaling of the produced output either by dragging with the mouse
-   in Inkscape or by setting a scale factor manually in the TexText GUI.
-   Both approaches are compatible to each other. Scaling is kept after
-   re-editing the code or can be adjusted later.
--  Possibility of exact font size matching with Inkscape text
--  TeX preamble file can be freely configured (additional packages,
-   parskip, parindent, etc.)
--  Colorization of the produced output via TeX commands or directly by
-   Inkscape. Colorization is kept after re-editing the TeX code.
--  It is possible to specify the alignment anchor of the produced
-   output. By this it is possible to fix e.g. the top left corner of the
-   produced svg output from compilation to compilation.
--  TeXText uses either pdf2svg or pstoedit+ghostscript as converter for
-   producing svg code from the generated pdf.
 
-Download
---------
+Documentation
+-------------
 
-See `TexText release
-area <https://github.com/textext/textext/releases>`__ on GitHub for the
-latest release.
+Documentation hosted at https://textext.github.io/textext
+It contains `installation <installation-toc_>`_ and `usage <usage-toc_>`_ instructions
 
-Installation and usage
-----------------------
-
-Detailed information about **installation** and **usage** can be found
-in the `Wiki <https://github.com/textext/textext/wiki>`__.
 
 History
 -------
@@ -56,3 +41,14 @@ plugin InkLaTeX written by Toru Araki.
 
 .. |Build Status| image:: https://travis-ci.com/textext/textext.svg?branch=develop
    :target: https://travis-ci.com/textext/textext
+
+.. _documentation:         https://textext.github.io/textext
+.. _installation-toc:      https://textext.github.io/textext#installation-toc
+.. _usage-toc:             https://textext.github.io/textext#usage-toc
+.. _usage-dialog-overview: https://textext.github.io/textext/usage.html#usage-dialog-overview
+.. _usage-tex-compilers:   https://textext.github.io/textext/usage.html#usage-tex-compilers
+.. _usage-scaling:         https://textext.github.io/textext/usage.html#usage-scaling
+.. _usage-font:            https://textext.github.io/textext/usage.html#usage-font
+.. _usage-preamble-file:   https://textext.github.io/textext/usage.html#usage-preamble-file
+.. _usage-colorization:    https://textext.github.io/textext/usage.html#usage-colorization
+.. _usage-alignment:       https://textext.github.io/textext/usage.html#usage-alignment
