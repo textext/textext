@@ -1004,6 +1004,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._source_buffer = text_buffer
             self._source_view = source_view
             self._source_buffer.set_text(self.text)
+            self._source_view.set_size_request(-1, 150)
 
             scroll_window.add(self._source_view)
             set_monospace_font(self._source_view)
