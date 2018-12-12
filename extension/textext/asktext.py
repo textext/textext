@@ -471,11 +471,14 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
+
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd, tex_commands, gui_config):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                                    current_alignment, current_texcmd, tex_commands, gui_config)
             self._preview = None  # type: gtk.Image
+            self._pixbuf = None  # type: gtk.gdk.Pixbuf
+            self.preview_representation = "SCALE"  # type: str
             self._preview_scroll_window = None  # type: gtk.ScrolledWindow
             self._scale_adj = None
             self._texcmd_cbox = None
@@ -735,36 +738,68 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             Set the preview image in the GUI, scaled to the text view's width
             :param path: the path of the image
             """
-            textview_width = self._source_view.get_allocation().width
+
+            self._pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            self.update_preview_representation()
+
+        def switch_preview_representation(self, widget=None, event=None):
+            if event.button == 1: # left click only
+                if event.type == gtk.gdk._2BUTTON_PRESS:  # only double click
+                    if self.preview_representation == "SCALE":
+                        self.preview_representation = "SCROLL"
+                    else:
+                        self.preview_representation = "SCALE"
+                    self.update_preview_representation()
+
+        def update_preview_representation(self):
+
             max_preview_height = 150
 
-            pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-            image_width = pixbuf.get_width()
-            image_height = pixbuf.get_height()
-            scale = 1
+            textview_width = self._source_view.get_allocation().width
+            image_width = self._pixbuf.get_width()
+            image_height = self._pixbuf.get_height()
 
-            if image_width > textview_width:
-                scale = min(scale, (textview_width * 1.0 / image_width))
+            def set_scaled_preview():
+                scale = 1
+                if image_width > textview_width:
+                    scale = min(scale, (textview_width * 1.0 / image_width))
 
-            if image_height > max_preview_height:
-                scale = min(scale, (max_preview_height * 1.0 / image_height))
-            #
-            # if scale != 1:
-            #     pixbuf = pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
-            #                                  gtk.gdk.INTERP_BILINEAR)
+                if image_height > max_preview_height:
+                    scale = min(scale, (max_preview_height * 1.0 / image_height))
 
-            self._preview.set_from_pixbuf(pixbuf)
-            self._preview.set_size_request(image_width, image_height)
+                pixbuf = self._pixbuf
+                if scale != 1:
+                    pixbuf = self._pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
+                                                                                  gtk.gdk.INTERP_BILINEAR)
 
-            scroll_bar_width = 30
+                self._preview.set_from_pixbuf(pixbuf)
+                self._preview.set_size_request(pixbuf.get_width(), pixbuf.get_height())
 
-            desired_preview_area_height = image_height
-            if image_width + scroll_bar_width >= textview_width:
-                desired_preview_area_height += scroll_bar_width
+                return image_height
 
-            self._preview_scroll_window.set_size_request(textview_width,
-                                                         min(desired_preview_area_height, max_preview_height))
+            def set_scroll_preview():
+
+                self._preview.set_size_request(image_width, image_height)
+
+                scroll_bar_width = 30
+
+                desired_preview_area_height = image_height
+                if image_width + scroll_bar_width >= textview_width:
+                    desired_preview_area_height += scroll_bar_width
+
+                self._preview.set_from_pixbuf(self._pixbuf)
+
+                return desired_preview_area_height
+
+            if self.preview_representation == "SCROLL":
+                desired_preview_area_height = set_scroll_preview()
+            else:
+                desired_preview_area_height = set_scaled_preview()
+
+            self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
             self._preview_scroll_window.show()
+
+
 
         # ---------- create view window
         def create_buttons(self):
@@ -997,6 +1032,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preview_viewport.add(self._preview)
             self._preview_scroll_window.add(preview_viewport)
 
+            preview_event_box = gtk.EventBox()
+            preview_event_box.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+
+            preview_event_box.connect('button-press-event', self.switch_preview_representation)
+            preview_event_box.add(self._preview_scroll_window)
+
+
             # Vertical Layout
             vbox = gtk.VBox(False, 4)
             window.add(vbox)
@@ -1008,7 +1050,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
-            vbox.pack_start(self._preview_scroll_window, False, False, 0)
+            vbox.pack_start(preview_event_box, False, False, 0)
             vbox.pack_start(self.create_buttons(), False, False, 0)
 
             vbox.show_all()
