@@ -184,8 +184,10 @@ epub_exclude_files = ['search.html']
 # -- Extension configuration -------------------------------------------------
 
 extlinks = {
-    'issue_num': ('https://github.com/textext/textext/issues/%s', ' #'),
+    'issue_num': ('https://github.com/textext/textext/issues/%s', '#'),
     'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
+    'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb#'),
+    'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue bb#'),
     'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),

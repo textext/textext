@@ -25,12 +25,17 @@ Key features
 -  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
 -  Compatibility with TexText down to version 0.4.x
 
+
+.. _installation-toc:
+
 .. toctree::
     :caption: Installation
     :maxdepth: 2
     :glob:
 
     install/*
+
+.. _usage-toc:
 
 .. toctree::
     :caption: Usage
@@ -39,16 +44,15 @@ Key features
 
     usage.rst
 
-History
--------
+.. toctree::
+    :caption: Credits
+    :maxdepth: 1
 
-This repository continues the development of the plugin which took place
-at https://bitbucket.org/pitgarbe/textext until January 2018.
-Originally, TexText had been developed by `Pauli
-Virtanen <http://www.iki.fi/pav/software/textext/>`__ based on the
-plugin InkLaTeX written by Toru Araki.
+    history.rst
+    authors.rst
 
+.. toctree::
+    :caption: Changelog
+    :maxdepth: 2
 
-
-.. include:: changelog.rst
-
+    changelog.rst
