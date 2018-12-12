@@ -386,12 +386,17 @@ try:
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
 
+                        if converter.get_pdf_converter_name() == "pdf2svg":
+                            export_area_arguments = ['--export-area-drawing']
+                        else:
+                            export_area_arguments = ['--export-id','content','--export-id-only']
+
                         # convert resulting svg to png using Inkscape
                         options = ['-f', converter.tmp("svg"),
                                    '--export-png', converter.tmp('png'),
-                                   '--export-area-drawing',
-                                   '--export-dpi=200'
-                                   ]
+                                   ] + export_area_arguments + [
+                                      '--export-dpi=200'
+                                  ]
                         executable = self.requirements_checker.inkscape_executable
 
                         exec_command([executable] + options)
