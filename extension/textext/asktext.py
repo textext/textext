@@ -774,6 +774,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 self._preview.set_from_pixbuf(pixbuf)
                 self._preview.set_size_request(pixbuf.get_width(), pixbuf.get_height())
+                self._preview_scroll_window.set_tooltip_text("Double click to switch to scroll mode")
 
                 return image_height
 
@@ -788,7 +789,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     desired_preview_area_height += scroll_bar_width
 
                 self._preview.set_from_pixbuf(self._pixbuf)
-
+                self._preview.set_size_request(image_width, image_height)
+                self._preview_scroll_window.set_tooltip_text("Double click to switch to scaled mode")
                 return desired_preview_area_height
 
             if self.preview_representation == "SCROLL":
