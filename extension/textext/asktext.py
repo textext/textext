@@ -1063,10 +1063,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(menu, False, False, 0)
 
-            hbox_texcmd_preamble = gtk.HBox(True, 2)
+            hbox_texcmd_preamble = gtk.HBox(True, 0)
 
-            hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 0)
-            hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 0)
+            hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 5)
+            hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 5)
 
             vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
