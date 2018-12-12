@@ -740,15 +740,19 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             """
 
             self._pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            self._preview_scroll_window.set_has_tooltip(False)
             self.update_preview_representation()
+
 
         def switch_preview_representation(self, widget=None, event=None):
             if event.button == 1: # left click only
                 if event.type == gtk.gdk._2BUTTON_PRESS:  # only double click
                     if self.preview_representation == "SCALE":
-                        self.preview_representation = "SCROLL"
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCROLL"
                     else:
-                        self.preview_representation = "SCALE"
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCALE"
                     self.update_preview_representation()
 
         def update_preview_representation(self):
@@ -771,10 +775,10 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 if scale != 1:
                     pixbuf = self._pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
                                                                                   gtk.gdk.INTERP_BILINEAR)
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to original size")
 
                 self._preview.set_from_pixbuf(pixbuf)
                 self._preview.set_size_request(pixbuf.get_width(), pixbuf.get_height())
-                self._preview_scroll_window.set_tooltip_text("Double click to switch to scroll mode")
 
                 return image_height
 
@@ -788,9 +792,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 if image_width + scroll_bar_width >= textview_width:
                     desired_preview_area_height += scroll_bar_width
 
+                if desired_preview_area_height>max_preview_height or image_width > textview_width:
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to fit window")
+
                 self._preview.set_from_pixbuf(self._pixbuf)
                 self._preview.set_size_request(image_width, image_height)
-                self._preview_scroll_window.set_tooltip_text("Double click to switch to scaled mode")
                 return desired_preview_area_height
 
             if self.preview_representation == "SCROLL":
