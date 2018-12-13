@@ -21,7 +21,7 @@ Key features
 -  Interoperable scaling in TexText and Inkscape (see :ref:`§ <usage-scaling>`)
 -  Font size match with Inkscape text (see :ref:`§ <usage-font>`)
 -  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see :ref:`§ <usage-preamble-file>`)
--  Colorization via TeX commands/Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
+-  Colorization via TeX commands/ Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
 -  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
 -  Compatibility with TexText down to version 0.4.x
 
