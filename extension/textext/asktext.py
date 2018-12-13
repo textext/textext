@@ -1088,6 +1088,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             window.connect('delete-event', self.window_deleted_cb, source_view)
             text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
 
+            icon_sizes = [16, 32, 64, 128]
+            icon_files = [os.path.join(
+                                os.path.dirname(__file__),
+                                "icons",
+                                "logo-{size}x{size}.png".format(size=size))
+                          for size in icon_sizes]
+            icons = [gtk.gdk.pixbuf_new_from_file(path) for path in icon_files if os.path.isfile(path)]
+            window.set_icon_list(*icons)
+
             return window
 
         def ask(self, callback, preview_callback=None):
