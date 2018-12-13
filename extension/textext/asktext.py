@@ -1060,9 +1060,18 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
             vbox.pack_start(preview_event_box, False, False, 0)
-            vbox.pack_start(self.create_buttons(), False, False, 0)
+            buttons_row = self.create_buttons()
+            vbox.pack_start(buttons_row, False, False, 0)
 
             vbox.show_all()
+
+            self._same_height_objects = [
+                preamble_frame,
+                texcmd_frame,
+                scale_align_hbox,
+                buttons_row
+            ]
+
             self._preview_scroll_window.hide()
 
             # preselect menu check items
@@ -1109,6 +1118,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 window = self.create_window()
                 window.set_default_size(500, 500)
                 window.show()
+                self.normalize_ui_row_heights()
 
                 self._window = window
                 self._window.set_focus(self._source_view)
@@ -1116,3 +1126,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # main loop
                 gtk.main()
                 return self._gui_config
+
+        def normalize_ui_row_heights(self):
+            heights = [obj.get_allocation().height for obj in self._same_height_objects]
+            max_ui_row_height = max(*heights)
+            for obj in self._same_height_objects:
+                obj.set_size_request(-1, max_ui_row_height)
