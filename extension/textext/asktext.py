@@ -1119,7 +1119,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 window.set_default_size(500, 500)
                 window.show()
                 self.normalize_ui_row_heights()
-
+                window.hide()
+                window.show()
                 self._window = window
                 self._window.set_focus(self._source_view)
 
