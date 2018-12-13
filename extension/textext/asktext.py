@@ -884,15 +884,17 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preamble_delete.set_tooltip_text("Clear the preamble file setting")
 
             preamble_frame = gtk.Frame("Preamble File")
-            preamble_box = gtk.HBox(homogeneous=False, spacing=2)
+            preamble_box = gtk.HBox(homogeneous=False, spacing=0)
             preamble_frame.add(preamble_box)
-            preamble_box.pack_start(self._preamble_widget, True, True, 2)
-            preamble_box.pack_start(preamble_delete, False, False, 2)
+            preamble_box.pack_start(self._preamble_widget, True, True, 5)
+            preamble_box.pack_start(preamble_delete, False, False, 5)
+            preamble_box.set_border_width(3)
 
             # --- Tex command ---
             texcmd_frame = gtk.Frame("TeX command")
-            texcmd_box = gtk.HBox(homogeneous=False, spacing=2)
+            texcmd_box = gtk.HBox(homogeneous=False, spacing=0)
             texcmd_frame.add(texcmd_box)
+            texcmd_box.set_border_width(3)
 
             self._texcmd_cbox = gtk.combo_box_new_text()
             cell = gtk.CellRendererText()
@@ -902,11 +904,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._texcmd_cbox.append_text(tex_command)
             self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
             self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
-            texcmd_box.pack_start(self._texcmd_cbox, True, True, 2)
+            texcmd_box.pack_start(self._texcmd_cbox, True, True, 5)
 
             # --- Scaling ---
             scale_frame = gtk.Frame("Scale Factor")
-            scale_box = gtk.HBox(homogeneous=False, spacing=2)
+            scale_box = gtk.HBox(homogeneous=False, spacing=0)
+            scale_box.set_border_width(3)
             scale_frame.add(scale_box)
             self._scale_adj = gtk.Adjustment(lower=0.001, upper=180, step_incr=0.001, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj)
@@ -954,7 +957,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # --- Alignment box ---
             alignment_frame = gtk.Frame("Alignment")
-            alignment_box = gtk.HBox(homogeneous=False, spacing=2)
+            alignment_box = gtk.HBox(homogeneous=False, spacing=0)
+            alignment_box.set_border_width(3)
             alignment_frame.add(alignment_box)
 
             liststore = gtk.ListStore(str)
@@ -976,9 +980,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_box.pack_start(self._alignment_combobox, True, True, 2)
 
             # --- Scale and alignment together in one "line"
-            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=2)
-            scale_align_hbox.pack_start(scale_frame, False, False, 0)
-            scale_align_hbox.pack_start(alignment_frame, True, True, 0)
+            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=0)
+            scale_align_hbox.pack_start(scale_frame, False, False, 5)
+            scale_align_hbox.pack_start(alignment_frame, True, True, 5)
 
             # --- TeX code window ---
             # Scrolling Window with Source View inside
