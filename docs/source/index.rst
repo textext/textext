@@ -19,7 +19,7 @@ Key features
 -  Multi-line editor with syntax highlighting (see :ref:`§ <usage-dialog-overview>`)
 -  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see :ref:`§ <usage-tex-compilers>`)
 -  Interoperable scaling in TexText and Inkscape (see :ref:`§ <usage-scaling>`)
--  Font size match with Inkscape text (see :ref:`§ <usage-font>`)
+-  Font size match with Inkscape text (see :ref:`§ <usage-font-size>`)
 -  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see :ref:`§ <usage-preamble-file>`)
 -  Colorization via TeX commands/ Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
 -  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
@@ -43,6 +43,13 @@ Key features
     :glob:
 
     usage.rst
+
+.. toctree::
+    :caption: Tips and Tricks
+    :maxdepth: 3
+    :glob:
+
+    tips.rst
 
 .. toctree::
     :caption: Credits
