@@ -47,7 +47,7 @@
 
 After installation |TexText| will appear under :menuselection:`Extensions --> Tex Text`:
 
-.. figure:: images/inkscape-extension-winxp.png
+.. figure:: images/inkscape-extension.png
    :alt: Extension entry
 
 When you select it, a dialog will appear that lets you enter any LaTeX
@@ -84,7 +84,7 @@ later by selecting it and running the *Tex Text* extension (which will
 then show the dialog containing the saved values).
 
 There is a preview button |usage-label-6| as well, which shortens the feedback cycle
-from entry to result considerably, so use it!
+from entry to result considerably, so use it! See section :ref:`usage-preview`
 
 .. _usage-preamble-file:
 
@@ -190,6 +190,8 @@ proportions according to the `alignment <usage-alignment_>`_.
 
 The alignment of the output
 ---------------------------
+
+.. versionadded:: 0.8.0
 
 When you edit existing nodes it is likely that the size of the produced
 output will change, for example if you modify the input :latex:`$\sin(x)$` to
