@@ -234,6 +234,30 @@ There are two ways for colorization of the output:
     be lost after re-compilation. This method is the recommended one if you
     would like a character wise colorization of your output.
 
+
+.. _usage-preview:
+
+The preview button
+------------------
+
+.. important::
+
+    This feature is not available in the Tkinter GUI!
+
+When pressing the ``Preview`` button your code will be compiled and the result
+is displayed as an image in the area below the LaTeX code input field. If the
+output extends a certain size it is displayed scaled so it fits into the available
+area. You can double click into the preview image to obtain the result in original
+size. Then, you can use the horizontal and vertical scroll bars to navigate along
+your result. Double clicking again will bring you back to the scaled version of the
+output.
+
+.. figure:: images/textext-dialog-preview.png
+   :alt: Annotated TexText dialog
+
+Finally, click the ``Save`` button to insert the compiled code into your document.
+
+
 .. _usage-font:
 
 Using specific font sizes or special fonts
@@ -285,3 +309,6 @@ from MS Word, then proceed as follows:
 
 2. Save the file and recompile your node. You can also define different
    preamble files and load them dependent on your node, see :ref:`usage-dialog-overview`.
+
+
+..
