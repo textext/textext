@@ -909,6 +909,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 assert os.path.exists(path)
                 liststore.append([gtk.gdk.pixbuf_new_from_file(path)])
 
+            gtk.rc_parse(os.path.join(os.path.dirname(__file__),"noarrow.gtkrc"))
             self._alignment_combobox = gtk.ComboBox()
 
             cell = gtk.CellRendererPixbuf()
@@ -916,6 +917,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._alignment_combobox.add_attribute(cell, 'pixbuf', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_name("TexTextAlignmentAnchorComboBox")
             self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
             if self.text == "":
