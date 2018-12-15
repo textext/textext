@@ -240,6 +240,31 @@ There are two ways for colorization of the output:
     would like a character wise colorization of your output.
 
 
+.. _usage-gui-config:
+
+The configuration of the code editor
+------------------------------------------
+
+If you have ``PyGTK`` installed you can open the ``View`` menu which offers some
+possibilities to configure the code editor:
+
+.. figure:: images/textext-dialog-with-view-menus.png
+    :alt: TexText view menu
+
+- ``Word Wrap``: If this option is checked long lines are wrapped automatically to window width.
+
+- ``Show line numbers``: If this option is checked line numbers are printed on the left hand side of the editor.
+
+- ``Enabled auto indent``: If this option is checked current indentation is preserved when breaking a new line (this is not an intelligent code dependent indentation feature).
+
+- ``Insert spaces instead of Tabs`` If this option is checked each time you press the ``Tab`` key a number of spaces as defined in ``Tabs Width`` is inserted instead of a tabulator character.
+
+.. important::
+
+   The last three options are only available if you have ``GTKSourceView`` installed
+   together with ``PyGTK`` (see installation instructions :ref:`linux-install`,
+   :ref:`windows-install`, :ref:`macos-install`)
+
 .. _usage-preview:
 
 The preview button
