@@ -263,6 +263,52 @@ output.
 Finally, click the ``Save`` button to insert the compiled code into your document.
 
 
+If something goes wrong
+-----------------------
+
+If compilation of your LaTeX code fails |TexText| opens a dialog displaying the
+cause of the failure. In most cases a syntax error in your code will be the reason.
+|TexText| filters the relevant information from the compiler output and displays
+it:
+
+.. figure:: images/textext-error-dialog-simple.png
+   :scale: 50 %
+   :alt: Simple error dialog
+
+If you would like to see the full output of the LaTeX processor, click on the ``+``
+left to te ``stdout`` label:
+
+.. figure:: images/textext-error-dialog-stdout.png
+   :scale: 50 %
+   :alt: Error dialog with stdout
+
+Sometimes nothing meaningful can be stripped from the LaTeX processor output, or
+nothing has been produced by LaTeX which can be parsed by |TexText|:
+
+.. figure:: images/textext-error-dialog-empty.png
+   :scale: 50 %
+   :alt: empty error dialog
+
+Most likely something serious failed during compilation and you may find additional
+information under ``stderr``.
+
+.. figure:: images/textext-error-dialog-stderr.png
+   :scale: 50 %
+   :alt: Error dialog with stderr
+
+.. important::
+   The ``stderr`` option is only available when errors have been piped by the
+   failed command.
+
+Of course, |TexText| may contain bugs which in most cases will also open the error
+dialog as long as the extension is able to start up and did not crash completely:
+
+xxxxx image xxxxx
+
+Please open an issue on GitHub describing the problem in such cases
+
+xxxx link to issue template xxxx
+
 Further reading
 ---------------
 
