@@ -46,10 +46,17 @@ Key features
 
 .. toctree::
     :caption: Tips and Tricks
-    :maxdepth: 3
+    :maxdepth: 2
     :glob:
 
     tips.rst
+
+.. toctree::
+    :caption: Frequently Asked Questions (FAQ)
+    :maxdepth: 2
+    :glob:
+
+    faq.rst
 
 .. toctree::
     :caption: Credits
