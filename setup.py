@@ -333,15 +333,15 @@ if __name__ == "__main__":
 
         check_result = checker.check()
         if check_result == None:
-            logger.info("Automatic requirements check is incomplete")
-            logger.info("Please check requirements list manually and run:")
-            logger.info(" ".join(sys.argv + ["--skip-requirements-check"]))
+            logger.error("Automatic requirements check is incomplete")
+            logger.error("Please check requirements list manually and run:")
+            logger.error(" ".join(sys.argv + ["--skip-requirements-check"]))
             exit(EXIT_REQUIREMENT_CHECK_UNKNOWN)
 
         if check_result == False:
-            logger.info("Automatic requirements check found issue")
-            logger.info("Follow instruction above and run install script again")
-            logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
+            logger.error("Automatic requirements check found issue")
+            logger.error("Follow instruction above and run install script again")
+            logger.error("To bypass requirement check pass `--skip-requirements-check` to setup.py")
             exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
