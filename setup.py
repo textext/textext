@@ -20,7 +20,8 @@ from requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
     defaults, \
-    LoggingColors
+    LoggingColors, \
+    SUCCESS
 
 from utility import Settings
 
@@ -118,7 +119,7 @@ class CopyFileAlreadyExistsError(RuntimeError):
 def copy_extension_files(src, dst, if_already_exists="raise"):
     """
     src: glob expresion to copy from
-    dst: destination directory 
+    dst: destination directory
     if_already_exists: action on existing files. One of "raise" (default), "skip", "overwrite"
     """
     if os.path.exists(dst):
@@ -394,5 +395,7 @@ if __name__ == "__main__":
                 if_already_exists="overwrite"
             )
         settings.save()
+
+    logger.log(SUCCESS, "--> TexText has been SUCCESSFULLY installed on your system <--")
 
     exit(EXIT_SUCCESS)
