@@ -8,17 +8,14 @@
    :language: latex
    :class: highlight
 
-.. _tips-and-tricks:
+.. _faq:
 
-Tips and Tricks
----------------
-
-This page presents a collection of hints which may be helpful in your daily work
-with |TexText|.
+Frequently Asked Questions (FAQ)
+--------------------------------
 
 .. contents:: :local:
 
-.. _usage-font-size:
+.. _faq-font-size:
 
 Explicit setting of font size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,10 +35,10 @@ specific size then you have to do two things:
 
 The resulting text should be of equal height as if has been typeset directly in Inkscape.
 
-.. figure:: images/texttext-fontsize-example.png
+.. figure:: ../images/texttext-fontsize-example.png
    :alt: Font size example
 
-.. _usage-font-custom-font:
+.. _faq-font-custom-font:
 
 Selection of special fonts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,6 +62,8 @@ from MS Word, then proceed as follows:
 2. Save the file and recompile your node. You can also define different
    preamble files and load them dependent on your node, see :ref:`usage-dialog-overview`.
 
+
+.. _faq-utf8:
 
 Using special characters like German Umlaute (äüö) etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
