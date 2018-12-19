@@ -149,8 +149,8 @@ Some things to be kept in mind:
 
 .. _usage-scaling:
 
-The scaling of the output
--------------------------
+Scaling of the output
+---------------------
 
 In most of the cases you will need to adjust the size of the produced
 SVG output to match the conditions of your drawing. This can be done by
@@ -193,8 +193,8 @@ proportions according to the `alignment <usage-alignment_>`_.
 
 .. _usage-alignment:
 
-The alignment of the output
----------------------------
+Alignment of the output
+-----------------------
 
 .. versionadded:: 0.8.0
 
@@ -215,8 +215,8 @@ editing existing nodes.
 
 .. _usage-colorization:
 
-The colorization of the output
-------------------------------
+Colorization of the output
+--------------------------
 
 There are two ways for colorization of the output:
 
@@ -227,10 +227,10 @@ There are two ways for colorization of the output:
     colorize characters individually be selecting them with the mouse after
     having pressed :kbd:`F2`. Be careful not to break the group.
 
- .. caution::
+    .. caution::
 
-    Individual symbol colorization done in inkscape *will not* be kept after
-    re-compilation.
+       Individual symbol colorization done in inkscape *will not* be kept after
+       re-compilation.
 
 
  2. Alternatively, you can use LaTeX commands like
@@ -242,8 +242,8 @@ There are two ways for colorization of the output:
 
 .. _usage-gui-config:
 
-The configuration of the code editor
-------------------------------------------
+Configuration of the code editor
+--------------------------------
 
 If you have ``PyGTK`` installed you can open the ``View`` menu which offers some
 possibilities to configure the code editor:
@@ -259,7 +259,7 @@ possibilities to configure the code editor:
 
 - ``Insert spaces instead of Tabs`` If this option is checked each time you press the ``Tab`` key a number of spaces as defined in ``Tabs Width`` is inserted instead of a tabulator character.
 
-.. important::
+.. note::
 
    The last three options are only available if you have ``GTKSourceView`` installed
    together with ``PyGTK`` (see installation instructions :ref:`linux-install`,
@@ -267,10 +267,10 @@ possibilities to configure the code editor:
 
 .. _usage-preview:
 
-The preview button
-------------------
+Preview button
+--------------
 
-.. important::
+.. note::
 
     This feature is not available in the Tkinter GUI!
 
@@ -288,9 +288,7 @@ output.
 Finally, click the ``Save`` button to insert the compiled code into your document.
 
 
-
-
 Further reading
 ---------------
 
-See :ref:`troubleshooting` and :ref:`faq`
+See :ref:`faq` and :ref:`troubleshooting`

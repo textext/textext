@@ -14,6 +14,11 @@
 TexText on MacOS
 ================
 
+.. caution::
+
+    These installation instrcuctions are not fully tested. Please report any
+    issues, comments or hints to https://github.com/textext/textext/issues/new
+
 To install |TexText| on MacOS do the following steps:
 
 #. `Install dependencies <macos-install-dependencies_>`_ of |TexText|
@@ -42,13 +47,15 @@ To install using homebrew:
 
     brew cask install inkscape
 
+.. (Two labels to catch links from failed requirement check!)
 .. _macos-install-python27:
+.. _macos-install-tkinter:
 
 Install python2.7
 ~~~~~~~~~~~~~~~~~
 
 Make sure that a Python 2.7 distribution is installed and found by
-your system. Make sure it contains the Tkinter package so TexText will run
+your system. Make sure it contains the Tkinter package so |TexText| will run
 at least with a basic interface.
 
 To install using homebrew and forcing the Tkinter package to be installed:
@@ -57,10 +64,13 @@ To install using homebrew and forcing the Tkinter package to be installed:
 
     brew cask install python@2 --with-tcl-tk
 
+.. (Two labels to catch links from failed requirement check!)
+.. _macos-install-gui-library:
 .. _macos-install-pygtk2:
 
 Install PyGTK2 (recommended)
 ----------------------------
+
 Compared to the Tkinter interface the PyGTK interface will offer a lot more
 functionality. Hence, install the following packages.
 
@@ -146,13 +156,12 @@ To install using homebrew:
 Install TexText
 ===============
 
-1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <MacOS>`, :textext_download_tgz:`.tar.gz <MacOS>`)
-2. Extract the package and change to created directory.
-3. Run :bash:`setup.py` from your terminal:
+1.  Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <MacOS>`, :textext_download_tgz:`.tar.gz <MacOS>`)
+2.  Extract the package and change to created directory.
+3.  Run :bash:`setup.py` from your terminal:
 
+    .. code-block:: bash
 
-.. code-block:: bash
+        python setup.py --inkscape-executable=/usr/local/bin/inkscape
 
-    python setup.py --inkscape-executable=/usr/local/bin/inkscape
-
-This will also automatically check if all dependencies mentioned above are fullfilled.
+    This will also automatically check if all dependencies mentioned above are fullfilled.
