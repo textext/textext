@@ -57,7 +57,6 @@ FunctionEnd
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "TexText-Windows-${PRODUCT_VERSION}.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
-InstallDirRegKey HKCU "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 RequestExecutionLevel user
   
@@ -73,15 +72,10 @@ Section "TexText" -SEC01
   File "extension\textext.inx"
 
   SetOutPath "$INSTDIR\textext"
-  File "extension\textext\__init__.py"
-  File "extension\textext\asktext.py"
-  File "extension\textext\errors.py"
-  File "extension\textext\latexlogparser.py"
-  File "extension\textext\requirements_check.py"
-  File "extension\textext\typesetter.py"
-  File "extension\textext\utility.py"
+  File "extension\textext\*.py"
   File "extension\textext\default_packages.tex"
-  File "extension\textext\win_app_paths.py"
+  SetOutPath "$INSTDIR\textext\icons"
+  File /r "extension\textext\icons\*.*"
   
   ; Make sure that extension files from old TexText versions < 0.9
   ; are removed (they were put directly into Inkscape's extension
@@ -90,7 +84,8 @@ Section "TexText" -SEC01
   IfFileExists "$INSTDIR\textext.py" OldExtensionFound InstallFinished
   
   OldExtensionFound:
-  CopyFiles $INSTDIR\default_packages.tex $INSTDIR\textext
+  Delete $INSTDIR\textext\default_packages.tex
+  Rename $INSTDIR\default_packages.tex $INSTDIR\textext\default_packages.tex
   Delete "$INSTDIR\textext.py"
   Delete "$INSTDIR\textext.pyc"
   Delete "$INSTDIR\asktext.py"
