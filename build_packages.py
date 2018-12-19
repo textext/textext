@@ -36,10 +36,15 @@ if __name__ == "__main__":
                         nargs="+",
                         choices=available_formats,
                         help="Build package for Windows with archive formats [%s]" % ", ".join(available_formats))
+    parser.add_argument('--macos',
+                        type=str,
+                        nargs="+",
+                        choices=available_formats,
+                        help="Build package for MacOS with archive formats [%s]" % ", ".join(available_formats))
 
     args = vars(parser.parse_args())
     if not any(args.values()):
-        args = {'linux': ['zip', 'gztar'], 'windows': ['zip']}
+        args = {'linux': ['zip', 'gztar'], 'windows': ['zip'], 'macos': ['zip']}
 
     for platform, formats in {p: f for p, f in args.items() if f}.items():
         PackageName = "TexText-%s-" % platform.capitalize() + TexTextVersion
