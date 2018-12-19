@@ -9,7 +9,8 @@ class TmpDir:
         self.path = None
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp()
+        self.path = os.path.join(tempfile.mkdtemp(), "textext-%s" % TexTextVersion)
+        os.mkdir(self.path)
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -54,5 +55,6 @@ if __name__ == "__main__":
             if platform == "windows":
                 shutil.copy("setup_win.bat", tmpdir)
             for fmt in formats:
-                filename = shutil.make_archive(PackageName, fmt, tmpdir)
+                # Build package in parent dir, i.e. the temporary directory
+                filename = shutil.make_archive(PackageName, fmt, os.path.join(tmpdir, os.pardir))
                 print("Successfully created %s" % os.path.basename(filename))
