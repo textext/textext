@@ -165,9 +165,7 @@ def remove_previous_installation(extension_dir):
     previous_installation_files_and_folders = [
         "asktext.py",
         "default_packages.tex",
-        "inkex45.py",
         "latexlogparser.py",
-        "scribus_textext.py",
         "textext",
         "textext.inx",
         "textext.py",
