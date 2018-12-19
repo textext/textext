@@ -75,3 +75,20 @@ in your nodes you have two options:
    see :ref:`usage-preamble-file`.
 
 2. Use ``xelatex`` or ``lualatex`` as TeX command, see :ref:`usage-tex-compilers`.
+
+
+Extension not shown in the Inkscape Extension menu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the the |TexText| entry is not shown in the ``Extension`` menu of Inkscape proceed with
+the following checks:
+
+1. Make sure that the setup procedure completed successfully. Double check its final output.
+
+2. Launch Inkscape, open the ``Edit`` menu, select ``Preferences``, then select ``System`` in
+   the tree-view to the left and check the entry ``User exentsions`` in the right part of
+   the window. Its entry MUST be
+
+   - on Linux/ MacOS: ``/home/[your user name]/.config/inkscape/extensions``
+
+   - on Windows: ``C:\Users\[Your user name]\AppData\Roaming\inkscape\extensions``
