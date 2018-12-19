@@ -167,7 +167,7 @@ try:
             if self.requirements_checker.check() == False:
                 raise TexTextFatalError("TexText requirements are not met. "
                                         "Please follow instructions "
-                                        "https://github.com/textext/textext/wiki/Installation-instructions")
+                                        "https://textext.github.io/textext/")
 
             inkex.Effect.__init__(self)
 
