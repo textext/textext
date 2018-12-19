@@ -62,14 +62,15 @@ class WinCommandInfo(object):
                         else:
                             # Collect and return ALL subkeys
                             num_subkeys = _wr.QueryInfoKey(key)[0]
-                            value_ist = [None]*num_subkeys
-                            for i in range(0, num_subkeys):
-                                subkey_str = _wr.EnumKey(key, i)
-                                subkey = _wr.OpenKeyEx(key, subkey_str)
-                                value_ist[i] = _wr.QueryValue(subkey, None)
-                                _wr.CloseKey(subkey)
-                                _wr.CloseKey(key)
-                            return value_ist
+                            if num_subkeys > 0:
+                                value_list = [None]*num_subkeys
+                                for i in range(0, num_subkeys):
+                                    subkey_str = _wr.EnumKey(key, i)
+                                    subkey = _wr.OpenKeyEx(key, subkey_str)
+                                    value_list[i] = _wr.QueryValue(subkey, None)
+                                    _wr.CloseKey(subkey)
+                                    _wr.CloseKey(key)
+                                return value_list
                     except WindowsError:
                         pass
         return None
