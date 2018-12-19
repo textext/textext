@@ -111,11 +111,28 @@ the following checks:
 
 2. Launch Inkscape, open the ``Edit`` menu, select ``Preferences``, then select ``System`` in
    the tree-view to the left and check the entry ``User exentsions`` in the right part of
-   the window. Its entry MUST be
+   the window. Its entry should be
 
    - on Linux/ MacOS: ``/home/[your user name]/.config/inkscape/extensions``
 
    - on Windows: ``C:\Users\[Your user name]\AppData\Roaming\inkscape\extensions``
+
+   If you use different locations you must run the setup script with the
+   ``--inkscape-extensions-path`` option.
+
+   Linux/ MacOS:
+
+   .. code-block:: bash
+
+        python setup.py --inkscape-extensions-path /path/to/your/extensions
+
+   Windows
+
+   .. code-block:: bash
+
+        setup_win.bat /p:"--inkscape-extensions-path 'C:\Path\to your extensions'"
+
+   Alternatively you can select the correct directory in the GUI installer.
 
 Windows: Compilation fails with empty error dialog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
