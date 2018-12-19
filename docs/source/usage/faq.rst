@@ -92,3 +92,19 @@ the following checks:
    - on Linux/ MacOS: ``/home/[your user name]/.config/inkscape/extensions``
 
    - on Windows: ``C:\Users\[Your user name]\AppData\Roaming\inkscape\extensions``
+
+Windows: Compilation fails with empty error dialog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the compilation of your LaTeX code fails with an empty error dialog and the expanded
+view of ``stderr`` (see :ref:`trouble_latex`) shows an entry like
+
+.. code-block:: bash
+
+    Sorry, but pdflatex.exe did not succeed.
+
+    The log file hopefully contains the information to get MiKTeX going again:
+
+the most likely reason is that MiKTeX tries to install a package on the fly and fails to
+do so. Manually compile your code as described in :ref:`trouble_manual_compile`. Then
+you will see what goes wrong so you can fix it. See also issue :issue_num:`48`.
