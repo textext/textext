@@ -28,7 +28,7 @@ author = 'Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, 
 version = '0.9'
 # version = '.'.join(textext.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags
-release = '0.9.0-dev'
+release = '0.9.0'
 # release = textext.__version__
 
 

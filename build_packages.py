@@ -20,7 +20,7 @@ class TmpDir:
 
 if __name__ == "__main__":
 
-    TexTextVersion = "0.9.0-dev2"
+    TexTextVersion = "0.9.0"
 
     parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms."
                                                  "If not otherwise specified zip and tgz packages are built "

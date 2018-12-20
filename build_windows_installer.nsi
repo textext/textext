@@ -3,7 +3,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.9.0-dev2"
+!define PRODUCT_VERSION "0.9.0"
 !define PRODUCT_PUBLISHER "TexText developers"
 !define PRODUCT_WEB_SITE "https://github.com/textext/textext"
 !define PRODUCT_DOC_SITE "https://textext.github.io/textext"

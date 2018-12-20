@@ -9,7 +9,7 @@ textext
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-05-24
+:Date: 2018-12-20
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -40,7 +40,7 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.9.0-dev2"
+__version__ = "0.9.0"
 __docformat__ = "restructuredtext en"
 
 import abc
