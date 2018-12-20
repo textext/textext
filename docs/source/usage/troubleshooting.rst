@@ -57,7 +57,7 @@ nothing has been produced by LaTeX which can be parsed by |TexText|:
    :alt: empty error dialog
 
 Most likely something serious failed during compilation and you may find additional
-information under ``stderr``. , click on the ``+`` left to this label:
+information under ``stderr`` , click on the ``+`` left to this label:
 
 .. figure:: ../images/textext-error-dialog-stderr.png
    :scale: 50 %
