@@ -688,7 +688,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             try:
                 self.callback(self.text, self.preamble_file, self.global_scale_factor,
-                              self._alignment_combobox.get_active_text(),
+                              self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
                               self._texcmd_cbox.get_active_text().lower())
             except StandardError, error:
                 import traceback
@@ -961,17 +961,22 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_box.set_border_width(3)
             alignment_frame.add(alignment_box)
 
-            liststore = gtk.ListStore(str)
+            liststore = gtk.ListStore(gtk.gdk.Pixbuf)
             for a in self.ALIGNMENT_LABELS:
-                liststore.append([a])
+                args = tuple(a.split(" "))
+                path = os.path.join(os.path.dirname(__file__), "icons", "alignment-%s-%s.svg.png" % args)
+                assert os.path.exists(path)
+                liststore.append([gtk.gdk.pixbuf_new_from_file(path)])
 
+            gtk.rc_parse(os.path.join(os.path.dirname(__file__),"noarrow.gtkrc"))
             self._alignment_combobox = gtk.ComboBox()
 
-            cell = gtk.CellRendererText()
+            cell = gtk.CellRendererPixbuf()
             self._alignment_combobox.pack_start(cell)
-            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.add_attribute(cell, 'pixbuf', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_name("TexTextAlignmentAnchorComboBox")
             self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
             if self.text == "":
