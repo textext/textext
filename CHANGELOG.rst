@@ -1,15 +1,28 @@
-Version 0.9.0 (t.b.a.)
-~~~~~~~~~~~~~~~~~~~~~~
-- New: GUI settings saved to disk and reloaded at next call
-- New: Improved error dialog
+Version 0.9.0 (2018-12-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Scripted setup procedure with automatic check of the
+  dependencies (:issue_num:`54`, :issue_num:`66`)
 - New: Added possibility to wrap long lines (:issue_num:`47`)
+- New: GUI settings saved to disk and reloaded at next call
+  (word wrap, auto-indent, spaces instead of tab, showing line numbers,
+  tab-width)
+- New: Large preview images do not destroy the editor view anymore. They
+  are displayed scaled to the available window size. It is also possible
+  to display the preview image in original size with vertical and
+  horizontal scrolling enabled.
+- New: Improved error dialog
 - New: Imagemagick is not necessary anymore (:issue_num:`60`)
 - New: Automatic dependency checks during installation (:issue_num:`54`)
 - New: More detailed and informative logging (:issue_num:`35`)
 - Fixed: TeX compile error messages reappear (:issue_num:`17`)
-- Internal: Change extension layout (:issue_num:`28`)
+- Internal: Change extension repository layout (:issue_num:`28`)
 - Internal: Store TexText config in extension folder (:issue_num:`69`)
 - Internal: Add CI to monitor backward compatibility (:issue_num:`57`)
+- Abandoned: Support for Inkscape <= 0.91.x (see :ref:`faq` for your options)
+
+Very big thanks go to Sergei Izmailov who again contributed a huge bunch of
+great improvements for this release of the extension.
+
 
 Version 0.8.2 (2018-12-12)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
