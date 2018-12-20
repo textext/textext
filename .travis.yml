@@ -1,0 +1,50 @@
+language: python
+
+branches:
+  only:
+  - master
+  - dev
+  - develop
+  - travis_ci
+  - rework_error_handling
+
+virtualenv:
+  system_site_packages: true
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          packages:
+          - pstoedit
+          - pdf2svg
+          - inkscape
+          - python-gtk2-dev
+          - imagemagick
+          - texlive-latex-base
+
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+          - pstoedit
+          - pdf2svg
+          - inkscape
+          - python-gtk2-dev
+          - imagemagick
+          - texlive-latex-base
+
+before_script:
+   - python2 -m pip install pytest lxml Pillow
+   - python2 test_installation_script.py 2> /dev/null
+   - python2 setup.py
+
+
+script:
+  - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
+  - python2 -m pytest --verbose -s pytests
+
+

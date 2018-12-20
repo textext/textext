@@ -1,0 +1,1139 @@
+"""
+:Author: Pauli Virtanen <pav@iki.fi>
+:Date: 2008-04-26
+:Author: Pit Garbe <piiit@gmx.de>
+:Date: 2014-02-03
+:Author: TexText developers
+:Date: 2018-05-24
+:License: BSD
+
+This is the GUI part of TexText, handling several more or less sophisticated dialog windows
+ depending on the installed tools.
+
+Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
+"""
+
+DEBUG = False
+debug_text = r"""$
+\left(
+   \begin{array}{ccc}
+     a_{11} & \cdots & a_{1n} \\
+     \vdots & \ddots & \vdots \\
+     a_{m1} & \cdots & a_{mn}
+   \end{array}
+\right)
+$"""
+
+WINDOW_TITLE = "Enter LaTeX Formula - TexText"
+
+GTKSOURCEVIEW = "GTK Source View"
+GTK = "GTK"
+TK = "TK"
+
+TOOLKIT = None
+
+import os
+import warnings
+from errors import TexTextCommandFailed, TexTextConversionError
+
+# unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
+
+# Try GTK first
+#   If successful, try GTKSourceView (bonus points!)
+#   If unsuccessful, try TK
+#   When not even TK could be imported, abort with error message
+try:
+    import pygtk
+
+    pygtk.require('2.0')
+    import gtk
+
+    try:
+        import gtksourceview2
+
+        TOOLKIT = GTKSOURCEVIEW
+    except ImportError:
+        TOOLKIT = GTK
+
+except ImportError:
+    try:
+        import Tkinter as Tk
+        import tkMessageBox as TkMsgBoxes
+        import tkFileDialog as TkFileDialogs
+
+        TOOLKIT = TK
+    except ImportError:
+        raise RuntimeError("\nNeither PyGTK nor TKinter is available!\nMake sure that at least one of this "
+                           "bindings for the graphical user interface of TexText is installed! Refer to the "
+                           "installation instructions on https://github.com/textext/textext/wiki !\nHint: If you "
+                           "updated Inkscape on Windows you may re-install PyGTK!")
+
+
+def set_monospace_font(text_view):
+    """
+    Set the font to monospace in the text view
+    :param text_view: A GTK TextView
+    """
+    try:
+        import pango
+
+        font_desc = pango.FontDescription('monospace 11')
+        if font_desc:
+            text_view.modify_font(font_desc)
+    except ImportError:
+        pass
+
+
+def error_dialog(parent, title, label, error):
+    """
+    Present an error dialog
+
+    :param parent: Parent window
+    :param title: Error title text
+    :param label: Label text
+    :param error: exception
+    :type error: StandardError
+    """
+
+    dialog = gtk.Dialog(title, parent, gtk.DIALOG_MODAL)
+    dialog.set_default_size(400, 300)
+    button = dialog.add_button(gtk.STOCK_OK, gtk.RESPONSE_CLOSE)
+    button.connect("clicked", lambda w, d=None: dialog.destroy())
+    message_label = gtk.Label()
+    message_label.set_markup("<b>{message}</b>".format(message=label))
+    message_label.set_justify(gtk.JUSTIFY_LEFT)
+
+    raw_output_box = gtk.VBox()
+
+    def add_section(header, text):
+
+        text_view = gtk.TextView()
+        text_view.set_editable(False)
+        text_view.set_left_margin(5)
+        text_view.set_right_margin(5)
+        text_view.set_wrap_mode(gtk.WRAP_WORD)
+        text_view.get_buffer().set_text(text)
+        text_view.show()
+
+        scroll_window = gtk.ScrolledWindow()
+        scroll_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        scroll_window.set_shadow_type(gtk.SHADOW_IN)
+        scroll_window.add(text_view)
+        scroll_window.show()
+
+        if header is None:
+            dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
+            return
+
+        expander = gtk.Expander()
+
+        def callback(event):
+            if expander.get_expanded():
+                desired_height = 20
+            else:
+                desired_height = 150
+            expander.set_size_request(-1, desired_height)
+
+        expander.connect('activate', callback)
+        expander.add(scroll_window)
+        expander.show()
+
+        expander.set_label(header)
+        expander.set_use_markup(True)
+
+        expander.set_size_request(20, -1)
+        scroll_window.hide()
+
+        raw_output_box.pack_start(expander, expand=True, fill=True, padding=5)
+
+    dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
+    message_label.show()
+    add_section(None, str(error))
+    dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
+
+    if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
+        if error.stdout:
+            add_section("Stdout: <small><i>(click to expand)</i></small>", error.stdout)
+        if error.stderr:
+            add_section("Stderr: <small><i>(click to expand)</i></small>", error.stderr)
+    dialog.show_all()
+    dialog.run()
+
+
+class AskerFactory(object):
+    def asker(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+              current_texcmd, tex_commands, gui_config):
+        """
+        Return the best possible GUI variant depending on the installed components
+        :param version_str: A string describing the version of textext
+        :param current_scale_factor:
+        :param text: Prefilled text
+        :param preamble_file: Preamble file path
+        :param global_scale_factor: The globally last used scale factor (0.1 to 10)
+        :param current_scale_factor: The node's saved scale factor (0.1 to 10)
+        :param current_alignment: The node's saved alignment position
+        :param current_texcmd: The node's saved texcommand used in last compilation
+        :param tex_commands: List of available tex commands
+        :return: an instance of AskText
+        """
+        if TOOLKIT == TK:
+            return AskTextTK(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                             current_texcmd, tex_commands, gui_config)
+        elif TOOLKIT in (GTK, GTKSOURCEVIEW):
+            return AskTextGTKSource(version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                                    current_texcmd, tex_commands, gui_config)
+
+
+class AskText(object):
+    """GUI for editing TexText objects"""
+
+    ALIGNMENT_LABELS = ["top left", "top center", "top right",
+                        "middle left", "middle center", "middle right",
+                        "bottom left", "bottom center", "bottom right"]
+    DEFAULT_WORDWRAP = False
+    DEFAULT_SHOWLINENUMBERS = True
+    DEFAULT_AUTOINDENT = True
+    DEFAULT_INSERTSPACES = True
+    DEFAULT_TABWIDTH = 4
+
+    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                 current_texcmd, tex_commands, gui_config):
+        self.TEX_COMMANDS = tex_commands
+        if len(text) > 0:
+            self.text = text
+        else:
+            if DEBUG:
+                self.text = debug_text
+            else:
+                self.text = ""
+
+        self.textext_version = version_str
+        self.callback = None
+        self.global_scale_factor = global_scale_factor
+        self.current_scale_factor = current_scale_factor
+        self.current_alignment = current_alignment
+
+        if current_texcmd in self.TEX_COMMANDS:
+            self.current_texcmd = current_texcmd
+        else:
+            self.current_texcmd = self.TEX_COMMANDS[0]
+
+        self.preamble_file = preamble_file
+        self._preamble_widget = None
+        self._scale = None
+        self._gui_config = gui_config
+        self._source_buffer = None
+        self._ok_button = None
+        self._cancel_button = None
+        self._window = None
+
+    def ask(self, callback, preview_callback=None):
+        """
+        Present the GUI for entering LaTeX code and setting some options
+        :param callback: A callback function (basically, what to do with the values from the GUI)
+        :param preview_callback: A callback function to run to create a preview rendering
+        """
+        pass
+
+    @staticmethod
+    def cb_cancel(widget=None, data=None):
+        """Callback for Cancel button"""
+        raise SystemExit(1)
+
+    def cb_ok(self, widget=None, data=None):
+        """Callback for OK / Save button"""
+        pass
+
+    def scale_factor_after_loading(self):
+        """
+        The slider's initial scale factor:
+         Either the previously saved value or the global scale factor or a default of 1.0 if the extension
+         runs for the first time.
+
+        :return: Initial scale factor for the slider
+        """
+        scale_factor = self.current_scale_factor
+        if scale_factor is None:
+            scale_factor = self.global_scale_factor
+        if scale_factor is None:
+            scale_factor = 1.0
+        return scale_factor
+
+
+if TOOLKIT == TK:
+    class AskTextTK(AskText):
+        """TK GUI for editing TexText objects"""
+
+        def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                     current_texcmd, tex_commands, gui_config):
+            super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
+                                            current_alignment, current_texcmd, tex_commands, gui_config)
+            self._frame = None
+            self._scale = None
+
+        @staticmethod
+        def validate_spinbox_input(d, i, P, s, S, v, V, W):
+            """ Ensure that only floating point numbers are accepted as input of a Tk widget
+                Inspired from:
+                https://stackoverflow.com/questions/4140437/interactively-validating-entry-widget-content-in-tkinter
+
+                S -> string coming from user, s -> current string in the box, P -> resulting string in the box
+                d -> Command (insert = 1, delete = 0), i -> Index position of cursor
+                Note: Selecting an entry and copying something from the clipboard is rejected by this method. Reason:
+                Without validation Tk appends the content of the clipboard at the end of the selection leading to
+                invalid content. So with or without this validation method you need to delete the content of the
+                box before inserting the new stuff.
+            """
+            if S == '' or P == '':
+                # Initialization of widget (S=='') and deletion of entry (P=='')
+                valid = True
+            else:
+                # All other cases: Ensure that result is OK
+                try:
+                    float(P)
+                    valid = True
+                except ValueError:
+                    valid = False
+            return valid
+
+        def ask(self, callback, preview_callback=None):
+            self.callback = callback
+
+            root = Tk.Tk()
+            root.title("TexText {0}".format(self.textext_version))
+
+            self._frame = Tk.Frame(root)
+            self._frame.pack()
+
+            # Frame box for preamble file
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="Preamble file:")
+            label.pack(pady=2, padx=5, anchor="w")
+            self._preamble = Tk.Entry(box)
+            self._preamble.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
+            self._preamble.insert(Tk.END, self.preamble_file)
+
+            self._askfilename_button = Tk.Button(box, text="Select...",
+                                           command=self.select_preamble_file)
+            self._askfilename_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+
+            box.pack(fill="x", pady=5, expand=True)
+
+            # Frame box for tex command
+            tex_command_tk_str = Tk.StringVar()
+            tex_command_tk_str.set(self.current_texcmd)
+
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="TeX command:")
+            label.pack(pady=2, padx=5, anchor="w")
+            for tex_command in self.TEX_COMMANDS:
+                Tk.Radiobutton(box, text=tex_command, variable=tex_command_tk_str,
+                               value=tex_command).pack(side="left", expand=False, anchor="w")
+            box.pack(fill="x", pady=5, expand=True)
+
+            # Frame box for scale factor and reset buttons
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="Scale factor:")
+            label.pack(pady=2, padx=5, anchor="w")
+
+            validation_command = (root.register(self.validate_spinbox_input),
+                                  '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+            self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
+                                     validatecommand=validation_command)
+            self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.scale_factor_after_loading())
+
+            reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
+            self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
+                                           command=self.reset_scale_factor)
+            self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+            if self.text == "":
+                self._reset_button.config(state=Tk.DISABLED)
+
+            self._global_button = Tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
+                                            command=self.use_global_scale_factor)
+            self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+
+            box.pack(fill="x", pady=5, expand=True)
+
+            # Alignment
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            label = Tk.Label(box, text="Alignment to existing node:")
+            label.pack(pady=2, padx=5, anchor="w")
+
+            alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+
+            alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
+            vbox = None
+            tk_state = Tk.DISABLED if self.text == "" else Tk.NORMAL
+            for i, ind in enumerate(alignment_index_list):
+                if i % 3 == 0:
+                    vbox = Tk.Frame(box)
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
+                               value=self.ALIGNMENT_LABELS[ind], state=tk_state).pack(expand=True, anchor="w")
+                if (i + 1) % 3 == 0:
+                    vbox.pack(side="left", fill="x", expand=True)
+            box.pack(fill="x")
+
+            # Word wrap status
+            self._word_wrap_tkval = Tk.BooleanVar()
+            self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
+
+            # Frame with text input field and word wrap checkbox
+            box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+            ibox = Tk.Frame(box)
+            label = Tk.Label(ibox, text="LaTeX code:")
+            self._word_wrap_checkbotton = Tk.Checkbutton(ibox, text="Word wrap", variable=self._word_wrap_tkval,
+                                                         onvalue=True, offvalue=False, command=self.cb_word_wrap)
+            label.pack(pady=0, padx=5, side = "left", anchor="w")
+            self._word_wrap_checkbotton.pack(pady=0, padx=5, side = "right", anchor="w")
+            ibox.pack(expand=True, fill="both", pady=0, padx=0)
+
+            ibox = Tk.Frame(box)
+            iibox = Tk.Frame(ibox)
+            self._text_box = Tk.Text(iibox, width=70, height=12) # 70 chars, 12 lines
+            hscrollbar = Tk.Scrollbar(iibox, orient=Tk.HORIZONTAL, command=self._text_box.xview)
+            self._text_box["xscrollcommand"]=hscrollbar.set
+            self._text_box.pack(expand=True, fill="both", pady=0, padx=1, anchor = "w")
+            hscrollbar.pack(expand=True, fill="both", pady=2, padx=5)
+
+            vscrollbar = Tk.Scrollbar(ibox, orient=Tk.VERTICAL, command=self._text_box.yview)
+            self._text_box["yscrollcommand"]=vscrollbar.set
+            iibox.pack(expand=True, fill="both", pady=0, padx=1, side="left", anchor="e")
+            vscrollbar.pack(expand=True, fill="y", pady=2, padx=1, side = "left", anchor = "e")
+            ibox.pack(expand=True, fill="both", pady=0, padx=5)
+
+            self._text_box.insert(Tk.END, self.text)
+            self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+
+            box.pack(fill="x", pady=2)
+
+            # OK and Cancel button
+            box = Tk.Frame(self._frame)
+            self._ok_button = Tk.Button(box, text="OK", command=self.cb_ok)
+            self._ok_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
+            self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
+            self._cancel.pack(ipadx=10, ipady=4, pady=5, padx=5, side="right")
+            box.pack(expand=False)
+
+            # Ensure that the window opens centered on the screen
+            root.update()
+
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            window_width = root.winfo_width()
+            window_height = root.winfo_height()
+            window_xpos = (screen_width/2) - (window_width/2)
+            window_ypos = (screen_height/2) - (window_height/2)
+            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
+
+            root.mainloop()
+
+            self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
+                          tex_command_tk_str.get())
+            return self._gui_config
+
+        def cb_ok(self, widget=None, data=None):
+            try:
+                self.global_scale_factor = float(self._scale.get())
+            except ValueError:
+                TkMsgBoxes.showerror("Scale factor error",
+                                     "Please enter a valid floating point number for the scale factor!")
+                return
+            self.text = self._text_box.get(1.0, Tk.END)
+            self.preamble_file = self._preamble.get()
+
+            self._frame.quit()
+
+        def cb_word_wrap(self, widget=None, data=None):
+            self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+            self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
+
+        def reset_scale_factor(self, _=None):
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.current_scale_factor)
+
+        def use_global_scale_factor(self, _=None):
+            self._scale.delete(0, "end")
+            self._scale.insert(0, self.global_scale_factor)
+
+        def select_preamble_file(self):
+            file_name = TkFileDialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
+                                                      title="Select preamble file",
+                                                      filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
+            if file_name is not None:
+                self._preamble.delete(0, Tk.END)
+                self._preamble.insert(Tk.END, file_name)
+
+if TOOLKIT in (GTK, GTKSOURCEVIEW):
+    class AskTextGTKSource(AskText):
+        """GTK + Source Highlighting for editing TexText objects"""
+
+
+        def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
+                     current_texcmd, tex_commands, gui_config):
+            super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
+                                                   current_alignment, current_texcmd, tex_commands, gui_config)
+            self._preview = None  # type: gtk.Image
+            self._pixbuf = None  # type: gtk.gdk.Pixbuf
+            self.preview_representation = "SCALE"  # type: str
+            self._preview_scroll_window = None  # type: gtk.ScrolledWindow
+            self._scale_adj = None
+            self._texcmd_cbox = None
+            self._preview_callback = None
+            self._source_view = None
+
+            self.buffer_actions = [
+                ('Open', gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
+            ]
+
+            if TOOLKIT == GTKSOURCEVIEW:
+                self._view_actions = [
+                    ('FileMenu', None, '_File'),
+                    ('ViewMenu', None, '_View'),
+                    ('TabsWidth', None, '_Tabs Width')
+                ]
+            else:
+                self._view_actions = [
+                    ('FileMenu', None, '_File'),
+                    ('ViewMenu', None, '_View')
+                ]
+
+            self._toggle_actions = [
+                ('ShowNumbers', None, 'Show _Line Numbers', None,
+                 'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb),
+                ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
+                 self.auto_indent_toggled_cb),
+                ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
+                 'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb)
+            ]
+
+            self._word_wrap_action = [
+                ('WordWrap', None, '_Word Wrap', None,
+                 'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
+            ]
+
+            self._radio_actions = [
+                ('TabsWidth%d' % num, None, '%d' % num, None, 'Set tabulation width to %d spaces' % num, num) for num in
+                range(2, 13, 2)]
+
+            gtksourceview_ui_additions = "" if TOOLKIT == GTK else """
+              <menuitem action='ShowNumbers'/>
+              <menuitem action='AutoIndent'/>
+              <menuitem action='InsertSpaces'/>
+              <menu action='TabsWidth'>
+                %s
+              </menu>
+              """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+
+            self._view_ui_description = """
+            <ui>
+              <menubar name='MainMenu'>
+                <menu action='FileMenu'>
+                  <menuitem action='Open'/>
+                </menu>
+                <menu action='ViewMenu'>
+                  <menuitem action='WordWrap'/>
+                  {additions}
+                </menu>
+              </menubar>
+            </ui>
+            """.format(additions=gtksourceview_ui_additions)
+
+        @staticmethod
+        def open_file_cb(_, text_buffer):
+            """
+            Present file chooser to select a source code file
+            :param text_buffer: The target text buffer to show the loaded text in
+            """
+            chooser = gtk.FileChooserDialog('Open file...', None,
+                                            gtk.FILE_CHOOSER_ACTION_OPEN,
+                                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            response = chooser.run()
+            if response == gtk.RESPONSE_OK:
+                filename = chooser.get_filename()
+                if filename:
+                    AskTextGTKSource.open_file(text_buffer, filename)
+            chooser.destroy()
+
+        @staticmethod
+        def update_position_label(text_buffer, view):
+            """
+            Update the position label below the source code view
+            :param text_buffer:
+            :param view:
+            """
+            pos_label = view.get_data('pos_label')
+            iterator = text_buffer.get_iter_at_mark(text_buffer.get_insert())
+            nchars = iterator.get_offset()
+            row = iterator.get_line() + 1
+            start = iterator.copy()
+            start.set_line_offset(0)
+            col = 0
+
+            if TOOLKIT == GTKSOURCEVIEW:
+                tabwidth = view.get_tab_width()
+                while start.compare(iterator) < 0:
+                    if start.get_char() == '\t':
+                        col += tabwidth - col % tabwidth
+                    else:
+                        col += 1
+                    start.forward_char()
+                pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
+            else:
+                pos_label.set_text('char: %d, line: %d' % (nchars, row))
+
+        @staticmethod
+        def load_file(text_buffer, path):
+            """
+            Load text from a file into a text buffer
+            :param text_buffer: the GTK text buffer
+            :param path: where to load the file from
+            :returns: True, if successful
+            """
+
+            try:
+                text = open(path).read()
+            except IOError:
+                print("Couldn't load file: %s", path)
+                return False
+            text_buffer.set_text(text)
+
+            text_buffer.set_modified(True)
+            text_buffer.place_cursor(text_buffer.get_start_iter())
+            return True
+
+        @staticmethod
+        def open_file(text_buffer, filename):
+            """
+            Open a text file via its name
+            :param text_buffer: Where to put the loaded text
+            :param filename: File name
+            """
+
+            if os.path.isabs(filename):
+                path = filename
+            else:
+                path = os.path.abspath(filename)
+
+            if TOOLKIT == GTKSOURCEVIEW:
+                # try to figure out the (code) language of the text in the file
+                manager = text_buffer.get_data('languages-manager')
+                language = manager.guess_language(filename)
+                if language:
+                    text_buffer.set_highlight_syntax(True)
+                    text_buffer.set_language(language)
+                else:
+                    print("No language found for file \"%s\"" % filename)
+                    text_buffer.set_highlight_syntax(False)
+
+            AskTextGTKSource.load_file(text_buffer, path)
+
+        # Callback methods for the various menu items at the top of the window
+        def numbers_toggled_cb(self, action, sourceview):
+            sourceview.set_show_line_numbers(action.get_active())
+            self._gui_config["line_numbers"] = action.get_active()
+
+        def auto_indent_toggled_cb(self, action, sourceview):
+            sourceview.set_auto_indent(action.get_active())
+            self._gui_config["auto_indent"] = action.get_active()
+
+        def insert_spaces_toggled_cb(self, action, sourceview):
+            sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
+            self._gui_config["insert_spaces"] = action.get_active()
+
+        def word_wrap_toggled_cb(self, action, sourceview):
+            sourceview.set_wrap_mode(gtk.WRAP_WORD if action.get_active() else gtk.WRAP_NONE)
+            self._gui_config["word_wrap"] = action.get_active()
+
+        def tabs_toggled_cb(self, action, previous_value, sourceview):
+            sourceview.set_tab_width(action.get_current_value())
+            self._gui_config["tab_width"] = action.get_current_value()
+
+        def cb_key_press(self, widget, event, data=None):
+            """
+            Handle keyboard shortcuts
+            :param widget:
+            :param event:
+            :param data:
+            :return: True, if a shortcut was recognized and handled
+            """
+            if gtk.gdk.keyval_name(event.keyval) == 'Return' and gtk.gdk.CONTROL_MASK & event.state:
+                self._ok_button.clicked()
+                return True
+
+            # escape cancels the dialog
+            if gtk.gdk.keyval_name(event.keyval) == 'Escape':
+                self._cancel_button.clicked()
+                return True
+
+            return False
+
+        def cb_ok(self, widget=None, data=None):
+            text_buffer = self._source_buffer
+            self.text = text_buffer.get_text(text_buffer.get_start_iter(),
+                                             text_buffer.get_end_iter())
+
+            if isinstance(self._preamble_widget, gtk.FileChooser):
+                self.preamble_file = self._preamble_widget.get_filename()
+                if not self.preamble_file:
+                    self.preamble_file = ""
+            else:
+                self.preamble_file = self._preamble_widget.get_text()
+
+            self.global_scale_factor = self._scale_adj.get_value()
+
+            try:
+                self.callback(self.text, self.preamble_file, self.global_scale_factor,
+                              self._alignment_combobox.get_active_text(),
+                              self._texcmd_cbox.get_active_text().lower())
+            except StandardError, error:
+                import traceback
+
+                error_dialog(self._window,
+                             "TexText Error",
+                             "Error occurred while converting text from Latex to SVG:",
+                             error)
+                return False
+
+            gtk.main_quit()
+            return False
+
+        def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
+            self.update_position_label(text_buffer, view)
+
+        @staticmethod
+        def window_deleted_cb(widget, event, view):
+            gtk.main_quit()
+            return True
+
+        def update_preview(self, widget):
+            """Update the preview image of the GUI using the callback it gave """
+            if self._preview_callback:
+                text = self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+                                                    self._source_buffer.get_end_iter())
+
+                if isinstance(self._preamble_widget, gtk.FileChooser):
+                    preamble = self._preamble_widget.get_filename()
+                    if not preamble:
+                        preamble = ""
+                else:
+                    preamble = self._preamble_widget.get_text()
+
+                try:
+                    self._preview_callback(text, preamble, self.set_preview_image_from_file,
+                                           self._texcmd_cbox.get_active_text().lower())
+                except StandardError, error:
+                    error_dialog(self._window,
+                                 "TexText Error",
+                                 "Error occurred while generating preview:",
+                                 error)
+                    return False
+
+        def set_preview_image_from_file(self, path):
+            """
+            Set the preview image in the GUI, scaled to the text view's width
+            :param path: the path of the image
+            """
+
+            self._pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            self._preview_scroll_window.set_has_tooltip(False)
+            self.update_preview_representation()
+
+
+        def switch_preview_representation(self, widget=None, event=None):
+            if event.button == 1: # left click only
+                if event.type == gtk.gdk._2BUTTON_PRESS:  # only double click
+                    if self.preview_representation == "SCALE":
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCROLL"
+                    else:
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCALE"
+                    self.update_preview_representation()
+
+        def update_preview_representation(self):
+
+            max_preview_height = 150
+
+            textview_width = self._source_view.get_allocation().width
+            image_width = self._pixbuf.get_width()
+            image_height = self._pixbuf.get_height()
+
+            def set_scaled_preview():
+                scale = 1
+                if image_width > textview_width:
+                    scale = min(scale, (textview_width * 1.0 / image_width))
+
+                if image_height > max_preview_height:
+                    scale = min(scale, (max_preview_height * 1.0 / image_height))
+
+                pixbuf = self._pixbuf
+                if scale != 1:
+                    pixbuf = self._pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
+                                                                                  gtk.gdk.INTERP_BILINEAR)
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to original size")
+
+                self._preview.set_from_pixbuf(pixbuf)
+                self._preview.set_size_request(pixbuf.get_width(), pixbuf.get_height())
+
+                return image_height
+
+            def set_scroll_preview():
+
+                self._preview.set_size_request(image_width, image_height)
+
+                scroll_bar_width = 30
+
+                desired_preview_area_height = image_height
+                if image_width + scroll_bar_width >= textview_width:
+                    desired_preview_area_height += scroll_bar_width
+
+                if desired_preview_area_height>max_preview_height or image_width > textview_width:
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to fit window")
+
+                self._preview.set_from_pixbuf(self._pixbuf)
+                self._preview.set_size_request(image_width, image_height)
+                return desired_preview_area_height
+
+            if self.preview_representation == "SCROLL":
+                desired_preview_area_height = set_scroll_preview()
+            else:
+                desired_preview_area_height = set_scaled_preview()
+
+            self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
+            self._preview_scroll_window.show()
+
+
+
+        # ---------- create view window
+        def create_buttons(self):
+            """Creates and connects the Save, Cancel and Preview buttons"""
+            layout = gtk.BUTTONBOX_EDGE
+            spacing = 0
+
+            button_box = gtk.HButtonBox()
+
+            button_box.set_border_width(5)
+            button_box.set_layout(layout)
+            button_box.set_spacing(spacing)
+
+            self._cancel_button = gtk.Button(stock=gtk.STOCK_CANCEL)
+            self._cancel_button.set_tooltip_text("Don't save changes")
+            button_box.add(self._cancel_button)
+
+            preview_button = gtk.Button(label="Preview")
+            preview_button.set_tooltip_text("You need ImageMagick for previews to work")
+            button_box.add(preview_button)
+
+            self._ok_button = gtk.Button(stock=gtk.STOCK_SAVE)
+            self._ok_button.set_tooltip_text("Update or create new LaTeX output")
+            button_box.add(self._ok_button)
+
+            self._cancel_button.connect("clicked", self.cb_cancel)
+            self._ok_button.connect("clicked", self.cb_ok)
+            preview_button.connect('clicked', self.update_preview)
+
+            return button_box
+
+        def clear_preamble(self, _=None):
+            """
+            Clear the preamble file setting
+            """
+            self.preamble_file = "default_packages.tex"
+            self.set_preamble()
+
+        def set_preamble(self):
+            if hasattr(gtk, 'FileChooserButton'):
+                self._preamble_widget.set_filename(self.preamble_file)
+            else:
+                self._preamble_widget.set_text(self.preamble_file)
+
+        def reset_scale_factor(self, _=None):
+            self._scale_adj.set_value(self.current_scale_factor)
+
+        def use_global_scale_factor(self, _=None):
+            self._scale_adj.set_value(self.global_scale_factor)
+
+        # ---------- Create main window
+        def create_window(self):
+            """
+            Set up the window with all its widgets
+
+            :return: the created window
+            """
+            window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            window.set_border_width(2)
+            window.set_title('Enter LaTeX Formula - TexText {0}'.format(self.textext_version))
+
+            # File chooser and Scale Adjustment
+            if hasattr(gtk, 'FileChooserButton'):
+                self._preamble_widget = gtk.FileChooserButton("...")
+                self._preamble_widget.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
+            else:
+                self._preamble_widget = gtk.Entry()
+
+            self.set_preamble()
+
+            # --- Preamble file ---
+            preamble_delete = gtk.Button(label="Clear")
+            preamble_delete.connect('clicked', self.clear_preamble)
+            preamble_delete.set_tooltip_text("Clear the preamble file setting")
+
+            preamble_frame = gtk.Frame("Preamble File")
+            preamble_box = gtk.HBox(homogeneous=False, spacing=0)
+            preamble_frame.add(preamble_box)
+            preamble_box.pack_start(self._preamble_widget, True, True, 5)
+            preamble_box.pack_start(preamble_delete, False, False, 5)
+            preamble_box.set_border_width(3)
+
+            # --- Tex command ---
+            texcmd_frame = gtk.Frame("TeX command")
+            texcmd_box = gtk.HBox(homogeneous=False, spacing=0)
+            texcmd_frame.add(texcmd_box)
+            texcmd_box.set_border_width(3)
+
+            self._texcmd_cbox = gtk.combo_box_new_text()
+            cell = gtk.CellRendererText()
+            self._texcmd_cbox.pack_start(cell)
+            self._texcmd_cbox.set_wrap_width(1)
+            for tex_command in self.TEX_COMMANDS:
+                self._texcmd_cbox.append_text(tex_command)
+            self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
+            self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
+            texcmd_box.pack_start(self._texcmd_cbox, True, True, 5)
+
+            # --- Scaling ---
+            scale_frame = gtk.Frame("Scale Factor")
+            scale_box = gtk.HBox(homogeneous=False, spacing=0)
+            scale_box.set_border_width(3)
+            scale_frame.add(scale_box)
+            self._scale_adj = gtk.Adjustment(lower=0.001, upper=180, step_incr=0.001, page_incr=1)
+            self._scale = gtk.SpinButton(self._scale_adj)
+            self._scale.set_digits(3)
+            self._scale_adj.set_value(self.scale_factor_after_loading())
+            self._scale.set_tooltip_text("Change the scale of the LaTeX output")
+
+            # We need buttons with custom labels and stock icons, so we make some
+            reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
+            items = [('tt-reset', 'Reset ({0:.3f})'.format(reset_scale), 0, 0, None),
+                     ('tt-global', 'As previous ({0:.3f})'.format(self.global_scale_factor), 0, 0, None)]
+
+            # Forcibly show icons
+            settings = gtk.settings_get_default()
+            settings.props.gtk_button_images = True
+
+            # Make copies of stock icons
+            aliases = [('tt-reset', gtk.STOCK_UNDO),
+                       ('tt-global', gtk.STOCK_COPY)]
+
+            gtk.stock_add(items)
+            factory = gtk.IconFactory()
+            factory.add_default()
+            style = window.get_style()
+            for new_stock, alias in aliases:
+                icon_set = style.lookup_icon_set(alias)
+                factory.add(new_stock, icon_set)
+
+            scale_reset_button = gtk.Button(stock='tt-reset')
+            scale_reset_button.set_tooltip_text(
+                "Set scale factor to the value this node has been created with ({0:.3f})".format(reset_scale))
+            scale_reset_button.connect('clicked', self.reset_scale_factor)
+            if self.text == "":
+                scale_reset_button.set_sensitive(False)
+
+            scale_global_button = gtk.Button(stock='tt-global')
+            scale_global_button.set_tooltip_text(
+                "Set scale factor to the value of the previously edited node in Inkscape ({0:.3f})".format(
+                    self.global_scale_factor))
+            scale_global_button.connect('clicked', self.use_global_scale_factor)
+
+            scale_box.pack_start(self._scale, True, True, 2)
+            scale_box.pack_start(scale_reset_button, False, False, 2)
+            scale_box.pack_start(scale_global_button, False, False, 2)
+
+            # --- Alignment box ---
+            alignment_frame = gtk.Frame("Alignment")
+            alignment_box = gtk.HBox(homogeneous=False, spacing=0)
+            alignment_box.set_border_width(3)
+            alignment_frame.add(alignment_box)
+
+            liststore = gtk.ListStore(str)
+            for a in self.ALIGNMENT_LABELS:
+                liststore.append([a])
+
+            self._alignment_combobox = gtk.ComboBox()
+
+            cell = gtk.CellRendererText()
+            self._alignment_combobox.pack_start(cell)
+            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.set_model(liststore)
+            self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
+            self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
+            if self.text == "":
+                self._alignment_combobox.set_sensitive(False)
+
+            alignment_box.pack_start(self._alignment_combobox, True, True, 2)
+
+            # --- Scale and alignment together in one "line"
+            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=0)
+            scale_align_hbox.pack_start(scale_frame, False, False, 5)
+            scale_align_hbox.pack_start(alignment_frame, True, True, 5)
+
+            # --- TeX code window ---
+            # Scrolling Window with Source View inside
+            scroll_window = gtk.ScrolledWindow()
+            scroll_window.set_shadow_type(gtk.SHADOW_IN)
+
+            if TOOLKIT == GTKSOURCEVIEW:
+                # Source code view
+                text_buffer = gtksourceview2.Buffer()
+
+                # set LaTeX as highlighting language, so that pasted text is also highlighted as such
+                lang_manager = gtksourceview2.LanguageManager()
+                latex_language = lang_manager.get_language("latex")
+                text_buffer.set_language(latex_language)
+
+                text_buffer.set_data('languages-manager', lang_manager)
+                source_view = gtksourceview2.View(text_buffer)
+            else:
+                # normal text view
+                text_buffer = gtk.TextBuffer()
+                source_view = gtk.TextView(text_buffer)
+
+            self._source_buffer = text_buffer
+            self._source_view = source_view
+            self._source_buffer.set_text(self.text)
+            self._source_view.set_size_request(-1, 150)
+
+            scroll_window.add(self._source_view)
+            set_monospace_font(self._source_view)
+
+            # Action group and UI manager
+            ui_manager = gtk.UIManager()
+            accel_group = ui_manager.get_accel_group()
+            window.add_accel_group(accel_group)
+            ui_manager.add_ui_from_string(self._view_ui_description)
+
+            action_group = gtk.ActionGroup('ViewActions')
+            action_group.add_actions(self._view_actions, source_view)
+            action_group.add_actions(self.buffer_actions, text_buffer)
+            action_group.add_toggle_actions(self._word_wrap_action, source_view)
+            if TOOLKIT == GTKSOURCEVIEW:
+                action_group.add_toggle_actions(self._toggle_actions, source_view)
+                action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
+            ui_manager.insert_action_group(action_group, 0)
+
+            # Menu
+            menu = ui_manager.get_widget('/MainMenu')
+
+            # Cursor position label
+            pos_label = gtk.Label('Position')
+            source_view.set_data('pos_label', pos_label)
+
+            # latex preview
+            self._preview = gtk.Image()
+            self._preview_scroll_window = gtk.ScrolledWindow()
+            self._preview_scroll_window.set_shadow_type(gtk.SHADOW_NONE)
+            self._preview_scroll_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            preview_viewport = gtk.Viewport()
+            preview_viewport.set_shadow_type(gtk.SHADOW_NONE)
+            preview_viewport.add(self._preview)
+            self._preview_scroll_window.add(preview_viewport)
+
+            preview_event_box = gtk.EventBox()
+            preview_event_box.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+
+            preview_event_box.connect('button-press-event', self.switch_preview_representation)
+            preview_event_box.add(self._preview_scroll_window)
+
+
+            # Vertical Layout
+            vbox = gtk.VBox(False, 4)
+            window.add(vbox)
+
+            vbox.pack_start(menu, False, False, 0)
+            vbox.pack_start(preamble_frame, False, False, 0)
+            vbox.pack_start(texcmd_frame, False, False, 0)
+            vbox.pack_start(scale_align_hbox, False, False, 0)
+
+            vbox.pack_start(scroll_window, True, True, 0)
+            vbox.pack_start(pos_label, False, False, 0)
+            vbox.pack_start(preview_event_box, False, False, 0)
+            buttons_row = self.create_buttons()
+            vbox.pack_start(buttons_row, False, False, 0)
+
+            vbox.show_all()
+
+            self._same_height_objects = [
+                preamble_frame,
+                texcmd_frame,
+                scale_align_hbox,
+                buttons_row
+            ]
+
+            self._preview_scroll_window.hide()
+
+            # preselect menu check items
+            groups = ui_manager.get_action_groups()
+            # retrieve the view action group at position 0 in the list
+            action_group = groups[0]
+            action = action_group.get_action('WordWrap')
+            action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
+            if TOOLKIT == GTKSOURCEVIEW:
+                action = action_group.get_action('ShowNumbers')
+                action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
+                action = action_group.get_action('AutoIndent')
+                action.set_active(self._gui_config.get("auto_indent", self.DEFAULT_AUTOINDENT))
+                action = action_group.get_action('InsertSpaces')
+                action.set_active(self._gui_config.get("insert_spaces", self.DEFAULT_INSERTSPACES))
+                action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
+                action.set_active(True)
+                self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
+
+            # Connect event callbacks
+            window.connect("key-press-event", self.cb_key_press)
+            text_buffer.connect('changed', self.update_position_label, source_view)
+            window.connect('delete-event', self.window_deleted_cb, source_view)
+            text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
+
+            icon_sizes = [16, 32, 64, 128]
+            icon_files = [os.path.join(
+                                os.path.dirname(__file__),
+                                "icons",
+                                "logo-{size}x{size}.png".format(size=size))
+                          for size in icon_sizes]
+            icons = [gtk.gdk.pixbuf_new_from_file(path) for path in icon_files if os.path.isfile(path)]
+            window.set_icon_list(*icons)
+
+            return window
+
+        def ask(self, callback, preview_callback=None):
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", module="asktext")
+                self.callback = callback
+                self._preview_callback = preview_callback
+
+                # create first window
+                window = self.create_window()
+                window.set_default_size(500, 500)
+                window.show()
+                self.normalize_ui_row_heights()
+                window.hide()
+                window.show()
+                self._window = window
+                self._window.set_focus(self._source_view)
+
+                # main loop
+                gtk.main()
+                return self._gui_config
+
+        def normalize_ui_row_heights(self):
+            heights = [obj.get_allocation().height for obj in self._same_height_objects]
+            max_ui_row_height = max(*heights)
+            for obj in self._same_height_objects:
+                obj.set_size_request(-1, max_ui_row_height)
