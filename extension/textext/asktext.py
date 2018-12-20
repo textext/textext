@@ -471,11 +471,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
 
+
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd, tex_commands, gui_config):
             super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                                    current_alignment, current_texcmd, tex_commands, gui_config)
-            self._preview = None
+            self._preview = None  # type: gtk.Image
+            self._pixbuf = None  # type: gtk.gdk.Pixbuf
+            self.preview_representation = "SCALE"  # type: str
+            self._preview_scroll_window = None  # type: gtk.ScrolledWindow
             self._scale_adj = None
             self._texcmd_cbox = None
             self._preview_callback = None
@@ -734,25 +738,76 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             Set the preview image in the GUI, scaled to the text view's width
             :param path: the path of the image
             """
-            textview_width = self._source_view.get_allocation().width
+
+            self._pixbuf = gtk.gdk.pixbuf_new_from_file(path)
+            self._preview_scroll_window.set_has_tooltip(False)
+            self.update_preview_representation()
+
+
+        def switch_preview_representation(self, widget=None, event=None):
+            if event.button == 1: # left click only
+                if event.type == gtk.gdk._2BUTTON_PRESS:  # only double click
+                    if self.preview_representation == "SCALE":
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCROLL"
+                    else:
+                        if self._preview_scroll_window.get_has_tooltip():
+                            self.preview_representation = "SCALE"
+                    self.update_preview_representation()
+
+        def update_preview_representation(self):
+
             max_preview_height = 150
 
-            pixbuf = gtk.gdk.pixbuf_new_from_file(path)
-            image_width = pixbuf.get_width()
-            image_height = pixbuf.get_height()
-            scale = 1
+            textview_width = self._source_view.get_allocation().width
+            image_width = self._pixbuf.get_width()
+            image_height = self._pixbuf.get_height()
 
-            if image_width > textview_width:
-                scale = min(scale, (textview_width * 1.0 / image_width))
+            def set_scaled_preview():
+                scale = 1
+                if image_width > textview_width:
+                    scale = min(scale, (textview_width * 1.0 / image_width))
 
-            if image_height > max_preview_height:
-                scale = min(scale, (max_preview_height * 1.0 / image_height))
+                if image_height > max_preview_height:
+                    scale = min(scale, (max_preview_height * 1.0 / image_height))
 
-            if scale != 1:
-                pixbuf = pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
-                                             gtk.gdk.INTERP_BILINEAR)
+                pixbuf = self._pixbuf
+                if scale != 1:
+                    pixbuf = self._pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
+                                                                                  gtk.gdk.INTERP_BILINEAR)
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to original size")
 
-            self._preview.set_from_pixbuf(pixbuf)
+                self._preview.set_from_pixbuf(pixbuf)
+                self._preview.set_size_request(pixbuf.get_width(), pixbuf.get_height())
+
+                return image_height
+
+            def set_scroll_preview():
+
+                self._preview.set_size_request(image_width, image_height)
+
+                scroll_bar_width = 30
+
+                desired_preview_area_height = image_height
+                if image_width + scroll_bar_width >= textview_width:
+                    desired_preview_area_height += scroll_bar_width
+
+                if desired_preview_area_height>max_preview_height or image_width > textview_width:
+                    self._preview_scroll_window.set_tooltip_text("Double click: scale to fit window")
+
+                self._preview.set_from_pixbuf(self._pixbuf)
+                self._preview.set_size_request(image_width, image_height)
+                return desired_preview_area_height
+
+            if self.preview_representation == "SCROLL":
+                desired_preview_area_height = set_scroll_preview()
+            else:
+                desired_preview_area_height = set_scaled_preview()
+
+            self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
+            self._preview_scroll_window.show()
+
+
 
         # ---------- create view window
         def create_buttons(self):
@@ -829,15 +884,17 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preamble_delete.set_tooltip_text("Clear the preamble file setting")
 
             preamble_frame = gtk.Frame("Preamble File")
-            preamble_box = gtk.HBox(homogeneous=False, spacing=2)
+            preamble_box = gtk.HBox(homogeneous=False, spacing=0)
             preamble_frame.add(preamble_box)
-            preamble_box.pack_start(self._preamble_widget, True, True, 2)
-            preamble_box.pack_start(preamble_delete, False, False, 2)
+            preamble_box.pack_start(self._preamble_widget, True, True, 5)
+            preamble_box.pack_start(preamble_delete, False, False, 5)
+            preamble_box.set_border_width(3)
 
             # --- Tex command ---
             texcmd_frame = gtk.Frame("TeX command")
-            texcmd_box = gtk.HBox(homogeneous=False, spacing=2)
+            texcmd_box = gtk.HBox(homogeneous=False, spacing=0)
             texcmd_frame.add(texcmd_box)
+            texcmd_box.set_border_width(3)
 
             self._texcmd_cbox = gtk.combo_box_new_text()
             cell = gtk.CellRendererText()
@@ -847,11 +904,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._texcmd_cbox.append_text(tex_command)
             self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
             self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
-            texcmd_box.pack_start(self._texcmd_cbox, True, True, 2)
+            texcmd_box.pack_start(self._texcmd_cbox, True, True, 5)
 
             # --- Scaling ---
             scale_frame = gtk.Frame("Scale Factor")
-            scale_box = gtk.HBox(homogeneous=False, spacing=2)
+            scale_box = gtk.HBox(homogeneous=False, spacing=0)
+            scale_box.set_border_width(3)
             scale_frame.add(scale_box)
             self._scale_adj = gtk.Adjustment(lower=0.001, upper=180, step_incr=0.001, page_incr=1)
             self._scale = gtk.SpinButton(self._scale_adj)
@@ -899,7 +957,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # --- Alignment box ---
             alignment_frame = gtk.Frame("Alignment")
-            alignment_box = gtk.HBox(homogeneous=False, spacing=2)
+            alignment_box = gtk.HBox(homogeneous=False, spacing=0)
+            alignment_box.set_border_width(3)
             alignment_frame.add(alignment_box)
 
             liststore = gtk.ListStore(str)
@@ -921,9 +980,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_box.pack_start(self._alignment_combobox, True, True, 2)
 
             # --- Scale and alignment together in one "line"
-            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=2)
-            scale_align_hbox.pack_start(scale_frame, False, False, 0)
-            scale_align_hbox.pack_start(alignment_frame, True, True, 0)
+            scale_align_hbox = gtk.HBox(homogeneous=False, spacing=0)
+            scale_align_hbox.pack_start(scale_frame, False, False, 5)
+            scale_align_hbox.pack_start(alignment_frame, True, True, 5)
 
             # --- TeX code window ---
             # Scrolling Window with Source View inside
@@ -949,6 +1008,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._source_buffer = text_buffer
             self._source_view = source_view
             self._source_buffer.set_text(self.text)
+            self._source_view.set_size_request(-1, 150)
 
             scroll_window.add(self._source_view)
             set_monospace_font(self._source_view)
@@ -977,6 +1037,20 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # latex preview
             self._preview = gtk.Image()
+            self._preview_scroll_window = gtk.ScrolledWindow()
+            self._preview_scroll_window.set_shadow_type(gtk.SHADOW_NONE)
+            self._preview_scroll_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            preview_viewport = gtk.Viewport()
+            preview_viewport.set_shadow_type(gtk.SHADOW_NONE)
+            preview_viewport.add(self._preview)
+            self._preview_scroll_window.add(preview_viewport)
+
+            preview_event_box = gtk.EventBox()
+            preview_event_box.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+
+            preview_event_box.connect('button-press-event', self.switch_preview_representation)
+            preview_event_box.add(self._preview_scroll_window)
+
 
             # Vertical Layout
             vbox = gtk.VBox(False, 4)
@@ -989,10 +1063,20 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             vbox.pack_start(scroll_window, True, True, 0)
             vbox.pack_start(pos_label, False, False, 0)
-            vbox.pack_start(self._preview, False, False, 0)
-            vbox.pack_start(self.create_buttons(), False, False, 0)
+            vbox.pack_start(preview_event_box, False, False, 0)
+            buttons_row = self.create_buttons()
+            vbox.pack_start(buttons_row, False, False, 0)
 
             vbox.show_all()
+
+            self._same_height_objects = [
+                preamble_frame,
+                texcmd_frame,
+                scale_align_hbox,
+                buttons_row
+            ]
+
+            self._preview_scroll_window.hide()
 
             # preselect menu check items
             groups = ui_manager.get_action_groups()
@@ -1017,6 +1101,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             window.connect('delete-event', self.window_deleted_cb, source_view)
             text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
 
+            icon_sizes = [16, 32, 64, 128]
+            icon_files = [os.path.join(
+                                os.path.dirname(__file__),
+                                "icons",
+                                "logo-{size}x{size}.png".format(size=size))
+                          for size in icon_sizes]
+            icons = [gtk.gdk.pixbuf_new_from_file(path) for path in icon_files if os.path.isfile(path)]
+            window.set_icon_list(*icons)
+
             return window
 
         def ask(self, callback, preview_callback=None):
@@ -1029,10 +1122,18 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 window = self.create_window()
                 window.set_default_size(500, 500)
                 window.show()
-
+                self.normalize_ui_row_heights()
+                window.hide()
+                window.show()
                 self._window = window
                 self._window.set_focus(self._source_view)
 
                 # main loop
                 gtk.main()
                 return self._gui_config
+
+        def normalize_ui_row_heights(self):
+            heights = [obj.get_allocation().height for obj in self._same_height_objects]
+            max_ui_row_height = max(*heights)
+            for obj in self._same_height_objects:
+                obj.set_size_request(-1, max_ui_row_height)

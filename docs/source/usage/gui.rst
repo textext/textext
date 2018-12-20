@@ -8,37 +8,42 @@
    :language: latex
    :class: highlight
 
-.. |usage-label-1| image:: images/annotation_label_1.png
+.. |usage-label-1| image:: ../images/annotation_label_1.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. |usage-label-2| image:: images/annotation_label_2.png
+.. |usage-label-2| image:: ../images/annotation_label_2.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. |usage-label-3| image:: images/annotation_label_3.png
+.. |usage-label-3| image:: ../images/annotation_label_3.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. |usage-label-4| image:: images/annotation_label_4.png
+.. |usage-label-4| image:: ../images/annotation_label_4.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. |usage-label-5| image:: images/annotation_label_5.png
+.. |usage-label-5| image:: ../images/annotation_label_5.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. |usage-label-6| image:: images/annotation_label_6.png
+.. |usage-label-6| image:: ../images/annotation_label_6.png
             :height: 1em
             :width: 1em
             :target: usage-dialog-overview_
 
-.. _usage:
+.. _gui:
+
+The |TexText| GUI
+=================
+
+.. contents:: :local:
 
 .. _usage-extension-entry:
 
@@ -47,7 +52,7 @@
 
 After installation |TexText| will appear under :menuselection:`Extensions --> Tex Text`:
 
-.. figure:: images/inkscape-extension-winxp.png
+.. figure:: ../images/inkscape-extension.png
    :alt: Extension entry
 
 When you select it, a dialog will appear that lets you enter any LaTeX
@@ -58,7 +63,7 @@ code you want (presumably your formula).
 Dialog overview
 ---------------
 
-.. figure:: images/textext-dialog-annotated.png
+.. figure:: ../images/textext-dialog-annotated.png
    :alt: Annotated TexText dialog
 
 
@@ -84,7 +89,7 @@ later by selecting it and running the *Tex Text* extension (which will
 then show the dialog containing the saved values).
 
 There is a preview button |usage-label-6| as well, which shortens the feedback cycle
-from entry to result considerably, so use it!
+from entry to result considerably, so use it! See section :ref:`usage-preview`
 
 .. _usage-preamble-file:
 
@@ -144,8 +149,8 @@ Some things to be kept in mind:
 
 .. _usage-scaling:
 
-The scaling of the output
--------------------------
+Scaling of the output
+---------------------
 
 In most of the cases you will need to adjust the size of the produced
 SVG output to match the conditions of your drawing. This can be done by
@@ -166,7 +171,7 @@ A scale factor of 1 means that the output is sized as it would appear in
 a regular LaTeX document, i.e., a font size of ``x pt`` in LaTex matches
 that of ``x pt`` in Inkscape:
 
-.. figure:: images/texttext-fontsize-example.png
+.. figure:: ../images/texttext-fontsize-example.png
    :alt: Font size example
 
 
@@ -188,8 +193,10 @@ proportions according to the `alignment <usage-alignment_>`_.
 
 .. _usage-alignment:
 
-The alignment of the output
----------------------------
+Alignment of the output
+-----------------------
+
+.. versionadded:: 0.8.0
 
 When you edit existing nodes it is likely that the size of the produced
 output will change, for example if you modify the input :latex:`$\sin(x)$` to
@@ -199,7 +206,7 @@ behaviour is ``middle center``. Available options are: ``top left``,
 ``middle left``, ``bottom left``, ``top center``, ``middle center``,
 ``bottom center``, ``top right``, ``middle right``, ``bottom right``.
 
-.. figure:: images/textext-alignment-example.png
+.. figure:: ../images/textext-alignment-example.png
    :alt: Alignment example
 
 
@@ -208,8 +215,8 @@ editing existing nodes.
 
 .. _usage-colorization:
 
-The colorization of the output
-------------------------------
+Colorization of the output
+--------------------------
 
 There are two ways for colorization of the output:
 
@@ -220,10 +227,10 @@ There are two ways for colorization of the output:
     colorize characters individually be selecting them with the mouse after
     having pressed :kbd:`F2`. Be careful not to break the group.
 
- .. caution::
+    .. caution::
 
-    Individual symbol colorization done in inkscape *will not* be kept after
-    re-compilation.
+       Individual symbol colorization done in inkscape *will not* be kept after
+       re-compilation.
 
 
  2. Alternatively, you can use LaTeX commands like
@@ -232,54 +239,56 @@ There are two ways for colorization of the output:
     be lost after re-compilation. This method is the recommended one if you
     would like a character wise colorization of your output.
 
-.. _usage-font:
 
-Using specific font sizes or special fonts
-------------------------------------------
+.. _usage-gui-config:
 
-.. _usage-font-size:
+Configuration of the code editor
+--------------------------------
 
-Explicit setting of font size
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you have ``PyGTK`` installed you can open the ``View`` menu which offers some
+possibilities to configure the code editor:
 
-If you want the font size of your compiled LaTeX code to be of a
-specific size then you have to do two things:
+.. figure:: ../images/textext-dialog-with-view-menus.png
+    :alt: TexText view menu
 
-1. Set the scale factor of the node to 1.0
+- ``Word Wrap``: If this option is checked long lines are wrapped automatically to window width.
 
-2. Enter your code as following if you want to have a ``14pt`` sized font
-   for the text `This is my Text`\:
+- ``Show line numbers``: If this option is checked line numbers are printed on the left hand side of the editor.
 
-.. code-block:: latex
+- ``Enabled auto indent``: If this option is checked current indentation is preserved when breaking a new line (this is not an intelligent code dependent indentation feature).
 
-    \fontsize{14pt}{1em}{\selectfont This is my Text.}
+- ``Insert spaces instead of Tabs`` If this option is checked each time you press the ``Tab`` key a number of spaces as defined in ``Tabs Width`` is inserted instead of a tabulator character.
+
+.. note::
+
+   The last three options are only available if you have ``GTKSourceView`` installed
+   together with ``PyGTK`` (see installation instructions :ref:`linux-install`,
+   :ref:`windows-install`, :ref:`macos-install`)
+
+.. _usage-preview:
+
+Preview button
+--------------
+
+.. note::
+
+    This feature is not available in the Tkinter GUI!
+
+When pressing the ``Preview`` button your code will be compiled and the result
+is displayed as an image in the area below the LaTeX code input field. If the
+output extends a certain size it is displayed scaled so it fits into the available
+area. You can double click into the preview image to obtain the result in original
+size. Then, you can use the horizontal and vertical scroll bars to navigate along
+your result. Double clicking again will bring you back to the scaled version of the
+output.
+
+.. figure:: ../images/textext-dialog-preview.png
+   :alt: Annotated TexText dialog
+
+Finally, click the ``Save`` button to insert the compiled code into your document.
 
 
-The resulting text should be of equal height as if has been typeset directly in Inkscape.
+Further reading
+---------------
 
-.. _usage-font-custom-font:
-
-Selection of special fonts
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Usually your code is typeset in the LaTeX standard fonts. As usual, you
-can use commands like :latex:`\textbf{}`, :latex:`\textsf{}` etc. in your code. If
-you want to select a special font, e.g. the beloved *Times New Roman*
-from MS Word, then proceed as follows:
-
-
-1. Open the file ``default_packages.tex`` which resides in the extension
-   subdirectory (``%USERPROFILE%\AppData\Roaming\Inkscape\extensions\textext`` on Windows,
-   ``~/.config/inkscape/extensions/textext`` on Linux) and enter the following
-   two lines:
-
-
-.. code-block:: latex
-
-    \usepackage{fontspec}
-    \setmainfont{Times New Roman}
-
-
-
-2. Save the file and recompile your node. You can also define different
-   preamble files and load them dependent on your node, see :ref:`usage-dialog-overview`.
+See :ref:`faq` and :ref:`troubleshooting`

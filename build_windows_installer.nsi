@@ -3,10 +3,10 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape"
-!define PRODUCT_VERSION "0.9.0-dev2"
-!define PRODUCT_PUBLISHER "Pit Garbe, Jan Winkler"
-!define PRODUCT_WEB_SITE "https://tu-dresden.de/ing/elektrotechnik/rst"
-!define PRODUCT_DIR_REGKEY "Software\Python\TexText"
+!define PRODUCT_VERSION "0.9.0"
+!define PRODUCT_PUBLISHER "TexText developers"
+!define PRODUCT_WEB_SITE "https://github.com/textext/textext"
+!define PRODUCT_DOC_SITE "https://textext.github.io/textext"
 
 ; MUI 1.67 compatible ------
 !include "MUI2.nsh"
@@ -38,11 +38,11 @@ Inkscape extension directory. Please change this directory only if you know what
 ; Finish page
 !define MUI_FINISHPAGE_TEXT_LARGE
 !define MUI_FINISHPAGE_TEXT "${PRODUCT_NAME} ${PRODUCT_VERSION} has been installed on your computer. \
-It is recommended to carefully read the WIKI on https://github.com/textext/textext/wiki/usage with instructions \
+It is recommended to carefully read the documentation on ${PRODUCT_DOC_SITE} with instructions \
 for additional software and a short TexText user guide.$\n$\nClick Finish to close Setup."
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Open Wiki https://github.com/textext/textext/wiki/usage"
-!define MUI_FINISHPAGE_RUN_FUNCTION "ShowWiki"
+!define MUI_FINISHPAGE_RUN_TEXT "Open documentation ${PRODUCT_DOC_SITE}"
+!define MUI_FINISHPAGE_RUN_FUNCTION "ShowDoc"
 !insertmacro MUI_PAGE_FINISH
 
 ; Language files
@@ -50,14 +50,13 @@ for additional software and a short TexText user guide.$\n$\nClick Finish to clo
 
 ; MUI end ------
 
-Function ShowWiki
-  ExecShell "open" "https://www.github.com/textext/textext/wiki/usage"
+Function ShowDoc
+  ExecShell "open" "${PRODUCT_DOC_SITE}"
 FunctionEnd
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "TexText-Windows-${PRODUCT_VERSION}.exe"
 InstallDir "$APPDATA\inkscape\extensions\"
-InstallDirRegKey HKCU "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 RequestExecutionLevel user
   
@@ -73,15 +72,10 @@ Section "TexText" -SEC01
   File "extension\textext.inx"
 
   SetOutPath "$INSTDIR\textext"
-  File "extension\textext\__init__.py"
-  File "extension\textext\asktext.py"
-  File "extension\textext\errors.py"
-  File "extension\textext\latexlogparser.py"
-  File "extension\textext\requirements_check.py"
-  File "extension\textext\typesetter.py"
-  File "extension\textext\utility.py"
+  File "extension\textext\*.py"
   File "extension\textext\default_packages.tex"
-  File "extension\textext\win_app_paths.py"
+  SetOutPath "$INSTDIR\textext\icons"
+  File /r "extension\textext\icons\*.*"
   
   ; Make sure that extension files from old TexText versions < 0.9
   ; are removed (they were put directly into Inkscape's extension
@@ -90,7 +84,8 @@ Section "TexText" -SEC01
   IfFileExists "$INSTDIR\textext.py" OldExtensionFound InstallFinished
   
   OldExtensionFound:
-  CopyFiles $INSTDIR\default_packages.tex $INSTDIR\textext
+  Delete $INSTDIR\textext\default_packages.tex
+  Rename $INSTDIR\default_packages.tex $INSTDIR\textext\default_packages.tex
   Delete "$INSTDIR\textext.py"
   Delete "$INSTDIR\textext.pyc"
   Delete "$INSTDIR\asktext.py"

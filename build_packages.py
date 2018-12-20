@@ -9,7 +9,8 @@ class TmpDir:
         self.path = None
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp()
+        self.path = os.path.join(tempfile.mkdtemp(), "textext-%s" % TexTextVersion)
+        os.mkdir(self.path)
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -19,7 +20,7 @@ class TmpDir:
 
 if __name__ == "__main__":
 
-    TexTextVersion = "0.9.0-dev2"
+    TexTextVersion = "0.9.0"
 
     parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms."
                                                  "If not otherwise specified zip and tgz packages are built "
@@ -35,10 +36,15 @@ if __name__ == "__main__":
                         nargs="+",
                         choices=available_formats,
                         help="Build package for Windows with archive formats [%s]" % ", ".join(available_formats))
+    parser.add_argument('--macos',
+                        type=str,
+                        nargs="+",
+                        choices=available_formats,
+                        help="Build package for MacOS with archive formats [%s]" % ", ".join(available_formats))
 
     args = vars(parser.parse_args())
     if not any(args.values()):
-        args = {'linux': ['zip', 'gztar'], 'windows': ['zip']}
+        args = {'linux': ['zip', 'gztar'], 'windows': ['zip'], 'macos': ['zip']}
 
     for platform, formats in {p: f for p, f in args.items() if f}.items():
         PackageName = "TexText-%s-" % platform.capitalize() + TexTextVersion
@@ -54,5 +60,6 @@ if __name__ == "__main__":
             if platform == "windows":
                 shutil.copy("setup_win.bat", tmpdir)
             for fmt in formats:
-                filename = shutil.make_archive(PackageName, fmt, tmpdir)
+                # Build package in parent dir, i.e. the temporary directory
+                filename = shutil.make_archive(PackageName, fmt, os.path.join(tmpdir, os.pardir))
                 print("Successfully created %s" % os.path.basename(filename))

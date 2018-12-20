@@ -9,7 +9,7 @@ textext
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-05-24
+:Date: 2018-12-20
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -40,7 +40,7 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.9.0-dev2"
+__version__ = "0.9.0"
 __docformat__ = "restructuredtext en"
 
 import abc
@@ -167,7 +167,7 @@ try:
             if self.requirements_checker.check() == False:
                 raise TexTextFatalError("TexText requirements are not met. "
                                         "Please follow instructions "
-                                        "https://github.com/textext/textext/wiki/Installation-instructions")
+                                        "https://textext.github.io/textext/")
 
             inkex.Effect.__init__(self)
 
@@ -386,12 +386,17 @@ try:
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
 
+                        if converter.get_pdf_converter_name() == "pdf2svg":
+                            export_area_arguments = ['--export-area-drawing']
+                        else:
+                            export_area_arguments = ['--export-id','content','--export-id-only']
+
                         # convert resulting svg to png using Inkscape
                         options = ['-f', converter.tmp("svg"),
                                    '--export-png', converter.tmp('png'),
-                                   '--export-area-drawing',
-                                   '--export-dpi=200'
-                                   ]
+                                   ] + export_area_arguments + [
+                                      '--export-dpi=200'
+                                  ]
                         executable = self.requirements_checker.inkscape_executable
 
                         exec_command([executable] + options)

@@ -647,7 +647,7 @@ class TexTextRequirementsChecker(object):
                     messages.append("`%s` is found at `%s`" % (exe_name, path))
                     if first_path is None:
                         first_path = path
-            if len(messages) > 0:
+            if first_path is not None:
                 return RequirementCheckResult(True, messages, path=os.path.join(first_path,exe_name))
             messages.append("`%s` is NOT found in PATH" % (exe_name))
         return RequirementCheckResult(False, messages)
