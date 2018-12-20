@@ -76,6 +76,30 @@ in your nodes you have two options:
 
 2. Use ``xelatex`` or ``lualatex`` as TeX command, see :ref:`usage-tex-compilers`.
 
+.. _faq-old-inkscape:
+
+Using TexText with older Inkscape versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _inkscape-0.48.x-0.91.x-multi: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.48%2B0.91/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe
+
+Unfortunately the current |TexText| release does not work with Inkscape versions 0.91.x
+and 0.48.x, at least under Windows. The reason is the underlying Python interpreter
+which must be of version 2.7. If you need to work with an older Inkscape version you are
+encouraged to use |TexText| 0.8.x. You can download it from here
+https://github.com/textext/textext/releases .
+
+These are the required PyGTK-Packages (Windows):
+
+ - Inkscape 0.48.x - 0.91.x (`32-bit and 64-bit <inkscape-0.48.x-0.91.x-multi_>`_)
+
+Installation instructions:
+
+ - https://github.com/textext/textext/wiki/Installation-instructions
+
+.. note::
+    If you manage to run Inkscape < 0.92 with Python 2.7 you can use the most recent
+    version of |TexText|.
+
 
 Extension not shown in the Inkscape Extension menu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

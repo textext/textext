@@ -18,7 +18,7 @@ Version 0.9.0 (2018-12-20)
 - Internal: Change extension repository layout (:issue_num:`28`)
 - Internal: Store TexText config in extension folder (:issue_num:`69`)
 - Internal: Add CI to monitor backward compatibility (:issue_num:`57`)
-- Abandoned: Support for Inkscape <= 0.91.x (see :ref:`faq` for your options)
+- Abandoned: Support for Inkscape <= 0.91.x (see :ref:`faq-old-inkscape` for your options)
 
 Very big thanks go to Sergei Izmailov who again contributed a huge bunch of
 great improvements for this release of the extension.
