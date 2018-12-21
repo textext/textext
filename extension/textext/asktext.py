@@ -1082,8 +1082,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._same_height_objects = [
                 preamble_frame,
                 texcmd_frame,
-                scale_align_hbox,
-                buttons_row
+                scale_align_hbox
             ]
 
             self._preview_scroll_window.hide()
