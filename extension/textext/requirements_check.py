@@ -585,7 +585,7 @@ class TexTextRequirementsChecker(object):
         if version is None:
             return RequirementCheckResult(True, ["ghostscript is found"], path=executable)
 
-        first_stdout_line = stdout.decode("utf-8").split("\n")[0]
+        first_stdout_line = stdout.decode("utf-8", 'ignore').split("\n")[0]
         m = re.search(r"(\d+.\d+)", first_stdout_line)
         if m:
             found_version = m.group(1)
@@ -610,7 +610,7 @@ class TexTextRequirementsChecker(object):
         if version is None:
             return RequirementCheckResult(True, ["pstoedit is found"], path=executable)
 
-        first_stderr_line = stderr.decode("utf-8").split("\n")[0]
+        first_stderr_line = stderr.decode("utf-8", 'ignore').split("\n")[0]
         m = re.search(r"version (\d+.\d+)", first_stderr_line)
         if m:
             found_version = m.group(1)
