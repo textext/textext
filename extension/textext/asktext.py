@@ -1062,8 +1062,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             window.add(vbox)
 
             vbox.pack_start(menu, False, False, 0)
-            vbox.pack_start(preamble_frame, False, False, 0)
-            vbox.pack_start(texcmd_frame, False, False, 0)
+
+            hbox_texcmd_preamble = gtk.HBox(True, 0)
+
+            hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 5)
+            hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 5)
+
+            vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
 
             vbox.pack_start(scroll_window, True, True, 0)
@@ -1077,8 +1082,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._same_height_objects = [
                 preamble_frame,
                 texcmd_frame,
-                scale_align_hbox,
-                buttons_row
+                scale_align_hbox
             ]
 
             self._preview_scroll_window.hide()
