@@ -28,7 +28,7 @@ output of stderr (if available)
 ```
 
 **Logfile**
-Please also attach the TexText log file (since TexText 0.9.x). You find it in `~/.config/inkscape/extensions/textext` on Linux/ MacOS or in `C:\Users\[Your user name]\AppData\Roaming\inkscape\extensions\textext`
+Please also attach the TexText log file (since TexText 0.9.x). You find it in `~/.config/inkscape/extensions/textext` on Linux/ MacOS or in `C:\Users\[Your user name]\AppData\Roaming\inkscape\extensions\textext` on Windows
 
 **Screenshots**
 If applicable and helpful, add screenshots to help explain your problem.
