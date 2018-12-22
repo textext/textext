@@ -45,14 +45,14 @@ before_script:
 
 script:
   - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
-#  - python2 -m pytest --verbose -s pytests
+  - python2 -m pytest --verbose -s pytests
 
 after_success:
   - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
   - echo $VERSION_CHANGED
   - echo $VERSION
-#  Put tag if version has changed and (tag contains "-dev" on develop) or (version contains "-dev" on master)
+#  Put tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
   - echo '"$TRAVIS_BRANCH" == "develop" = '        $( [ "$TRAVIS_BRANCH" == "develop" ] ; echo $?)
   - echo '(echo $VERSION | grep -q "\-dev") = '    $( (echo $VERSION | grep -q "\-dev"); echo $?)
   - echo '[ "$TRAVIS_BRANCH" == "master" ] = '     $( [ "$TRAVIS_BRANCH" == "master" ]; echo $?)
@@ -64,7 +64,7 @@ after_success:
          then DO_RELEASE=true;
       fi;
     fi;
-  - if echo $VERSION | grep -q "-" ;
+  - if echo $VERSION | grep -q "\-" ;
       then export GITHUB_DEPLOY_PRERELEASE=true;
       else export GITHUB_DEPLOY_PRERELEASE=false;
     fi
