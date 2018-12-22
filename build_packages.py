@@ -37,6 +37,12 @@ if __name__ == "__main__":
                         choices=available_formats,
                         default=['zip'],
                         help="Build package for Windows with archive formats [%s]" % ", ".join(available_formats))
+    parser.add_argument('--macos',
+                        type=str,
+                        nargs="+",
+                        choices=available_formats,
+                        default=['zip'],
+                        help="Build package for MacOS with archive formats [%s]" % ", ".join(available_formats))
 
     args = vars(parser.parse_args())
 
@@ -50,14 +56,16 @@ if __name__ == "__main__":
         git_ignore_patterns = shutil.ignore_patterns(*open(".gitignore").read().split("\n"))
 
         with TmpDir() as tmpdir:
+            versioned_subdir = os.path.join(tmpdir,"textext-%s" % TexTextVersion)
+            os.mkdir(versioned_subdir)
             shutil.copytree("./extension",
-                            os.path.join(tmpdir, "extension"),
+                            os.path.join(versioned_subdir, "extension"),
                             ignore=git_ignore_patterns  # exclude .gitignore files
                             )
-            shutil.copy("setup.py", tmpdir)
-            shutil.copy("LICENSE.txt", tmpdir)
+            shutil.copy("setup.py", versioned_subdir)
+            shutil.copy("LICENSE.txt", versioned_subdir)
             if platform == "windows":
-                shutil.copy("setup_win.bat", tmpdir)
+                shutil.copy("setup_win.bat", versioned_subdir)
             for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
                 print("Successfully created %s" % os.path.basename(filename))

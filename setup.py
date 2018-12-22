@@ -20,7 +20,8 @@ from requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
     defaults, \
-    LoggingColors
+    LoggingColors, \
+    SUCCESS
 
 from utility import Settings
 
@@ -118,7 +119,7 @@ class CopyFileAlreadyExistsError(RuntimeError):
 def copy_extension_files(src, dst, if_already_exists="raise"):
     """
     src: glob expresion to copy from
-    dst: destination directory 
+    dst: destination directory
     if_already_exists: action on existing files. One of "raise" (default), "skip", "overwrite"
     """
     if os.path.exists(dst):
@@ -164,9 +165,7 @@ def remove_previous_installation(extension_dir):
     previous_installation_files_and_folders = [
         "asktext.py",
         "default_packages.tex",
-        "inkex45.py",
         "latexlogparser.py",
-        "scribus_textext.py",
         "textext",
         "textext.inx",
         "textext.py",
@@ -332,15 +331,15 @@ if __name__ == "__main__":
 
         check_result = checker.check()
         if check_result == None:
-            logger.info("Automatic requirements check is incomplete")
-            logger.info("Please check requirements list manually and run:")
-            logger.info(" ".join(sys.argv + ["--skip-requirements-check"]))
+            logger.error("Automatic requirements check is incomplete")
+            logger.error("Please check requirements list manually and run:")
+            logger.error(" ".join(sys.argv + ["--skip-requirements-check"]))
             exit(EXIT_REQUIREMENT_CHECK_UNKNOWN)
 
         if check_result == False:
-            logger.info("Automatic requirements check found issue")
-            logger.info("Follow instruction above and run install script again")
-            logger.info("To bypass requirement check pass `--skip-requirements-check` to setup.py")
+            logger.error("Automatic requirements check found issue")
+            logger.error("Follow instruction above and run install script again")
+            logger.error("To bypass requirement check pass `--skip-requirements-check` to setup.py")
             exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
@@ -394,5 +393,7 @@ if __name__ == "__main__":
                 if_already_exists="overwrite"
             )
         settings.save()
+
+    logger.log(SUCCESS, "--> TexText has been SUCCESSFULLY installed on your system <--")
 
     exit(EXIT_SUCCESS)

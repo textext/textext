@@ -180,12 +180,24 @@ To install ``xelatex`` on Ubuntu/Debian:
 Install TexText
 ===============
 
-1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
-2. Extract the package and change to created directory.
-3. Run :bash:`setup.py` from your terminal:
+1.  Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
+2.  Extract the package and change to created directory.
+3.  Run :bash:`setup.py` from your terminal:
 
+    .. code-block:: bash
 
-.. code-block:: bash
+        python setup.py
 
-    python setup.py
+    The script will check if all requirements described in :ref:`linux-install-dependencies`
+    are met. If so, it will install the extension files into the user's Inkscape configuration
+    directory (usually this is ``~/.config/inkscape/extensions``). If not, instructions are given
+    helping to fix the problem.
 
+    .. note::
+
+        If you would like to skip the requirement checks during installation call the script
+        from the command line as follows:
+
+        .. code-block:: bash
+
+            python setup.py --skip-requirements-check

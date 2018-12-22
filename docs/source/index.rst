@@ -3,11 +3,7 @@ TexText - A Tex extension for Inkscape
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
-LaTeX generated SVG elements to your drawing.
-
-.. important::
-   This documentation refers to the development version 0.9 of TexText.
-   For the current stable version 0.8.x go to the `TexText Wiki <https://github.com/textext/textext/wiki>`_
+and re-edit LaTeX generated SVG elements to your drawing.
 
 .. figure:: images/textext-with-inkscape.png
    :alt: TexText dialog with Inkscape
@@ -16,14 +12,20 @@ LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
+-  Windows/ Linux/ MacOS support
+-  LaTeX generated SVG elements can be re-edited later
 -  Multi-line editor with syntax highlighting (see :ref:`§ <usage-dialog-overview>`)
 -  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see :ref:`§ <usage-tex-compilers>`)
 -  Interoperable scaling in TexText and Inkscape (see :ref:`§ <usage-scaling>`)
--  Font size match with Inkscape text (see :ref:`§ <usage-font>`)
 -  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see :ref:`§ <usage-preamble-file>`)
--  Colorization via TeX commands/Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
+-  Colorization via TeX commands/ Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
 -  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
+-  Font size match with Inkscape text (see :ref:`§ <faq-font-size>`)
+-  Preview images  (see :ref:`§ <usage-preview>`)
 -  Compatibility with TexText down to version 0.4.x
+
+
+.. _installation-toc:
 
 .. toctree::
     :caption: Installation
@@ -32,23 +34,26 @@ Key features
 
     install/*
 
+.. _usage-toc:
+
 .. toctree::
     :caption: Usage
-    :maxdepth: 3
+    :maxdepth: 2
     :glob:
 
-    usage.rst
+    usage/gui
+    usage/faq
+    usage/troubleshooting
 
-History
--------
+.. toctree::
+    :caption: Credits
+    :maxdepth: 1
 
-This repository continues the development of the plugin which took place
-at https://bitbucket.org/pitgarbe/textext until January 2018.
-Originally, TexText had been developed by `Pauli
-Virtanen <http://www.iki.fi/pav/software/textext/>`__ based on the
-plugin InkLaTeX written by Toru Araki.
+    history.rst
+    authors.rst
 
+.. toctree::
+    :caption: Changelog
+    :maxdepth: 2
 
-
-.. include:: changelog.rst
-
+    changelog.rst
