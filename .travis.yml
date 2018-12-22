@@ -48,8 +48,7 @@ script:
 #  - python2 -m pytest --verbose -s pytests
 
 after_success:
-  - git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE
-  - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
+  - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
   - echo $VERSION_CHANGED
   - echo $VERSION
