@@ -50,7 +50,8 @@ script:
 after_success:
   - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
-  - if [[ $VERSION_CHANGED = 0 ]]; then
+#  Put tag if version has changed and (tag contains "-dev" on develop) or (version contains "-dev" on master)
+  - if [[ $VERSION_CHANGED = 0 ]] &&  ( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "-dev") ) ) ; then
       git tag -l $VERSION | grep -q $VERSION || git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
       if [[ $RELEASE_MAKER = true ]];
          then DO_RELEASE=true;
