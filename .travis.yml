@@ -3,10 +3,8 @@ language: python
 branches:
   only:
   - master
-  - dev
   - develop
-  - travis_ci
-  - rework_error_handling
+  - feature/add_travis_deploy
 
 virtualenv:
   system_site_packages: true
@@ -36,6 +34,8 @@ matrix:
           - python-gtk2-dev
           - imagemagick
           - texlive-latex-base
+      env:
+        - RELEASE_MAKER=true
 
 before_script:
    - python2 -m pip install pytest lxml Pillow
@@ -47,4 +47,57 @@ script:
   - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
   - python2 -m pytest --verbose -s pytests
 
+after_success:
+  - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
+  - VERSION=$(head -n 1 extension/textext/VERSION)
+  - echo $VERSION_CHANGED
+  - echo $VERSION
+#  Put tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
+  - echo '"$TRAVIS_BRANCH" == "develop" = '        $( [ "$TRAVIS_BRANCH" == "develop" ] ; echo $?)
+  - echo '(echo $VERSION | grep -q "\-dev") = '    $( (echo $VERSION | grep -q "\-dev"); echo $?)
+  - echo '[ "$TRAVIS_BRANCH" == "master" ] = '     $( [ "$TRAVIS_BRANCH" == "master" ]; echo $?)
+  - echo '(echo $VERSION | grep -v -q "\-dev") = ' $( (echo $VERSION | grep -v -q "\-dev"); echo $?)
+  - echo $(( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ; echo $?))
+  - if [[ $VERSION_CHANGED = 0 ]] &&  ( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ) ; then
+      git tag -l $VERSION | grep -q $VERSION || git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
+      if [[ $RELEASE_MAKER = true ]];
+         then DO_RELEASE=true;
+      fi;
+    fi;
+  - if echo $VERSION | grep -q "\-" ;
+      then export GITHUB_DEPLOY_PRERELEASE=true;
+      else export GITHUB_DEPLOY_PRERELEASE=false;
+    fi
+  - if [ $GITHUB_DEPLOY_PRERELEASE = false ] && [ $RELEASE_MAKER ];
+       then DO_GH_PAGES=true;
+    fi;
 
+
+before_deploy:
+  - bash build_docs.sh
+  - python2 build_packages.py
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+
+deploy:
+  - provider: pages
+    verbose: true
+    local-dir: docs/build/html
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    keep-history: false
+    on:
+      tags: false
+      branch: master
+      condition: $DO_GH_PAGES
+
+  - provider: releases
+    api_key:  $GITHUB_TOKEN
+    prerelease: $GITHUB_DEPLOY_PRERELEASE
+    skip_cleanup: true
+    file_glob: true
+    file: assets/*
+    on:
+      tags: false
+      all_branches: true # only develop and master are activated in travis
+      condition: $DO_RELEASE

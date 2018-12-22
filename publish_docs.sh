@@ -9,6 +9,7 @@ SHA=`git rev-parse --verify HEAD`
 WD="$PWD"
 
 function doCompile {
+  python2 -m pip install -r docs/requirements.txt
   make -C ./docs html
 }
 
@@ -27,5 +28,4 @@ cd "$GH_PAGES_ROOT"
 git add -A .
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 echo "$SSH_REPO" --force "$TARGET_BRANCH"
-#git push "$SSH_REPO" --force "$TARGET_BRANCH"
-git push "$REPO" --force "$TARGET_BRANCH"
+git push "$SSH_REPO" --force "$TARGET_BRANCH"
