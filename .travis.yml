@@ -48,6 +48,8 @@ script:
 #  - python2 -m pytest --verbose -s pytests
 
 after_success:
+  - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+  - git fetch
   - git diff-tree --no-commit-id --name-only -r HEAD
   - VERSION_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
