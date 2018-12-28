@@ -1,0 +1,13 @@
+This Inkscape extension needs some additional software 
+to be installed in order to work properly.
+
+Please refer to 
+
+https://textext.github.io/textext 
+
+for more information!
+
+
+Project repository on GitHub:
+
+https://github.com/textext/textext

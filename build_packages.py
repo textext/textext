@@ -43,6 +43,12 @@ if __name__ == "__main__":
                         choices=available_formats,
                         default=['zip'],
                         help="Build package for MacOS with archive formats [%s]" % ", ".join(available_formats))
+    parser.add_argument('--inkscape',
+                        type=str,
+                        nargs="+",
+                        choices=available_formats,
+                        default=['zip'],
+                        help="Build All-OS package for Inkscape Add-On homepage with archive formats [%s]" % ", ".join(available_formats))
 
     args = vars(parser.parse_args())
 
@@ -66,6 +72,9 @@ if __name__ == "__main__":
             shutil.copy("LICENSE.txt", versioned_subdir)
             if platform == "windows":
                 shutil.copy("setup_win.bat", versioned_subdir)
+            if platform == "inkscape":
+                shutil.copy("setup_win.bat", versioned_subdir)
+                shutil.copy("INSTALL.txt", versioned_subdir)
             for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
                 print("Successfully created %s" % os.path.basename(filename))
