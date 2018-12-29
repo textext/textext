@@ -122,10 +122,10 @@ programs used in the toolchain. Here is what you have to do in such cases:
 2. Open a Terminal (Linux, MacOS) or Command Window (Windows)
 
     - On Linux: Open a file manager (e.g. Nautilus, Dolphin), navigate to
-      directory of ``temp.tex``. Right click and select ``Open in Terminal`` (Nautilus)
+      directory of ``test.tex``. Right click and select ``Open in Terminal`` (Nautilus)
       or simply press ``F4`` (Dolphin).
 
-    - On Windows: Open the explorer, navigate to the directory of ``temp.tex`` and press
+    - On Windows: Open the explorer, navigate to the directory of ``test.tex`` and press
       ``SHIFT + F10``, then select ``Open Command Window Here`` from the context menu.
 
 
@@ -167,4 +167,17 @@ programs used in the toolchain. Here is what you have to do in such cases:
             On Windows it may be required to put the name of the directory in which ``pdf2svg.exe``
             resides in front of ``pdf2svg``, e.g. ``c:\Program Files\pdf2svg\``.
 
-    - Open the generated file ``temp.svg`` with Inkscape.
+    - Open the generated file ``test.svg`` with Inkscape.
+
+6. Check the generation from ``svg`` to ``png`` for the preview image succeeds
+
+    - Enter the command
+
+        .. code-block:: bash
+
+            inkscape -f test.svg --export-png test.png  --export-id content --export-id-only --export-dpi=200
+
+        .. note::
+
+            On Windows it may be required to put the name of the directory in which ``inkscape.exe``
+            resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
