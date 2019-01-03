@@ -1,4 +1,4 @@
-|Build Status|
+Status master: |Build Status Master|, Status develop: |Build Status Develop|
 
 TexText - A TeX extension for Inkscape
 ======================================
@@ -47,7 +47,10 @@ Originally, TexText had been developed by `Pauli
 Virtanen <http://www.iki.fi/pav/software/textext/>`__ based on the
 plugin InkLaTeX written by Toru Araki.
 
-.. |Build Status| image:: https://travis-ci.com/textext/textext.svg?branch=develop
+.. |Build Status Master| image:: https://travis-ci.com/textext/textext.svg?branch=master
+   :target: https://travis-ci.com/textext/textext
+
+.. |Build Status Develop| image:: https://travis-ci.com/textext/textext.svg?branch=develop
    :target: https://travis-ci.com/textext/textext
 
 .. _documentation:         https://textext.github.io/textext
