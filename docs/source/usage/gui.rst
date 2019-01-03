@@ -38,6 +38,33 @@
             :width: 1em
             :target: usage-dialog-overview_
 
+.. |tl| image:: ../images/alignment-top-left.svg.png
+            :target: usage-alignment_
+			
+.. |tc| image:: ../images/alignment-top-center.svg.png
+            :target: usage-alignment_
+			
+.. |tr| image:: ../images/alignment-top-right.svg.png
+            :target: usage-alignment_
+			
+.. |ml| image:: ../images/alignment-middle-left.svg.png
+            :target: usage-alignment_
+			
+.. |mc| image:: ../images/alignment-middle-center.svg.png
+            :target: usage-alignment_
+			
+.. |mr| image:: ../images/alignment-middle-right.svg.png
+            :target: usage-alignment_
+			
+.. |bl| image:: ../images/alignment-bottom-left.svg.png
+            :target: usage-alignment_
+			
+.. |bc| image:: ../images/alignment-bottom-center.svg.png
+            :target: usage-alignment_
+			
+.. |br| image:: ../images/alignment-bottom-right.svg.png
+            :target: usage-alignment_
+
 .. _gui:
 
 The |TexText| GUI
@@ -69,14 +96,14 @@ Dialog overview
 
 You enter your LaTeX code into the edit box |usage-label-5|. In the case you
 installed PyGTK it will show you line and column numbers. If you
-additionally insalled PyGTKSourceView it will also highlight the syntax
-with colors. You can add any valid and also multiline LaTeX code.
+additionally installed PyGTKSourceView it will also highlight the syntax
+with colors. You can add any valid and also multi-line LaTeX code.
 There are additional settings which can be adjusted to your needs:
 
--  Custom :ref:`usage-preamble-file`
--  The TeX command to be used for compiling your code (group box |usage-label-2|).
+-  The TeX command to be used for compiling your code (group box |usage-label-1|).
    Possible options are: :bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex`. See
    section :ref:`usage-tex-compilers` for more details.
+-  Custom :ref:`usage-preamble-file` (group box |usage-label-2|)
 -  The scale factor (group box |usage-label-3|). See section :ref:`usage-scaling`.
 -  The alignment relative to the previous version of your code (group
    box |usage-label-4|, only available when re-editing your code). See section :ref:`usage-alignment`.
@@ -91,14 +118,41 @@ then show the dialog containing the saved values).
 There is a preview button |usage-label-6| as well, which shortens the feedback cycle
 from entry to result considerably, so use it! See section :ref:`usage-preview`
 
+
+.. _usage-tex-compilers:
+
+Available TeX compilers
+-----------------------
+
+.. versionadded:: 0.8.0
+
+Your LaTeX code can be compiled using three different compilers:
+:bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex` (as long as the corresponding
+commands are found by your system). You can select the command in the
+combobox |usage-label-1|. The last two ones are especially useful for using UTF-8
+input or if you require Lua commands. Of course you can use UTF-8 input
+with the :bash:`pdflatex` command as well as long as you provide
+:latex:`\usepackage[utf8]{inputenc}` in your preamble file (see :ref:`usage-preamble-file`).
+
+Some things to be kept in mind:
+
+ - Place the required lua packages in your `preamble file <usage-preamble-file_>`_ if you want to
+   compile your code with :bash:`lualatex`.
+ - If you use :bash:`lualatex`/ :bash:`xelatex` for the very first time on your
+   system it may take some time until the fonts are setup properly.
+   During that time |TexText| might be unresponsive.
+ - Windows: :bash:`xelatex`\ tends to be very slow on Windows machines, see
+   this post on
+   `Stackexchange <https://tex.stackexchange.com/questions/357098/compiling-tex-files-with-xelatex-is-insanely-slow-on-my-windows-machine/357100>`__.
+
 .. _usage-preamble-file:
 
 Preamble file
 -------------
 Be aware of including the required packages in the *preamble file* if you
 use special commands in your code that rely on such packages. The
-preamble file can be choosen by the selector |usage-label-1|. The default preamble
-file shipped with TexText includes the following packages:
+preamble file can be chosen by the selector |usage-label-2|. The default preamble
+file shipped with |TexText| includes the following packages:
 
 .. code-block:: latex
 
@@ -119,34 +173,6 @@ Basically, your LaTeX code will be inserted into this environment:
 This will be typeset, converted to SVG and inserted into your Inkscape
 document.
 
-
-.. _usage-tex-compilers:
-
-Available TeX compilers
------------------------
-
-.. versionadded:: 0.8.0
-
-Your LaTeX code can be compiled using three different compilers:
-:bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex` (as long as the corresponding
-commands are found by your system). You can select the command in the
-combobox |usage-label-2|. The last two ones are especially useful for using UTF-8
-input or if you require Lua commands. Of course you can use UTF-8 input
-with the :bash:`pdflatex` command as well as long as you provide
-:latex:`\usepackage[utf8]{inputenc}`
-in your preamble file.
-
-Some things to be kept in mind:
-
- - Place the required lua packages in your preamble file if you want to
-   compile your code with :bash:`lualatex`.
- - If you use :bash:`lualatex`/ :bash:`xelatex` for the very first time on your
-   system it may take some time until the fonts are setup properly.
-   During that time TexText might be unresponsive.
- - Windows: :bash:`xelatex`\ tends to be very slow on Windows machines, see
-   this post on
-   `Stackexchange <https://tex.stackexchange.com/questions/357098/compiling-tex-files-with-xelatex-is-insanely-slow-on-my-windows-machine/357100>`__.
-
 .. _usage-scaling:
 
 Scaling of the output
@@ -164,7 +190,7 @@ two methods:
 
 Both methods are fully compatible. If you scale your SVG output in
 Inkscape the numerical value of the spinbox will be adjusted
-appropriately when you open TexText on that node later. In both cases
+appropriately when you open |TexText| on that node later. In both cases
 the scale factor is preserved when you re-edit your code.
 
 A scale factor of 1 means that the output is sized as it would appear in
@@ -178,7 +204,7 @@ that of ``x pt`` in Inkscape:
 There are two additional buttons in the groupbox |usage-label-3|:
 
 -  *Reset*: This button is only available when re-editing existing
-   TexText nodes. It resets the scale factor to the value the code has
+   |TexText| nodes. It resets the scale factor to the value the code has
    been compiled with the last time. This is useful when playing around
    with the scale factor and decide to not change the scale factor.
 -  *As previous*: This button sets the scale factor of the currently
@@ -202,9 +228,22 @@ When you edit existing nodes it is likely that the size of the produced
 output will change, for example if you modify the input :latex:`$\sin(x)$` to
 :latex:`$\int\sin(x)\text{d}x$`. The entries of the spinbox |usage-label-4| determine how
 the new node is aligned relatively to the old node. The default
-behaviour is ``middle center``. Available options are: ``top left``,
-``middle left``, ``bottom left``, ``top center``, ``middle center``,
-``bottom center``, ``top right``, ``middle right``, ``bottom right``.
+behaviour is ``middle center``, i.e. the middle of the new node is placed 
+on the middle of the old node. Available options are: 
+
++-----------------+-------------------+------------------+
+| |tl|            | |tc|              | |tr|             |
+|                 |                   |                  |
+| ``top left``    | ``top center``    | ``top right``    |
++-----------------+-------------------+------------------+
+| |ml|            | |mc|              | |mr|             |
+|                 |                   |                  |
+| ``middle left`` | ``middle center`` | ``middle right`` |
++-----------------+-------------------+------------------+
+| |bl|            | |bc|              | |br|             |
+|                 |                   |                  |
+| ``bottom left`` | ``bottom center`` | ``bottom right`` |
++-----------------+-------------------+------------------+
 
 .. figure:: ../images/textext-alignment-example.png
    :alt: Alignment example
@@ -229,7 +268,7 @@ There are two ways for colorization of the output:
 
     .. caution::
 
-       Individual symbol colorization done in inkscape *will not* be kept after
+       Individual symbol colorization done in Inkscape *will not* be kept after
        re-compilation.
 
 
