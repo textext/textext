@@ -1,3 +1,9 @@
+Version 0.9.1 (2018-12-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: UnicodeDecodeError in setup.py / setup_win.bat
+  (:issue_num:`101`)
+
+
 Version 0.9.0 (2018-12-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Scripted setup procedure with automatic check of the
