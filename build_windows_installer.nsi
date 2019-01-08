@@ -72,10 +72,9 @@ Section "TexText" -SEC01
   File "extension\textext.inx"
 
   SetOutPath "$INSTDIR\textext"
-  File "extension\textext\*.py"
-  File "extension\textext\default_packages.tex"
+  File /x "*.pyc" /x "*.log" "extension\textext\*.*"
   SetOutPath "$INSTDIR\textext\icons"
-  File /r "extension\textext\icons\*.*"
+  File /r "extension\textext\icons\*.png"
   
   ; Make sure that extension files from old TexText versions < 0.9
   ; are removed (they were put directly into Inkscape's extension
