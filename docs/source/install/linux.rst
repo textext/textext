@@ -173,7 +173,7 @@ To install ``xelatex`` on Ubuntu/Debian:
 
 .. code-block:: bash
 
-    sudo apt-get install texlive-xelatex
+    sudo apt-get install texlive-xetex
 
 .. _linux-install-textext:
 
