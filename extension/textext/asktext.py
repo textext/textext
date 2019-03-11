@@ -195,6 +195,8 @@ class AskText(object):
     DEFAULT_AUTOINDENT = True
     DEFAULT_INSERTSPACES = True
     DEFAULT_TABWIDTH = 4
+    DEFAULT_NEW_NODE_CONTENT = "Empty"
+    NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, tex_commands, gui_config):
@@ -493,12 +495,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._view_actions = [
                     ('FileMenu', None, '_File'),
                     ('ViewMenu', None, '_View'),
-                    ('TabsWidth', None, '_Tabs Width')
+                    ('SettingsMenu', None, '_Settings'),
+                    ('NewNodeContent', None, '_New Node Content'),
+                    ('TabsWidth', None, '_Tabs Width'),
                 ]
             else:
                 self._view_actions = [
                     ('FileMenu', None, '_File'),
-                    ('ViewMenu', None, '_View')
+                    ('ViewMenu', None, '_View'),
+                    ('SettingsMenu', None, '_Settings'),
+                    ('NewNodeContent', None, '_New Node Content')
                 ]
 
             self._toggle_actions = [
@@ -526,7 +532,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
               <menu action='TabsWidth'>
                 %s
               </menu>
-              """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+              """ % "\n".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+
+            self._new_node_content_actions = [
+                #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
+                ('NewNodeContentEmpty', None, 'Empty', None, 'New node will be initialized with empty content', 0),
+                ('NewNodeContentInlineMath', None, 'Inline math', None, 'New node will be initialized with $ $', 1),
+                ('NewNodeContentDisplayMath', None, 'Display math', None, 'New node will be initialized with $$ $$', 2)
+            ]
+            new_node_content = "\n".join(
+                ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._new_node_content_actions])
 
             self._view_ui_description = """
             <ui>
@@ -538,9 +553,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                   <menuitem action='WordWrap'/>
                   {additions}
                 </menu>
+                <menu action='SettingsMenu'>
+                  <menu action='NewNodeContent'>
+                    {new_node_content}
+                  </menu>
+                </menu>
               </menubar>
             </ui>
-            """.format(additions=gtksourceview_ui_additions)
+            """.format(additions=gtksourceview_ui_additions,
+                       new_node_content=new_node_content)
 
         @staticmethod
         def open_file_cb(_, text_buffer):
@@ -652,6 +673,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         def tabs_toggled_cb(self, action, previous_value, sourceview):
             sourceview.set_tab_width(action.get_current_value())
             self._gui_config["tab_width"] = action.get_current_value()
+
+        def new_node_content_cb(self, action, previous_value, sourceview):
+            self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
 
         def cb_key_press(self, widget, event, data=None):
             """
@@ -1027,6 +1051,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group = gtk.ActionGroup('ViewActions')
             action_group.add_actions(self._view_actions, source_view)
             action_group.add_actions(self.buffer_actions, text_buffer)
+            action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
@@ -1093,6 +1118,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group = groups[0]
             action = action_group.get_action('WordWrap')
             action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
+            new_node_content_value = self._gui_config.get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
+            action = action_group.get_action('NewNodeContent{}'.format(new_node_content_value))
+            action.set_active(True)
             if TOOLKIT == GTKSOURCEVIEW:
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
@@ -1103,6 +1131,17 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
                 action.set_active(True)
                 self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
+
+            if self.text=="":
+                if new_node_content_value=='InlineMath':
+                    self._source_buffer.set_text("$$")
+                    iter = self._source_buffer.get_iter_at_offset(1)
+                    self._source_buffer.place_cursor(iter)
+                if new_node_content_value=='DisplayMath':
+                    self._source_buffer.set_text("$$$$")
+                    iter = self._source_buffer.get_iter_at_offset(2)
+                    self._source_buffer.place_cursor(iter)
+
 
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
