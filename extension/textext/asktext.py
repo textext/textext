@@ -1169,9 +1169,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # create first window
                 window = self.create_window()
                 window.set_default_size(500, 500)
-                window.show()
-                self.normalize_ui_row_heights()
-                window.hide()
+                # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
+                # bad hide/show/hide hack, see issue #114
                 window.show()
                 self._window = window
                 self._window.set_focus(self._source_view)
@@ -1179,9 +1178,3 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # main loop
                 gtk.main()
                 return self._gui_config
-
-        def normalize_ui_row_heights(self):
-            heights = [obj.get_allocation().height for obj in self._same_height_objects]
-            max_ui_row_height = max(*heights)
-            for obj in self._same_height_objects:
-                obj.set_size_request(-1, max_ui_row_height)
