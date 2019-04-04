@@ -2,7 +2,7 @@ The following people contributed to TexText, either by
 contributions to the source code or by suggestions in discussions that
 went into the development of the project.
 
-
+- Alexander Blinne <alexander.blinne@uni-jena.de>
 - Brian Clarke
 - Florent Becker
 - Jan Winkler <enceladus@posteo.de>
