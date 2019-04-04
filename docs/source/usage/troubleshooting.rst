@@ -63,6 +63,9 @@ information under ``stderr`` , click on the ``+`` left to this label:
    :scale: 50 %
    :alt: Error dialog with stderr
 
+In that case follow the information given in the window (in the example given here:
+open the pdflatex.log in the AppData path).
+
 .. note::
 
    The ``stderr`` option is only available when errors have been piped by the

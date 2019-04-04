@@ -175,6 +175,15 @@ To install ``xelatex`` on Ubuntu/Debian:
 
     sudo apt-get install texlive-xetex
 
+.. warning::
+
+    If you have for some reason the Linux MiKTeX distribution installed make sure
+    that automatic package installation is either set to
+    ``Never install missing packages on-the-fly`` or set to
+    ``Always install missing packages on-the-fly``, see
+    `Manage your TeX installation with MiKTeX Console <https://miktex.org/howto/miktex-console>`_.
+
+
 .. _linux-install-textext:
 
 Install TexText
