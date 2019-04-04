@@ -38,6 +38,16 @@
             :width: 1em
             :target: usage-dialog-overview_
 
+.. |usage-label-7| image:: ../images/annotation_label_7.png
+            :height: 1em
+            :width: 1em
+            :target: usage-dialog-overview_
+
+.. |usage-label-8| image:: ../images/annotation_label_8.png
+            :height: 1em
+            :width: 1em
+            :target: usage-dialog-overview_
+
 .. |tl| image:: ../images/alignment-top-left.svg.png
             :target: usage-alignment_
 			
@@ -109,6 +119,8 @@ There are additional settings which can be adjusted to your needs:
    box |usage-label-4|, only available when re-editing your code). See section :ref:`usage-alignment`.
 -  The coloring of the output using TeX commands or Inkscape settings.
    See section :ref:`usage-colorization`.
+-  The default math environment in new nodes (menu |usage-label-7|), see section :ref:`usage-default-math-environment-config`.
+-  The appearance of the editor (menu |usage-label-8|), see section :ref:`usage-gui-config`.
 
 Your LaTeX code and the accompanying settings will be stored within the
 new SVG node in the document. This allows you to edit the LaTeX node
@@ -278,14 +290,62 @@ There are two ways for colorization of the output:
     be lost after re-compilation. This method is the recommended one if you
     would like a character wise colorization of your output.
 
+.. _usage-preview:
+
+Preview button
+--------------
+
+When pressing the ``Preview`` button |usage-label-6| your code will be compiled and the result
+is displayed as an image in the area below the LaTeX code input field. If the
+output extends a certain size it is displayed scaled so it fits into the available
+area. You can double click into the preview image to obtain the result in original
+size. Then, you can use the horizontal and vertical scroll bars to navigate along
+your result. Double clicking again will bring you back to the scaled version of the
+output.
+
+.. figure:: ../images/textext-dialog-preview.png
+   :alt: Annotated TexText dialog
+
+Finally, click the ``Save`` button to insert the compiled code into your document.
+
+.. note::
+
+    This feature is not available in the Tkinter GUI!
+
+.. _usage-default-math-environment-config:
+
+Configuration of the default TeX math-environment
+-------------------------------------------------
+
+.. versionadded:: 0.10.0
+
+You can open the ``Settings`` menu |usage-label-7| and then ``New Node Content``
+to define which environment should be selected by default when creating new nodes.
+
+.. figure:: ../images/textext-dialog-with-settings-menus.png
+    :alt: TexText settings menu
+
+You have the following options:
+
+- ``Empty``: The code editor is empty.
+
+- ``Inline math``: The code editor is filled with ``$$`` for typesetting an inline math expression.
+
+- ``Display math``: The code editor is filled with ``$$$$`` for typesetting a display math expression.
+
+(`Reminder on the difference between inline and display math <https://en.wikibooks.org/wiki/LaTeX/Mathematics#Mathematics_environments>`_)
+
+.. note::
+
+    This feature is not available in the Tkinter GUI!
 
 .. _usage-gui-config:
 
 Configuration of the code editor
 --------------------------------
 
-If you have ``PyGTK`` installed you can open the ``View`` menu which offers some
-possibilities to configure the code editor:
+You can open the ``View`` menu |usage-label-8| which offers some possibilities
+to configure the code editor:
 
 .. figure:: ../images/textext-dialog-with-view-menus.png
     :alt: TexText view menu
@@ -303,28 +363,6 @@ possibilities to configure the code editor:
    The last three options are only available if you have ``GTKSourceView`` installed
    together with ``PyGTK`` (see installation instructions :ref:`linux-install`,
    :ref:`windows-install`, :ref:`macos-install`)
-
-.. _usage-preview:
-
-Preview button
---------------
-
-.. note::
-
-    This feature is not available in the Tkinter GUI!
-
-When pressing the ``Preview`` button your code will be compiled and the result
-is displayed as an image in the area below the LaTeX code input field. If the
-output extends a certain size it is displayed scaled so it fits into the available
-area. You can double click into the preview image to obtain the result in original
-size. Then, you can use the horizontal and vertical scroll bars to navigate along
-your result. Double clicking again will bring you back to the scaled version of the
-output.
-
-.. figure:: ../images/textext-dialog-preview.png
-   :alt: Annotated TexText dialog
-
-Finally, click the ``Save`` button to insert the compiled code into your document.
 
 
 Further reading
