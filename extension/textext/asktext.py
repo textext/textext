@@ -4,7 +4,7 @@
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-05-24
+:Date: 2019-04-05
 :License: BSD
 
 This is the GUI part of TexText, handling several more or less sophisticated dialog windows
@@ -195,6 +195,8 @@ class AskText(object):
     DEFAULT_AUTOINDENT = True
     DEFAULT_INSERTSPACES = True
     DEFAULT_TABWIDTH = 4
+    DEFAULT_NEW_NODE_CONTENT = "Empty"
+    NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, tex_commands, gui_config):
@@ -493,12 +495,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._view_actions = [
                     ('FileMenu', None, '_File'),
                     ('ViewMenu', None, '_View'),
-                    ('TabsWidth', None, '_Tabs Width')
+                    ('SettingsMenu', None, '_Settings'),
+                    ('NewNodeContent', None, '_New Node Content'),
+                    ('TabsWidth', None, '_Tabs Width'),
                 ]
             else:
                 self._view_actions = [
                     ('FileMenu', None, '_File'),
-                    ('ViewMenu', None, '_View')
+                    ('ViewMenu', None, '_View'),
+                    ('SettingsMenu', None, '_Settings'),
+                    ('NewNodeContent', None, '_New Node Content')
                 ]
 
             self._toggle_actions = [
@@ -526,7 +532,16 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
               <menu action='TabsWidth'>
                 %s
               </menu>
-              """ % "".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+              """ % "\n".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+
+            self._new_node_content_actions = [
+                #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
+                ('NewNodeContentEmpty', None, 'Empty', None, 'New node will be initialized with empty content', 0),
+                ('NewNodeContentInlineMath', None, 'Inline math', None, 'New node will be initialized with $ $', 1),
+                ('NewNodeContentDisplayMath', None, 'Display math', None, 'New node will be initialized with $$ $$', 2)
+            ]
+            new_node_content = "\n".join(
+                ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._new_node_content_actions])
 
             self._view_ui_description = """
             <ui>
@@ -538,9 +553,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                   <menuitem action='WordWrap'/>
                   {additions}
                 </menu>
+                <menu action='SettingsMenu'>
+                  <menu action='NewNodeContent'>
+                    {new_node_content}
+                  </menu>
+                </menu>
               </menubar>
             </ui>
-            """.format(additions=gtksourceview_ui_additions)
+            """.format(additions=gtksourceview_ui_additions,
+                       new_node_content=new_node_content)
 
         @staticmethod
         def open_file_cb(_, text_buffer):
@@ -653,6 +674,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             sourceview.set_tab_width(action.get_current_value())
             self._gui_config["tab_width"] = action.get_current_value()
 
+        def new_node_content_cb(self, action, previous_value, sourceview):
+            self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
+
         def cb_key_press(self, widget, event, data=None):
             """
             Handle keyboard shortcuts
@@ -688,7 +712,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             try:
                 self.callback(self.text, self.preamble_file, self.global_scale_factor,
-                              self._alignment_combobox.get_active_text(),
+                              self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
                               self._texcmd_cbox.get_active_text().lower())
             except StandardError, error:
                 import traceback
@@ -961,17 +985,22 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             alignment_box.set_border_width(3)
             alignment_frame.add(alignment_box)
 
-            liststore = gtk.ListStore(str)
+            liststore = gtk.ListStore(gtk.gdk.Pixbuf)
             for a in self.ALIGNMENT_LABELS:
-                liststore.append([a])
+                args = tuple(a.split(" "))
+                path = os.path.join(os.path.dirname(__file__), "icons", "alignment-%s-%s.svg.png" % args)
+                assert os.path.exists(path)
+                liststore.append([gtk.gdk.pixbuf_new_from_file(path)])
 
+            gtk.rc_parse(os.path.join(os.path.dirname(__file__),"noarrow.gtkrc"))
             self._alignment_combobox = gtk.ComboBox()
 
-            cell = gtk.CellRendererText()
+            cell = gtk.CellRendererPixbuf()
             self._alignment_combobox.pack_start(cell)
-            self._alignment_combobox.add_attribute(cell, 'text', 0)
+            self._alignment_combobox.add_attribute(cell, 'pixbuf', 0)
             self._alignment_combobox.set_model(liststore)
             self._alignment_combobox.set_wrap_width(3)
+            self._alignment_combobox.set_name("TexTextAlignmentAnchorComboBox")
             self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
             self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
             if self.text == "":
@@ -1022,6 +1051,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group = gtk.ActionGroup('ViewActions')
             action_group.add_actions(self._view_actions, source_view)
             action_group.add_actions(self.buffer_actions, text_buffer)
+            action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
@@ -1057,8 +1087,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             window.add(vbox)
 
             vbox.pack_start(menu, False, False, 0)
-            vbox.pack_start(preamble_frame, False, False, 0)
-            vbox.pack_start(texcmd_frame, False, False, 0)
+
+            hbox_texcmd_preamble = gtk.HBox(True, 0)
+
+            hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 5)
+            hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 5)
+
+            vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
             vbox.pack_start(scale_align_hbox, False, False, 0)
 
             vbox.pack_start(scroll_window, True, True, 0)
@@ -1072,8 +1107,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._same_height_objects = [
                 preamble_frame,
                 texcmd_frame,
-                scale_align_hbox,
-                buttons_row
+                scale_align_hbox
             ]
 
             self._preview_scroll_window.hide()
@@ -1084,6 +1118,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group = groups[0]
             action = action_group.get_action('WordWrap')
             action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
+            new_node_content_value = self._gui_config.get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
+            action = action_group.get_action('NewNodeContent{}'.format(new_node_content_value))
+            action.set_active(True)
             if TOOLKIT == GTKSOURCEVIEW:
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
@@ -1094,6 +1131,17 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
                 action.set_active(True)
                 self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
+
+            if self.text=="":
+                if new_node_content_value=='InlineMath':
+                    self._source_buffer.set_text("$$")
+                    iter = self._source_buffer.get_iter_at_offset(1)
+                    self._source_buffer.place_cursor(iter)
+                if new_node_content_value=='DisplayMath':
+                    self._source_buffer.set_text("$$$$")
+                    iter = self._source_buffer.get_iter_at_offset(2)
+                    self._source_buffer.place_cursor(iter)
+
 
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
@@ -1121,9 +1169,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # create first window
                 window = self.create_window()
                 window.set_default_size(500, 500)
-                window.show()
-                self.normalize_ui_row_heights()
-                window.hide()
+                # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
+                # bad hide/show/hide hack, see issue #114
                 window.show()
                 self._window = window
                 self._window.set_focus(self._source_view)
@@ -1131,9 +1178,3 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # main loop
                 gtk.main()
                 return self._gui_config
-
-        def normalize_ui_row_heights(self):
-            heights = [obj.get_allocation().height for obj in self._same_height_objects]
-            max_ui_row_height = max(*heights)
-            for obj in self._same_height_objects:
-                obj.set_size_request(-1, max_ui_row_height)

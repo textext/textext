@@ -1,3 +1,20 @@
+Version 0.10.0 (2019-04-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Possibility to define default math environment when creating new nodes
+  (empty, inline math, display math)
+- Fixed: Two grey windows appear with no text inside. Inkscape freezes and
+  becomes unusable (:issue_num:`114`)
+- Fixed: Log file cannot be written in system wide installations of TexText
+  (:issue_num:`111`)
+- Internal: Automatic CI deployment and documentation upload (thanks to
+  Sergei Izmailov)
+
+Version 0.9.1 (2018-12-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: UnicodeDecodeError in setup.py / setup_win.bat
+  (:issue_num:`101`)
+
+
 Version 0.9.0 (2018-12-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Scripted setup procedure with automatic check of the

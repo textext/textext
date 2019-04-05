@@ -9,7 +9,7 @@ textext
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-12-20
+:Date: 2019-04-05
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
@@ -40,9 +40,6 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
-__version__ = "0.9.0"
-__docformat__ = "restructuredtext en"
-
 import abc
 import copy
 import hashlib
@@ -58,12 +55,16 @@ from requirements_check import defaults, set_logging_levels, TexTextRequirements
 from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, exec_command
 from errors import *
 
+__version__ = open(os.path.join(os.path.dirname(__file__), "VERSION")).readline().strip()
+__docformat__ = "restructuredtext en"
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.dirname(__file__)  # todo: check destination is writeable
+LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
+if not os.path.isdir(LOG_LOCATION):
+    os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
 
 

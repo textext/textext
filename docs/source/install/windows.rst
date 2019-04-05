@@ -85,9 +85,10 @@ Install a pdf->svg converter
 
 Again you have two options: ``pdf2svg`` or ``pstoedit + ghostscript`` (recommended):
 
+.. _windows-install-pstoedit:
+
 Install pstoedit (recommended)
 ------------------------------
-
 
 .. _pstoedit-installer-64bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_x64.exe
 .. _pstoedit-installer-32bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_win32.exe
@@ -98,8 +99,6 @@ Install pstoedit (recommended)
 1. Download and install ``pstoedit-3.73`` (`32-bit <pstoedit-installer-32bit_>`_, `64-bit <pstoedit-installer-64bit_>`_)
 2. Download and install ``ghostcript-9.26``  (`32-bit <gs-installer-32bit_>`_, `64-bit <gs-installer-64bit_>`_)
 
-.. _windows-install-latex:
-
 .. _windows-install-pdf2svg:
 
 Install pdf2svg
@@ -107,13 +106,19 @@ Install pdf2svg
 
 Install the ``pdf2svg`` package from https://github.com/textext/pdf2svg/releases
 
-.. _windows-install-pstoedit:
+.. _windows-install-latex:
 
 Install pdflatex/lualatex/xelatex
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download and install MiKTeX distribution https://miktex.org/download
 
+.. warning::
+
+    Make sure that automatic package installation is either set to
+    ``Never install missing packages on-the-fly`` or set to
+    ``Always install missing packages on-the-fly``. You can configure this
+    feature during installation of MiKTeX or later in the `MiKTeX console <https://miktex.org/howto/miktex-console>`_.
 
 .. _windows-install-textext:
 

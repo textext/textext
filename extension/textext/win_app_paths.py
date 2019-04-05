@@ -1,6 +1,6 @@
 """
 :Author: Jan Winkler
-:Date: 2018-11-20
+:Date: 2019-04-05
 :License: BSD
 
 win_app_paths.py: Provides a crude mechanism trying to determine the install dirs of inkscape, pdf2svg, pstoedit,

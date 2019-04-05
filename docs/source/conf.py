@@ -21,15 +21,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TexText'
-copyright = '2018, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
-author = 'Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
+copyright = '2019, Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
+author = 'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 
-# The short X.Y version
-version = '0.9'
-# version = '.'.join(textext.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags
-release = '0.9.0'
-# release = textext.__version__
+release = open("../../extension/textext/VERSION").readline().strip()
+# The short X.Y version
+version = ".".join(release.split(".")[:2])
 
 
 # -- General configuration ---------------------------------------------------
@@ -105,6 +103,7 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+html_favicon = "../../icons/logo.ico"
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -137,7 +136,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'TexText.tex', 'TexText Documentation',
-     'Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev', 'manual'),
+     'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev', 'manual'),
 ]
 
 

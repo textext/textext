@@ -16,7 +16,7 @@ TexText on MacOS
 
 .. caution::
 
-    These installation instrcuctions are not fully tested. Please report any
+    These instrcuctions refer to an installation of Inkscape via Homebrew. Please report any
     issues, comments or hints to https://github.com/textext/textext/issues/new
 
 To install |TexText| on MacOS do the following steps:
@@ -24,8 +24,6 @@ To install |TexText| on MacOS do the following steps:
 #. `Install dependencies <macos-install-dependencies_>`_ of |TexText|
 
     - `Install inkscape <macos-install-inkscape_>`_
-    - `Install python2.7 <macos-install-python27_>`_
-    - `Install GUI library PyGTK2 <macos-install-pygtk2_>`_
     - `Install pdflatex/lualatex/xelatex <macos-install-latex_>`_
     - `Install pdf->svg converter (pdf2svg or pstoedit) <macos-install-pdf-to-svg-converter_>`_
 
@@ -46,42 +44,9 @@ To install using homebrew:
 .. code-block:: bash
 
     brew cask install inkscape
-
-.. (Two labels to catch links from failed requirement check!)
-.. _macos-install-python27:
-.. _macos-install-tkinter:
-
-Install python2.7
-~~~~~~~~~~~~~~~~~
-
-Make sure that a Python 2.7 distribution is installed and found by
-your system. Make sure it contains the Tkinter package so |TexText| will run
-at least with a basic interface.
-
-To install using homebrew and forcing the Tkinter package to be installed:
-
-.. code-block:: bash
-
-    brew cask install python@2 --with-tcl-tk
-
-.. (Two labels to catch links from failed requirement check!)
-.. _macos-install-gui-library:
-.. _macos-install-pygtk2:
-
-Install PyGTK2 (recommended)
-----------------------------
-
-Compared to the Tkinter interface the PyGTK interface will offer a lot more
-functionality. Hence, install the following packages.
-
--  ``python-gtk2``
--  ``python-gtksourceview2`` (enables syntax highlighting)
-
-To install using homebrew:
-
-.. code-block:: bash
-
-    brew install pygtk gtksourceview
+	
+The Python modules required for the TexText GUI are already included in this 
+Inkscape installation, see :ref:`macos-install-python27`.
 
 .. _macos-install-pdf-to-svg-converter:
 
@@ -116,14 +81,15 @@ To install using homebrew:
 
 .. code-block:: bash
 
-    brew install ghostscript pstoedit
+    brew install ghostscript
+    brew install pstoedit
 
 To check versions run:
 
 .. code-block:: bash
 
     pstoedit --version
-    ghostscript --version
+    gs --version
 
 .. warning::
     Those combinations of ``pstoedit`` and ``ghostscript`` versions fails to produce `svg` on
@@ -148,7 +114,7 @@ To install using homebrew:
 
 .. code-block:: bash
 
-    brew install mactex
+    brew cask install mactex
 
 
 .. _macos-install-textext:
@@ -156,21 +122,22 @@ To install using homebrew:
 Install TexText
 ===============
 
-Install TexText
-===============
-
-1.  Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <MacOS>`, :textext_download_tgz:`.tar.gz <MacOS>`)
+1.  Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <MacOS>`)
 2.  Extract the package and change to created directory.
 3.  Run :bash:`setup.py` from your terminal:
 
     .. code-block:: bash
 
-        python setup.py --inkscape-executable=/usr/local/bin/inkscape
+        python setup.py
 
     The script will check if all requirements described in :ref:`macos-install-dependencies`
     are met. If so, it will install the extension files into the user's Inkscape configuration
     directory (usually this is ``~/.config/inkscape/extensions``). If not, instructions are given
     helping to fix the problem.
+
+    .. important::
+
+        Ignore any messages about missing PyGTK packages! (Issue :issue_num:`31`)
 
     .. note::
 
@@ -179,4 +146,26 @@ Install TexText
 
         .. code-block:: bash
 
-            python setup.py --inkscape-executable=/usr/local/bin/inkscape --skip-requirements-check
+            python setup.py --skip-requirements-check
+
+
+.. (Multiple labels to catch links from failed requirement check!)
+.. _macos-install-python27:
+.. _macos-install-tkinter:
+.. _macos-install-gui-library:
+.. _macos-install-pygtk2:
+
+
+Information with respect to Python installation
+===============================================
+
+.. note::
+
+    Homebrew's Inkscape uses MacOS's system Python interpreter in ``/usr/bin`` independently of any other installed
+    Python interpreter (e.g. from Homebrew). The packages required for the GUI of TexText are already included in
+    the Homebrew installation of Inkscape.
+
+    If the extension does not work despite this fact or installation fails please report this
+    to https://github.com/textext/textext/issues/new
+
+    Thank you!
