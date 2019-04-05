@@ -4,7 +4,7 @@
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-05-24
+:Date: 2019-04-05
 :License: BSD
 
 This is the GUI part of TexText, handling several more or less sophisticated dialog windows

@@ -9,7 +9,7 @@ textext
 :Author: Pit Garbe <piiit@gmx.de>
 :Date: 2014-02-03
 :Author: TexText developers
-:Date: 2018-12-20
+:Date: 2019-04-05
 :License: BSD
 
 Textext is an extension for Inkscape_ that allows adding
