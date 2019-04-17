@@ -63,8 +63,8 @@ Install PyGTK2 (recommended)
 
 Install the package that matches your Inkscape version:
 
+ - Inkscape 0.92.3 + 0.92.4 (`32-bit <inkscape-0.92.3-32-bit_>`_ , `64-bit <inkscape-0.92.3-64-bit_>`_)
  - Inkscape 0.92.2 (`32-bit <inkscape-0.92.2-32-bit_>`_ , `64-bit <inkscape-0.92.2-64-bit_>`_)
- - Inkscape 0.92.3 (`32-bit <inkscape-0.92.3-32-bit_>`_ , `64-bit <inkscape-0.92.3-64-bit_>`_)
  - Inkscape 0.92.0 - 0.92.1 (`32-bit and 64-bit <inkscape-0.92.0-0.92.1-multi_>`_)
 
 .. _windows-install-tkinter:
@@ -76,7 +76,7 @@ Tkinter is already included in the Python installation shipped with Inkscape.
 
 .. warning::
 
-    Tk support is broken in Inkscape 0.92.2, fixed in 0.92.3
+    Tk support is broken in Inkscape 0.92.2, fixed since 0.92.3
 
 .. _windows-install-pdf-to-svg-converter:
 
