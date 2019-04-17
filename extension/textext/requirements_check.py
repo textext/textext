@@ -555,13 +555,15 @@ class TexTextRequirementsChecker(object):
             return RequirementCheckResult(False, "Expected python 2.7 but found `%s`" % version,
                                           path=executable_path)
 
-    def find_pygtk2(self):
+    def find_pygtk3(self):
         try:
             executable = self.find_python27()["path"]
-            defaults.call_command([executable, "-c", "import pygtk; pygtk.require('2.0'); import gtk;"])
+            defaults.call_command([executable, "-c", "import gi;"+
+                                                     "gi.require_version('Gtk', '3.0');"+
+                                                     "from gi.repository import Gtk, Gdk, GdkPixbuf"])
         except (KeyError, OSError, subprocess.CalledProcessError):
-            return RequirementCheckResult(False, ["PyGTK2 is not found"])
-        return RequirementCheckResult(True, ["PyGTK2 is found"])
+            return RequirementCheckResult(False, ["GTK3 is not found"])
+        return RequirementCheckResult(True, ["GTK3 is found"])
 
     def find_tkinter(self):
         try:
@@ -717,7 +719,7 @@ class TexTextRequirementsChecker(object):
             ).overwrite_check_message("Detect *latex")
             .append_message("ERROR", help_message_with_url("latex"))
             & (
-                    Requirement(self.find_pygtk2).on_success(set_pygtk)
+                    Requirement(self.find_pygtk3).on_success(set_pygtk)
                     .append_message("ERROR", help_message_with_url("pygtk2"))
                     | Requirement(self.find_tkinter).on_success(set_tkinter)
                     .append_message("ERROR", help_message_with_url("tkinter"))
