@@ -1,3 +1,8 @@
+Version 0.10.1 (2019-04-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Inkscape binary not found during installation on some MacOS
+  installations (:issue_num:`120`)
+
 Version 0.10.0 (2019-04-05)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Possibility to define default math environment when creating new nodes

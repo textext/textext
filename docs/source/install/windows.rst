@@ -55,6 +55,8 @@ Install the Python bindings for the graphical user interface of
 Install PyGTK2 (recommended)
 ----------------------------
 
+.. _inkscape-0.92.4-64-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-64bit.exe
+.. _inkscape-0.92.4-32-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-32bit.exe
 .. _inkscape-0.92.3-64-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.3/Install-PyGTK-2.24-Inkscape-0.92.3-64bit.exe
 .. _inkscape-0.92.3-32-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.3/Install-PyGTK-2.24-Inkscape-0.92.3-32bit.exe
 .. _inkscape-0.92.2-64-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.2/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe
@@ -63,7 +65,8 @@ Install PyGTK2 (recommended)
 
 Install the package that matches your Inkscape version:
 
- - Inkscape 0.92.3 + 0.92.4 (`32-bit <inkscape-0.92.3-32-bit_>`_ , `64-bit <inkscape-0.92.3-64-bit_>`_)
+ - Inkscape 0.92.4 (`32-bit <inkscape-0.92.4-32-bit_>`_ , `64-bit <inkscape-0.92.4-64-bit_>`_)
+ - Inkscape 0.92.3 (`32-bit <inkscape-0.92.3-32-bit_>`_ , `64-bit <inkscape-0.92.3-64-bit_>`_)
  - Inkscape 0.92.2 (`32-bit <inkscape-0.92.2-32-bit_>`_ , `64-bit <inkscape-0.92.2-64-bit_>`_)
  - Inkscape 0.92.0 - 0.92.1 (`32-bit and 64-bit <inkscape-0.92.0-0.92.1-multi_>`_)
 
