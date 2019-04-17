@@ -574,25 +574,25 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             :param text_buffer: The target text buffer to show the loaded text in
             """
             chooser = Gtk.FileChooserDialog('Open file...', None,
-                                            Gtk.FILE_CHOOSER_ACTION_OPEN,
-                                            (Gtk.STOCK_CANCEL, Gtk.RESPONSE_CANCEL,
-                                             Gtk.STOCK_OPEN, Gtk.RESPONSE_OK))
+                                            Gtk.FileChooserAction.OPEN,
+                                            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                             Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
             response = chooser.run()
-            if response == Gtk.RESPONSE_OK:
+            if response == Gtk.ResponseType.OK:
                 filename = chooser.get_filename()
                 if filename:
                     AskTextGTKSource.open_file(text_buffer, filename)
             chooser.destroy()
 
         @staticmethod
-        def update_position_label(text_buffer, self, view):
+        def update_position_label(text_buffer, asktext, view):
             """
             Update the position label below the source code view
+            :param (AskTextGTKSource) asktext:
             :param text_buffer:
             :param view:
             """
-            insert = text_buffer.get_insert()
-            iterator = text_buffer.get_iter_at_mark(insert)
+            iterator = text_buffer.get_iter_at_mark(text_buffer.get_insert())
             nchars = iterator.get_offset()
             row = iterator.get_line() + 1
             start = iterator.copy()
@@ -607,9 +607,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     else:
                         col += 1
                     start.forward_char()
-                self.pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
+                asktext.pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
             else:
-                self.pos_label.set_text('char: %d, line: %d' % (nchars, row))
+                asktext.pos_label.set_text('char: %d, line: %d' % (nchars, row))
 
         @staticmethod
         def load_file(text_buffer, path):
@@ -644,17 +644,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             else:
                 path = os.path.abspath(filename)
 
-            if TOOLKIT == GTKSOURCEVIEW:
-                # try to figure out the (code) language of the text in the file
-                manager = text_buffer.get_data('languages-manager')
-                language = manager.guess_language(filename)
-                if language:
-                    text_buffer.set_highlight_syntax(True)
-                    text_buffer.set_language(language)
-                else:
-                    print("No language found for file \"%s\"" % filename)
-                    text_buffer.set_highlight_syntax(False)
-
             AskTextGTKSource.load_file(text_buffer, path)
 
         # Callback methods for the various menu items at the top of the window
@@ -671,7 +660,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._gui_config["insert_spaces"] = action.get_active()
 
         def word_wrap_toggled_cb(self, action, sourceview):
-            sourceview.set_wrap_mode(Gtk.WRAP_WORD if action.get_active() else Gtk.WRAP_NONE)
+            sourceview.set_wrap_mode(Gtk.WrapMode.WORD if action.get_active() else Gtk.WrapMode.NONE)
             self._gui_config["word_wrap"] = action.get_active()
 
         def tabs_toggled_cb(self, action, previous_value, sourceview):
@@ -717,7 +706,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             try:
                 self.callback(self.text, self.preamble_file, self.global_scale_factor,
                               self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
-                              self._texcmd_cbox.get_active_text().lower())
+                              self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
             except StandardError as error:
                 import traceback
 
@@ -753,7 +742,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
                 try:
                     self._preview_callback(text, preamble, self.set_preview_image_from_file,
-                                           self._texcmd_cbox.get_active_text().lower())
+                                           self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
                 except StandardError as error:
                     error_dialog(self._window,
                                  "TexText Error",
@@ -1028,7 +1017,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 latex_language = lang_manager.get_language("latex")
                 text_buffer.set_language(latex_language)
 
-                # text_buffer.set_data('languages-manager', lang_manager)
                 source_view = GtkSource.View.new_with_buffer(text_buffer)
             else:
                 # normal text view
@@ -1069,15 +1057,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             # latex preview
             self._preview = Gtk.Image()
             self._preview_scroll_window = Gtk.ScrolledWindow()
-            # self._preview_scroll_window.set_shadow_type(Gtk.SHADOW_NONE)
-            # self._preview_scroll_window.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
+            self._preview_scroll_window.set_shadow_type(Gtk.ShadowType.NONE)
+            self._preview_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
             preview_viewport = Gtk.Viewport()
-            # preview_viewport.set_shadow_type(Gtk.SHADOW_NONE)
+            preview_viewport.set_shadow_type(Gtk.ShadowType.NONE)
             preview_viewport.add(self._preview)
             self._preview_scroll_window.add(preview_viewport)
 
             preview_event_box = Gtk.EventBox()
-            # preview_event_box.add_events(Gtk.gdk.BUTTON_PRESS_MASK)
+            preview_event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
 
             preview_event_box.connect('button-press-event', self.switch_preview_representation)
             preview_event_box.add(self._preview_scroll_window)
