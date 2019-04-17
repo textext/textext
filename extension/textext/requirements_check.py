@@ -58,7 +58,7 @@ class LinuxDefaults(Defaults):
 
 class MacDefaults(LinuxDefaults):
     os_name = "macos"
-    executable_names = {"inkscape": ["inkscape-bin"],
+    executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"],
