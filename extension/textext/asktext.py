@@ -1019,7 +1019,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             else:
                 # normal text view
                 text_buffer = Gtk.TextBuffer()
-                source_view = Gtk.TextView(text_buffer)
+                source_view = Gtk.TextView()
+                source_view.set_buffer(text_buffer)
 
             self._source_buffer = text_buffer
             self._source_view = source_view
