@@ -56,10 +56,10 @@ try:
         from gi.repository import GtkSource
 
         TOOLKIT = GTKSOURCEVIEW
-    except ImportError:
+    except (ImportError, TypeError) as _:
         TOOLKIT = GTK
 
-except ImportError:
+except (ImportError, TypeError) as _:
     try:
         import Tkinter as Tk
         import tkMessageBox as TkMsgBoxes
