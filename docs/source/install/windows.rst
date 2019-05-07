@@ -96,8 +96,8 @@ Install pstoedit (recommended)
 .. _pstoedit-installer-64bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_x64.exe
 .. _pstoedit-installer-32bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_win32.exe
 
-.. _gs-installer-32bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926w32.exe
-.. _gs-installer-64bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926w64.exe
+.. _gs-installer-32bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw32.exe
+.. _gs-installer-64bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw64.exe
 
 1. Download and install ``pstoedit-3.73`` (`32-bit <pstoedit-installer-32bit_>`_, `64-bit <pstoedit-installer-64bit_>`_)
 2. Download and install ``ghostcript-9.26``  (`32-bit <gs-installer-32bit_>`_, `64-bit <gs-installer-64bit_>`_)

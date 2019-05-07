@@ -125,7 +125,8 @@ To install on Ubuntu/Debian:
 Install pstoedit (not recommended)
 ----------------------------------
 
-Some versions ``pstoedit`` fails to produce `svg` so it's preferable to use ``pdf2svg``.
+``pstoedit`` fails to produce `svg` with some versions of ``ghostscript`` so it's
+preferable to use ``pdf2svg``.
 
 To use ``pstoedit`` converter install the ``pstoedit`` package and check versions of
 installed versions of ``pstoedit`` and ``ghostscript``
@@ -152,8 +153,10 @@ To check versions run:
     +--------------+-----------------+
     |     3.70     |      9.22       |
     +--------------+-----------------+
+    |     3.73     |      9.27       |
+    +--------------+-----------------+
 
-    Please report any observations or problems in :issue:`30`.
+    Please report any observations or problems in :issue:`126`.
 
 .. _linux-install-latex:
 

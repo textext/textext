@@ -1,9 +1,9 @@
-TexText - A Tex extension for Inkscape
-======================================
+TexText - Re-editable LaTeX graphics for Inkscape
+=================================================
 
-TexText is a Python plugin for the vector graphics editor
+TexText is a Python extension for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
-and re-edit LaTeX generated SVG elements to your drawing.
+and *re-edit* LaTeX generated SVG elements to your drawing.
 
 .. figure:: images/textext-with-inkscape.png
    :alt: TexText dialog with Inkscape

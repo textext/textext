@@ -1,3 +1,8 @@
+Version 0.10.2 (2019-05-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Disallowed pstoedit 3.73 + ghostscript 9.27 combination during
+  installation (:issue_num:`126`)
+
 Version 0.10.1 (2019-04-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Inkscape binary not found during installation on some MacOS
