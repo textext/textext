@@ -63,6 +63,14 @@ To install on Ubuntu/Debian:
 
     sudo apt-get install python2.7
 
+
+.. warning::
+
+    On recent systems default python interpreter is ``python3`` which is incompatible with current version of |TexText|.
+    See for instructions :ref:`faq-set-inskscape-python-interpreter-to-python2`.
+
+
+
 .. _linux-install-gui-library:
 
 Install GUI library
