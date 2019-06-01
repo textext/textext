@@ -172,18 +172,21 @@ try:
 
             super(TexText, self).__init__()
 
-            self.OptionParser.add_option(
-                "-t", "--text", action="store", type="string",
-                dest="text",
+            self.arg_parser.add_argument(
+                "--text",
+                type=str,
                 default=None)
-            self.OptionParser.add_option(
-                "-p", "--preamble-file", action="store", type="string",
-                dest="preamble_file",
+
+            self.arg_parser.add_argument(
+                "--preamble-file",
+                type=str,
                 default=self.config.get('preamble', "default_packages.tex"))
-            self.OptionParser.add_option(
-                "-s", "--scale-factor", action="store", type="float",
-                dest="scale_factor",
-                default=self.config.get('scale', 1.0))
+
+            self.arg_parser.add_argument(
+                "--scale-factor",
+                type=float,
+                default=self.config.get('scale', 1.0)
+            )
 
         # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
         # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
