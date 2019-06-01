@@ -125,7 +125,7 @@ try:
     # Inkscape plugin functionality
     #------------------------------------------------------------------------------
 
-    class TexText(inkex.Effect):
+    class TexText(inkex.EffectExtension):
 
         DEFAULT_ALIGNMENT = "middle center"
         DEFAULT_TEXCMD = "pdflatex"
@@ -170,7 +170,7 @@ try:
                                         "Please follow instructions "
                                         "https://textext.github.io/textext/")
 
-            inkex.Effect.__init__(self)
+            super(TexText, self).__init__()
 
             self.OptionParser.add_option(
                 "-t", "--text", action="store", type="string",
@@ -1153,7 +1153,7 @@ try:
 
     if __name__ == "__main__":
         effect = TexText()
-        effect.affect()
+        effect.run()
         effect.cache["previous_exit_code"] = EXIT_CODE_OK
         effect.cache.save()
 
