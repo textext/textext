@@ -683,13 +683,13 @@ try:
 
         def set_meta(self, key, value):
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            self.set(ns_key, value)
+            self.set(ns_key, value.encode('string-escape'))
             assert self.get_meta(key) == value, (self.get_meta(key), value)
 
         def get_meta(self, key, default=None):
             try:
                 ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-                value = self.get(ns_key)
+                value = self.get(ns_key).decode('string-escape')
                 if value is None:
                     raise AttributeError('{} has no attribute `{}`'.format(self, key))
                 return value
