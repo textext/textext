@@ -214,24 +214,6 @@ try:
                 else:
                     return '0'
 
-        def unit_to_uu(self, unit):
-            """ Wrapper for unittouu() accounting for different implementation in Inkscape versions"""
-            try:
-                # Inkscape > 0.48
-                return self.unittouu(unit)
-            except AttributeError:
-                # Inkscape <= 0.48
-                return inkex.unittouu(unit)
-
-        def uu_to_unit(self, val, unit):
-            """ Wrapper for uutounit() accounting for different implementation in Inkscape versions"""
-            try:
-                # Inkscape > 0.48
-                return self.uutounit(val, unit)
-            except AttributeError:
-                # Inkscape <= 0.48
-                return inkex.uutounit(val, unit)
-
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
             from asktext import AskerFactory
@@ -264,7 +246,7 @@ try:
                 # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
                 if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
                     logger.debug("Adjust scale factor for node created with TexText<=0.7")
-                    current_scale *= self.uu_to_unit(1, "pt")
+                    current_scale *= self.svg.uutounit(1, "pt")
 
                 if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
                     logger.debug("Adjust scale factor to account transformations in inkscape")
@@ -438,7 +420,7 @@ try:
 
                 # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
                 # even if the document user units are not in pt
-                scale_factor = user_scale_factor * self.unit_to_uu("1pt")
+                scale_factor = user_scale_factor * self.svg.unittouu("1pt")
 
                 # Convert
                 with logger.debug("Converting tex to svg"):
@@ -463,8 +445,8 @@ try:
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
                         root = self.document.getroot()
-                        width = self.unit_to_uu(self.get_document_width())
-                        height = self.unit_to_uu(self.get_document_height())
+                        width = self.svg.unittouu(self.get_document_width())
+                        height = self.svg.unittouu(self.get_document_height())
 
                         x, y, w, h = new_svg_ele.get_frame()
                         new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
