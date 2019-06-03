@@ -182,9 +182,10 @@ To run |TexText| you need to change inkscape `python-interpreter` to ``python2``
          org.ekips.filter.gears.pitch="20"
          org.ekips.filter.gears.angle="20" />
 
-4. Insert a key for the interpreter, for example 'python-interpreter' for setting the program that should be used to
+4. Insert a key for the interpreter, for example ``python-interpreter`` for setting the program that should be used to
    run python extensions, and set the string to the absolute path to the python binary which is compatible with Inkscape's
-   current extension scripts (in the example below, the path is ``/usr/bin/python2.7``):
+   current extension scripts (in the example below, the path is ``/usr/bin/python2.7``, you can determine it in a
+   terminal via the command ``which python2.7`` or ``which python2``):
 
     .. code-block:: xml
 

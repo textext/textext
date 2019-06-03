@@ -66,8 +66,11 @@ To install on Ubuntu/Debian:
 
 .. warning::
 
-    On recent systems default python interpreter is ``python3`` which is incompatible with current version of |TexText|.
-    See for instructions :ref:`faq-set-inskscape-python-interpreter-to-python2`.
+    On recent systems default Python interpreter is ``python3`` which is incompatible with current version of |TexText|
+    (and other Inkscape extensions). You need to configure Inkscape such that it still uses python2. To check which is
+    your default Python interpreter run ``python --version`` in a terminal. If this command does not return Python
+    version 2.7.x consult instructions to configure Inkscape properly:
+    :ref:`faq-set-inskscape-python-interpreter-to-python2`.
 
 
 
@@ -161,7 +164,7 @@ To check versions run:
     +--------------+-----------------+
     |     3.70     |      9.22       |
     +--------------+-----------------+
-    |     3.73     |      9.27       |
+    |   <= 3.74    |      9.27       |
     +--------------+-----------------+
 
     Please report any observations or problems in :issue:`126`.
@@ -206,7 +209,7 @@ Install TexText
 
     .. code-block:: bash
 
-        python setup.py
+        python2 setup.py
 
     The script will check if all requirements described in :ref:`linux-install-dependencies`
     are met. If so, it will install the extension files into the user's Inkscape configuration
@@ -220,4 +223,4 @@ Install TexText
 
         .. code-block:: bash
 
-            python setup.py --skip-requirements-check
+            python2 setup.py --skip-requirements-check
