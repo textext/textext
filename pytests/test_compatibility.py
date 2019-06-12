@@ -9,19 +9,29 @@ import json
 import PIL.Image
 
 
+# Set this to False to keep results in separate pytests_results folder
+RESULTS_INTO_TEMPDIR = True
+
+
 class TempDirectory(object):
+
     def __init__(self, suffix=""):
         self.__name = None
         self.__suffix = suffix
 
     def __enter__(self):
-        self.__name = tempfile.mkdtemp(suffix=self.__suffix)
+        if RESULTS_INTO_TEMPDIR:
+            self.__name = tempfile.mkdtemp()
+        else:
+            dn = os.path.join(os.getcwd(), "pytests_results", self.__suffix)
+            if not os.path.exists(dn):
+                os.makedirs(dn) # ToDo: Make use of exist_ok flag when porting to Python 3.7
+            self.__name = dn
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.__name is not None:
-            pass
-            #shutil.rmtree(self.__name)
+        if (self.__name is not None) and RESULTS_INTO_TEMPDIR:
+            shutil.rmtree(self.__name)
 
     @property
     def name(self):
@@ -227,7 +237,7 @@ def test_compatibility(root, inkscape_version, textext_version, converter, test_
             "_") or test_case.startswith("_"):
         pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
                                                                            test_case))
-    test_id = "-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, test_case)
+    test_id = "%s-%s-%s-%s" % (inkscape_version, textext_version, converter, test_case)
     result, message = is_current_version_compatible(
         test_id,
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
@@ -252,7 +262,7 @@ def test_converters_compatibility(root, inkscape_version, textext_version, conve
     elif converter == "pstoedit":
         replaced_converter = "pdf2svg"
 
-    test_id = "%-s-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, replaced_converter, test_case)
+    test_id = "%s-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, replaced_converter, test_case)
     result, message = is_current_version_compatible(
         test_id,
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
