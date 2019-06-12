@@ -10,16 +10,18 @@ import PIL.Image
 
 
 class TempDirectory(object):
-    def __init__(self):
+    def __init__(self, suffix=""):
         self.__name = None
+        self.__suffix = suffix
 
     def __enter__(self):
-        self.__name = tempfile.mkdtemp()
+        self.__name = tempfile.mkdtemp(suffix=self.__suffix)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.__name is not None:
-            shutil.rmtree(self.__name)
+            pass
+            #shutil.rmtree(self.__name)
 
     @property
     def name(self):
@@ -128,7 +130,8 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
         return False, "`compare` return code is %d " % proc.returncode
 
 
-def is_current_version_compatible(svg_original,
+def is_current_version_compatible(test_id,
+                                  svg_original,
                                   svg_modified,
                                   json_config,
                                   converter,
@@ -137,6 +140,7 @@ def is_current_version_compatible(svg_original,
                                   pixel_diff_rel_tol=0.001
                                   ):
     """
+    :param (str) test_id: A string characterizing the test. Used in tmp dirs.
     :param (str) svg_original: path to snippet
     :param (str) svg_modified: path to empty svg created with same version of inkscape as `svg_snippet`
     :param (str) json_config: path to json config
@@ -151,7 +155,7 @@ def is_current_version_compatible(svg_original,
     assert os.path.isfile(json_config)
     assert converter in ["pstoedit", "pdf2svg"]
 
-    with TempDirectory() as tempdir:
+    with TempDirectory(test_id) as tempdir:
         tmp_dir = tempdir.name
 
         png1 = os.path.join(tmp_dir, "1.png")
@@ -223,8 +227,9 @@ def test_compatibility(root, inkscape_version, textext_version, converter, test_
             "_") or test_case.startswith("_"):
         pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
                                                                            test_case))
-
+    test_id = "-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, test_case)
     result, message = is_current_version_compatible(
+        test_id,
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
         svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
         json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
@@ -247,13 +252,15 @@ def test_converters_compatibility(root, inkscape_version, textext_version, conve
     elif converter == "pstoedit":
         replaced_converter = "pdf2svg"
 
+    test_id = "%-s-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, replaced_converter, test_case)
     result, message = is_current_version_compatible(
+        test_id,
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
         svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
         json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
         converter=replaced_converter,
         fuzz="50%",
-        pixel_diff_abs_tol=100,
+        pixel_diff_abs_tol=150,
         pixel_diff_rel_tol=0.005
     )
     sys.stderr.write(message+"\n")
