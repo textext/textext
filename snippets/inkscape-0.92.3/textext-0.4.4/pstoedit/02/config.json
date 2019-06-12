@@ -18,7 +18,7 @@
 			"height": 300
 		},
 		"compare" : {
-			"fuzz" : "25%"
+			"fuzz" : "50%"
 		}
 	}
 } 
