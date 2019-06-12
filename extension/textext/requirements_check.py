@@ -729,8 +729,6 @@ class TexTextRequirementsChecker(object):
                             (Requirement(self.find_pstoedit, "3.70") &
                              Requirement(self.find_ghostscript, "9.22")) |
                             (Requirement(self.find_pstoedit, "3.73") &
-                             Requirement(self.find_ghostscript, "9.27")) |
-                            (Requirement(self.find_pstoedit, "3.74") &
                              Requirement(self.find_ghostscript, "9.27"))
                     ).overwrite_check_message("Detect incompatible versions of pstoedit+ghostscript")
                     & (
