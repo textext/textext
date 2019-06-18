@@ -4,6 +4,9 @@ import os
 import re
 import subprocess
 import sys
+import operator
+
+opstr = {operator.eq:"=", operator.lt:"<", operator.le:"<=", operator.gt:">", operator.ge:">="}
 
 
 class Defaults(object):
@@ -572,7 +575,7 @@ class TexTextRequirementsChecker(object):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_ghostscript(self, version=None):
+    def find_ghostscript(self, version=None, op=operator.eq):
         try:
             executable = self.find_executable(self.ghostscript_prog_name)["path"]
             stdout, stderr = defaults.call_command([executable, "--version"])
@@ -589,14 +592,14 @@ class TexTextRequirementsChecker(object):
         m = re.search(r"(\d+.\d+)", first_stdout_line)
         if m:
             found_version = m.group(1)
-            if version == found_version:
-                return RequirementCheckResult(True, ["ghostscript=%s is found" % version], path=executable)
+            if op(float(found_version), float(version)):
+                return RequirementCheckResult(True, ["ghostscript=%s%s %s is found" % (found_version, opstr[op], version)], path=executable)
             else:
                 return RequirementCheckResult(False, [
-                    "ghostscript=%s is not found (but ghostscript=%s is found)" % (version, found_version)])
+                    "ghostscript%s%s is not found (but ghostscript=%s is found)" % (opstr[op], version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate ghostscript version"])
 
-    def find_pstoedit(self, version=None):
+    def find_pstoedit(self, version=None, op=operator.eq):
 
         try:
             executable = self.find_executable(self.pstoedit_prog_name)["path"]
@@ -614,11 +617,11 @@ class TexTextRequirementsChecker(object):
         m = re.search(r"version (\d+.\d+)", first_stderr_line)
         if m:
             found_version = m.group(1)
-            if version == found_version:
-                return RequirementCheckResult(True, ["pstoedit=%s is found" % version], path=executable)
+            if op(float(found_version), float(version)):
+                return RequirementCheckResult(True, ["pstoedit=%s %s %s is found" % (found_version, opstr[op], version)], path=executable)
             else:
                 return RequirementCheckResult(False, [
-                    "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
+                    "pstoedit%s%s is not found (but pstoedit=%s is found)" % (opstr[op], version, found_version)])
         return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
 
     def find_executable(self, prog_name):
@@ -726,10 +729,12 @@ class TexTextRequirementsChecker(object):
             & (
                 (
                     ~ (
-                            (Requirement(self.find_pstoedit, "3.70") &
-                             Requirement(self.find_ghostscript, "9.22")) |
-                            (Requirement(self.find_pstoedit, "3.73") &
-                             Requirement(self.find_ghostscript, "9.27"))
+                            # DELAYBIND error in gs 9.22 and pstoedit 3.70
+                            (Requirement(self.find_pstoedit, version="3.70") &
+                             Requirement(self.find_ghostscript, version="9.22")) |
+                            # Conversion crashes in gs 9.27 and pstoedit < 3.74
+                            (Requirement(self.find_pstoedit, version="3.74", op=operator.lt) &
+                             Requirement(self.find_ghostscript, version="9.27"))
                     ).overwrite_check_message("Detect incompatible versions of pstoedit+ghostscript")
                     & (
                             Requirement(self.find_pstoedit)
