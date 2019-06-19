@@ -104,8 +104,6 @@ try:
 
     import inkex
     import inkex.elements
-    import simplestyle as ss
-    import simpletransform as st
     from lxml import etree
 
     TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -635,7 +633,7 @@ try:
         def _svg_to_textext_node(self, svg_filename):
             from inkex.elements import ShapeElement
             from inkex.svg import SvgDocumentElement
-            doc = etree.parse(svg_filename, parser=inkex.svg.SVG_PARSER)
+            doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
 
             root = doc.getroot()
 
@@ -653,15 +651,15 @@ try:
             from inkex.elements import ShapeElement
             from copy import deepcopy
             for el in root:
-                if isinstance(el, inkex.svg.Use):
+                if isinstance(el, inkex.elements.Use):
                     # <group> element will replace <use> node
-                    group = inkex.svg.Group()
+                    group = inkex.elements.Group()
 
                     # add all objects from symbol node
-                    for obj in el.ref():
+                    for obj in el.href:
                         group.append(deepcopy(obj))
 
-                    # transl
+                    # translate group
                     group.transform = TranslateTransform(float(el.attrib["x"]), float(el.attrib["y"]))
 
                     # replace use node with group node
@@ -724,8 +722,10 @@ try:
             # keep alignment point of drawing intact, calculate required shift
             self.transform = composition
 
-            x, y, w, h = ref_node.bounding_box()
-            new_x, new_y, new_w, new_h = self.bounding_box()
+            ref_bb = ref_node.bounding_box()
+            x, y, w, h = ref_bb.left,  ref_bb.top, ref_bb.width, ref_bb.height
+            bb = self.bounding_box()
+            new_x, new_y, new_w, new_h = bb.left,  bb.top, bb.width, bb.height
 
             p_old = self._get_pos(x, y, w, h, alignment)
             p_new = self._get_pos(new_x, new_y, new_w, new_h, alignment)
@@ -789,7 +789,7 @@ try:
             raise NotImplementedError("Not ported to inkscape 1.0")
             for it_node in self.getiterator():
                 if "style" in it_node.attrib:
-                    node_style_dict = ss.parseStyle(it_node.attrib["style"])
+                    node_style_dict = it_node.style
                     for style_attrib in ["stroke", "fill"]:
                         if style_attrib in node_style_dict and \
                                 node_style_dict[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
