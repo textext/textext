@@ -433,7 +433,7 @@ try:
 
                         # If no non-black color has been explicitily set by TeX we copy the color information from the old node
                         # so that coloring done in Inkscape is preserved.
-                        if False and not tt_node.is_colorized(): # todo: re-enable colorize feature
+                        if not tt_node.is_colorized():
                             tt_node.import_group_color_style(old_svg_ele)
 
                         self.replace_node(old_svg_ele, tt_node)
@@ -769,34 +769,31 @@ try:
 
         def is_colorized(self):
             """ Returns true if at least one element of the managed node contains a non-black fill or stroke color """
-            raise NotImplementedError("Not ported to inkscape 1.0")
-            return self.has_colorized_attribute(self._node) or self.has_colorized_style(self._node)
+            return self.has_colorized_attribute() or self.has_colorized_style()
 
 
         def has_colorized_attribute(self):
             """ Returns true if at least one element of node contains a non-black fill or stroke attribute """
-            raise NotImplementedError("Not ported to inkscape 1.0")
-            for it_node in self.getiterator():
+            for it_node in self.iter():
                 for attrib in ["stroke", "fill"]:
-                    if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
-                                                                                                            "black", "none",
-                                                                                                            "#000000"]:
+                    if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in [
+                        "rgb(0%,0%,0%)",
+                        "black", "none",
+                        "#000000"]:
                         return True
             return False
 
         def has_colorized_style(self):
             """ Returns true if at least one element of node contains a non-black fill or stroke style """
-            raise NotImplementedError("Not ported to inkscape 1.0")
-            for it_node in self.getiterator():
-                if "style" in it_node.attrib:
-                    node_style_dict = it_node.style
-                    for style_attrib in ["stroke", "fill"]:
-                        if style_attrib in node_style_dict and \
-                                node_style_dict[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
-                                                                                               "black",
-                                                                                               "none",
-                                                                                               "#000000"]:
-                            return True
+            for it_node in self.iter():
+                style = it_node.style  # type: inkex.styles.Style
+                for style_attrib in ["stroke", "fill"]:
+                    if style_attrib in style and \
+                            style[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
+                                                                                 "black",
+                                                                                 "none",
+                                                                                 "#000000"]:
+                        return True
             return False
 
         def import_group_color_style(self, src_svg_ele):
@@ -804,30 +801,23 @@ try:
             Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
             of self._node. Ensures that non color relevant style attributes are not overwritten.
             """
-            raise NotImplementedError("Not ported to inkscape 1.0")
 
             # Take the top level style information which is set when coloring the group in Inkscape
-            src_style_string = src_svg_ele._node.get("style")
+            style = src_svg_ele.style # type: inkex.styles.Style
 
             # If a style attribute exists we can copy the style, if not, there is nothing to do here
-            if src_style_string:
+            if len(style):
                 # Fetch the part of the source dict which is interesting for colorization
-                src_style_dict = ss.parseStyle(src_style_string)
-                color_style_dict = {key: value for key, value in src_style_dict.items() if
+                color_style_dict = {key: value for key, value in style.items() if
                                     key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
                                                     "fill-opacity"] and value.lower() != "none"}
 
-                # Iterate over all nodes of self._node and apply the imported color style
-                for dest_node in self._node.getiterator():
-                    dest_style_string = dest_node.attrib.get("style")
-                    if dest_style_string:
-                        dest_style_dict = ss.parseStyle(dest_style_string)
-                        for key, value in color_style_dict.items():
-                            dest_style_dict[key] = value
-                    else:
-                        dest_style_dict = color_style_dict
-                    dest_style_string = ss.formatStyle(dest_style_dict)
-                    dest_node.attrib["style"] = dest_style_string
+                # update style of all child nodes
+                for it in self.iter():
+                    self.style.update(color_style_dict)
+                    it.pop("stroke")
+                    it.pop("fill")
+
 
     # ------------------------------------------------------------------------------
     # Entry point
