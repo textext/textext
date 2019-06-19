@@ -13,4 +13,5 @@
   <script>
     <command reldir="extensions" interpreter="python">textext/__init__.py</command>
   </script>
+  <options silent="true" />
 </inkscape-extension>
