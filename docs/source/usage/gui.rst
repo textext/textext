@@ -322,8 +322,8 @@ Configuration of the default TeX math-environment
 You can open the ``Settings`` menu |usage-label-7| and then ``New Node Content``
 to define which environment should be selected by default when creating new nodes.
 
-.. figure:: ../images/textext-dialog-with-settings-menus.png
-    :alt: TexText settings menu
+.. figure:: ../images/textext-dialog-with-settings-menus-new-node.png
+    :alt: TexText settings menu (new node content)
 
 You have the following options:
 
@@ -337,7 +337,33 @@ You have the following options:
 
 .. note::
 
-    This feature is not available in the Tkinter GUI!
+    Currently, this feature is not available in the Tkinter GUI!
+
+.. _usage-close-shortcut-config:
+
+Selecting the shortcut for closing the |TexText| window
+-------------------------------------------------------
+
+.. versionadded:: 0.11.0
+
+In the ``Settings`` menu |usage-label-7| under ``Close TexText Shortcut``
+you can select a shortcut for closing the |TexText| window.
+
+.. figure:: ../images/textext-dialog-with-settings-menus-close-shortcut.png
+    :alt: TexText settings menu (close shortcut)
+
+You have the following options:
+
+- ``Escape``: The window closes when pressing the ``ESC`` key.
+
+- ``CTRL + Q``: The window closes when pressing the ``CTRL`` and the ``Q`` key simultaneously.
+
+- ``None`` (default): No shortcut active. Depending on your operating system a standard shortcut maybe
+  available (e.g. ``ALT`` + ``F4`` on Windows).
+
+.. note::
+
+    Currently, this feature is not available in the Tkinter GUI!
 
 .. _usage-gui-config:
 

@@ -1,3 +1,14 @@
+Version 0.11.0 (2019-06-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New (GTK-version only): Possibility to select a shortcut for closing the
+  TexText window. You can select between `Escape`, `CTRL + Q` and `None`.
+  The last on is the default behavior now what means that the window cannot
+  be closed by a shortcut or accidently by pressing `Escape`. You can
+  define the behavior in the settings menu.
+- New: The annoying "Extension is working" window is not shown anymore.
+- New: Improved dependency check on incompatible pstoedit and ghostscript
+  versions
+
 Version 0.10.2 (2019-05-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Disallowed pstoedit 3.73 + ghostscript 9.27 combination during
