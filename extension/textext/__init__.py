@@ -60,6 +60,12 @@ from errors import *
 __version__ = open(os.path.join(os.path.dirname(__file__), "VERSION")).readline().strip()
 __docformat__ = "restructuredtext en"
 
+if sys.version[0] == '3':
+    unicode = str
+    escape_method = 'unicode_escape'
+else:
+    escape_method = 'string-escape'
+
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
@@ -97,10 +103,6 @@ __logger.addHandler(file_log_channel)
 __logger.addHandler(user_log_channel)
 
 try:
-
-    version_is_good = (2, 7) <= sys.version_info < (3, 0)
-    if not version_is_good:
-        raise TexTextFatalError("Python 2.7 is required, but found %s" % sys.version.split("\n")[0])
 
     import inkex
     import inkex.elements
@@ -149,9 +151,10 @@ try:
                 logging.disable(logging.DEBUG)
 
             logger.debug("TexText initialized")
-            logger.debug("TexText version = %s (md5sum = %s)" %
-                         (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
-                         )
+            with open(__file__) as fhl:
+                logger.debug("TexText version = %s (md5sum = %s)" %
+                             (repr(__version__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                             )
             logger.debug("platform.system() = %s" % repr(platform.system()))
             logger.debug("platform.release() = %s" % repr(platform.release()))
             logger.debug("platform.version() = %s" % repr(platform.version()))
@@ -346,8 +349,8 @@ try:
                     logger.debug("no text, return")
                     return
 
-                if isinstance(text, unicode):
-                    text = text.encode('utf-8')
+                if isinstance(text, bytes):
+                    text = text.decode('utf-8')
 
                 with ChangeToTemporaryDirectory():
                     with logger.debug("Converting tex to pdf"):
@@ -381,8 +384,8 @@ try:
                     logger.debug("no text, return")
                     return
 
-                if isinstance(text, unicode):
-                    text = text.encode('utf-8')
+                if isinstance(text, bytes):
+                    text = text.decode('utf-8')
 
                 # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
                 # even if the document user units are not in pt
@@ -681,13 +684,13 @@ try:
 
         def set_meta(self, key, value):
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            self.set(ns_key, value.encode('string-escape'))
+            self.set(ns_key, value.encode(escape_method).decode('utf-8'))
             assert self.get_meta(key) == value, (self.get_meta(key), value)
 
         def get_meta(self, key, default=None):
             try:
                 ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-                value = self.get(ns_key).decode('string-escape')
+                value = self.get(ns_key).encode('utf-8').decode(escape_method)
                 if value is None:
                     raise AttributeError('{} has no attribute `{}`'.format(self, key))
                 return value

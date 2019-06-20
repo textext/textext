@@ -35,10 +35,8 @@ class LinuxDefaults(Defaults):
     executable_names = {"inkscape": ["inkscape"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"],
-                        "pdf2svg": ["pdf2svg"],
-                        "pstoedit": ["pstoedit"],
-                        "ghostscript": ["ghostscript"]}
+                        "xelatex": ["xelatex"]
+                        }
 
     @property
     def inkscape_extensions_path(self):
@@ -61,10 +59,8 @@ class MacDefaults(LinuxDefaults):
     executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"],
-                        "pdf2svg": ["pdf2svg"],
-                        "pstoedit": ["pstoedit"],
-                        "ghostscript": ["gs", "ghostscript"]}
+                        "xelatex": ["xelatex"]
+                        }
 
     def get_system_path(self):
         path = ["/Applications/Inkscape.app/Contents/Resources"]
@@ -80,9 +76,7 @@ class WindowsDefaults(Defaults):
                         "pdflatex": ["pdflatex.exe"],
                         "lualatex": ["lualatex.exe"],
                         "xelatex": ["xelatex.exe"],
-                        "pdf2svg": ["pdf2svg.exe"],
-                        "pstoedit": ["pstoedit.exe"],
-                        "ghostscript": ["gswin64c.exe", "gswin64c.exe", "gs.exe"]}
+                        }
 
     def __init__(self):
         super(WindowsDefaults, self)
@@ -118,7 +112,7 @@ class WindowsDefaults(Defaults):
         return self._tweaked_syspath
 
     @staticmethod
-    def call_command(command, return_code=0):
+    def call_command(command, return_code=0): # type: (List,Optional[int]) -> Tuple[str, str]
         # Ensure that command window does not pop up on Windows!
         info = subprocess.STARTUPINFO()
         info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -533,9 +527,6 @@ class TexTextRequirementsChecker(object):
         self.pdflatex_prog_name = "pdflatex"
         self.lualatex_prog_name = "lualatex"
         self.xelatex_prog_name = "xelatex"
-        self.pdf2svg_prog_name = "pdf2svg"
-        self.pstoedit_prog_name = "pstoedit"
-        self.ghostscript_prog_name = "ghostscript"
 
         self.inkscape_executable = None
 
@@ -544,20 +535,9 @@ class TexTextRequirementsChecker(object):
 
         pass
 
-    def find_python27(self):
-        version = sys.version.split("\n")[0]
-        version_is_good = (2, 7) <= sys.version_info < (3, 0)
-        executable_path = os.path.abspath(sys.executable)
-        if version_is_good:
-            return RequirementCheckResult(True, "python2.7 is found at `%s`" % executable_path,
-                                          path=executable_path)
-        else:
-            return RequirementCheckResult(False, "Expected python 2.7 but found `%s`" % version,
-                                          path=executable_path)
-
     def find_pygtk3(self):
         try:
-            executable = self.find_python27()["path"]
+            executable = sys.executable
             defaults.call_command([executable, "-c", "import gi;"+
                                                      "gi.require_version('Gtk', '3.0');"+
                                                      "from gi.repository import Gtk, Gdk, GdkPixbuf"])
@@ -567,61 +547,32 @@ class TexTextRequirementsChecker(object):
 
     def find_tkinter(self):
         try:
-            executable = self.find_python27()["path"]
+            executable = sys.executable
             defaults.call_command([executable, "-c", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_ghostscript(self, version=None):
+    def find_inkscape_1_0(self):
+        from distutils.version import LooseVersion
         try:
-            executable = self.find_executable(self.ghostscript_prog_name)["path"]
-            stdout, stderr = defaults.call_command([executable, "--version"])
-        except (KeyError, OSError, subprocess.CalledProcessError):
-            if version is None:
-                return RequirementCheckResult(False, ["ghostscript is not found"])
-            else:
-                return RequirementCheckResult(False, ["ghostscript=%s is not found" % version])
-
-        if version is None:
-            return RequirementCheckResult(True, ["ghostscript is found"], path=executable)
-
+            executable = self.find_executable('inkscape')['path']
+            stdout, stderr = defaults.call_command([executable, "--version", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
+        except (KeyError, OSError):
+            return RequirementCheckResult(False, ["inkscape is not found"])
         first_stdout_line = stdout.decode("utf-8", 'ignore').split("\n")[0]
-        m = re.search(r"(\d+.\d+)", first_stdout_line)
+        print(first_stdout_line)
+        m = re.search(r"Inkscape (\d+.\d+\w+)", first_stdout_line)
+
         if m:
             found_version = m.group(1)
-            if version == found_version:
-                return RequirementCheckResult(True, ["ghostscript=%s is found" % version], path=executable)
+            if LooseVersion(found_version) >= LooseVersion("1.0"):
+                return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
             else:
                 return RequirementCheckResult(False, [
-                    "ghostscript=%s is not found (but ghostscript=%s is found)" % (version, found_version)])
-        return RequirementCheckResult(None, ["Can't determinate ghostscript version"])
-
-    def find_pstoedit(self, version=None):
-
-        try:
-            executable = self.find_executable(self.pstoedit_prog_name)["path"]
-            stdout, stderr = defaults.call_command([executable], return_code=None)
-        except (KeyError, OSError, subprocess.CalledProcessError):
-            if version is None:
-                return RequirementCheckResult(False, ["pstoedit is not found"])
-            else:
-                return RequirementCheckResult(False, ["pstoedit=%s is not found" % version])
-
-        if version is None:
-            return RequirementCheckResult(True, ["pstoedit is found"], path=executable)
-
-        first_stderr_line = stderr.decode("utf-8", 'ignore').split("\n")[0]
-        m = re.search(r"version (\d+.\d+)", first_stderr_line)
-        if m:
-            found_version = m.group(1)
-            if version == found_version:
-                return RequirementCheckResult(True, ["pstoedit=%s is found" % version], path=executable)
-            else:
-                return RequirementCheckResult(False, [
-                    "pstoedit=%s is not found (but pstoedit=%s is found)" % (version, found_version)])
-        return RequirementCheckResult(None, ["Can't determinate pstoedit version"])
+                    "inkscape>=1.0 is not found (but inkscape=%s is found)" % (found_version)])
+        return RequirementCheckResult(None, ["Can't determinate inkscape version"])
 
     def find_executable(self, prog_name):
         # try value from config
@@ -699,13 +650,10 @@ class TexTextRequirementsChecker(object):
             return result
 
         textext_requirements = (
-            Requirement(self.find_executable, self.inkscape_prog_name)
-            .prepend_message("ANY", 'Detect inkscape')
+            Requirement(self.find_inkscape_1_0)
+            .prepend_message("ANY", 'Detect inkscape>=1.0')
             .append_message("ERROR", help_message_with_url("inkscape","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
-            & Requirement(self.find_python27)
-            .prepend_message("ANY", 'Detect `python2.7`')
-            .append_message("ERROR", help_message_with_url("python27"))
             & (
                     Requirement(self.find_executable, self.pdflatex_prog_name)
                     .on_success(lambda result: add_latex("pdflatex", result["path"]))
@@ -725,31 +673,6 @@ class TexTextRequirementsChecker(object):
                     .append_message("ERROR", help_message_with_url("tkinter"))
             ).overwrite_check_message("Detect GUI library")
             .append_message("ERROR", help_message_with_url("gui-library"))
-            & (
-                (
-                    ~ (
-                            (Requirement(self.find_pstoedit, "3.70") &
-                             Requirement(self.find_ghostscript, "9.22")) |
-                            (Requirement(self.find_pstoedit, "3.73") &
-                             Requirement(self.find_ghostscript, "9.27"))
-                    ).overwrite_check_message("Detect incompatible versions of pstoedit+ghostscript")
-                    & (
-                            Requirement(self.find_pstoedit)
-                            .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pstoedit": result["path"]}))
-                            .append_message("ERROR", help_message_with_url("pstoedit","pstoedit"))
-                            & Requirement(self.find_ghostscript)
-                            .append_message("ERROR", help_message_with_url("pstoedit","ghostscript"))
-                    )
-                ).overwrite_check_message("Detect compatible pstoedit+ghostscript versions")
-                .append_message("ERROR", help_message_with_url("pstoedit"))
-                .on_failure(lambda result: "pstoedit" in self.available_pdf_to_svg_converters and self.available_pdf_to_svg_converters.pop("pstoedit"))
-                | (
-                    Requirement(self.find_executable, self.pdf2svg_prog_name)
-                ).prepend_message("ANY", "Detect pdf2svg:")
-                .on_success(lambda result: self.available_pdf_to_svg_converters.update({"pdf2svg": result["path"]}))
-                .append_message("ERROR", help_message_with_url("pdf2svg"))
-            ).overwrite_check_message("Detect pdf->svg conversion utility")
-            .append_message("ERROR", help_message_with_url("pdf-to-svg-converter"))
         ).overwrite_check_message("TexText requirements")
 
         check_result = textext_requirements.check()

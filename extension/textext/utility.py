@@ -160,7 +160,7 @@ class Settings(object):
                 self.values = json.load(f)
 
     def save(self):
-        with open(self.config_path, "wb") as f:
+        with open(self.config_path, "w") as f:
             json.dump(self.values, f, indent=2)
 
     def get(self, key, default=None):

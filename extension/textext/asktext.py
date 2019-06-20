@@ -707,7 +707,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self.callback(self.text, self.preamble_file, self.global_scale_factor,
                               self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
                               self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
-            except StandardError as error:
+            except Exception as error:
                 import traceback
 
                 error_dialog(self._window,
