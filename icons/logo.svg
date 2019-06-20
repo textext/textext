@@ -15,8 +15,11 @@
    viewBox="0 0 33.866667 33.866668"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="logo.svg">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="logo.svg"
+   inkscape:export-filename="C:\Users\winkler\Uni\Projekte\Allgemein\TexText\github\textext-textext\extension\textext\icons\logo-16x16.png"
+   inkscape:export-xdpi="12"
+   inkscape:export-ydpi="12">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -27,14 +30,14 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="6.3418579"
-     inkscape:cx="63.999992"
+     inkscape:cx="38.376586"
      inkscape:cy="63.077212"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1137"
-     inkscape:window-x="1912"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      fit-margin-left="5"
@@ -52,7 +55,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

@@ -1,13 +1,16 @@
-Version 0.11.0 (2019-06-21)
+Version 0.11.0 (2019-06-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New (GTK-version only): Possibility to select a shortcut for closing the
-  TexText window. You can select between `Escape`, `CTRL + Q` and `None`.
-  The last on is the default behavior now what means that the window cannot
-  be closed by a shortcut or accidently by pressing `Escape`. You can
-  define the behavior in the settings menu.
+  TexText window. You can select between `Escape` (default), `CTRL + Q` and
+  `None`.
+- New (GTK-version only): TexText asks for confirmation to close the window
+  in case you made changes to your text (:issue_num:`127`).
 - New: The annoying "Extension is working" window is not shown anymore.
 - New: Improved dependency check on incompatible pstoedit and ghostscript
   versions
+
+**Note**: This is the last feature update for TexText on Inkscape 0.92.x. Any new
+features will be included in TexText for Inkscape 1.0.
 
 Version 0.10.2 (2019-05-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,6 +201,6 @@ Version 0.5.1 (2016-10-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed:
   TexText does not work with Inkscape 0.9.1
-  
+
   It is ensured now that Inkscape works under both, Inkscape 0.48 and Inkscape 0.91.
-  
+

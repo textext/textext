@@ -50,28 +50,28 @@
 
 .. |tl| image:: ../images/alignment-top-left.svg.png
             :target: usage-alignment_
-			
+
 .. |tc| image:: ../images/alignment-top-center.svg.png
             :target: usage-alignment_
-			
+
 .. |tr| image:: ../images/alignment-top-right.svg.png
             :target: usage-alignment_
-			
+
 .. |ml| image:: ../images/alignment-middle-left.svg.png
             :target: usage-alignment_
-			
+
 .. |mc| image:: ../images/alignment-middle-center.svg.png
             :target: usage-alignment_
-			
+
 .. |mr| image:: ../images/alignment-middle-right.svg.png
             :target: usage-alignment_
-			
+
 .. |bl| image:: ../images/alignment-bottom-left.svg.png
             :target: usage-alignment_
-			
+
 .. |bc| image:: ../images/alignment-bottom-center.svg.png
             :target: usage-alignment_
-			
+
 .. |br| image:: ../images/alignment-bottom-right.svg.png
             :target: usage-alignment_
 
@@ -240,8 +240,8 @@ When you edit existing nodes it is likely that the size of the produced
 output will change, for example if you modify the input :latex:`$\sin(x)$` to
 :latex:`$\int\sin(x)\text{d}x$`. The entries of the spinbox |usage-label-4| determine how
 the new node is aligned relatively to the old node. The default
-behaviour is ``middle center``, i.e. the middle of the new node is placed 
-on the middle of the old node. Available options are: 
+behaviour is ``middle center``, i.e. the middle of the new node is placed
+on the middle of the old node. Available options are:
 
 +-----------------+-------------------+------------------+
 | |tl|            | |tc|              | |tr|             |
@@ -346,7 +346,8 @@ Selecting the shortcut for closing the |TexText| window
 
 .. versionadded:: 0.11.0
 
-In the ``Settings`` menu |usage-label-7| under ``Close TexText Shortcut``
+In the ``Settings`` menu |usage-label-7| you can configure by ``Confirm Closing Window`` if |TexText| should ask for
+confirmation to close the window in case you made changes to your text. Furthermore, under ``Close TexText Shortcut``
 you can select a shortcut for closing the |TexText| window.
 
 .. figure:: ../images/textext-dialog-with-settings-menus-close-shortcut.png
@@ -354,11 +355,11 @@ you can select a shortcut for closing the |TexText| window.
 
 You have the following options:
 
-- ``Escape``: The window closes when pressing the ``ESC`` key.
+- ``Escape`` (default)
 
-- ``CTRL + Q``: The window closes when pressing the ``CTRL`` and the ``Q`` key simultaneously.
+- ``CTRL + Q``
 
-- ``None`` (default): No shortcut active. Depending on your operating system a standard shortcut maybe
+- ``None``: No shortcut active. Depending on your operating system a standard shortcut maybe
   available (e.g. ``ALT`` + ``F4`` on Windows).
 
 .. note::
