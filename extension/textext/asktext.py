@@ -531,6 +531,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                  'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
             ]
 
+            self._confirm_close_action = [
+                ('ConfirmClose', None, '_Confirm Closing of Window', None,
+                 'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb)
+            ]
+
             self._radio_actions = [
                 ('TabsWidth%d' % num, None, '%d' % num, None, 'Set tabulation width to %d spaces' % num, num) for num in
                 range(2, 13, 2)]
@@ -576,8 +581,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     {new_node_content}
                   </menu>
                   <menu action='CloseShortcut'>
-                    {close_shortcut}
+                    {close_shortcut} 
                   </menu>
+                  <menuitem action='ConfirmClose'/>
                 </menu>
               </menubar>
             </ui>
@@ -701,6 +707,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         def close_shortcut_cb(self, action, previous_value, sourceview):
             self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
 
+        def confirm_close_toggled_cb(self, action, sourceview):
+            self._gui_config["confirm_close"] = action.get_active()
+
         def cb_key_press(self, widget, event, data=None):
             """
             Handle keyboard shortcuts
@@ -767,6 +776,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     != self.text:
                 dlg = gtk.MessageDialog(self._window, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
                                    "You made text changes, do you really want to close TexText?")
+                dlg.set_title("Discard changes?")
                 res = dlg.run()
                 dlg.destroy()
                 if res == gtk.RESPONSE_NO:
@@ -1095,6 +1105,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group.add_actions(self.buffer_actions, text_buffer)
             action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
             action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
+            action_group.add_toggle_actions(self._confirm_close_action, source_view)
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
@@ -1167,6 +1178,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
             action = action_group.get_action('CloseShortcut{}'.format(close_shortcut_value))
             action.set_active(True)
+            action = action_group.get_action('ConfirmClose')
+            action.set_active(self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
             if TOOLKIT == GTKSOURCEVIEW:
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
