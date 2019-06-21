@@ -779,7 +779,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     "<b>Do you want to close TexText without save?</b>"
                     "Your changes will be lost if you don't save them."
                 )
-                dlg.add_button("Cancel", gtk.RESPONSE_CANCEL).set_image(
+                dlg.add_button("Continue editing", gtk.RESPONSE_CANCEL).set_image(
                     gtk.image_new_from_stock(gtk.STOCK_GO_BACK, gtk.ICON_SIZE_BUTTON)
                 )
                 dlg.add_button("Close without save", gtk.RESPONSE_CLOSE).set_image(
