@@ -196,7 +196,8 @@ class AskText(object):
     DEFAULT_INSERTSPACES = True
     DEFAULT_TABWIDTH = 4
     DEFAULT_NEW_NODE_CONTENT = "Empty"
-    DEFAULT_CLOSE_SHORTCUT = "None"
+    DEFAULT_CLOSE_SHORTCUT = "Escape"
+    DEFAULT_CONFIRM_CLOSE = True
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
@@ -242,7 +243,7 @@ class AskText(object):
     @staticmethod
     def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
-        raise SystemExit(1)
+        pass
 
     def cb_ok(self, widget=None, data=None):
         """Callback for OK / Save button"""
@@ -274,6 +275,11 @@ if TOOLKIT == TK:
                                             current_alignment, current_texcmd, tex_commands, gui_config)
             self._frame = None
             self._scale = None
+
+        @staticmethod
+        def cb_cancel(widget=None, data=None):
+            """Callback for Cancel button"""
+            raise SystemExit(1)
 
         @staticmethod
         def validate_spinbox_input(d, i, P, s, S, v, V, W):
@@ -748,13 +754,27 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             gtk.main_quit()
             return False
 
+        def cb_cancel(self, widget=None, data=None):
+            """Callback for Cancel button"""
+            self.window_deleted_cb(widget, None, None)
+
         def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
             self.update_position_label(text_buffer, view)
 
-        @staticmethod
-        def window_deleted_cb(widget, event, view):
+        def window_deleted_cb(self, widget, event, view):
+            if self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE) and \
+               self._source_buffer.get_text(self._source_buffer.get_start_iter(), self._source_buffer.get_end_iter()) \
+                    != self.text:
+                dlg = gtk.MessageDialog(self._window, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+                                   "You made text changes, do you really want to close TexText?")
+                res = dlg.run()
+                dlg.destroy()
+                if res == gtk.RESPONSE_NO:
+                    return True
+
             gtk.main_quit()
-            return True
+            return False
+
 
         def update_preview(self, widget):
             """Update the preview image of the GUI using the callback it gave """
@@ -1160,11 +1180,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             if self.text=="":
                 if new_node_content_value=='InlineMath':
-                    self._source_buffer.set_text("$$")
+                    self.text="$$"
+                    self._source_buffer.set_text(self.text)
                     iter = self._source_buffer.get_iter_at_offset(1)
                     self._source_buffer.place_cursor(iter)
                 if new_node_content_value=='DisplayMath':
-                    self._source_buffer.set_text("$$$$")
+                    self.text = "$$$$"
+                    self._source_buffer.set_text(self.text)
                     iter = self._source_buffer.get_iter_at_offset(2)
                     self._source_buffer.place_cursor(iter)
 
