@@ -771,15 +771,24 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self.update_position_label(text_buffer, view)
 
         def window_deleted_cb(self, widget, event, view):
-            if self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE) and \
-               self._source_buffer.get_text(self._source_buffer.get_start_iter(), self._source_buffer.get_end_iter()) \
-                    != self.text:
-                dlg = gtk.MessageDialog(self._window, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-                                   "You made text changes, do you really want to close TexText?")
-                dlg.set_title("Discard changes?")
+            if (self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
+                    and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+                                                     self._source_buffer.get_end_iter()) != self.text):
+                dlg = gtk.MessageDialog(self._window, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_NONE)
+                dlg.set_markup(
+                    "<b>Do you want to close TexText without save?</b>"
+                    "Your changes will be lost if you don't save them."
+                )
+                dlg.add_button("Continue editing", gtk.RESPONSE_CANCEL).set_image(
+                    gtk.image_new_from_stock(gtk.STOCK_GO_BACK, gtk.ICON_SIZE_BUTTON)
+                )
+                dlg.add_button("Close without save", gtk.RESPONSE_CLOSE).set_image(
+                    gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_BUTTON)
+                )
+                dlg.set_title("Close without save?")
                 res = dlg.run()
                 dlg.destroy()
-                if res == gtk.RESPONSE_NO:
+                if res == gtk.RESPONSE_CANCEL:
                     return True
 
             gtk.main_quit()
