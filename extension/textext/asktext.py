@@ -505,7 +505,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     ('ViewMenu', None, '_View'),
                     ('SettingsMenu', None, '_Settings'),
                     ('NewNodeContent', None, '_New Node Content'),
-                    ('CloseShortcut', None, '_Close TexText Shortcut'),
+                    ('CloseShortcut', None, 'Close TexText _Shortcut'),
                     ('TabsWidth', None, '_Tabs Width'),
                 ]
             else:
@@ -551,17 +551,17 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._new_node_content_actions = [
                 #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
-                ('NewNodeContentEmpty', None, 'Empty', None, 'New node will be initialized with empty content', 0),
-                ('NewNodeContentInlineMath', None, 'Inline math', None, 'New node will be initialized with $ $', 1),
-                ('NewNodeContentDisplayMath', None, 'Display math', None, 'New node will be initialized with $$ $$', 2)
+                ('NewNodeContentEmpty', None, '_Empty', None, 'New node will be initialized with empty content', 0),
+                ('NewNodeContentInlineMath', None, '_Inline math', None, 'New node will be initialized with $ $', 1),
+                ('NewNodeContentDisplayMath', None, '_Display math', None, 'New node will be initialized with $$ $$', 2)
             ]
             new_node_content = "\n".join(
                 ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._new_node_content_actions])
 
             self._close_shortcut_actions = [
-                ('CloseShortcutEscape', None, 'ESC', None, 'TexText window closes when pressing ESC', 0),
-                ('CloseShortcutCtrlQ', None, 'CTRL + Q', None, 'TexText window closes when pressing CTRL + Q', 1),
-                ('CloseShortcutNone', None, 'None', None, 'No shortcut for closing TexText window', 2)
+                ('CloseShortcutEscape', None, '_ESC', None, 'TexText window closes when pressing ESC', 0),
+                ('CloseShortcutCtrlQ', None, 'CTRL + _Q', None, 'TexText window closes when pressing CTRL + Q', 1),
+                ('CloseShortcutNone', None, '_None', None, 'No shortcut for closing TexText window', 2)
             ]
             close_shortcut = "\n".join(
                 ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._close_shortcut_actions])
