@@ -700,7 +700,7 @@ try:
 
             with logger.debug("Converting .pdf to .svg"):
 
-                pstoeditOpts = '-dt -ssp -psarg -r9600x9600 -pta'.split()
+                pstoeditOpts = '-dt -ssp -pta'.split()
 
                 # Exec pstoedit: pdf -> svg
                 result = ""

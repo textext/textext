@@ -196,7 +196,10 @@ class AskText(object):
     DEFAULT_INSERTSPACES = True
     DEFAULT_TABWIDTH = 4
     DEFAULT_NEW_NODE_CONTENT = "Empty"
+    DEFAULT_CLOSE_SHORTCUT = "Escape"
+    DEFAULT_CONFIRM_CLOSE = True
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
+    CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, tex_commands, gui_config):
@@ -240,7 +243,7 @@ class AskText(object):
     @staticmethod
     def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
-        raise SystemExit(1)
+        pass
 
     def cb_ok(self, widget=None, data=None):
         """Callback for OK / Save button"""
@@ -272,6 +275,11 @@ if TOOLKIT == TK:
                                             current_alignment, current_texcmd, tex_commands, gui_config)
             self._frame = None
             self._scale = None
+
+        @staticmethod
+        def cb_cancel(widget=None, data=None):
+            """Callback for Cancel button"""
+            raise SystemExit(1)
 
         @staticmethod
         def validate_spinbox_input(d, i, P, s, S, v, V, W):
@@ -497,6 +505,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     ('ViewMenu', None, '_View'),
                     ('SettingsMenu', None, '_Settings'),
                     ('NewNodeContent', None, '_New Node Content'),
+                    ('CloseShortcut', None, 'Close TexText _Shortcut'),
                     ('TabsWidth', None, '_Tabs Width'),
                 ]
             else:
@@ -504,7 +513,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     ('FileMenu', None, '_File'),
                     ('ViewMenu', None, '_View'),
                     ('SettingsMenu', None, '_Settings'),
-                    ('NewNodeContent', None, '_New Node Content')
+                    ('NewNodeContent', None, '_New Node Content'),
+                    ('CloseShortcut', None, '_Close TexText Shortcut'),
                 ]
 
             self._toggle_actions = [
@@ -519,6 +529,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._word_wrap_action = [
                 ('WordWrap', None, '_Word Wrap', None,
                  'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
+            ]
+
+            self._confirm_close_action = [
+                ('ConfirmClose', None, '_Confirm Closing of Window', None,
+                 'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb)
             ]
 
             self._radio_actions = [
@@ -536,12 +551,20 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._new_node_content_actions = [
                 #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
-                ('NewNodeContentEmpty', None, 'Empty', None, 'New node will be initialized with empty content', 0),
-                ('NewNodeContentInlineMath', None, 'Inline math', None, 'New node will be initialized with $ $', 1),
-                ('NewNodeContentDisplayMath', None, 'Display math', None, 'New node will be initialized with $$ $$', 2)
+                ('NewNodeContentEmpty', None, '_Empty', None, 'New node will be initialized with empty content', 0),
+                ('NewNodeContentInlineMath', None, '_Inline math', None, 'New node will be initialized with $ $', 1),
+                ('NewNodeContentDisplayMath', None, '_Display math', None, 'New node will be initialized with $$ $$', 2)
             ]
             new_node_content = "\n".join(
                 ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._new_node_content_actions])
+
+            self._close_shortcut_actions = [
+                ('CloseShortcutEscape', None, '_ESC', None, 'TexText window closes when pressing ESC', 0),
+                ('CloseShortcutCtrlQ', None, 'CTRL + _Q', None, 'TexText window closes when pressing CTRL + Q', 1),
+                ('CloseShortcutNone', None, '_None', None, 'No shortcut for closing TexText window', 2)
+            ]
+            close_shortcut = "\n".join(
+                ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._close_shortcut_actions])
 
             self._view_ui_description = """
             <ui>
@@ -557,11 +580,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                   <menu action='NewNodeContent'>
                     {new_node_content}
                   </menu>
+                  <menu action='CloseShortcut'>
+                    {close_shortcut} 
+                  </menu>
+                  <menuitem action='ConfirmClose'/>
                 </menu>
               </menubar>
             </ui>
             """.format(additions=gtksourceview_ui_additions,
-                       new_node_content=new_node_content)
+                       new_node_content=new_node_content, close_shortcut=close_shortcut)
 
         @staticmethod
         def open_file_cb(_, text_buffer):
@@ -677,6 +704,12 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         def new_node_content_cb(self, action, previous_value, sourceview):
             self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
 
+        def close_shortcut_cb(self, action, previous_value, sourceview):
+            self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
+
+        def confirm_close_toggled_cb(self, action, sourceview):
+            self._gui_config["confirm_close"] = action.get_active()
+
         def cb_key_press(self, widget, event, data=None):
             """
             Handle keyboard shortcuts
@@ -689,10 +722,14 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._ok_button.clicked()
                 return True
 
-            # escape cancels the dialog
-            if gtk.gdk.keyval_name(event.keyval) == 'Escape':
-                self._cancel_button.clicked()
-                return True
+            # Cancel dialog via shortcut if set by the user
+            close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
+            if close_shortcut_value is not 'None':
+                if (close_shortcut_value == 'Escape' and gtk.gdk.keyval_name(event.keyval) == 'Escape') or \
+                   (close_shortcut_value == 'CtrlQ' and gtk.gdk.keyval_name(event.keyval) == 'q' and
+                    gtk.gdk.CONTROL_MASK and event.state):
+                    self._cancel_button.clicked()
+                    return True
 
             return False
 
@@ -726,13 +763,37 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             gtk.main_quit()
             return False
 
+        def cb_cancel(self, widget=None, data=None):
+            """Callback for Cancel button"""
+            self.window_deleted_cb(widget, None, None)
+
         def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
             self.update_position_label(text_buffer, view)
 
-        @staticmethod
-        def window_deleted_cb(widget, event, view):
+        def window_deleted_cb(self, widget, event, view):
+            if (self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
+                    and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+                                                     self._source_buffer.get_end_iter()) != self.text):
+                dlg = gtk.MessageDialog(self._window, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_NONE)
+                dlg.set_markup(
+                    "<b>Do you want to close TexText without save?</b>"
+                    "Your changes will be lost if you don't save them."
+                )
+                dlg.add_button("Continue editing", gtk.RESPONSE_CANCEL).set_image(
+                    gtk.image_new_from_stock(gtk.STOCK_GO_BACK, gtk.ICON_SIZE_BUTTON)
+                )
+                dlg.add_button("Close without save", gtk.RESPONSE_CLOSE).set_image(
+                    gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_BUTTON)
+                )
+                dlg.set_title("Close without save?")
+                res = dlg.run()
+                dlg.destroy()
+                if res == gtk.RESPONSE_CANCEL:
+                    return True
+
             gtk.main_quit()
-            return True
+            return False
+
 
         def update_preview(self, widget):
             """Update the preview image of the GUI using the callback it gave """
@@ -1052,6 +1113,8 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             action_group.add_actions(self._view_actions, source_view)
             action_group.add_actions(self.buffer_actions, text_buffer)
             action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
+            action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
+            action_group.add_toggle_actions(self._confirm_close_action, source_view)
             action_group.add_toggle_actions(self._word_wrap_action, source_view)
             if TOOLKIT == GTKSOURCEVIEW:
                 action_group.add_toggle_actions(self._toggle_actions, source_view)
@@ -1121,6 +1184,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             new_node_content_value = self._gui_config.get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
             action = action_group.get_action('NewNodeContent{}'.format(new_node_content_value))
             action.set_active(True)
+            close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
+            action = action_group.get_action('CloseShortcut{}'.format(close_shortcut_value))
+            action.set_active(True)
+            action = action_group.get_action('ConfirmClose')
+            action.set_active(self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
             if TOOLKIT == GTKSOURCEVIEW:
                 action = action_group.get_action('ShowNumbers')
                 action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
@@ -1134,11 +1202,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             if self.text=="":
                 if new_node_content_value=='InlineMath':
-                    self._source_buffer.set_text("$$")
+                    self.text="$$"
+                    self._source_buffer.set_text(self.text)
                     iter = self._source_buffer.get_iter_at_offset(1)
                     self._source_buffer.place_cursor(iter)
                 if new_node_content_value=='DisplayMath':
-                    self._source_buffer.set_text("$$$$")
+                    self.text = "$$$$"
+                    self._source_buffer.set_text(self.text)
                     iter = self._source_buffer.get_iter_at_offset(2)
                     self._source_buffer.place_cursor(iter)
 

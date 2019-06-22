@@ -149,3 +149,50 @@ view of ``stderr`` (see :ref:`trouble_latex`) shows an entry like
 the most likely reason is that MiKTeX tries to install a package on the fly and fails to
 do so. Manually compile your code as described in :ref:`trouble_manual_compile`. Then
 you will see what goes wrong so you can fix it. See also the warning in :ref:`windows-install-latex`.
+
+.. _faq-set-inskscape-python-interpreter-to-python2:
+
+Set Inkscape python interpreter to Python2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Inkscape by default uses ``python`` executable to run python extension. On recent systems ``python`` defaults to be ``python3``.
+To run |TexText| you need to change inkscape `python-interpreter` to ``python2``:
+
+..
+    The steps are taken from
+    http://wiki.inkscape.org/wiki/index.php/Extension_Interpreters#Selecting_a_specific_interpreter_version_.28via_preferences_file.29
+
+
+1. Quit all running Inkscape processes
+
+2. Open your ``perferences.xml`` file with a text editor (usually ``~/.config/inkscape/preferences.xml``)
+
+   .. note::
+
+        Find the exact location of preference file by going to :kbd:`Edit|Preferences|System|User Preferences`
+
+3. Search the group which holds settings for the extension system itself and options of various extensions:
+
+   .. code-block:: xml
+
+      <group
+         id="extensions"
+         …
+         org.ekips.filter.gears.teeth="24"
+         org.ekips.filter.gears.pitch="20"
+         org.ekips.filter.gears.angle="20" />
+
+4. Insert a key for the interpreter, for example ``python-interpreter`` for setting the program that should be used to
+   run python extensions, and set the string to the absolute path to the python binary which is compatible with Inkscape's
+   current extension scripts (in the example below, the path is ``/usr/bin/python2.7``, you can determine it in a
+   terminal via the command ``which python2.7`` or ``which python2``):
+
+    .. code-block:: xml
+
+       <group
+          id="extensions"
+          python-interpreter="/usr/bin/python2.7"
+          …
+          org.ekips.filter.gears.teeth="24"
+          org.ekips.filter.gears.pitch="20"
+          org.ekips.filter.gears.angle="20" />
