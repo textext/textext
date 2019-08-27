@@ -773,15 +773,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     "<b>Do you want to close TexText without save?</b>\n\n"
                     "Your changes will be lost if you don't save them."
                 )
-                dlg.add_button("Continue editing", Gtk.ResponseType.CANCEL) \
+                dlg.add_button("Continue editing", Gtk.ResponseType.CLOSE) \
                     .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_GO_BACK, Gtk.IconSize.BUTTON))
-                dlg.add_button("Close without save", Gtk.ResponseType.CLOSE) \
+                dlg.add_button("Close without save", Gtk.ResponseType.YES) \
                     .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.BUTTON))
 
                 dlg.set_title("Close without save?")
                 res = dlg.run()
                 dlg.destroy()
-                if res == Gtk.ResponseType.CANCEL:
+                if res in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.DELETE_EVENT):
                     return True
 
             Gtk.main_quit()
