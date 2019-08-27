@@ -88,10 +88,20 @@ Install a pdf->svg converter
 
 Again you have two options: ``pdf2svg`` or ``pstoedit + ghostscript`` (recommended):
 
+.. _windows-install-pdf2svg:
+
+Install pdf2svg (recommended)
+-----------------------------
+
+.. _pdf2svg-installer-64bit: https://github.com/textext/pdf2svg/releases/download/v0.2.3/Install-pdf2svg-0.2.3-64bit.exe
+.. _pdf2svg-installer-32bit: https://github.com/textext/pdf2svg/releases/download/v0.2.3/Install-pdf2svg-0.2.3-32bit.exe
+
+Download and install the ``pdf2svg`` package from https://github.com/textext/pdf2svg/releases (`32-bit <pdf2svg-installer-32bit_>`_, `64-bit <pdf2svg-installer-64bit_>`_)
+
 .. _windows-install-pstoedit:
 
-Install pstoedit (recommended)
-------------------------------
+Install pstoedit (not recommended)
+----------------------------------
 
 .. _pstoedit-installer-64bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_x64.exe
 .. _pstoedit-installer-32bit: https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_win32.exe
@@ -99,15 +109,15 @@ Install pstoedit (recommended)
 .. _gs-installer-32bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw32.exe
 .. _gs-installer-64bit: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw64.exe
 
-1. Download and install ``pstoedit-3.73`` (`32-bit <pstoedit-installer-32bit_>`_, `64-bit <pstoedit-installer-64bit_>`_)
-2. Download and install ``ghostcript-9.26``  (`32-bit <gs-installer-32bit_>`_, `64-bit <gs-installer-64bit_>`_)
+1. Download and install ``pstoedit`` version **3.73** (`32-bit <pstoedit-installer-32bit_>`_, `64-bit <pstoedit-installer-64bit_>`_)
+2. Download and install ``ghostscript`` version **9.26**  (`32-bit <gs-installer-32bit_>`_, `64-bit <gs-installer-64bit_>`_)
 
-.. _windows-install-pdf2svg:
+.. warning::
 
-Install pdf2svg
----------------
-
-Install the ``pdf2svg`` package from https://github.com/textext/pdf2svg/releases
+    The most recent versions of ghostscript (9.27) and pstoedit (3.74) are NOT
+    compatible with |TexText|. They do not work at all or produce false results.
+    This is an error between both packages and cannot be handled by |TexText|,
+    see issue :issue_num:`126`.
 
 .. _windows-install-latex:
 
