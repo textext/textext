@@ -35,6 +35,7 @@ TOOLKIT = None
 import os
 import warnings
 from errors import TexTextCommandFailed, TexTextConversionError
+from textext.utility import SuppressStream
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -1151,11 +1152,13 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
         def ask(self, callback, preview_callback=None):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", module="asktext")
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
                 self.callback = callback
                 self._preview_callback = preview_callback
 
                 # create first window
-                window = self.create_window()
+                with SuppressStream():  # suppress GTK Warings printed directly to stderr in C++
+                    window = self.create_window()
                 window.set_default_size(500, 500)
                 # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
                 # bad hide/show/hide hack, see issue #114

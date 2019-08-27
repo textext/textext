@@ -1,4 +1,3 @@
-
 import contextlib
 import json
 import logging.handlers
@@ -10,6 +9,7 @@ import subprocess
 import tempfile
 
 from errors import *
+import sys
 
 
 class ChangeDirectory(object):
@@ -182,6 +182,29 @@ class Cache(Settings):
             super(Cache, self).__init__(basename)
         except TexTextFatalError:
             pass
+
+
+class SuppressStream(object):
+    """
+    "Suppress stream output" context manager
+
+    Effectively redirects output to /dev/null by switching fileno
+    """
+
+    def __init__(self, stream=sys.stderr):
+        self.orig_stream_fileno = stream.fileno()
+
+    def __enter__(self):
+        self.orig_stream_dup = os.dup(self.orig_stream_fileno)
+        self.devnull = open(os.devnull, 'w')
+        os.dup2(self.devnull.fileno(), self.orig_stream_fileno)
+
+    def __exit__(self, type, value, traceback):
+        os.close(self.orig_stream_fileno)
+        os.dup2(self.orig_stream_dup, self.orig_stream_fileno)
+        os.close(self.orig_stream_dup)
+        self.devnull.close()
+
 
 def exec_command(cmd, ok_return_value=0):
     """
