@@ -371,7 +371,7 @@ try:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
-            from inkex.transforms import Transform, TranslateTransform
+            from inkex.transforms import Transform
 
             tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
@@ -424,8 +424,8 @@ try:
                         height = self.svg.unittouu(self.get_document_height())
 
                         x, y, w, h = tt_node.bounding_box()
-                        tt_node.transform = Transform(tt_node.transform) * TranslateTransform(-x + width / 2 - w / 2,
-                                                                                              -y + height / 2 - h / 2)
+                        tt_node.transform = Transform(tt_node.transform) * Transform(translate=(-x + width / 2 - w / 2,
+                                                                                              -y + height / 2 - h / 2))
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
                         self.svg.get_current_layer().add(tt_node)
@@ -650,7 +650,7 @@ try:
 
         @staticmethod
         def _expand_defs(root):
-            from inkex.transforms import TranslateTransform, Transform
+            from inkex.transforms import Transform
             from inkex.elements import ShapeElement
             from copy import deepcopy
             for el in root:
@@ -663,7 +663,7 @@ try:
                         group.append(deepcopy(obj))
 
                     # translate group
-                    group.transform = TranslateTransform(float(el.attrib["x"]), float(el.attrib["y"]))
+                    group.transform = Transform(translate=(float(el.attrib["x"]), float(el.attrib["y"])))
 
                     # replace use node with group node
                     parent = el.getparent()
@@ -684,7 +684,7 @@ try:
 
         def set_meta(self, key, value):
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            self.set(ns_key, value.encode(escape_method).decode('utf-8'))
+            self.set(ns_key, str(value).encode(escape_method).decode('utf-8'))
             assert self.get_meta(key) == value, (self.get_meta(key), value)
 
         def get_meta(self, key, default=None):
@@ -708,7 +708,7 @@ try:
             :param (str) alignment: A 2-element string list defining the alignment
             :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
             """
-            from inkex.transforms import Transform, TranslateTransform
+            from inkex.transforms import Transform
             scale_transform = Transform("scale(%f)" % relative_scale)
 
             old_transform = Transform(ref_node.transform)
@@ -736,7 +736,7 @@ try:
             dx = p_old[0] - p_new[0]
             dy = p_old[1] - p_new[1]
 
-            composition = TranslateTransform(dx, dy) * composition
+            composition = Transform(translate=(dx, dy)) * composition
 
             self.transform = composition
             self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))
