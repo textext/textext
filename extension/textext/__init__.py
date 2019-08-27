@@ -57,7 +57,8 @@ from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, Ne
     exec_command
 from errors import *
 
-__version__ = open(os.path.join(os.path.dirname(__file__), "VERSION")).readline().strip()
+with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
+    __version__ = version_file.readline().strip()
 __docformat__ = "restructuredtext en"
 
 if sys.version[0] == '3':
