@@ -1,13 +1,12 @@
 <inkscape-extension>
   <_name>Tex Text</_name>
   <id>org.ekips.filter.textext</id>
-  <dependency type="executable" location="extensions">inkex.py</dependency>
   <dependency type="executable" location="extensions">textext/__init__.py</dependency>
   <dependency type="executable" location="extensions">textext/asktext.py</dependency>
   <dependency type="executable" location="extensions">textext/typesetter.py</dependency>
   <dependency type="executable" location="extensions">textext/latexlogparser.py</dependency>
   <dependency type="executable" location="extensions">textext/win_app_paths.py</dependency>
-  <effect>
+  <effect implements-custom-gui="true">
     <object-type>all</object-type>
   </effect>
   <script>

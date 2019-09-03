@@ -40,6 +40,7 @@ Florent Becker and Vladislav Gavryusev for contributions.
 .. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
+from __future__ import print_function
 import abc
 import copy
 import hashlib
@@ -52,11 +53,19 @@ import sys
 import traceback
 
 from requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
-from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, exec_command
+from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
+    exec_command
 from errors import *
 
-__version__ = open(os.path.join(os.path.dirname(__file__), "VERSION")).readline().strip()
+with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
+    __version__ = version_file.readline().strip()
 __docformat__ = "restructuredtext en"
+
+if sys.version[0] == '3':
+    unicode = str
+    escape_method = 'unicode_escape'
+else:
+    escape_method = 'string-escape'
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
@@ -66,7 +75,6 @@ LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
-
 
 # There are two channels `file_log_channel` and `user_log_channel`
 # `file_log_channel` dumps detailed log to a file
@@ -82,7 +90,7 @@ log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s   
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
-                                                        backupCount=2         # up to two log files
+                                                        backupCount=2  # up to two log files
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
@@ -97,13 +105,8 @@ __logger.addHandler(user_log_channel)
 
 try:
 
-    version_is_good = (2, 7) <= sys.version_info < (3, 0)
-    if not version_is_good:
-        raise TexTextFatalError("Python 2.7 is required, but found %s" % sys.version.split("\n")[0])
-
     import inkex
-    import simplestyle as ss
-    import simpletransform as st
+    import inkex.elements
     from lxml import etree
 
     TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -121,11 +124,12 @@ try:
     # Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
     from typesetter import Typesetter
 
-    #------------------------------------------------------------------------------
-    # Inkscape plugin functionality
-    #------------------------------------------------------------------------------
 
-    class TexText(inkex.Effect):
+    # ------------------------------------------------------------------------------
+    # Inkscape plugin functionality
+    # ------------------------------------------------------------------------------
+
+    class TexText(inkex.EffectExtension):
 
         DEFAULT_ALIGNMENT = "middle center"
         DEFAULT_TEXCMD = "pdflatex"
@@ -148,9 +152,10 @@ try:
                 logging.disable(logging.DEBUG)
 
             logger.debug("TexText initialized")
-            logger.debug("TexText version = %s (md5sum = %s)" %
-                         (repr(__version__), hashlib.md5(open(__file__).read()).hexdigest())
-                         )
+            with open(__file__) as fhl:
+                logger.debug("TexText version = %s (md5sum = %s)" %
+                             (repr(__version__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                             )
             logger.debug("platform.system() = %s" % repr(platform.system()))
             logger.debug("platform.release() = %s" % repr(platform.release()))
             logger.debug("platform.version() = %s" % repr(platform.version()))
@@ -170,20 +175,23 @@ try:
                                         "Please follow instructions "
                                         "https://textext.github.io/textext/")
 
-            inkex.Effect.__init__(self)
+            super(TexText, self).__init__()
 
-            self.OptionParser.add_option(
-                "-t", "--text", action="store", type="string",
-                dest="text",
+            self.arg_parser.add_argument(
+                "--text",
+                type=str,
                 default=None)
-            self.OptionParser.add_option(
-                "-p", "--preamble-file", action="store", type="string",
-                dest="preamble_file",
+
+            self.arg_parser.add_argument(
+                "--preamble-file",
+                type=str,
                 default=self.config.get('preamble', "default_packages.tex"))
-            self.OptionParser.add_option(
-                "-s", "--scale-factor", action="store", type="float",
-                dest="scale_factor",
-                default=self.config.get('scale', 1.0))
+
+            self.arg_parser.add_argument(
+                "--scale-factor",
+                type=float,
+                default=self.config.get('scale', 1.0)
+            )
 
         # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
         # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
@@ -211,72 +219,19 @@ try:
                 else:
                     return '0'
 
-        def unit_to_uu(self, unit):
-            """ Wrapper for unittouu() accounting for different implementation in Inkscape versions"""
-            try:
-                # Inkscape > 0.48
-                return self.unittouu(unit)
-            except AttributeError:
-                # Inkscape <= 0.48
-                return inkex.unittouu(unit)
-
-        def uu_to_unit(self, val, unit):
-            """ Wrapper for uutounit() accounting for different implementation in Inkscape versions"""
-            try:
-                # Inkscape > 0.48
-                return self.uutounit(val, unit)
-            except AttributeError:
-                # Inkscape <= 0.48
-                return inkex.uutounit(val, unit)
-
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
             from asktext import AskerFactory
 
-            global CONVERTERS
+
             with logger.debug("TexText.effect"):
-
-                # Pick a converter
-                converter_errors = []
-
-                tex_to_pdf_converter = None
-                for converter_class_name, converter_class in CONVERTERS.items():
-                    if converter_class_name in self.requirements_checker.available_pdf_to_svg_converters:
-                        tex_to_pdf_converter = converter_class(self.requirements_checker)
-                        logger.debug("%s is usable" % converter_class.__name__)
-                        break
-                    else:
-                        logger.debug("%s is not usable" % converter_class.__name__)
 
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
-                if text:
-                    logger.debug("Old node text = %s" % repr(text))
-                    logger.debug("Old node scale = %s" % repr(current_scale))
-
-
-                # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
-                # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
-                # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
-                if (old_svg_ele is not None) and (not old_svg_ele.is_attrib("version", TEXTEXT_NS)):
-                    logger.debug("Adjust scale factor for node created with TexText<=0.7")
-                    current_scale *= self.uu_to_unit(1, "pt")
-
-                if old_svg_ele is not None and old_svg_ele.is_attrib("jacobian_sqrt", TEXTEXT_NS):
-                    logger.debug("Adjust scale factor to account transformations in inkscape")
-                    current_scale *= old_svg_ele.get_jacobian_sqrt()/float(old_svg_ele.get_attrib("jacobian_sqrt", TEXTEXT_NS))
-                else:
-                    logger.debug("Can't adjust scale to account node transformations done in inkscape. "
-                                   "May result in loss of scale.")
+                # print(old_svg_ele)
 
                 alignment = TexText.DEFAULT_ALIGNMENT
-
-                if old_svg_ele is not None and old_svg_ele.is_attrib("alignment", TEXTEXT_NS):
-                    alignment = old_svg_ele.get_attrib("alignment", TEXTEXT_NS)
-                    logger.debug("Old node alignment `%s`" % alignment)
-                else:
-                    logger.debug("Using default node alignment `%s`" %alignment)
 
                 preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
 
@@ -285,10 +240,28 @@ try:
                 else:
                     current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
 
-                if old_svg_ele is not None and old_svg_ele.is_attrib("texconverter", TEXTEXT_NS):
-                    current_tex_command = old_svg_ele.get_attrib("texconverter", TEXTEXT_NS)
-                else:
-                    logger.debug("Using default tex converter `%s` " % current_tex_command)
+                if text:
+                    logger.debug("Old node text = %s" % repr(text))
+                    logger.debug("Old node scale = %s" % repr(current_scale))
+
+                # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
+                # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
+                # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
+                if old_svg_ele is not None:
+
+                    if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
+                        logger.debug("Adjust scale factor for node created with TexText<=0.7")
+                        current_scale *= self.svg.uutounit(1, "pt")
+
+                    jac_sqrt = float(old_svg_ele.get_meta("jacobian_sqrt", 1.0))
+
+                    if jac_sqrt != 1.0:
+                        logger.debug("Adjust scale factor to account transformations in inkscape")
+                        current_scale *= old_svg_ele.get_jacobian_sqrt() / jac_sqrt
+
+                    alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
+
+                    current_tex_command = old_svg_ele.get_meta("texconverter", current_tex_command)
 
                 gui_config = self.config.get("gui", {})
 
@@ -305,7 +278,8 @@ try:
                         # the file in the default path. If this fails, too, fallback to the default.
                         if not os.path.exists(preamble_file):
                             logger.debug("Preamble file is NOT found by absolute path")
-                            preamble_file = os.path.join(os.path.dirname(self.options.preamble_file), os.path.basename(preamble_file))
+                            preamble_file = os.path.join(os.path.dirname(self.options.preamble_file),
+                                                         os.path.basename(preamble_file))
                             if not os.path.exists(preamble_file):
                                 logger.debug("Preamble file is NOT found along with default preamble file")
                                 preamble_file = self.options.preamble_file
@@ -325,15 +299,15 @@ try:
                                                  gui_config=gui_config)
 
                     def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                                 tex_cmd=TexText.DEFAULT_TEXCMD):
-                        return self.do_convert(_text, _preamble, _scale, tex_to_pdf_converter, old_svg_ele, alignment,
+                                      tex_cmd=TexText.DEFAULT_TEXCMD):
+                        return self.do_convert(_text, _preamble, _scale, old_svg_ele,
+                                               alignment,
                                                tex_command=tex_cmd,
                                                original_scale=current_scale)
 
                     def preview_callback(_text, _preamble, _preview_callback, _tex_command):
                         return self.preview_convert(_text,
                                                     _preamble,
-                                                    tex_to_pdf_converter,
                                                     _preview_callback,
                                                     _tex_command)
 
@@ -344,26 +318,23 @@ try:
                         self.config["gui"] = gui_config
                         self.config.save()
 
-
                 else:
                     # ToDo: I think this is completely broken...
                     self.do_convert(self.options.text,
                                     self.options.preamble_file,
                                     self.options.scale_factor,
-                                    tex_to_pdf_converter,
                                     old_svg_ele,
                                     self.DEFAULT_ALIGNMENT,
                                     self.DEFAULT_TEXCMD,
                                     original_scale=current_scale
                                     )
 
-        def preview_convert(self, text, preamble_file, converter, image_setter, tex_command):
+        def preview_convert(self, text, preamble_file, image_setter, tex_command):
             """
             Generates a preview PNG of the LaTeX output using the selected converter.
 
             :param text:
             :param preamble_file:
-            :param converter:
             :param image_setter: A callback to execute with the file path of the generated PNG
             :param tex_command: Command for tex -> pdf
             """
@@ -372,40 +343,24 @@ try:
 
             with logger.debug("TexText.preview"):
                 with logger.debug("args:"):
-                    for k,v in locals().items():
+                    for k, v in locals().items():
                         logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
                     logger.debug("no text, return")
                     return
 
-                if isinstance(text, unicode):
-                    text = text.encode('utf-8')
+                if isinstance(text, bytes):
+                    text = text.decode('utf-8')
 
                 with ChangeToTemporaryDirectory():
                     with logger.debug("Converting tex to pdf"):
+                        converter = TexToPdfConverter(self.requirements_checker)
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
-                        converter.pdf_to_svg()
-
-                        if converter.get_pdf_converter_name() == "pdf2svg":
-                            export_area_arguments = ['--export-area-drawing']
-                        else:
-                            export_area_arguments = ['--export-id','content','--export-id-only']
-
-                        # convert resulting svg to png using Inkscape
-                        options = ['-f', converter.tmp("svg"),
-                                   '--export-png', converter.tmp('png'),
-                                   ] + export_area_arguments + [
-                                      '--export-dpi=200'
-                                  ]
-                        executable = self.requirements_checker.inkscape_executable
-
-                        exec_command([executable] + options)
-
+                        converter.pdf_to_png()
                         image_setter(converter.tmp('png'))
 
-
-        def do_convert(self, text, preamble_file, user_scale_factor, converter, old_svg_ele, alignment, tex_command,
+        def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
                        original_scale=None):
             """
             Does the conversion using the selected converter.
@@ -413,72 +368,79 @@ try:
             :param text:
             :param preamble_file:
             :param user_scale_factor:
-            :param converter_class:
             :param old_svg_ele:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
+            from inkex.transforms import Transform
 
             tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
             with logger.debug("TexText.do_convert"):
                 with logger.debug("args:"):
-                    for k,v in locals().items():
+                    for k, v in locals().items():
                         logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
                     logger.debug("no text, return")
                     return
 
-                if isinstance(text, unicode):
-                    text = text.encode('utf-8')
+                if isinstance(text, bytes):
+                    text = text.decode('utf-8')
 
                 # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
                 # even if the document user units are not in pt
-                scale_factor = user_scale_factor * self.unit_to_uu("1pt")
+                scale_factor = user_scale_factor * self.svg.unittouu("1pt")
 
                 # Convert
                 with logger.debug("Converting tex to svg"):
-                    new_svg_ele = converter.convert(text, preamble_file, scale_factor, tex_executable)
+                    with ChangeToTemporaryDirectory():
+                        converter = TexToPdfConverter(self.requirements_checker)
+                        converter.tex_to_pdf(tex_executable, text, preamble_file)
+                        converter.pdf_to_svg()
+                        tt_node = TexTextElement(converter.tmp("svg"))
 
                 # -- Store textext attributes
-                new_svg_ele.set_attrib("version", __version__, TEXTEXT_NS)
-                new_svg_ele.set_attrib("texconverter", tex_command, TEXTEXT_NS)
-                new_svg_ele.set_attrib("pdfconverter", converter.get_pdf_converter_name(), TEXTEXT_NS)
-                new_svg_ele.set_attrib("text", text, TEXTEXT_NS)
-                new_svg_ele.set_attrib("preamble", preamble_file, TEXTEXT_NS)
-                new_svg_ele.set_attrib("scale", str(user_scale_factor), TEXTEXT_NS)
-                new_svg_ele.set_attrib("alignment", str(alignment), TEXTEXT_NS)
+                tt_node.set_meta("version", __version__)
+                tt_node.set_meta("texconverter", tex_command)
+                tt_node.set_meta("pdfconverter", 'inkscape')
+                tt_node.set_meta("text", text)
+                tt_node.set_meta("preamble", preamble_file)
+                tt_node.set_meta("scale", str(user_scale_factor))
+                tt_node.set_meta("alignment", str(alignment))
 
-                if SvgElement.is_node_attrib(self.document.getroot(), 'version', inkex.NSS["inkscape"]):
-                    new_svg_ele.set_attrib("inkscapeversion", SvgElement.get_node_attrib(self.document.getroot(), 'version',
-                                                                                      inkex.NSS["inkscape"]).split(' ')[0])
+                try:
+                    inkscape_version = self.svg.getroot().get('version')
+                    tt_node.set("inkscapeversion", inkscape_version.split(' ')[0])
+                except AttributeError as ignored:
                     # Unfortunately when this node comes from an Inkscape document that has never been saved before
                     # no version attribute is provided by Inkscape :-(
+                    pass
 
                 # -- Copy style
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
                         root = self.document.getroot()
-                        width = self.unit_to_uu(self.get_document_width())
-                        height = self.unit_to_uu(self.get_document_height())
+                        width = self.svg.unittouu(self.get_document_width())
+                        height = self.svg.unittouu(self.get_document_height())
 
-                        x, y, w, h = new_svg_ele.get_frame()
-                        new_svg_ele.translate(-x + width/2 -w/2, -y+height/2 -h/2)
-                        new_svg_ele.set_attrib('jacobian_sqrt', str(new_svg_ele.get_jacobian_sqrt()), TEXTEXT_NS)
+                        x, y, w, h = tt_node.bounding_box()
+                        tt_node.transform = Transform(tt_node.transform) * Transform(translate=(-x + width / 2 - w / 2,
+                                                                                              -y + height / 2 - h / 2))
+                        tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
-                        self.current_layer.append(new_svg_ele.get_xml_raw_node())
+                        self.svg.get_current_layer().add(tt_node)
                 else:
                     with logger.debug("Replacing node in document"):
                         relative_scale = user_scale_factor / original_scale
-                        new_svg_ele.align_to_node(old_svg_ele, alignment, relative_scale)
+                        tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
 
                         # If no non-black color has been explicitily set by TeX we copy the color information from the old node
                         # so that coloring done in Inkscape is preserved.
-                        if not new_svg_ele.is_colorized():
-                            new_svg_ele.import_group_color_style(old_svg_ele)
+                        if not tt_node.is_colorized():
+                            tt_node.import_group_color_style(old_svg_ele)
 
-                        self.replace_node(old_svg_ele.get_xml_raw_node(), new_svg_ele.get_xml_raw_node())
+                        self.replace_node(old_svg_ele, tt_node)
 
                 with logger.debug("Saving global settings"):
                     # -- Save settings
@@ -501,35 +463,27 @@ try:
             TexText-generated objects.
 
             :return: (old_svg_ele, latex_text, preamble_file_name, scale)
+            :rtype: (TexTextElement, str, str, float)
             """
 
-            for i in self.options.ids:
-                node = self.selected[i]
-                # ignore, if node tag has SVG_NS Namespace
-                if node.tag != '{%s}g' % SVG_NS:
+            for node in self.svg.selected.values():
+
+                # TexText node must be a group
+                if node.tag_name != 'g':
                     continue
 
-                # otherwise, check for TEXTEXT_NS in attrib
-                if SvgElement.is_node_attrib(node, 'text', TEXTEXT_NS):
+                node.__class__ = TexTextElement
 
-                    # Check which pdf converter has been used for creating svg data
-                    if SvgElement.is_node_attrib(node, 'pdfconverter', TEXTEXT_NS):
-                        pdf_converter = SvgElement.get_node_attrib(node, 'pdfconverter', TEXTEXT_NS)
-                        if pdf_converter == "pdf2svg":
-                            svg_element = Pdf2SvgSvgElement(node)
-                        else:
-                            svg_element = PsToEditSvgElement(node)
-                    else:
-                        svg_element = PsToEditSvgElement(node)
+                try:
+                    text = node.get_meta('text')
+                    preamble = node.get_meta('preamble')
+                    scale = float(node.get_meta('scale', 1.0))
 
-                    text = svg_element.get_attrib('text', TEXTEXT_NS)
-                    preamble = svg_element.get_attrib('preamble', TEXTEXT_NS)
+                    return node, text, preamble, scale
 
-                    scale = 1.0
-                    if svg_element.is_attrib('scale', TEXTEXT_NS):
-                        scale = float(svg_element.get_attrib('scale', TEXTEXT_NS))
+                except (TypeError, AttributeError) as ignored:
+                    pass
 
-                    return svg_element, text, preamble, scale
             return None, "", "", None
 
         def replace_node(self, old_node, new_node):
@@ -546,7 +500,8 @@ try:
             # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
             return
 
-    class LatexConverterBase(object):
+
+    class TexToPdfConverter:
         """
         Base class for Latex -> SVG converters
         """
@@ -564,20 +519,7 @@ try:
 
         def __init__(self, checker):
             self.tmp_base = 'tmp'
-            self.checker = checker # type: requirements_check.TexTextRequirementsChecker
-
-        def convert(self, latex_text, preamble_file, scale_factor, tex_command):
-            """
-            Return an XML node containing latex text
-
-            :param latex_text: Latex code to use
-            :param preamble_file: Name of a preamble file to include
-            :param scale_factor: Scale factor to use if object doesn't have a ``transform`` attribute.
-            :param tex_command: The command for tex -> pdf ("pdflatex", "xelatex", "lualatex"
-
-            :return: XML DOM node
-            """
-            raise NotImplementedError
+            self.checker = checker  # type: requirements_check.TexTextRequirementsChecker
 
         # --- Internal
         def tmp(self, suffix):
@@ -624,6 +566,36 @@ try:
                 if not os.path.exists(self.tmp('pdf')):
                     raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
+        def pdf_to_svg(self):
+            """Convert the PDF file to a SVG file"""
+            exec_command([
+                self.checker.inkscape_executable,
+                "--without-gui",
+                "--pdf-poppler",
+                "--pdf-page=1",
+                "--export-type=svg",
+                "--export-text-to-path",
+                "--export-area-drawing",
+                "--export-file", self.tmp('svg'),
+                self.tmp('pdf')
+            ]
+            )
+
+        def pdf_to_png(self):
+            """Convert the PDF file to a SVG file"""
+            exec_command([
+                self.checker.inkscape_executable,
+                "--without-gui",
+                "--pdf-poppler",
+                "--pdf-page=1",
+                "--export-type=png",
+                "--export-area-drawing",
+                "--export-dpi=300",
+                "--export-file", self.tmp('png'),
+                self.tmp('pdf')
+            ]
+            )
+
         def parse_pdf_log(self, logfile):
             """
             Strip down tex output to only the warnings, errors etc. and discard all the noise
@@ -631,8 +603,8 @@ try:
             :return: string
             """
             with logger.debug("Parsing LaTeX log file"):
-                import StringIO
-                log_buffer = StringIO.StringIO()
+                from io import StringIO
+                log_buffer = StringIO()
                 log_handler = logging.StreamHandler(log_buffer)
 
                 typesetter = Typesetter(self.tmp('tex'))
@@ -652,322 +624,112 @@ try:
 
                 return log_buffer.getvalue()
 
-
-    class PdfConverterBase(LatexConverterBase):
-
-        def convert(self, latex_text, preamble_file, scale_factor, tex_command):
-            with logger.debug("Converting .tex to svg element"):
-                with ChangeToTemporaryDirectory():
-                    self.tex_to_pdf(tex_command, latex_text, preamble_file)
-                    self.pdf_to_svg()
-
-                    new_svg_ele = self.svg_to_group()
-
-                    if scale_factor is not None:
-                        new_svg_ele.set_scale_factor(scale_factor)
-
-                    return new_svg_ele
-
-        def pdf_to_svg(self):
-            """Convert the PDF file to a SVG file"""
-            raise NotImplementedError
-
-        def svg_to_group(self):
-            """
-            Convert the SVG file to an SVG group node.
-
-            :Returns: Subclass of SvgElement
-            """
-            raise NotImplementedError
+    import inkex.svg
 
 
-    class PstoeditPlotSvg(PdfConverterBase):
-        """
-        Convert PDF -> SVG using pstoedit's plot-svg backend
-        """
-        def __init__(self, checker=None):
-            super(PstoeditPlotSvg, self).__init__(checker)
+    class TexTextElement(inkex.elements.Group):
+        tag_name = "g"
 
-        @classmethod
-        def get_pdf_converter_name(cls):
-            return "pstoedit"
+        def __init__(self, svg_filename=None):
+            super(TexTextElement, self).__init__()
+            self._svg_to_textext_node(svg_filename)
 
-        def pdf_to_svg(self):
-            """
-            :raises: TexTextCommandNotFound, TexTextCommandFailed
-            """
-            # Options for pstoedit command
+        def _svg_to_textext_node(self, svg_filename):
+            from inkex.elements import ShapeElement
+            from inkex.svg import SvgDocumentElement
+            doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
 
-            with logger.debug("Converting .pdf to .svg"):
+            root = doc.getroot()
 
-                pstoeditOpts = '-dt -ssp -pta'.split()
+            TexTextElement._expand_defs(root)
 
-                # Exec pstoedit: pdf -> svg
-                result = ""
-                try:
-                    result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
-                                           '-f', 'plot-svg',
-                                           self.tmp('pdf'),
-                                           self.tmp('svg')
-                                           ]
-                                          + pstoeditOpts)
-                except TexTextCommandFailed as error:
-                    # Linux runs into this in case of DELAYBIND error
-                    result = str(error)
-                    if "DELAYBIND" in error.stdout+error.stderr:
-                        result = "%s %s" % (
-                        "The ghostscript version installed on your system is not compatible with pstoedit! "
-                        "Make sure that you have not ghostscript 9.22 installed (please upgrade or downgrade "
-                        "ghostscript).\n\n Detailed error message:\n", result)
-                    elif "-1073741515" in error.stdout+error.stderr:
-                        result = ("Call to pstoedit failed because of a STATUS_DLL_NOT_FOUND error. "
-                                  "Most likely the reason for this is a missing MSVCR100.dll, i.e. you need "
-                                  "to install the Microsoft Visual C++ 2010 Redistributable Package "
-                                  "(search for vcredist_x86.exe or vcredist_x64.exe 2010). "
-                                  "This is a problem of pstoedit, not of TexText!!")
-                    raise TexTextCommandFailed(result, error.return_code, error.stdout, error.stderr)
+            shape_elements = [el for el in root if isinstance(el, ShapeElement)]
+            root.append(self)
 
-                if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                    raise TexTextConversionError("pstoedit didn't produce output.\n%s" % (result))
-
-        def svg_to_group(self):
-            """
-            Convert the SVG file to an SVG group node.
-
-            :returns: Subclass of SvgElement
-            """
-            with logger.debug("Grouping resulting svg"):
-                tree = etree.parse(self.tmp('svg'))
-                self._fix_xml_namespace(tree.getroot())
-                try:
-                    result = PsToEditSvgElement(copy.copy(tree.getroot().xpath('g')[0]))
-                except IndexError:
-                    raise TexTextConversionError("Can't find a group in resulting svg")
-                return result
-
-        def _fix_xml_namespace(self, node):
-            svg = '{%s}' % SVG_NS
-
-            if node.tag.startswith(svg):
-                node.tag = node.tag[len(svg):]
-
-            for key in node.attrib.keys():
-                if key.startswith(svg):
-                    new_key = key[len(svg):]
-                    node.attrib[new_key] = node.attrib[key]
-                    del node.attrib[key]
-
-            for c in node:
-                self._fix_xml_namespace(c)
-
-
-    class Pdf2SvgPlotSvg(PdfConverterBase):
-        """
-        Convert PDF -> SVG using pdf2svg
-        """
-
-        def __init__(self, checker):
-            super(Pdf2SvgPlotSvg, self).__init__(checker)
-
-        @classmethod
-        def get_pdf_converter_name(self):
-            return "pdf2svg"
-
-        def pdf_to_svg(self):
-            """
-            Converts the produced pdf file into a svg file using pdf2svg. Raises RuntimeError if conversion fails.
-            """
-            with logger.debug("Converting .pdf to .svg"):
-                # Exec pdf2cvg infile.pdf outfile.svg
-                result = exec_command([self.checker.available_pdf_to_svg_converters[self.get_pdf_converter_name()],
-                                       self.tmp('pdf'), self.tmp('svg')])
-
-                if not os.path.exists(self.tmp('svg')) or os.path.getsize(self.tmp('svg')) == 0:
-                    raise TexTextConversionError("pdf2svg didn't produce output.\n%s" % result)
-
-        def svg_to_group(self):
-            """
-            Convert the SVG file to an SVG group node. pdf2svg produces a file of the following structure:
-            <svg>
-                <defs>
-                </defs>
-                <g>
-                </g>
-            </svg>
-            The groups in the last <g>-Element reference the symbols defined within the <def>-node. In this method
-            the references in the <g>-node are replaced  by the definitions from <defs> so we can return the group without
-            any <defs>.
-            """
-            with logger.debug("Groupping resulting svg"):
-                tree = etree.parse(self.tmp('svg'))
-                svg_raw = tree.getroot()
-
-                # At first we collect all defs with an id-attribute found in the svg raw tree. They are put later directly
-                # into the nodes in the <g>-Element referencing them
-                path_defs = {}
-                for def_node in svg_raw.xpath("//*[local-name() = \"defs\"]//*[@id]"):
-                    path_defs["#" + def_node.attrib["id"]] = def_node
-
-                try:
-                    # Now we pick all nodes that have a href attribute and replace the reference in them by the appropriate
-                    # path definitions from def_nodes
-                    for node in svg_raw.xpath("//*"):
-                        if ("{%s}href" % XLINK_NS) in node.attrib:
-                            # Fetch data from node
-                            node_href = node.attrib["{%s}href" % XLINK_NS]
-                            node_x = node.attrib["x"]
-                            node_y = node.attrib["y"]
-                            node_translate = "translate(%s,%s)" % (node_x, node_y)
-
-                            # remove the node
-                            parent = node.getparent()
-                            parent.remove(node)
-
-                            # Add positional data to the svg paths
-                            for svgdef in path_defs[node_href].iterchildren():
-                                svgdef.attrib["transform"] = node_translate
-
-                                # Add new node into document
-                                parent.append(copy.copy(svgdef))
-
-                    # Finally, we build the group
-                    new_group = etree.Element(inkex.addNS("g"))
-                    for node in svg_raw:
-                        if node.tag != "{%s}defs" % SVG_NS:
-                            new_group.append(node)
-
-                    # Ensure that strokes with color "none" have zero width to ensure proper colorization via Inkscape
-                    for node in new_group.getiterator(tag="{%s}path" % SVG_NS):
-                        if "style" in node.attrib:
-                            node_style_dict = ss.parseStyle(node.attrib["style"])
-                            if "stroke" in node_style_dict and node_style_dict["stroke"].lower() == "none":
-                                node_style_dict["stroke-width"] = "0"
-                                node.attrib["style"] = ss.formatStyle(node_style_dict)
-                    return Pdf2SvgSvgElement(new_group)
-                except:  # todo: <-- be more precise here
-                    raise TexTextConversionError("Can't find a group in resulting svg")
-
-
-    class SvgElement(object):
-        """ Holds SVG node data and provides several methods for working on the data """
-        __metaclass__ = abc.ABCMeta
-
-        def __init__(self, xml_element):
-            """ Instanciates an object of type SvgElement
-
-            :param xml_element: The node as an etree.Element object
-            """
-            self._node = xml_element
-
-        def get_xml_raw_node(self):
-            """ Returns the node as an etree.Element object """
-            return self._node
-
-        def is_attrib(self, attrib_name, namespace=u""):
-            """ Returns True if the attibute attrib_name (str) exists in the specified namespace, otherwise false """
-            return self.is_node_attrib(self._node, attrib_name, namespace)
-
-        def get_attrib(self, attrib_name, namespace=u""):
-            """
-            Returns the value of the attribute attrib_name (str) in the specified namespace if it exists, otherwise None
-            """
-            return self.get_node_attrib(self._node, attrib_name, namespace)
-
-        def set_attrib(self, attrib_name, attrib_value, namespace=""):
-            """ Sets the attribute attrib_name (str) to the value attrib_value (str) in the specified namespace"""
-            aname = self.build_full_attribute_name(attrib_name, namespace)
-            # ToDo: Unicode behavior?
-            self._node.attrib[aname] = str(attrib_value).encode('string-escape')
-
-        @classmethod
-        def is_node_attrib(cls, node, attrib_name, namespace=u""):
-            """
-            Returns True if the attibute attrib_name (str) exists in the specified namespace of the given XML node,
-            otherwise False
-            """
-            return cls.build_full_attribute_name(attrib_name, namespace) in node.attrib.keys()
-
-        @classmethod
-        def get_node_attrib(cls, node, attrib_name, namespace=u""):
-            """
-            Returns the value of the attribute attrib_name (str) in the specified namespace of the given CML node
-            if it exists, otherwise None
-            """
-            attrib_value = None
-            if cls.is_node_attrib(node, attrib_name, namespace):
-                aname = cls.build_full_attribute_name(attrib_name, namespace)
-                attrib_value = node.attrib[aname].decode('string-escape')
-            return attrib_value
+            for el in shape_elements:
+                self.append(el)
 
         @staticmethod
-        def build_full_attribute_name(attrib_name, namespace):
-            """ Builds a correct namespaced attribute name """
-            if namespace == "":
-                return attrib_name
-            else:
-                return '{%s}%s' % (namespace, attrib_name)
+        def _expand_defs(root):
+            from inkex.transforms import Transform
+            from inkex.elements import ShapeElement
+            from copy import deepcopy
+            for el in root:
+                if isinstance(el, inkex.elements.Use):
+                    # <group> element will replace <use> node
+                    group = inkex.elements.Group()
 
-        def get_frame(self, mat=[[1,0,0],[0,1,0]]):
-            """
-            Determine the node's size and position. It's accounting for the coordinates of all paths in the node's children.
+                    # add all objects from symbol node
+                    for obj in el.href:
+                        group.append(deepcopy(obj))
 
-            :return: x position, y position, width, height
-            """
-            min_x, max_x, min_y, max_y = st.computeBBox([self._node], mat)
-            width = max_x - min_x
-            height = max_y - min_y
-            return min_x, min_y, width, height
+                    # translate group
+                    group.transform = Transform(translate=(float(el.attrib["x"]), float(el.attrib["y"])))
 
-        def get_transform_values(self):
-            """
-            Returns the entries a, b, c, d, e, f of self._node's transformation matrix
-            depending on the transform applied. If no transform is defined all values returned are zero
-            See: https://www.w3.org/TR/SVG11/coords.html#TransformMatrixDefined
-            """
-            a = b = c = d = e = f = 0
-            if 'transform' in self._node.attrib:
-                (a,c,e),(b,d,f) = st.parseTransform(self._node.attrib['transform'])
-            return a, b, c, d, e, f
+                    # replace use node with group node
+                    parent = el.getparent()
+                    parent.remove(el)
+                    parent.add(group)
+
+                    el = group  # required for recursive defs
+
+                # expand children defs
+                TexTextElement._expand_defs(el)
 
         def get_jacobian_sqrt(self):
-            a, b, c, d, e, f = self.get_transform_values()
-            det = a * d - c * b
+            from inkex.transforms import Transform
+            (a, b, c), (d, e, f) = Transform(self.transform).matrix
+            det = a * e - d * b
+            assert det != 0
             return math.sqrt(math.fabs(det))
 
-        def translate(self, x, y):
-            """
-            Translate the node
-            :param x: horizontal translation
-            :param y: vertical translation
-            """
-            a, b, c, d, old_x, old_y = self.get_transform_values()
-            new_x = float(old_x) + x
-            new_y = float(old_y) + y
-            transform = 'matrix(%s, %s, %s, %s, %f, %f)' % (a, b, c, d, new_x, new_y)
-            self._node.attrib['transform'] = transform
+        def set_meta(self, key, value):
+            ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
+            self.set(ns_key, str(value).encode(escape_method).decode('utf-8'))
+            assert self.get_meta(key) == value, (self.get_meta(key), value)
+
+        def get_meta(self, key, default=None):
+            try:
+                ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
+                value = self.get(ns_key).encode('utf-8').decode(escape_method)
+                if value is None:
+                    raise AttributeError('{} has no attribute `{}`'.format(self, key))
+                return value
+            except AttributeError as attr_error:
+                if default is not None:
+                    return default
+                raise attr_error
+
+
 
         def align_to_node(self, ref_node, alignment, relative_scale):
             """
             Aligns the node represented by self to a reference node according to the settings defined by the user
-            :param ref_node: Reference node subclassed from SvgElement to which self is going to be aligned
-            :param alignment: A 2-element string list defining the alignment
-            :param relative_scale: Scaling of the new node relative to the scale of the reference node
+            :param (TexTextElement) ref_node: Reference node subclassed from SvgElement to which self is going to be aligned
+            :param (str) alignment: A 2-element string list defining the alignment
+            :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
             """
-            scale_transform = st.parseTransform("scale(%f)" % relative_scale)
+            from inkex.transforms import Transform
+            scale_transform = Transform("scale(%f)" % relative_scale)
 
-            old_transform = st.parseTransform(ref_node.get_attrib('transform'))
+            old_transform = Transform(ref_node.transform)
 
             # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
-            revert_flip = self._get_flip_transformation(ref_node)
-            composition = st.composeTransform(old_transform, revert_flip)
+            revert_flip = Transform("scale(1)")
+            if ref_node.get_meta("pdfconverter") == "pdf2svg":
+                revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
-            composition = st.composeTransform(scale_transform, composition)
+            composition = old_transform * revert_flip
+
+            composition = scale_transform * composition
 
             # keep alignment point of drawing intact, calculate required shift
-            self.set_attrib('transform', st.formatTransform(composition))
+            self.transform = composition
 
-            x, y, w, h = ref_node.get_frame()
-            new_x, new_y, new_w, new_h = self.get_frame()
+            ref_bb = ref_node.bounding_box()
+            x, y, w, h = ref_bb.left,  ref_bb.top, ref_bb.width, ref_bb.height
+            bb = self.bounding_box()
+            new_x, new_y, new_w, new_h = bb.left,  bb.top, bb.width, bb.height
 
             p_old = self._get_pos(x, y, w, h, alignment)
             p_new = self._get_pos(new_x, new_y, new_w, new_h, alignment)
@@ -975,85 +737,10 @@ try:
             dx = p_old[0] - p_new[0]
             dy = p_old[1] - p_new[1]
 
-            composition[0][2] += dx
-            composition[1][2] += dy
+            composition = Transform(translate=(dx, dy)) * composition
 
-            self.set_attrib('transform', st.formatTransform(composition))
-            self.set_attrib("jacobian_sqrt", str(self.get_jacobian_sqrt()), TEXTEXT_NS)
-
-        @abc.abstractmethod
-        def set_scale_factor(self, scale):
-            """ Sets the SVG scale factor of the node """
-
-        @abc.abstractmethod
-        def is_colorized(self):
-            """ Returns true if at least one element of the managed node contains a non-black fill or stroke color """
-
-        @staticmethod
-        def has_colorized_attribute(node):
-            """ Returns true if at least one element of node contains a non-black fill or stroke attribute """
-            for it_node in node.getiterator():
-                for attrib in ["stroke", "fill"]:
-                    if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
-                                                                                                            "black", "none",
-                                                                                                            "#000000"]:
-                        return True
-            return False
-
-        @staticmethod
-        def has_colorized_style(node):
-            """ Returns true if at least one element of node contains a non-black fill or stroke style """
-            for it_node in node.getiterator():
-                if "style" in it_node.attrib:
-                    node_style_dict = ss.parseStyle(it_node.attrib["style"])
-                    for style_attrib in ["stroke", "fill"]:
-                        if style_attrib in node_style_dict and \
-                                node_style_dict[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
-                                                                                               "black",
-                                                                                               "none",
-                                                                                               "#000000"]:
-                            return True
-            return False
-
-        def import_group_color_style(self, src_svg_ele):
-            """
-            Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
-            of self._node. Ensures that non color relevant style attributes are not overwritten.
-            """
-
-            # Take the top level style information which is set when coloring the group in Inkscape
-            src_style_string = src_svg_ele._node.get("style")
-
-            # If a style attribute exists we can copy the style, if not, there is nothing to do here
-            if src_style_string:
-                # Fetch the part of the source dict which is interesting for colorization
-                src_style_dict = ss.parseStyle(src_style_string)
-                color_style_dict = {key: value for key, value in src_style_dict.items() if
-                                    key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
-                                                    "fill-opacity"] and value.lower() != "none"}
-
-                # Iterate over all nodes of self._node and apply the imported color style
-                for dest_node in self._node.getiterator():
-                    dest_style_string = dest_node.attrib.get("style")
-                    if dest_style_string:
-                        dest_style_dict = ss.parseStyle(dest_style_string)
-                        for key, value in color_style_dict.items():
-                            dest_style_dict[key] = value
-                    else:
-                        dest_style_dict = color_style_dict
-                    dest_style_string = ss.formatStyle(dest_style_dict)
-                    dest_node.attrib["style"] = dest_style_string
-
-        @abc.abstractmethod
-        def _get_flip_transformation(self, ref_node):
-            """
-            Returns Unity ([[1,0,0],[0,1,0]]) or Reflection ([[1,0,0],[0,-1,0]]) transformation which
-        is required to ensure that pstoedit nodes do not vertical flip pdf2svg nodes and vice versa,
-            see derived classes.
-
-            :param ref_node: An object subclassed from ref_node the transform in transform_as_list originally belonged to
-            :return: transformation matrix as a 2-dim list
-            """
+            self.transform = composition
+            self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))
 
         @staticmethod
         def _get_pos(x, y, w, h, alignment):
@@ -1084,76 +771,65 @@ try:
                 xpos = x + w / 2
             return [xpos, ypos]
 
-
-    class PsToEditSvgElement(SvgElement):
-        """ Holds SVG node data created by pstoedit """
-
-        def __init__(self, xml_element):
-            super(self.__class__, self).__init__(xml_element)
-
-        def set_scale_factor(self, scale):
-            """
-            Set the node's scale factor (keeps the rest of the transform matrix)
-            Note that pstoedit needs -scale at the fourth position!
-            :param scale: the new scale factor
-            """
-            a, b, c, d, e, f = self.get_transform_values()
-            transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, -scale, e, f)
-            self._node.attrib['transform'] = transform
-
         def is_colorized(self):
-            """ Returns true if at least one element of the node contains a non-black fill or stroke color """
-            # pstoedit stores color information as attributes, not as css styles, so checking for attributes should
-            # be enough. But to be on the save side...
-            return self.has_colorized_attribute(self._node) or self.has_colorized_style(self._node)
-
-        def _get_flip_transformation(self, ref_node):
-            """ Fixes vertical flipping of nodes which have been originally created via pdf2svg"""
-            transform_as_list = st.parseTransform("scale(1)")
-            if isinstance(ref_node, Pdf2SvgSvgElement):
-                transform_as_list[1][1] *= -1
-            return transform_as_list
+            """ Returns true if at least one element of the managed node contains a non-black fill or stroke color """
+            return self.has_colorized_attribute() or self.has_colorized_style()
 
 
-    class Pdf2SvgSvgElement(SvgElement):
-        """ Holds SVG node data created by pdf2svg """
+        def has_colorized_attribute(self):
+            """ Returns true if at least one element of node contains a non-black fill or stroke attribute """
+            for it_node in self.iter():
+                for attrib in ["stroke", "fill"]:
+                    if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in [
+                        "rgb(0%,0%,0%)",
+                        "black", "none",
+                        "#000000"]:
+                        return True
+            return False
 
-        def __init__(self, xml_element):
-            super(self.__class__, self).__init__(xml_element)
+        def has_colorized_style(self):
+            """ Returns true if at least one element of node contains a non-black fill or stroke style """
+            for it_node in self.iter():
+                style = it_node.style  # type: inkex.styles.Style
+                for style_attrib in ["stroke", "fill"]:
+                    if style_attrib in style and \
+                            style[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
+                                                                                 "black",
+                                                                                 "none",
+                                                                                 "#000000"]:
+                        return True
+            return False
 
-        def set_scale_factor(self, scale):
+        def import_group_color_style(self, src_svg_ele):
             """
-            Set the node's scale factor (keeps the rest of the transform matrix)
-            :param scale: the new scale factor
+            Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
+            of self._node. Ensures that non color relevant style attributes are not overwritten.
             """
-            a, b, c, d, e, f = self.get_transform_values()
-            transform = 'matrix(%f, %s, %s, %f, %s, %s)' % (scale, b, c, scale, e, f)
-            self._node.attrib['transform'] = transform
 
-        def is_colorized(self):
-            """ Returns true if at least one element of the node contains a non-black fill or stroke color """
-            # pdf2svg consequently uses the style css properties for colorization, so checking for style should
-            # be enough. But to be on the save side...
-            return self.has_colorized_style(self._node) or self.has_colorized_attribute(self._node)
+            # Take the top level style information which is set when coloring the group in Inkscape
+            style = src_svg_ele.style # type: inkex.styles.Style
 
-        def _get_flip_transformation(self, ref_node):
-            """ Fixes vertical flipping of nodes which have been originally created via pstoedit """
-            transform_as_list = st.parseTransform("scale(1)")
-            if isinstance(ref_node, PsToEditSvgElement):
-                transform_as_list[1][1] *= -1
-            return transform_as_list
+            # If a style attribute exists we can copy the style, if not, there is nothing to do here
+            if len(style):
+                # Fetch the part of the source dict which is interesting for colorization
+                color_style_dict = {key: value for key, value in style.items() if
+                                    key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
+                                                    "fill-opacity"] and value.lower() != "none"}
+
+                # update style of all child nodes
+                for it in self.iter():
+                    self.style.update(color_style_dict)
+                    it.pop("stroke")
+                    it.pop("fill")
 
 
-    CONVERTERS = {PstoeditPlotSvg.get_pdf_converter_name(): PstoeditPlotSvg,
-                  Pdf2SvgPlotSvg.get_pdf_converter_name(): Pdf2SvgPlotSvg}
-
-    #------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     # Entry point
-    #------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
 
     if __name__ == "__main__":
         effect = TexText()
-        effect.affect()
+        effect.run()
         effect.cache["previous_exit_code"] = EXIT_CODE_OK
         effect.cache.save()
 
@@ -1182,7 +858,7 @@ except TexTextFatalError as e:
         cache.save()
     except:
         pass
-    exit(EXIT_CODE_EXPECTED_ERROR)   # Bad setup
+    exit(EXIT_CODE_EXPECTED_ERROR)  # Bad setup
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.

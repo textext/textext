@@ -436,7 +436,7 @@ def make_invisible_darwin(self, base, aux_file):
     full_path = os.path.join(base, aux_file)
     try:
         subprocess.Popen(cmd + [full_path]).communicate()
-    except OSError, e:
+    except (OSError,) as e:
         self.logger.info("{0}\nInstall the Developer Tools if you want the auxiliary files to get invisible".format(e))
 
 

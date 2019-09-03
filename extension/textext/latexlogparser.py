@@ -41,7 +41,7 @@ re_file = re.compile("(\\((?P<file>[^ \n\t(){}]*)|\\))")
 re_badbox = re.compile(r"(Ov|Und)erfull \\[hv]box ")
 re_line = re.compile(r"(l\.(?P<line>[0-9]+)( (?P<code>.*))?$|<\*>)")
 re_cseq = re.compile(r".*(?P<seq>\\[^ ]*) ?$")
-re_page = re.compile("\[(?P<num>[0-9]+)\]")
+re_page = re.compile(r"\[(?P<num>[0-9]+)\]")
 re_atline = re.compile(
     "( detected| in paragraph)? at lines? (?P<line>[0-9]*)(--(?P<last>[0-9]*))?")
 re_reference = re.compile("LaTeX Warning: Reference `(?P<ref>.*)' \
@@ -53,7 +53,7 @@ re_warning = re.compile(
     "(LaTeX|Package)( (?P<pkg>.*))? Warning: (?P<text>.*)$")
 re_online = re.compile("(; reported)? on input line (?P<line>[0-9]*)")
 re_ignored = re.compile("; all text was ignored after line (?P<line>[0-9]*).$")
-re_missing_character = re.compile('^Missing character: There is no (?P<missing>\S)', flags=re.UNICODE)
+re_missing_character = re.compile(r'^Missing character: There is no (?P<missing>\S)', flags=re.UNICODE)
 
 
 class LogCheck(object):
