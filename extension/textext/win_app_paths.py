@@ -8,7 +8,7 @@ and ghostscript.
 """
 import os as _os
 import subprocess as _sp
-import _winreg as _wr
+import winreg as _wr
 
 
 IS_IN_PATH = 1
@@ -128,34 +128,10 @@ class InkscapeCommandInfo(WinCommandInfoExeName):
         [r"Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe", ""]])
 
 
-class Pdf2SvgCommandInfo(WinCommandInfoExeName):
-    def __init__(self): super(Pdf2SvgCommandInfo, self).__init__("pdf2svg", [
-        [r"Software\Microsoft\Windows\CurrentVersion\App Paths\pdf2svg.exe", ""],
-        [r"Software\Microsoft\Windows\CurrentVersion\Uninstall\pdf2svg for windows", "InstallDir"],
-        [r"Software\Microsoft\Windows\CurrentVersion\Uninstall\pdf2svg for windows 0.2.3", "InstallDir"]])
-
-
-class PsToEditCommandInfo(WinCommandInfo):
-    def __init__(self): super(PsToEditCommandInfo, self).__init__("pstoedit",
-                                                                  [[r"SOFTWARE\wglunz\pstoedit", r"InstallPath"]])
-
-
-class GhostScriptCommandInfo(WinCommandInfo):
-    def __init__(self): super(GhostScriptCommandInfo, self).__init__("gs", [[r"SOFTWARE\Artifex\GPL Ghostscript"]])
-
-    def _reg_value_to_path(self, value_list):
-        # Take the most recent version of ghostscript
-        for val in reversed(value_list):
-            dirname = val + r"\bin"
-            if _os.path.isdir(dirname):
-                return dirname
-        return None
-
-
 def get_non_syspath_dirs():
     """Returns a list containing the directories of the applications which are not found in the system path"""
     additional_dirs = []
-    for cls in [InkscapeCommandInfo, Pdf2SvgCommandInfo, PsToEditCommandInfo, GhostScriptCommandInfo]:
+    for cls in [InkscapeCommandInfo]:
         dirname = cls().get_path()
         if dirname and dirname is not IS_IN_PATH:
             additional_dirs.append(dirname)
