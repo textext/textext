@@ -33,7 +33,7 @@ class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
     #executable_names = {"inkscape": ["inkscape"],
-    executable_names = {"inkscape": ["Inkscape-883c7bc-x86_64.AppImage", "inkscape"],   # ALPHA-TEST only #
+    executable_names = {"inkscape": ["inkscape.alpha", "inkscape"],   # ALPHA-TEST only #
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"]
