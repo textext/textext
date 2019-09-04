@@ -32,7 +32,8 @@ class Defaults(object):
 class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
-    executable_names = {"inkscape": ["inkscape"],
+    #executable_names = {"inkscape": ["inkscape"],
+    executable_names = {"inkscape": ["inkscape.alpha", "inkscape"],   # ALPHA-TEST only #
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"]
@@ -561,17 +562,17 @@ class TexTextRequirementsChecker(object):
             stdout, stderr = defaults.call_command([executable, "--version", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
-        first_stdout_line = stdout.decode("utf-8", 'ignore').split("\n")[0]
-        print(first_stdout_line)
-        m = re.search(r"Inkscape (\d+.\d+\w+)", first_stdout_line)
+        for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
+            print(stdout_line)
+            m = re.search(r"Inkscape (\d+.\d+\w+)", stdout_line)
 
-        if m:
-            found_version = m.group(1)
-            if LooseVersion(found_version) >= LooseVersion("1.0"):
-                return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
-            else:
-                return RequirementCheckResult(False, [
-                    "inkscape>=1.0 is not found (but inkscape=%s is found)" % (found_version)])
+            if m:
+                found_version = m.group(1)
+                if LooseVersion(found_version) >= LooseVersion("1.0"):
+                    return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
+                else:
+                    return RequirementCheckResult(False, [
+                        "inkscape>=1.0 is not found (but inkscape=%s is found)" % (found_version)])
         return RequirementCheckResult(None, ["Can't determinate inkscape version"])
 
     def find_executable(self, prog_name):

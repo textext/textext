@@ -58,6 +58,8 @@ def test_configuration(fake_commands, expected_exit_code):
                                    env=env
                                    )
         assert ret_code == expected_exit_code, '%d != %d' % (ret_code, expected_exit_code)
+        print("\033[92m  ====> Test %s successfully with expected exit code %d passed!\033[0m\n" % (
+            fake_commands, expected_exit_code))
 
 
 REQUIREMENT_CHECK_SUCCESS = 0
@@ -66,16 +68,8 @@ REQUIREMENT_CHECK_ERROR = 65
 
 good_configurations = []
 
-for pdf2svg in [[("pstoedit", "version 1.1", "stderr"),
-                 ("ghostscript", "9.25")
-                 ],
-                [("pdf2svg",)]
-                ]:
-    for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
-        good_configurations.append([
-                                       ("inkscape",),
-                                       latex
-                                   ] + pdf2svg)
+for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
+    good_configurations.append([("inkscape", "Inkscape 1.0alpha2 (883c7bc, 2019-06-02)"), latex])
 
 for good_configuration in good_configurations:
     test_configuration(good_configuration, REQUIREMENT_CHECK_SUCCESS)
@@ -84,32 +78,26 @@ for good_configuration in good_configurations:
     for i in range(len(good_configuration)):
         # good configuration without one element is bad
         bad_configuration = good_configuration[:i] + good_configuration[i + 1:]
+        print(bad_configuration)
         test_configuration(bad_configuration, REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
-    ("inkscape",),
+    ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
+], REQUIREMENT_CHECK_ERROR)
+
+test_configuration([
+    ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
+    ("pdflatex",)
 ], REQUIREMENT_CHECK_ERROR)
 
 test_configuration([
     ("inkscape",),
     ("pdflatex",),
-    ("pstoedit", "version 3.70", "stderr"),
-    ("ghostscript", "9.22")
-], REQUIREMENT_CHECK_ERROR)
-
-test_configuration([
-    ("inkscape",),
-    ("pdflatex",),
-    ("pstoedit",),
-    ("ghostscript",)
 ], REQUIREMENT_CHECK_UNKNOWN)
 
 test_configuration([
-    ("inkscape",),
+    ("inkscape", "Inkscape 1.0alpha2 (883c7bc, 2019-06-02)"),
     ("pdflatex",),
-    ("pstoedit",),
-    ("ghostscript",),
-    ("pdf2svg",)
 ], REQUIREMENT_CHECK_SUCCESS)
 
 test_configuration([

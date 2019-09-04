@@ -1,11 +1,11 @@
 language: python
-python: '2.7'
+python: '3.6'
 
 branches:
   only:
   - master
   - develop
-  - feature/add_travis_deploy
+  - feature/travis_deploy_for_1.0
 
 virtualenv:
   system_site_packages: true
@@ -13,40 +13,32 @@ virtualenv:
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: bionic
       addons:
         apt:
           packages:
-          - pstoedit
-          - pdf2svg
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
-          - texlive-latex-base
-
-    - os: linux
-      dist: xenial
-      addons:
-        apt:
-          packages:
-          - pstoedit
-          - pdf2svg
-          - inkscape
-          - python-gtk2-dev
-          - imagemagick
+          # Will still load inkscape 0.92.x, hence use manual app image, see below
+          #- inkscape
+          - python3-gi
+          - python3-gi-cairo
+          - gir1.2-gtk-3.0
           - texlive-latex-base
       env:
         - RELEASE_MAKER=true
 
 before_script:
-   - python2 -m pip install pytest lxml Pillow
-   - python2 test_installation_script.py 2> /dev/null
-   - python2 setup.py
+   # Deactivated until tests are rewritten
+   #- python -m pip install pytest lxml Pillow
+   - wget -c https://inkscape.org/de/gallery/item/14204/Inkscape-883c7bc-x86_64.AppImage -O ~/bin/inkscape.alpha
+   - chmod +x ~/bin/inkscape.alpha
+   - export PATH=~/bin:$PATH
+   - python test_installation_script.py 2> /dev/null
+   - python setup.py
 
 
 script:
-  - export PYTHONPATH="`inkscape -x`:$HOME/.config/inkscape/extensions/"
-  - python2 -m pytest --verbose -s pytests
+  - export PYTHONPATH="`inkscape.alpha -x`:$HOME/.config/inkscape/extensions/"
+  #- python -m pytest --verbose -s pytests
 
 after_success:
   - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
@@ -76,7 +68,7 @@ after_success:
 
 before_deploy:
   - bash build_docs.sh
-  - python2 build_packages.py
+  - python build_packages.py
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
 
