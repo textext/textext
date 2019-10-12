@@ -1,7 +1,6 @@
 
 class TexTextError(RuntimeError):
     """ Basic class of all TexText errors"""
-    pass
 
 
 class TexTextNonFatalError(TexTextError):
