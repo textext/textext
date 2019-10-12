@@ -563,7 +563,7 @@ class TexTextRequirementsChecker(object):
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
         for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-            print(stdout_line)
+            #print(stdout_line)
             m = re.search(r"Inkscape (\d+.\d+\w+)", stdout_line)
 
             if m:
