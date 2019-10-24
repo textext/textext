@@ -229,8 +229,6 @@ try:
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
-                # print(old_svg_ele)
-
                 alignment = TexText.DEFAULT_ALIGNMENT
 
                 preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
