@@ -32,7 +32,6 @@ class Defaults(object):
 class LinuxDefaults(Defaults):
     os_name = "linux"
     console_colors = "always"
-    #executable_names = {"inkscape": ["inkscape"],
     executable_names = {"inkscape": ["inkscape.alpha", "inkscape"],   # ALPHA-TEST only #
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
@@ -416,7 +415,6 @@ class Requirement(object):
 
     def check(self):
         result = self.criteria()
-        # print(self,self._overwrite_messages)
         if not isinstance(result.messages,list):
             result.messages = [result.messages]
         if self._overwrite_messages:
@@ -442,7 +440,6 @@ class Requirement(object):
             result.messages += self._appended_messages["ERROR"]
         if result.value == TrinaryLogicValue(None):
             result.messages += self._appended_messages["UNKNOWN"]
-        # print(self,result.messages)
         return result
 
     def prepend_message(self, result_type, message):
@@ -563,7 +560,6 @@ class TexTextRequirementsChecker(object):
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
         for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-            print(stdout_line)
             m = re.search(r"Inkscape (\d+.\d+\w+)", stdout_line)
 
             if m:
