@@ -114,7 +114,7 @@ Install pstoedit (not recommended)
 
 .. warning::
 
-    The most recent versions of ghostscript (9.27) and pstoedit (3.74) are NOT
+    The most recent versions of ghostscript (9.50) and pstoedit (3.74) are NOT
     compatible with |TexText|. They do not work at all or produce false results.
     This is an error between both packages and cannot be handled by |TexText|,
     see issue :issue_num:`126`.
