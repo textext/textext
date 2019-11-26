@@ -47,6 +47,7 @@ import hashlib
 import logging
 import logging.handlers
 import math
+import re
 import os
 import platform
 import sys
@@ -692,15 +693,22 @@ try:
                 old_id = el.attrib["id"]
                 new_id = 'id-' + str(uuid.uuid4())
                 el.attrib["id"] = new_id
-                rename_map["url(#" + old_id + ")"] = "url(#" + new_id + ")"
+                rename_map[old_id] = new_id
 
             # find usages of old ids and replace them
+            def replace_old_id(m):
+                old_name = m.group(1)
+                try:
+                    replacement = rename_map[old_name]
+                except KeyError:
+                    replacement = old_name
+                return "url(#{})".format(replacement)
+            regex = re.compile(r"url\(#([^)(]*)\)")
+
             for el in self.iter():
                 for name, value in el.items():
-                    for old_url, new_url in rename_map.items():
-                        if old_url in value:
-                            value = value.replace(old_url, new_url)
-                    el.attrib[name] = value
+                    new_value = regex.sub(replace_old_id, value)
+                    el.attrib[name] = new_value
 
         def get_jacobian_sqrt(self):
             from inkex.transforms import Transform
