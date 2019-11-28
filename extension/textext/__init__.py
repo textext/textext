@@ -559,7 +559,7 @@ try:
                         parsed_log = self.parse_pdf_log(self.tmp('log'))
                         raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr)
                     else:
-                        raise TexTextConversionError(error.message, error.return_code, error.stdout, error.stderr)
+                        raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
 
                 if not os.path.exists(self.tmp('pdf')):
                     raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
