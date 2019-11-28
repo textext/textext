@@ -45,7 +45,7 @@ Download and install the |Inkscape| app image file
 
         wget -c https://inkscape.org/gallery/item/14918/Inkscape-fe3e306-x86_64.AppImage
 
-2. Make the downloaded AppImage executable:
+2. Change into the directory into which you downloaded the AppImage. Then, make it executable:
 
     .. code-block:: bash
 
@@ -56,6 +56,13 @@ Download and install the |Inkscape| app image file
     .. code-block:: bash
 
         ./Inkscape-fe3e306-x86_64.AppImage --appimage-extract
+
+4. Optional, if you are not in your home directory: Move the created directory ``squashfs-root``
+   into your home directory:
+
+    .. code-block:: bash
+
+        mv squashfs-root ~
 
 After this operation |Inkscape| will reside in ``~/squashfs-root/bin``. You can test it by
 executing
@@ -69,7 +76,7 @@ Download and install |TexText|
 ==============================
 
 1. Download the most recent **preview** package from https://github.com/textext/textext/releases
-2. Extract the package and change to the created directory.
+2. Extract the package and change into the created directory.
 3. Run :bash:`setup.py` with (**Important!!**) specification of the path to your |Inkscape| executable
    from your terminal:
 
