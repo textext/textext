@@ -10,9 +10,14 @@
 
 .. _linux-install:
 
-================
-TexText on Linux
-================
+====================================
+TexText for Inkscape 0.94.x on Linux
+====================================
+
+.. important::
+
+    If you would like to try out |TexText| on Inkscape 1.0 beta please use this installation guide:
+    :ref:`linux-beta-install`!
 
 To install |TexText| on Linux do the following steps:
 
