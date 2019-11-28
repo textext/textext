@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # (c) Olivier Verdier <olivier.verdier@gmail.com>, 2007-2013
 # Modified by Pit Garbe <piiit@gmx.de> (to accommodate needs in textext)
