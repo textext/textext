@@ -80,25 +80,24 @@ echo script or Inkscape has been installed without Python or the requirements to
 echo use TexText are not met. In the last case the script lists the steps to
 echo be done for an successfull installation.
 echo.
-echo setup_win /D:"C:\Path\to\Inkscape installation\"
+echo setup_win /d:"C:\Path\to\Inkscape installation\"
 echo Installs TexText with the default options assuming that Inkscape is located
 echo in the directory "C:\Path\to\Inkscape installation\". This syntax is only
 echo required if you have not installed Inkscape via an installer but from a
 echo zip package.
 echo.
-echo setup_win /P:"--option1 'value 1' --option2 'value 2'"
+echo setup_win /p:"--option1 'value 1' --option2 'value 2'"
 echo Installs TexText using the Python distribution shipped with
 echo Inkscape and directly passes the parameter string
-echo --option1 "value 1 --option2 "value 2" to setup.py. You can pass any
+echo --option1 "value 1" --option2 "value 2" to setup.py. You can pass any
 echo parameters understood by setup.py. Note the single quotes enclosing
 echo white space containing option values in the _batch_ file call!!
 echo.
 echo You can combine the last two calling syntaxes, of course.
 echo.
 echo Example:
-echo setup_win.bat /d:"C:\Program Files\Inkscape" /p:"--ghostscript-executable
-echo 'C:\Program Files\gs\gs.exe' --pstoedit-executable
-echo 'C:\Program Files\pstoedit\pstoedit.exe'"
+echo setup_win.bat /d:"C:\Program Files\Inkscape" /p:"--pdflatex-executable
+echo 'C:\Program Files\MiKTeX 2.9\miktex\bin\x64\pdflatex.exe'
 goto FINAL
 
 

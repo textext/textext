@@ -229,28 +229,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--pstoedit-executable",
-        default=None,
-        type=str,
-        help="Full path to pstoedit executable"
-    )
-
-    parser.add_argument(
-        "--ghostscript-executable",
-        default=None,
-        type=str,
-        help="Full path to ghostscript executable"
-    )
-
-    parser.add_argument(
-        "--pdf2svg-executable",
-        default=None,
-        type=str,
-        help="Full path to pdf2svg executable"
-    )
-
-
-    parser.add_argument(
         "--skip-requirements-check",
         default=False,
         action='store_true',
@@ -311,12 +289,9 @@ if __name__ == "__main__":
     checker = TexTextRequirementsChecker(logger, settings)
 
     for executable_name in [
-                                "ghostscript",
                                 "inkscape",
                                 "lualatex",
-                                "pdf2svg",
                                 "pdflatex",
-                                "pstoedit",
                                 "xelatex",
                             ]:
         executable_path = getattr(args, "%s_executable" % executable_name)
