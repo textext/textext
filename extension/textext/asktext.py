@@ -721,7 +721,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             if close_shortcut_value is not 'None':
                 if (close_shortcut_value == 'Escape' and Gdk.keyval_name(event.keyval) == 'Escape') or \
                    (close_shortcut_value == 'CtrlQ' and Gdk.keyval_name(event.keyval) == 'q' and
-                    Gdk.gdk.CONTROL_MASK and event.state):
+                    Gdk.ModifierType.CONTROL_MASK and event.state):
                     self._cancel_button.clicked()
                     return True
 
