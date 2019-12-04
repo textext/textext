@@ -700,6 +700,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
         def close_shortcut_cb(self, action, previous_value, sourceview):
             self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
+            self._cancel_button.set_tooltip_text(
+                "Don't save changes ({})".format(self._close_shortcut_actions[action.get_current_value()][2]).replace(
+                    "_", ""))
 
         def confirm_close_toggled_cb(self, action, sourceview):
             self._gui_config["confirm_close"] = action.get_active()
@@ -904,15 +907,15 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             button_box.set_spacing(spacing)
 
             self._cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-            self._cancel_button.set_tooltip_text("Don't save changes")
+            self._cancel_button.set_tooltip_text("Don't save changes (ESC)")
             button_box.add(self._cancel_button)
 
             self._preview_button = Gtk.Button(label="Preview")
-            self._preview_button.set_tooltip_text("You need ImageMagick for previews to work")
+            self._preview_button.set_tooltip_text("Show/ update preview (CTRL+P)")
             button_box.add(self._preview_button)
 
             self._ok_button = Gtk.Button(stock=Gtk.STOCK_SAVE)
-            self._ok_button.set_tooltip_text("Update or create new LaTeX output")
+            self._ok_button.set_tooltip_text("Update or create new LaTeX output (CTRL+RETURN)")
             button_box.add(self._ok_button)
 
             self._cancel_button.connect("clicked", self.cb_cancel)
