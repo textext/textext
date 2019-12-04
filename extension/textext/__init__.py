@@ -46,10 +46,12 @@ import hashlib
 import logging
 import logging.handlers
 import math
+import re
 import os
 import platform
 import sys
 import traceback
+import uuid
 
 from requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
 from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
@@ -632,7 +634,7 @@ try:
             self._svg_to_textext_node(svg_filename)
 
         def _svg_to_textext_node(self, svg_filename):
-            from inkex.elements import ShapeElement
+            from inkex.elements import ShapeElement, Defs
             from inkex.svg import SvgDocumentElement
             doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
 
@@ -640,11 +642,13 @@ try:
 
             TexTextElement._expand_defs(root)
 
-            shape_elements = [el for el in root if isinstance(el, ShapeElement)]
+            shape_elements = [el for el in root if isinstance(el, (ShapeElement, Defs))]
             root.append(self)
 
             for el in shape_elements:
                 self.append(el)
+
+            self.make_ids_unique()
 
         @staticmethod
         def _expand_defs(root):
@@ -672,6 +676,36 @@ try:
 
                 # expand children defs
                 TexTextElement._expand_defs(el)
+
+        def make_ids_unique(self):
+            """
+            PDF->SVG converters tend to use same ids.
+            To avoid confusion between objects with same id from two or more TexText objects we replace auto-generated
+            ids with random unique values
+            """
+            rename_map = {}
+
+            # replace all ids with unique random uuid
+            for el in self.iterfind('.//*[@id]'):
+                old_id = el.attrib["id"]
+                new_id = 'id-' + str(uuid.uuid4())
+                el.attrib["id"] = new_id
+                rename_map[old_id] = new_id
+
+            # find usages of old ids and replace them
+            def replace_old_id(m):
+                old_name = m.group(1)
+                try:
+                    replacement = rename_map[old_name]
+                except KeyError:
+                    replacement = old_name
+                return "url(#{})".format(replacement)
+            regex = re.compile(r"url\(#([^)(]*)\)")
+
+            for el in self.iter():
+                for name, value in el.items():
+                    new_value = regex.sub(replace_old_id, value)
+                    el.attrib[name] = new_value
 
         def get_jacobian_sqrt(self):
             from inkex.transforms import Transform
