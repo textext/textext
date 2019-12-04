@@ -716,6 +716,11 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 self._ok_button.clicked()
                 return True
 
+            # Show/ update Preview shortcut (CTRL+P)
+            if Gdk.keyval_name(event.keyval) == 'p' and Gdk.ModifierType.CONTROL_MASK and event.state:
+                self._preview_button.clicked()
+                return True
+
             # Cancel dialog via shortcut if set by the user
             close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
             if close_shortcut_value is not 'None':
@@ -902,9 +907,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._cancel_button.set_tooltip_text("Don't save changes")
             button_box.add(self._cancel_button)
 
-            preview_button = Gtk.Button(label="Preview")
-            preview_button.set_tooltip_text("You need ImageMagick for previews to work")
-            button_box.add(preview_button)
+            self._preview_button = Gtk.Button(label="Preview")
+            self._preview_button.set_tooltip_text("You need ImageMagick for previews to work")
+            button_box.add(self._preview_button)
 
             self._ok_button = Gtk.Button(stock=Gtk.STOCK_SAVE)
             self._ok_button.set_tooltip_text("Update or create new LaTeX output")
@@ -912,7 +917,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._cancel_button.connect("clicked", self.cb_cancel)
             self._ok_button.connect("clicked", self.cb_ok)
-            preview_button.connect('clicked', self.update_preview)
+            self._preview_button.connect('clicked', self.update_preview)
 
             return button_box
 
