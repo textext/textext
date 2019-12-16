@@ -3,6 +3,7 @@ contributions to the source code or by suggestions in discussions that
 went into the development of the project.
 
 - Alexander Blinne <alexander.blinne@uni-jena.de>
+- Antonio Russo <antonio.e.russo@gmail.com>
 - Brian Clarke
 - Florent Becker
 - Jan Winkler <enceladus@posteo.de>
