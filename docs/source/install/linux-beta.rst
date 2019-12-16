@@ -38,24 +38,24 @@ Preparation
 Download and install the |Inkscape| app image file
 ==================================================
 
-1. You can download |Inkscape| from https://inkscape.org/release/inkscape-1.0beta1/. Or
+1. You can download |Inkscape| from https://inkscape.org/release/1.0beta2/ . Or
    execute
 
     .. code-block:: bash
 
-        wget -c https://inkscape.org/gallery/item/14918/Inkscape-fe3e306-x86_64.AppImage
+        wget -c https://inkscape.org/gallery/item/16199/Inkscape-2b71d25-x86_64.AppImage
 
 2. Change into the directory into which you downloaded the AppImage. Then, make it executable:
 
     .. code-block:: bash
 
-        chmod u+x Inkscape-fe3e306-x86_64.AppImage
+        chmod u+x Inkscape-2b71d25-x86_64.AppImage
 
 3. Extract the AppImage:
 
     .. code-block:: bash
 
-        ./Inkscape-fe3e306-x86_64.AppImage --appimage-extract
+        ./Inkscape-2b71d25-x86_64.AppImage --appimage-extract
 
 4. Optional, if you are not in your home directory: Move the created directory ``squashfs-root``
    into your home directory:

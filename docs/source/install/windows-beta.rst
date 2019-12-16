@@ -45,7 +45,7 @@ In a command window execute the following steps:
 Download and install the |Inkscape| app image file
 ==================================================
 
-1. Download |Inkscape| from https://inkscape.org/release/inkscape-1.0beta1/.
+1. Download |Inkscape| from https://inkscape.org/release/1.0beta2/.
 
 2. Extract the zip package to a folder of your choice, e.g. ``C:\InkscapeBeta``.
 
