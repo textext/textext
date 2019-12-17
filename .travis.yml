@@ -41,16 +41,19 @@ script:
   #- python -m pytest --verbose -s pytests
 
 after_success:
+  # Put a tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
+  # Reminder: grep -q returns 0 if any match has been found, otherwise nonzero.
   - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
   - VERSION=$(head -n 1 extension/textext/VERSION)
-  - echo $VERSION_CHANGED
-  - echo $VERSION
-#  Put tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
-  - echo '"$TRAVIS_BRANCH" == "develop" = '        $( [ "$TRAVIS_BRANCH" == "develop" ] ; echo $?)
-  - echo '(echo $VERSION | grep -q "\-dev") = '    $( (echo $VERSION | grep -q "\-dev"); echo $?)
-  - echo '[ "$TRAVIS_BRANCH" == "master" ] = '     $( [ "$TRAVIS_BRANCH" == "master" ]; echo $?)
-  - echo '(echo $VERSION | grep -v -q "\-dev") = ' $( (echo $VERSION | grep -v -q "\-dev"); echo $?)
-  - echo $( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ; echo $?)
+  - echo 'Version changed                     :' $( [ "$VERSION_CHANGED" == 0 ] && echo "Yes" || echo "No")
+  - echo 'Version                             :' $VERSION
+  - echo 'Travis branch                       :' $TRAVIS_BRANCH
+  - echo 'Is develop release                  :' $( [ $( (echo $VERSION | grep -q "\-dev"); echo $?) == 0 ]  && echo "Yes" || echo "No")
+  - echo 'Condition for tagging met           :' $( [ $( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ; echo $?) == 0 ] && echo "Yes" || echo "No")
+  - echo 'Is a release maker                  :' $( [ "RELEASE_MAKER"==true ] && echo "Yes" || echo "No")
+  - echo 'Condition for pre-release met       :' $( [ $( (echo $VERSION | grep -q "\-"); echo $?) == 0 ] && echo "Yes" || echo "No")
+  - echo '(echo $VERSION | grep "\-dev")      :' $( (echo $VERSION | grep "\-dev"); echo $?) ' --> -q --> ' $( (echo $VERSION | grep -q "\-dev"); echo $?)
+  - echo '(echo $VERSION | grep -v "\-dev")   :' $( (echo $VERSION | grep -v "\-dev"); echo $?) ' --> -q --> ' $( (echo $VERSION | grep -v -q "\-dev"); echo $?)
   - if [[ $VERSION_CHANGED = 0 ]] &&  ( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ) ; then
       git tag -l $VERSION | grep -q $VERSION || git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
       if [[ $RELEASE_MAKER = true ]];
@@ -69,7 +72,7 @@ after_success:
 before_deploy:
   - bash build_docs.sh
   - python build_packages.py
-  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.email "builds@travis-ci.com" # Check if you are connected with .com or .org !!
   - git config --global user.name "Travis CI"
 
 deploy:
