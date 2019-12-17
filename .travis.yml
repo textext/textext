@@ -50,7 +50,7 @@ after_success:
   - echo '(echo $VERSION | grep -q "\-dev") = '    $( (echo $VERSION | grep -q "\-dev"); echo $?)
   - echo '[ "$TRAVIS_BRANCH" == "master" ] = '     $( [ "$TRAVIS_BRANCH" == "master" ]; echo $?)
   - echo '(echo $VERSION | grep -v -q "\-dev") = ' $( (echo $VERSION | grep -v -q "\-dev"); echo $?)
-  - echo $(( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ; echo $?))
+  - echo $( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ; echo $?)
   - if [[ $VERSION_CHANGED = 0 ]] &&  ( ( [ "$TRAVIS_BRANCH" == "develop" ] && (echo $VERSION | grep -q "\-dev") ) || ( [ "$TRAVIS_BRANCH" == "master" ] && (echo $VERSION | grep -v -q "\-dev") ) ) ; then
       git tag -l $VERSION | grep -q $VERSION || git tag $VERSION -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER";
       if [[ $RELEASE_MAKER = true ]];
