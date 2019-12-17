@@ -46,10 +46,13 @@ def query_yes_no(question, default="yes"):
         prompt = " [y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
-
+    if sys.version_info[0] > 2:
+        read_input = input
+    else:
+        read_input = raw_input
     while True:
         sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
+        choice = read_input().lower()
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:
@@ -86,7 +89,7 @@ class StashFiles(object):
         self.tmp_dir = tmp_dir
 
     def __enter__(self):
-        for old_name, new_name in self.rel_filenames.iteritems():
+        for old_name, new_name in self.rel_filenames.items():
             src = os.path.join(self.stash_from, old_name)
             dst = os.path.join(self.tmp_dir, old_name)
             if os.path.isfile(src):
@@ -97,7 +100,7 @@ class StashFiles(object):
                 shutil.copy2(src, dst)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for old_name, new_name in self.rel_filenames.iteritems():
+        for old_name, new_name in self.rel_filenames.items():
             src = os.path.join(self.tmp_dir, old_name)
             dst = os.path.join(self.unstash_to, new_name)
             if os.path.isfile(src):
@@ -229,28 +232,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--pstoedit-executable",
-        default=None,
-        type=str,
-        help="Full path to pstoedit executable"
-    )
-
-    parser.add_argument(
-        "--ghostscript-executable",
-        default=None,
-        type=str,
-        help="Full path to ghostscript executable"
-    )
-
-    parser.add_argument(
-        "--pdf2svg-executable",
-        default=None,
-        type=str,
-        help="Full path to pdf2svg executable"
-    )
-
-
-    parser.add_argument(
         "--skip-requirements-check",
         default=False,
         action='store_true',
@@ -311,12 +292,9 @@ if __name__ == "__main__":
     checker = TexTextRequirementsChecker(logger, settings)
 
     for executable_name in [
-                                "ghostscript",
                                 "inkscape",
                                 "lualatex",
-                                "pdf2svg",
                                 "pdflatex",
-                                "pstoedit",
                                 "xelatex",
                             ]:
         executable_path = getattr(args, "%s_executable" % executable_name)
@@ -346,7 +324,7 @@ if __name__ == "__main__":
 
         if args.keep_previous_installation_files is None:
             found_files_to_keep = {}
-            for old_filename, new_filename in files_to_keep.iteritems():
+            for old_filename, new_filename in files_to_keep.items():
                 if not os.path.isfile(os.path.join(args.inkscape_extensions_path, old_filename)):
                     logger.debug("%s not found" % old_filename)
                 else:
@@ -367,7 +345,7 @@ if __name__ == "__main__":
 
             if len(found_files_to_keep) > 0:
                 file_s = "file" if len(found_files_to_keep) == 1 else "files"
-                for old_filename, new_filename in found_files_to_keep.iteritems():
+                for old_filename, new_filename in found_files_to_keep.items():
                     if os.path.isfile(os.path.join("extension", new_filename)):
                         logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
                         if query_yes_no("Keep `%s` from previous installation?" % old_filename):

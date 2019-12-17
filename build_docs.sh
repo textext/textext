@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python2 -m pip install -r docs/requirements.txt
+python3 -m pip install --user -r docs/requirements.txt
 make -C ./docs html
