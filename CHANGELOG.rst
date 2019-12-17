@@ -1,3 +1,16 @@
+Version 1.0.0-dev.1 (2019-12-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 1.0 (and its beta
+  releases). Please use TexText 0.11.0 if you use Inkscape 0.92.x
+- New: TexText does not need pstoedit, ghostscript and pdf2svg as external
+  dependencies anymore
+- New: Added shortcut CTRL+P for displaying the preview image
+- Fixed: Gradient fills not properly rendered (e.g. in color bars)
+  (:issue_num:`148`)
+- Fixed: Double ESC-hit closes TexText window without confirmation
+- Internal: Improved exception handling
+- Open: On Windows source code syntax highlighting is currently not available
+
 Version 0.11.0 (2019-06-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New (GTK-version only): Possibility to select a shortcut for closing the

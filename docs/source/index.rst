@@ -12,6 +12,7 @@ and *re-edit* LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
+-  Compatible with upcoming release of Inkscape 1.0
 -  Windows/ Linux/ MacOS support
 -  LaTeX generated SVG elements can be re-edited later
 -  Multi-line editor with syntax highlighting (see :ref:`§ <usage-dialog-overview>`)

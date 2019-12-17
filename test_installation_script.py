@@ -96,7 +96,7 @@ test_configuration([
 ], REQUIREMENT_CHECK_UNKNOWN)
 
 test_configuration([
-    ("inkscape", "Inkscape 1.0alpha2 (883c7bc, 2019-06-02)"),
+    ("inkscape", "Inkscape 1.0beta2 (2b71d25, 2019-12-03)"),
     ("pdflatex",),
 ], REQUIREMENT_CHECK_SUCCESS)
 

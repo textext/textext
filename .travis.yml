@@ -29,15 +29,15 @@ matrix:
 before_script:
    # Deactivated until tests are rewritten
    #- python -m pip install pytest lxml Pillow
-   - wget -c https://inkscape.org/de/gallery/item/14204/Inkscape-883c7bc-x86_64.AppImage -O ~/bin/inkscape.alpha
-   - chmod +x ~/bin/inkscape.alpha
+   - wget -c https://inkscape.org/gallery/item/16199/Inkscape-2b71d25-x86_64.AppImage -O ~/bin/inkscape.beta
+   - chmod +x ~/bin/inkscape.beta
    - export PATH=~/bin:$PATH
    - python test_installation_script.py 2> /dev/null
    - python setup.py
 
 
 script:
-  - export PYTHONPATH="`inkscape.alpha -x`:$HOME/.config/inkscape/extensions/"
+  - export PYTHONPATH="`inkscape.beta -x`:$HOME/.config/inkscape/extensions/"
   #- python -m pytest --verbose -s pytests
 
 after_success:
