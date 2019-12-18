@@ -424,8 +424,9 @@ try:
                         height = self.svg.unittouu(self.get_document_height())
 
                         x, y, w, h = tt_node.bounding_box()
-                        tt_node.transform = Transform(tt_node.transform) * Transform(translate=(-x + width / 2 - w / 2,
-                                                                                              -y + height / 2 - h / 2))
+                        tt_node.transform = tt_node.transform * \
+                                            Transform(translate=(-x + width / 2 - w / 2, -y + height / 2 - h / 2)) * \
+                                            Transform(scale=scale_factor)
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
                         self.svg.get_current_layer().add(tt_node)
