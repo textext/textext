@@ -342,7 +342,7 @@ try:
 
             with logger.debug("TexText.preview"):
                 with logger.debug("args:"):
-                    for k, v in locals().items():
+                    for k, v in list(locals().items()):
                         logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
@@ -377,7 +377,7 @@ try:
 
             with logger.debug("TexText.do_convert"):
                 with logger.debug("args:"):
-                    for k, v in locals().items():
+                    for k, v in list(locals().items()):
                         logger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
