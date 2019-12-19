@@ -556,11 +556,11 @@ class TexTextRequirementsChecker(object):
         from distutils.version import LooseVersion
         try:
             executable = self.find_executable('inkscape')['path']
-            stdout, stderr = defaults.call_command([executable, "--version", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
+            stdout, stderr = defaults.call_command([executable, "--version"])
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
         for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-            m = re.search(r"Inkscape (\d+.\d+\w+)", stdout_line)
+            m = re.search(r"Inkscape (\d+.\d+[-\w]*)", stdout_line)
 
             if m:
                 found_version = m.group(1)

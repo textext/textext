@@ -810,7 +810,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 try:
                     self._preview_callback(text, preamble, self.set_preview_image_from_file,
                                            self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
-                except StandardError as error:
+                except Exception as error:
                     error_dialog(self._window,
                                  "TexText Error",
                                  "Error occurred while generating preview:",
