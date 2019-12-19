@@ -10,9 +10,9 @@
 
 .. _windows-install:
 
-======================================
-TexText for Inkscape 0.94.x on Windows
-======================================
+==========================================
+TexText for **Inkscape 0.92.x** on Windows
+==========================================
 
 To install |TexText| on Windows do the following steps:
 

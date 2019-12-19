@@ -1,5 +1,6 @@
 .. |TexText| replace:: **TexText for Inkscape 1.0 beta**
 .. |Inkscape| replace:: **Inkscape 1.0 beta**
+.. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
    :language: bash
@@ -16,7 +17,7 @@
 ==================
 
 This guide explains how to install and use |TexText| together with |Inkscape| on a system
-on which also Inkscape 0.94.x is installed.
+on which also |InkscapeOld| is installed.
 
 Preparation
 ===========
@@ -89,7 +90,7 @@ Download and install |TexText|
 
     .. important::
 
-        Compared to previous versions of **TexText** for Inkscape 0.94.x |TexText| does
+        Compared to previous versions of **TexText** for |InkscapeOld| |TexText| does
         not need any conversion utilities like ghostscript, pstoedit or pdfsvg.
 
 Now you can launch |Inkscape| by typing :bash:`~/squashfs-root/bin/inkscape &` and work
@@ -98,8 +99,8 @@ with |TexText|
 Please report any issues! Thank you!
 
 
-Switching back to Inkscape 0.94.x
-=================================
+Switching back to |InkscapeOld|
+===============================
 
 .. code-block:: bash
 
