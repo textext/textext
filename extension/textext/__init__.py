@@ -409,8 +409,8 @@ try:
                 tt_node.set_meta("alignment", str(alignment))
 
                 try:
-                    inkscape_version = self.svg.getroot().get('version')
-                    tt_node.set("inkscapeversion", inkscape_version.split(' ')[0])
+                    inkscape_version = self.document.getroot().get('inkscape:version')
+                    tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
                 except AttributeError as ignored:
                     # Unfortunately when this node comes from an Inkscape document that has never been saved before
                     # no version attribute is provided by Inkscape :-(
