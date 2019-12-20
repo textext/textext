@@ -392,14 +392,18 @@ try:
                 # Place new node in document
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
-                        # Place new nodes in the center of the document and scale them according to user request
-                        doc_width = self.svg.width
-                        doc_height = self.svg.height
-                        x, y, w, h = tt_node.bounding_box()
-                        tt_node.transform = tt_node.transform * \
-                                            Transform(translate=(-x + doc_width / 2 - w / 2,
-                                                                 -y + doc_height / 2 - h / 2)) * \
-                                            Transform(scale=scale_factor)
+                        # Place new nodes in the view center and scale them according to user request
+                        from inkex.transforms import Vector2d
+
+                        node_center = Vector2d(tt_node.get_center_position())
+                        view_center = self.svg.get_center_position()
+
+                        tt_node.transform = (Transform(translate=view_center) *  # place at view center
+                                             Transform(scale=scale_factor) *  # scale
+                                             Transform(translate=-node_center) *  # place node at origin
+                                             tt_node.transform  # use original node transform
+                                             )
+
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
                         self.svg.get_current_layer().add(tt_node)
