@@ -720,7 +720,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 return True
 
             # Show/ update Preview shortcut (CTRL+P)
-            if Gdk.keyval_name(event.keyval) == 'p' and Gdk.ModifierType.CONTROL_MASK and event.state:
+            if Gdk.keyval_name(event.keyval) == 'p' and Gdk.ModifierType.CONTROL_MASK & event.state:
                 self._preview_button.clicked()
                 return True
 
