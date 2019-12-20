@@ -40,8 +40,6 @@ Florent Becker and Vladislav Gavryusev for contributions.
 """
 
 from __future__ import print_function
-import abc
-import copy
 import hashlib
 import logging
 import logging.handlers
@@ -110,7 +108,6 @@ __logger.addHandler(user_log_channel)
 try:
 
     import inkex
-    import inkex.elements
     from lxml import etree
 
     # ------------------------------------------------------------------------------
@@ -573,8 +570,6 @@ try:
 
                 return parser.errors[0]
 
-    import inkex.svg
-
 
     class TexTextElement(inkex.elements.Group):
         tag_name = "g"
@@ -590,7 +585,6 @@ try:
 
         def _svg_to_textext_node(self, svg_filename, doc_unit_to_mm):
             from inkex.elements import ShapeElement, Defs
-            from inkex.svg import SvgDocumentElement
             doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
 
             root = doc.getroot()
@@ -611,7 +605,6 @@ try:
         @staticmethod
         def _expand_defs(root):
             from inkex.transforms import Transform
-            from inkex.elements import ShapeElement
             from copy import deepcopy
             for el in root:
                 if isinstance(el, inkex.elements.Use):
