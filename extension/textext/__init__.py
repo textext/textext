@@ -194,32 +194,6 @@ try:
                 default=self.config.get('scale', 1.0)
             )
 
-        # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
-        # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
-        def get_document_width(self):
-            width = self.document.getroot().get('width')
-            if width:
-                return width
-            else:
-                viewbox = self.document.getroot().get('viewBox')
-                if viewbox:
-                    return viewbox.split()[2]
-                else:
-                    return '0'
-
-        # Identical to inkex.Effect.getDocumentHeight() in Inkscape >= 0.91, but to provide compatibility with
-        # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
-        def get_document_height(self):
-            height = self.document.getroot().get('height')
-            if height:
-                return height
-            else:
-                viewbox = self.document.getroot().get('viewBox')
-                if viewbox:
-                    return viewbox.split()[3]
-                else:
-                    return '0'
-
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
             from asktext import AskerFactory
@@ -407,7 +381,6 @@ try:
                 tt_node.set_meta("preamble", preamble_file)
                 tt_node.set_meta("scale", str(user_scale_factor))
                 tt_node.set_meta("alignment", str(alignment))
-
                 try:
                     inkscape_version = self.document.getroot().get('inkscape:version')
                     tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -416,27 +389,28 @@ try:
                     # no version attribute is provided by Inkscape :-(
                     pass
 
-                # -- Copy style
+                # Place new node in document
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
-                        root = self.document.getroot()
-                        width = self.svg.unittouu(self.get_document_width())
-                        height = self.svg.unittouu(self.get_document_height())
-
+                        # Place new nodes in the center of the document and scale them according to user request
+                        doc_width = self.svg.width
+                        doc_height = self.svg.height
                         x, y, w, h = tt_node.bounding_box()
                         tt_node.transform = tt_node.transform * \
-                                            Transform(translate=(-x + width / 2 - w / 2, -y + height / 2 - h / 2)) * \
+                                            Transform(translate=(-x + doc_width / 2 - w / 2,
+                                                                 -y + doc_height / 2 - h / 2)) * \
                                             Transform(scale=scale_factor)
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
                         self.svg.get_current_layer().add(tt_node)
                 else:
                     with logger.debug("Replacing node in document"):
+                        # Rescale existing nodes according to user request
                         relative_scale = user_scale_factor / original_scale
                         tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
 
-                        # If no non-black color has been explicitily set by TeX we copy the color information from the old node
-                        # so that coloring done in Inkscape is preserved.
+                        # If no non-black color has been explicitily set by TeX we copy the color information
+                        # from the old node so that coloring done in Inkscape is preserved.
                         if not tt_node.is_colorized():
                             tt_node.import_group_color_style(old_svg_ele)
 
