@@ -34,12 +34,13 @@ before_script:
    - export PATH=~/bin:$PATH
    - python test_installation_script.py 2> /dev/null
    - python setup.py
+   - wget https://gitlab.com/inkscape/extensions/raw/master/inkscape.extension.rng
 
 
 script:
   - export PYTHONPATH="`inkscape.beta -x`:$HOME/.config/inkscape/extensions/"
   #- python -m pytest --verbose -s pytests
-
+  - xmllint --noout --relaxng inkscape.extension.rng extension/textext.inx
 after_success:
   # Put a tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
   # Reminder: grep -q returns 0 if any match has been found, otherwise nonzero.
