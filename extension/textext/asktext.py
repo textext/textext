@@ -715,12 +715,14 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             :param data:
             :return: True, if a shortcut was recognized and handled
             """
-            if Gdk.keyval_name(event.keyval) == 'Return' and Gdk.ModifierType.CONTROL_MASK & event.state:
+
+            ctrl_is_pressed = Gdk.ModifierType.CONTROL_MASK & event.state
+            if Gdk.keyval_name(event.keyval) == 'Return' and ctrl_is_pressed:
                 self._ok_button.clicked()
                 return True
 
             # Show/ update Preview shortcut (CTRL+P)
-            if Gdk.keyval_name(event.keyval) == 'p' and Gdk.ModifierType.CONTROL_MASK & event.state:
+            if Gdk.keyval_name(event.keyval) == 'p' and ctrl_is_pressed:
                 self._preview_button.clicked()
                 return True
 
@@ -728,7 +730,7 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
             if (close_shortcut_value == 'Escape' and Gdk.keyval_name(event.keyval) == 'Escape') or \
                (close_shortcut_value == 'CtrlQ' and Gdk.keyval_name(event.keyval) == 'q' and
-                Gdk.ModifierType.CONTROL_MASK & event.state):
+                ctrl_is_pressed):
                 self._cancel_button.clicked()
                 return True
 
