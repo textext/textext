@@ -389,10 +389,14 @@ try:
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
                         # Place new nodes in the view center and scale them according to user request
-                        from inkex.transforms import Vector2d
 
-                        node_center = Vector2d(tt_node.get_center_position())
-                        view_center = self.svg.get_center_position()
+                        # ToDo: Remove except block as far as new center props are available in official beta releases
+                        try:
+                            node_center = tt_node.bounding_box().center
+                            view_center = self.svg.namedview.center
+                        except AttributeError:
+                            node_center = tt_node.bounding_box().center()
+                            view_center = self.svg.get_center_position()
 
                         tt_node.transform = (Transform(translate=view_center) *    # place at view center
                                              Transform(scale=user_scale_factor) *  # scale
