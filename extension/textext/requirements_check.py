@@ -67,6 +67,10 @@ class MacDefaults(LinuxDefaults):
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
 
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions")
+
 
 class WindowsDefaults(Defaults):
 
