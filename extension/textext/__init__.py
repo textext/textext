@@ -361,17 +361,13 @@ try:
                 if isinstance(text, bytes):
                     text = text.decode('utf-8')
 
-                # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
-                # even if the document user units are not in pt
-                scale_factor = user_scale_factor * self.svg.unittouu("1pt")
-
                 # Convert
                 with logger.debug("Converting tex to svg"):
                     with ChangeToTemporaryDirectory():
                         converter = TexToPdfConverter(self.requirements_checker)
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
-                        tt_node = TexTextElement(converter.tmp("svg"))
+                        tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
                 # -- Store textext attributes
                 tt_node.set_meta("version", __version__)
@@ -398,10 +394,10 @@ try:
                         node_center = Vector2d(tt_node.get_center_position())
                         view_center = self.svg.get_center_position()
 
-                        tt_node.transform = (Transform(translate=view_center) *  # place at view center
-                                             Transform(scale=scale_factor) *  # scale
-                                             Transform(translate=-node_center) *  # place node at origin
-                                             tt_node.transform  # use original node transform
+                        tt_node.transform = (Transform(translate=view_center) *    # place at view center
+                                             Transform(scale=user_scale_factor) *  # scale
+                                             Transform(translate=-node_center) *   # place node at origin
+                                             tt_node.transform                     # use original node transform
                                              )
 
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
@@ -427,9 +423,7 @@ try:
                     else:
                         self.config['preamble'] = ''
 
-                    # ToDo: Do we really need this if statement?
-                    if scale_factor is not None:
-                        self.config['scale'] = user_scale_factor
+                    self.config['scale'] = user_scale_factor
 
                     self.config["previous_tex_command"] = tex_command
 
@@ -608,11 +602,16 @@ try:
     class TexTextElement(inkex.elements.Group):
         tag_name = "g"
 
-        def __init__(self, svg_filename=None):
+        def __init__(self, svg_filename, uu_in_mm):
+            """
+            :param svg_filename: The name of the file containing the svg-snippet
+            :param uu_in_mm: The units of the document into which the node is going to be placed into
+                             expressed in mm
+            """
             super(TexTextElement, self).__init__()
-            self._svg_to_textext_node(svg_filename)
+            self._svg_to_textext_node(svg_filename, uu_in_mm)
 
-        def _svg_to_textext_node(self, svg_filename):
+        def _svg_to_textext_node(self, svg_filename, doc_unit_to_mm):
             from inkex.elements import ShapeElement, Defs
             from inkex.svg import SvgDocumentElement
             doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
@@ -628,6 +627,9 @@ try:
                 self.append(el)
 
             self.make_ids_unique()
+
+            # Ensure that snippet is correctly scaled according to the units of the document
+            self.transform.add_scale(doc_unit_to_mm/root.unittouu("1mm"))
 
         @staticmethod
         def _expand_defs(root):
