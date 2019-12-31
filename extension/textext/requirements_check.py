@@ -110,7 +110,7 @@ class WindowsDefaults(Defaults):
 
     @property
     def inkscape_extensions_path(self):
-        return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+        return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
 
     def get_system_path(self):
         return self._tweaked_syspath
