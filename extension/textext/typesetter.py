@@ -100,7 +100,7 @@ class LaTeXLogger(logging.Logger):
         if 'kind' in error:
             kind = error['kind'].capitalize() + ": "
 
-        logging.Logger.error(self, "{line}: {kind}{error}".format(line=error.get('line', ''),
+        logging.Logger.error(self, u"{line}: {kind}{error}".format(line=error.get('line', ''),
                                                                   error=self.styled(error['text'], 'error'),
                                                                   kind=kind))
         if error.get('code'):  # if the code is available we print it:
