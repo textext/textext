@@ -67,6 +67,10 @@ class MacDefaults(LinuxDefaults):
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
 
+    @property
+    def inkscape_extensions_path(self):
+        return os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions")
+
 
 class WindowsDefaults(Defaults):
 
@@ -106,7 +110,7 @@ class WindowsDefaults(Defaults):
 
     @property
     def inkscape_extensions_path(self):
-        return os.path.join(os.getenv("APPDATA"), "inkscape\extensions")
+        return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
 
     def get_system_path(self):
         return self._tweaked_syspath
