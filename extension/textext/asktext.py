@@ -41,7 +41,7 @@ from textext.utility import SuppressStream
 
 # Try GTK first
 #   If successful, try GTKSourceView (bonus points!)
-#   If unsuccessful, try TK
+#   If unsuccessful, try TK (first for Python 3, then for Python 2)
 #   When not even TK could be imported, abort with error message
 try:
     import gi
@@ -62,17 +62,24 @@ try:
 
 except (ImportError, TypeError, ValueError) as _:
     try:
-        import Tkinter as Tk
-        import tkMessageBox as TkMsgBoxes
-        import tkFileDialog as TkFileDialogs
+        # TK for Python 3 (if this fails, try Python 2 below)
+        import tkinter as Tk
+        from tkinter import messagebox as TkMsgBoxes
+        from tkinter import filedialog as TkFileDialogs
 
-        TOOLKIT = TK
-    except ImportError:
-        raise RuntimeError("\nNeither PyGTK nor TKinter is available!\nMake sure that at least one of this "
-                           "bindings for the graphical user interface of TexText is installed! Refer to the "
-                           "installation instructions on https://github.com/textext/textext/wiki !\nHint: If you "
-                           "updated Inkscape on Windows you may re-install PyGTK!")
+    except ImportError as _:
+        try:
+            # TK for Python 2
+            import Tkinter as Tk
+            import tkMessageBox as TkMsgBoxes
+            import tkFileDialog as TkFileDialogs
 
+        except ImportError:
+            raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
+                               "bindings for the graphical user interface of TexText is installed! Refer to the "
+                               "installation instructions on https://textext.github.io/textext/ !")
+
+    TOOLKIT = TK
 
 def set_monospace_font(text_view):
     """
