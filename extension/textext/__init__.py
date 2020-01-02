@@ -123,7 +123,7 @@ try:
     }
 
     # Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
-    from typesetter import Typesetter
+    #from typesetter import Typesetter
 
 
     # ------------------------------------------------------------------------------
@@ -580,6 +580,7 @@ try:
             """
             with logger.debug("Parsing LaTeX log file"):
                 from io import StringIO
+                from typesetter import Typesetter
                 log_buffer = StringIO()
                 log_handler = logging.StreamHandler(log_buffer)
 
@@ -591,7 +592,12 @@ try:
                     typesetter.logger.removeHandler(handler)
 
                 typesetter.logger.addHandler(log_handler)
+
+                # Temporarily tweak the logging level so that errors are passed by latexlogparser
+                root_logging_disable_level = typesetter.logger.manager.disable
+                logging.disable(logging.WARNING)
                 typesetter.process_log(logfile)
+                logging.disable(root_logging_disable_level)
 
                 typesetter.logger.removeHandler(log_handler)
 
