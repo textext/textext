@@ -122,9 +122,6 @@ try:
         u'xlink': XLINK_NS,
     }
 
-    # Due to Inkscape 0.92.2 path problem placed here and not in LatexConverterBase.parse_pdf_log
-    #from typesetter import Typesetter
-
 
     # ------------------------------------------------------------------------------
     # Inkscape plugin functionality
@@ -534,7 +531,7 @@ try:
                     exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
                 except TexTextCommandFailed as error:
                     if os.path.exists(self.tmp('log')):
-                        parsed_log = self.parse_pdf_log(self.tmp('log'))
+                        parsed_log = self.parse_pdf_log()
                         raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr)
                     else:
                         raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
@@ -572,39 +569,19 @@ try:
             ]
             )
 
-        def parse_pdf_log(self, logfile):
+        def parse_pdf_log(self):
             """
-            Strip down tex output to only the warnings, errors etc. and discard all the noise
-            :param logfile:
-            :return: string
+            Strip down tex output to only the first error etc. and discard all the noise
+            :return: string containing the error message and some context lines after it
             """
             with logger.debug("Parsing LaTeX log file"):
-                from io import StringIO
-                from typesetter import Typesetter
-                log_buffer = StringIO()
-                log_handler = logging.StreamHandler(log_buffer)
+                from texoutparse import LatexLogParser
 
-                typesetter = Typesetter(self.tmp('tex'))
-                typesetter.halt_on_errors = False
+                parser = LatexLogParser()
+                with open(self.tmp('log')) as f:
+                    parser.process(f)
 
-                handlers = typesetter.logger.handlers
-                for handler in handlers:
-                    typesetter.logger.removeHandler(handler)
-
-                typesetter.logger.addHandler(log_handler)
-
-                # Temporarily tweak the logging level so that errors are passed by latexlogparser
-                root_logging_disable_level = typesetter.logger.manager.disable
-                logging.disable(logging.WARNING)
-                typesetter.process_log(logfile)
-                logging.disable(root_logging_disable_level)
-
-                typesetter.logger.removeHandler(log_handler)
-
-                log_handler.flush()
-                log_buffer.flush()
-
-                return log_buffer.getvalue()
+                return parser.errors[0]
 
     import inkex.svg
 
