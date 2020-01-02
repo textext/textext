@@ -194,32 +194,6 @@ try:
                 default=self.config.get('scale', 1.0)
             )
 
-        # Identical to inkex.Effect.getDocumentWidth() in Inkscape >= 0.91, but to provide compatibility with
-        # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
-        def get_document_width(self):
-            width = self.document.getroot().get('width')
-            if width:
-                return width
-            else:
-                viewbox = self.document.getroot().get('viewBox')
-                if viewbox:
-                    return viewbox.split()[2]
-                else:
-                    return '0'
-
-        # Identical to inkex.Effect.getDocumentHeight() in Inkscape >= 0.91, but to provide compatibility with
-        # Inkscape 0.48 we implement it here explicitly again as long as we provide compatibility with that version
-        def get_document_height(self):
-            height = self.document.getroot().get('height')
-            if height:
-                return height
-            else:
-                viewbox = self.document.getroot().get('viewBox')
-                if viewbox:
-                    return viewbox.split()[3]
-                else:
-                    return '0'
-
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
             from asktext import AskerFactory
@@ -387,17 +361,13 @@ try:
                 if isinstance(text, bytes):
                     text = text.decode('utf-8')
 
-                # Coordinates in node from converter are always in pt, we have to scale them such that the node size is correct
-                # even if the document user units are not in pt
-                scale_factor = user_scale_factor * self.svg.unittouu("1pt")
-
                 # Convert
                 with logger.debug("Converting tex to svg"):
                     with ChangeToTemporaryDirectory():
                         converter = TexToPdfConverter(self.requirements_checker)
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
-                        tt_node = TexTextElement(converter.tmp("svg"))
+                        tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
                 # -- Store textext attributes
                 tt_node.set_meta("version", __version__)
@@ -407,7 +377,6 @@ try:
                 tt_node.set_meta("preamble", preamble_file)
                 tt_node.set_meta("scale", str(user_scale_factor))
                 tt_node.set_meta("alignment", str(alignment))
-
                 try:
                     inkscape_version = self.document.getroot().get('inkscape:version')
                     tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -416,27 +385,36 @@ try:
                     # no version attribute is provided by Inkscape :-(
                     pass
 
-                # -- Copy style
+                # Place new node in document
                 if old_svg_ele is None:
                     with logger.debug("Adding new node to document"):
-                        root = self.document.getroot()
-                        width = self.svg.unittouu(self.get_document_width())
-                        height = self.svg.unittouu(self.get_document_height())
+                        # Place new nodes in the view center and scale them according to user request
 
-                        x, y, w, h = tt_node.bounding_box()
-                        tt_node.transform = tt_node.transform * \
-                                            Transform(translate=(-x + width / 2 - w / 2, -y + height / 2 - h / 2)) * \
-                                            Transform(scale=scale_factor)
+                        # ToDo: Remove except block as far as new center props are available in official beta releases
+                        try:
+                            node_center = tt_node.bounding_box().center
+                            view_center = self.svg.namedview.center
+                        except AttributeError:
+                            node_center = tt_node.bounding_box().center()
+                            view_center = self.svg.get_center_position()
+
+                        tt_node.transform = (Transform(translate=view_center) *    # place at view center
+                                             Transform(scale=user_scale_factor) *  # scale
+                                             Transform(translate=-node_center) *   # place node at origin
+                                             tt_node.transform                     # use original node transform
+                                             )
+
                         tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
                         self.svg.get_current_layer().add(tt_node)
                 else:
                     with logger.debug("Replacing node in document"):
+                        # Rescale existing nodes according to user request
                         relative_scale = user_scale_factor / original_scale
                         tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
 
-                        # If no non-black color has been explicitily set by TeX we copy the color information from the old node
-                        # so that coloring done in Inkscape is preserved.
+                        # If no non-black color has been explicitily set by TeX we copy the color information
+                        # from the old node so that coloring done in Inkscape is preserved.
                         if not tt_node.is_colorized():
                             tt_node.import_group_color_style(old_svg_ele)
 
@@ -449,9 +427,7 @@ try:
                     else:
                         self.config['preamble'] = ''
 
-                    # ToDo: Do we really need this if statement?
-                    if scale_factor is not None:
-                        self.config['scale'] = user_scale_factor
+                    self.config['scale'] = user_scale_factor
 
                     self.config["previous_tex_command"] = tex_command
 
@@ -630,11 +606,16 @@ try:
     class TexTextElement(inkex.elements.Group):
         tag_name = "g"
 
-        def __init__(self, svg_filename=None):
+        def __init__(self, svg_filename, uu_in_mm):
+            """
+            :param svg_filename: The name of the file containing the svg-snippet
+            :param uu_in_mm: The units of the document into which the node is going to be placed into
+                             expressed in mm
+            """
             super(TexTextElement, self).__init__()
-            self._svg_to_textext_node(svg_filename)
+            self._svg_to_textext_node(svg_filename, uu_in_mm)
 
-        def _svg_to_textext_node(self, svg_filename):
+        def _svg_to_textext_node(self, svg_filename, doc_unit_to_mm):
             from inkex.elements import ShapeElement, Defs
             from inkex.svg import SvgDocumentElement
             doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
@@ -650,6 +631,9 @@ try:
                 self.append(el)
 
             self.make_ids_unique()
+
+            # Ensure that snippet is correctly scaled according to the units of the document
+            self.transform.add_scale(doc_unit_to_mm/root.unittouu("1mm"))
 
         @staticmethod
         def _expand_defs(root):
