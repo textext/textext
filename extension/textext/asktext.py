@@ -101,7 +101,7 @@ def error_dialog(parent, title, label, error):
     """
 
     dialog = Gtk.Dialog(title, parent)
-    dialog.set_default_size(400, 300)
+    dialog.set_default_size(450, 300)
     button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
     button.connect("clicked", lambda w, d=None: dialog.destroy())
     message_label = Gtk.Label()
@@ -121,8 +121,9 @@ def error_dialog(parent, title, label, error):
         text_view.show()
 
         scroll_window = Gtk.ScrolledWindow()
-        scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
         scroll_window.set_shadow_type(Gtk.ShadowType.IN)
+        scroll_window.set_min_content_height(150)
         scroll_window.add(text_view)
         scroll_window.show()
 
@@ -149,7 +150,7 @@ def error_dialog(parent, title, label, error):
         expander.set_size_request(20, -1)
         scroll_window.hide()
 
-        raw_output_box.pack_start(expander, expand=True, fill=True, padding=5)
+        dialog.vbox.pack_start(expander, expand=True, fill=True, padding=5)
 
     dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
     message_label.show()
