@@ -34,7 +34,7 @@ TOOLKIT = None
 
 import os
 import warnings
-from errors import TexTextCommandFailed, TexTextConversionError
+from errors import TexTextCommandFailed
 from textext.utility import SuppressStream
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
@@ -87,83 +87,6 @@ def set_monospace_font(text_view):
             text_view.modify_font(font_desc)
     except ImportError:
         pass
-
-
-def error_dialog(parent, title, label, error):
-    """
-    Present an error dialog
-
-    :param parent: Parent window
-    :param title: Error title text
-    :param label: Label text
-    :param error: exception
-    :type error: StandardError
-    """
-
-    dialog = Gtk.Dialog(title, parent)
-    dialog.set_default_size(450, 300)
-    button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
-    button.connect("clicked", lambda w, d=None: dialog.destroy())
-    message_label = Gtk.Label()
-    message_label.set_markup("<b>{message}</b>".format(message=label))
-    message_label.set_justify(Gtk.Justification.LEFT )
-
-    raw_output_box = Gtk.VBox()
-
-    def add_section(header, text):
-
-        text_view = Gtk.TextView()
-        text_view.set_editable(False)
-        text_view.set_left_margin(5)
-        text_view.set_right_margin(5)
-        text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-        text_view.get_buffer().set_text(text)
-        text_view.show()
-
-        scroll_window = Gtk.ScrolledWindow()
-        scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
-        scroll_window.set_shadow_type(Gtk.ShadowType.IN)
-        scroll_window.set_min_content_height(150)
-        scroll_window.add(text_view)
-        scroll_window.show()
-
-        if header is None:
-            dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
-            return
-
-        expander = Gtk.Expander()
-
-        def callback(event):
-            if expander.get_expanded():
-                desired_height = 20
-            else:
-                desired_height = 150
-            expander.set_size_request(-1, desired_height)
-
-        expander.connect('activate', callback)
-        expander.add(scroll_window)
-        expander.show()
-
-        expander.set_label(header)
-        expander.set_use_markup(True)
-
-        expander.set_size_request(20, -1)
-        scroll_window.hide()
-
-        dialog.vbox.pack_start(expander, expand=True, fill=True, padding=5)
-
-    dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
-    message_label.show()
-    add_section(None, str(error))
-    dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
-
-    if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
-        if error.stdout:
-            add_section("Stdout: <small><i>(click to expand)</i></small>", error.stdout.decode('utf-8'))
-        if error.stderr:
-            add_section("Stderr: <small><i>(click to expand)</i></small>", error.stderr.decode('utf-8'))
-    dialog.show_all()
-    dialog.run()
 
 
 class AskerFactory(object):
@@ -244,16 +167,27 @@ class AskText(object):
         :param callback: A callback function (basically, what to do with the values from the GUI)
         :param preview_callback: A callback function to run to create a preview rendering
         """
-        pass
+        raise NotImplementedError()
+
+    def show_error_dialog(self, title, message_text, exception):
+        """
+        Presents an error dialog
+
+        :param parent: Parent window
+        :param title: Error title text
+        :param message_text: Message text to be displayed
+        :param exception: Exception thrown
+        """
+        raise NotImplementedError()
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
-        pass
+        raise NotImplementedError()
 
     def cb_ok(self, widget=None, data=None):
         """Callback for OK / Save button"""
-        pass
+        raise NotImplementedError()
 
     def scale_factor_after_loading(self):
         """
@@ -483,10 +417,23 @@ if TOOLKIT == TK:
                 self._preamble.delete(0, Tk.END)
                 self._preamble.insert(Tk.END, file_name)
 
+        def error_dialog(self, title, label, error):
+            """
+            Present an error dialog
+
+            :param parent: Parent window
+            :param title: Error title text
+            :param label: Label text
+            :param error: exception
+            :type error: StandardError
+            """
+            # ToDo: Fill with info
+            pass
+
+
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
-
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd, tex_commands, gui_config):
@@ -756,12 +703,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                               self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
                               self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
             except Exception as error:
-                import traceback
-
-                error_dialog(self._window,
-                             "TexText Error",
-                             "Error occurred while converting text from Latex to SVG:",
-                             error)
+                self.show_error_dialog("TexText Error",
+                                       "Error occurred while converting text from Latex to SVG:",
+                                       error)
                 return False
 
             Gtk.main_quit()
@@ -814,10 +758,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     self._preview_callback(text, preamble, self.set_preview_image_from_file,
                                            self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
                 except Exception as error:
-                    error_dialog(self._window,
-                                 "TexText Error",
-                                 "Error occurred while generating preview:",
-                                 error)
+                    self.show_error_dialog("TexText Error",
+                                           "Error occurred while generating preview:",
+                                            error)
                     return False
 
         def set_preview_image_from_file(self, path):
@@ -829,7 +772,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
             self._preview_scroll_window.set_has_tooltip(False)
             self.update_preview_representation()
-
 
         def switch_preview_representation(self, widget=None, event=None):
             if event.button == 1: # left click only
@@ -893,8 +835,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
             self._preview_scroll_window.show()
-
-
 
         # ---------- create view window
         def create_buttons(self):
@@ -1014,9 +954,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-
-
-
             scale_reset_button = Gtk.Button.new_from_icon_name('edit-undo', Gtk.IconSize.BUTTON)
             scale_reset_button.set_label('Reset ({0:.3f})'.format(reset_scale))
             scale_reset_button.set_always_show_image(True)
@@ -1141,7 +1078,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preview_event_box.connect('button-press-event', self.switch_preview_representation)
             preview_event_box.add(self._preview_scroll_window)
 
-
             # Vertical Layout
             vbox = Gtk.VBox(False, 4)
             window.add(vbox)
@@ -1209,7 +1145,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     iter = self._source_buffer.get_iter_at_offset(2)
                     self._source_buffer.place_cursor(iter)
 
-
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
             text_buffer.connect('changed', self.update_position_label, self, source_view)
@@ -1247,3 +1182,69 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # main loop
                 Gtk.main()
                 return self._gui_config
+
+        def show_error_dialog(self, title, message_text, exception):
+
+            dialog = Gtk.Dialog(title, self._window)
+            dialog.set_default_size(450, 300)
+            button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
+            button.connect("clicked", lambda w, d=None: dialog.destroy())
+            message_label = Gtk.Label()
+            message_label.set_markup("<b>{message}</b>".format(message=message_text))
+            message_label.set_justify(Gtk.Justification.LEFT )
+
+            raw_output_box = Gtk.VBox()
+
+            def add_section(header, text):
+
+                text_view = Gtk.TextView()
+                text_view.set_editable(False)
+                text_view.set_left_margin(5)
+                text_view.set_right_margin(5)
+                text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+                text_view.get_buffer().set_text(text)
+                text_view.show()
+
+                scroll_window = Gtk.ScrolledWindow()
+                scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
+                scroll_window.set_shadow_type(Gtk.ShadowType.IN)
+                scroll_window.set_min_content_height(150)
+                scroll_window.add(text_view)
+                scroll_window.show()
+
+                if header is None:
+                    dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
+                    return
+
+                expander = Gtk.Expander()
+
+                def callback(event):
+                    if expander.get_expanded():
+                        desired_height = 20
+                    else:
+                        desired_height = 150
+                    expander.set_size_request(-1, desired_height)
+
+                expander.connect('activate', callback)
+                expander.add(scroll_window)
+                expander.show()
+
+                expander.set_label(header)
+                expander.set_use_markup(True)
+
+                expander.set_size_request(20, -1)
+                scroll_window.hide()
+
+                dialog.vbox.pack_start(expander, expand=True, fill=True, padding=5)
+
+            dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
+            add_section(None, str(exception))
+            dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
+
+            if isinstance(exception, TexTextCommandFailed):
+                if exception.stdout:
+                    add_section("Stdout: <small><i>(click to expand)</i></small>", exception.stdout.decode('utf-8'))
+                if exception.stderr:
+                    add_section("Stderr: <small><i>(click to expand)</i></small>", exception.stderr.decode('utf-8'))
+            dialog.show_all()
+            dialog.run()
