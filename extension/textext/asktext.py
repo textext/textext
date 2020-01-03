@@ -249,10 +249,10 @@ if TOOLKIT == TK:
         def ask(self, callback, preview_callback=None):
             self.callback = callback
 
-            root = Tk.Tk()
-            root.title("TexText {0}".format(self.textext_version))
+            self._root = Tk.Tk()
+            self._root.title("TexText {0}".format(self.textext_version))
 
-            self._frame = Tk.Frame(root)
+            self._frame = Tk.Frame(self._root)
             self._frame.pack()
 
             # Frame box for preamble file
@@ -270,14 +270,14 @@ if TOOLKIT == TK:
             box.pack(fill="x", pady=5, expand=True)
 
             # Frame box for tex command
-            tex_command_tk_str = Tk.StringVar()
-            tex_command_tk_str.set(self.current_texcmd)
+            self._tex_command_tk_str = Tk.StringVar()
+            self._tex_command_tk_str.set(self.current_texcmd)
 
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="TeX command:")
             label.pack(pady=2, padx=5, anchor="w")
             for tex_command in self.TEX_COMMANDS:
-                Tk.Radiobutton(box, text=tex_command, variable=tex_command_tk_str,
+                Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
                                value=tex_command).pack(side="left", expand=False, anchor="w")
             box.pack(fill="x", pady=5, expand=True)
 
@@ -286,7 +286,7 @@ if TOOLKIT == TK:
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            validation_command = (root.register(self.validate_spinbox_input),
+            validation_command = (self._root.register(self.validate_spinbox_input),
                                   '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
             self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
                                      validatecommand=validation_command)
@@ -312,8 +312,8 @@ if TOOLKIT == TK:
             label = Tk.Label(box, text="Alignment to existing node:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
-            alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+            self._alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            self._alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
 
             alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
             vbox = None
@@ -321,7 +321,7 @@ if TOOLKIT == TK:
             for i, ind in enumerate(alignment_index_list):
                 if i % 3 == 0:
                     vbox = Tk.Frame(box)
-                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
                                value=self.ALIGNMENT_LABELS[ind], state=tk_state).pack(expand=True, anchor="w")
                 if (i + 1) % 3 == 0:
                     vbox.pack(side="left", fill="x", expand=True)
@@ -369,20 +369,17 @@ if TOOLKIT == TK:
             box.pack(expand=False)
 
             # Ensure that the window opens centered on the screen
-            root.update()
+            self._root.update()
 
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            window_width = root.winfo_width()
-            window_height = root.winfo_height()
+            screen_width = self._root.winfo_screenwidth()
+            screen_height = self._root.winfo_screenheight()
+            window_width = self._root.winfo_width()
+            window_height = self._root.winfo_height()
             window_xpos = (screen_width/2) - (window_width/2)
             window_ypos = (screen_height/2) - (window_height/2)
-            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
+            self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
 
-            root.mainloop()
-
-            self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
-                          tex_command_tk_str.get())
+            self._root.mainloop()
             return self._gui_config
 
         def cb_ok(self, widget=None, data=None):
@@ -395,7 +392,17 @@ if TOOLKIT == TK:
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
 
+            try:
+                self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get(),
+                              self._tex_command_tk_str.get())
+            except Exception as error:
+                self.show_error_dialog("TexText Error",
+                                  "Error occurred while converting text from Latex to SVG:",
+                                  error)
+                return False
+
             self._frame.quit()
+            return False
 
         def cb_word_wrap(self, widget=None, data=None):
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
@@ -417,18 +424,48 @@ if TOOLKIT == TK:
                 self._preamble.delete(0, Tk.END)
                 self._preamble.insert(Tk.END, file_name)
 
-        def error_dialog(self, title, label, error):
-            """
-            Present an error dialog
+        def show_error_dialog(self, title, message_text, exception):
 
-            :param parent: Parent window
-            :param title: Error title text
-            :param label: Label text
-            :param error: exception
-            :type error: StandardError
-            """
-            # ToDo: Fill with info
-            pass
+            # ToDo: Check Windows behavior!! --> -disable
+            self._root.wm_attributes("-topmost", False)
+
+            err_dialog = Tk.Toplevel(self._frame)
+            err_dialog.minsize(300, 400)
+            err_dialog.transient(self._frame)
+            err_dialog.focus_force()
+            err_dialog.grab_set()
+
+            def add_textview(header, text):
+                err_dialog_frame = Tk.Frame(err_dialog)
+                err_dialog_label = Tk.Label(err_dialog_frame, text=header)
+                err_dialog_label.pack(side='top', fill=Tk.X)
+                err_dialog_text = Tk.Text(err_dialog_frame, height=10)
+                err_dialog_text.insert(Tk.END, text)
+                err_dialog_text.pack(side='left', fill=Tk.Y)
+                err_dialog_scrollbar = Tk.Scrollbar(err_dialog_frame)
+                err_dialog_scrollbar.pack(side='right', fill=Tk.Y)
+                err_dialog_scrollbar.config(command=err_dialog_text.yview)
+                err_dialog_text.config(yscrollcommand=err_dialog_scrollbar.set)
+                err_dialog_frame.pack(side='top')
+
+            def close_error_dialog():
+                # ToDo: Check Windows behavior!! -disable
+                self._root.wm_attributes("-topmost", True)
+                err_dialog.destroy()
+
+            err_dialog.protocol("WM_DELETE_WINDOW", close_error_dialog)
+
+            add_textview(message_text, str(exception))
+
+            if isinstance(exception, TexTextCommandFailed):
+                if exception.stdout:
+                    add_textview('Stdout:', exception.stdout.decode('utf-8'))
+
+                if exception.stderr:
+                    add_textview('Stderr:', exception.stderr.decode('utf-8'))
+
+            close_button = Tk.Button(err_dialog, text='OK', command=close_error_dialog)
+            close_button.pack(side='top', fill='x', expand=True)
 
 
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
