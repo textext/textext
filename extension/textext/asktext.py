@@ -33,6 +33,7 @@ TK = "TK"
 TOOLKIT = None
 
 import os
+import sys
 import warnings
 from errors import TexTextCommandFailed, TexTextConversionError
 from textext.utility import SuppressStream
@@ -62,24 +63,21 @@ try:
 
 except (ImportError, TypeError, ValueError) as _:
     try:
-        # TK for Python 3 (if this fails, try Python 2 below)
-        import tkinter as Tk
-        from tkinter import messagebox as TkMsgBoxes
-        from tkinter import filedialog as TkFileDialogs
-
-    except ImportError as _:
-        try:
-            # TK for Python 2
+        if sys.version_info[0] == 3: # TK for Python 3 (if this fails, try Python 2 below)
+            import tkinter as Tk
+            from tkinter import messagebox as TkMsgBoxes
+            from tkinter import filedialog as TkFileDialogs
+        else: # TK for Python 2
             import Tkinter as Tk
             import tkMessageBox as TkMsgBoxes
             import tkFileDialog as TkFileDialogs
+        TOOLKIT = TK
 
-        except ImportError:
-            raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
-                               "bindings for the graphical user interface of TexText is installed! Refer to the "
-                               "installation instructions on https://textext.github.io/textext/ !")
+    except ImportError:
+        raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
+                           "bindings for the graphical user interface of TexText is installed! Refer to the "
+                           "installation instructions on https://textext.github.io/textext/ !")
 
-    TOOLKIT = TK
 
 def set_monospace_font(text_view):
     """

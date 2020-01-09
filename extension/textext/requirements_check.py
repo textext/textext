@@ -549,16 +549,15 @@ class TexTextRequirementsChecker(object):
 
     def find_tkinter(self):
         executable = sys.executable
+        if sys.version_info[0] == 3:
+            import_tk_script = "import tkinter; import tkinter.messagebox; import tkinter.filedialog;"
+        else:
+            import_tk_script = "import Tkinter; import tkMessageBox; import tkFileDialog;"
         try:
-            # Python 3
             defaults.call_command(
-                [executable, "-c", "import tkinter; import tkinter.messagebox; import tkinter.filedialog;"])
+                [executable, "-c", import_tk_script])
         except (KeyError, OSError, subprocess.CalledProcessError):
-            try:
-                # Python 2
-                defaults.call_command([executable, "-c", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
-            except (KeyError, OSError, subprocess.CalledProcessError):
-                return RequirementCheckResult(False, ["TkInter is not found"])
+            return RequirementCheckResult(False, ["TkInter is not found"])
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
