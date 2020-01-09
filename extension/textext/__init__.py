@@ -61,7 +61,6 @@ TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
     __version__ = version_file.readline().strip()
-__docformat__ = "restructuredtext en"
 
 if sys.version[0] == '3':
     unicode = str
