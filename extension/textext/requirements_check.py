@@ -548,9 +548,14 @@ class TexTextRequirementsChecker(object):
         return RequirementCheckResult(True, ["GTK3 is found"])
 
     def find_tkinter(self):
+        executable = sys.executable
+        if sys.version_info[0] == 3:
+            import_tk_script = "import tkinter; import tkinter.messagebox; import tkinter.filedialog;"
+        else:
+            import_tk_script = "import Tkinter; import tkMessageBox; import tkFileDialog;"
         try:
-            executable = sys.executable
-            defaults.call_command([executable, "-c", "import Tkinter; import tkMessageBox; import tkFileDialog;"])
+            defaults.call_command(
+                [executable, "-c", import_tk_script])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
 
