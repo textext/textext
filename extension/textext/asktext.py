@@ -35,7 +35,7 @@ TOOLKIT = None
 import os
 import sys
 import warnings
-from errors import TexTextCommandFailed, TexTextConversionError
+from errors import TexTextCommandFailed
 from textext.utility import SuppressStream
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
@@ -92,82 +92,6 @@ def set_monospace_font(text_view):
             text_view.modify_font(font_desc)
     except ImportError:
         pass
-
-
-def error_dialog(parent, title, label, error):
-    """
-    Present an error dialog
-
-    :param parent: Parent window
-    :param title: Error title text
-    :param label: Label text
-    :param error: exception
-    :type error: StandardError
-    """
-
-    dialog = Gtk.Dialog(title, parent)
-    dialog.set_default_size(400, 300)
-    button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
-    button.connect("clicked", lambda w, d=None: dialog.destroy())
-    message_label = Gtk.Label()
-    message_label.set_markup("<b>{message}</b>".format(message=label))
-    message_label.set_justify(Gtk.Justification.LEFT )
-
-    raw_output_box = Gtk.VBox()
-
-    def add_section(header, text):
-
-        text_view = Gtk.TextView()
-        text_view.set_editable(False)
-        text_view.set_left_margin(5)
-        text_view.set_right_margin(5)
-        text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-        text_view.get_buffer().set_text(text)
-        text_view.show()
-
-        scroll_window = Gtk.ScrolledWindow()
-        scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
-        scroll_window.set_shadow_type(Gtk.ShadowType.IN)
-        scroll_window.add(text_view)
-        scroll_window.show()
-
-        if header is None:
-            dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
-            return
-
-        expander = Gtk.Expander()
-
-        def callback(event):
-            if expander.get_expanded():
-                desired_height = 20
-            else:
-                desired_height = 150
-            expander.set_size_request(-1, desired_height)
-
-        expander.connect('activate', callback)
-        expander.add(scroll_window)
-        expander.show()
-
-        expander.set_label(header)
-        expander.set_use_markup(True)
-
-        expander.set_size_request(20, -1)
-        scroll_window.hide()
-
-        raw_output_box.pack_start(expander, expand=True, fill=True, padding=5)
-
-    dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
-    message_label.show()
-    add_section(None, str(error))
-    dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
-
-    if isinstance(error, (TexTextConversionError, TexTextCommandFailed)):
-        if error.stdout:
-            add_section("Stdout: <small><i>(click to expand)</i></small>", error.stdout.decode('utf-8'))
-        if error.stderr:
-            add_section("Stderr: <small><i>(click to expand)</i></small>", error.stderr.decode('utf-8'))
-    dialog.show_all()
-    dialog.run()
 
 
 class AskerFactory(object):
@@ -248,16 +172,27 @@ class AskText(object):
         :param callback: A callback function (basically, what to do with the values from the GUI)
         :param preview_callback: A callback function to run to create a preview rendering
         """
-        pass
+        raise NotImplementedError()
+
+    def show_error_dialog(self, title, message_text, exception):
+        """
+        Presents an error dialog
+
+        :param parent: Parent window
+        :param title: Error title text
+        :param message_text: Message text to be displayed
+        :param exception: Exception thrown
+        """
+        raise NotImplementedError()
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
-        pass
+        raise NotImplementedError()
 
     def cb_ok(self, widget=None, data=None):
         """Callback for OK / Save button"""
-        pass
+        raise NotImplementedError()
 
     def scale_factor_after_loading(self):
         """
@@ -319,10 +254,10 @@ if TOOLKIT == TK:
         def ask(self, callback, preview_callback=None):
             self.callback = callback
 
-            root = Tk.Tk()
-            root.title("TexText {0}".format(self.textext_version))
+            self._root = Tk.Tk()
+            self._root.title("TexText {0}".format(self.textext_version))
 
-            self._frame = Tk.Frame(root)
+            self._frame = Tk.Frame(self._root)
             self._frame.pack()
 
             # Frame box for preamble file
@@ -340,14 +275,14 @@ if TOOLKIT == TK:
             box.pack(fill="x", pady=5, expand=True)
 
             # Frame box for tex command
-            tex_command_tk_str = Tk.StringVar()
-            tex_command_tk_str.set(self.current_texcmd)
+            self._tex_command_tk_str = Tk.StringVar()
+            self._tex_command_tk_str.set(self.current_texcmd)
 
             box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
             label = Tk.Label(box, text="TeX command:")
             label.pack(pady=2, padx=5, anchor="w")
             for tex_command in self.TEX_COMMANDS:
-                Tk.Radiobutton(box, text=tex_command, variable=tex_command_tk_str,
+                Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
                                value=tex_command).pack(side="left", expand=False, anchor="w")
             box.pack(fill="x", pady=5, expand=True)
 
@@ -356,7 +291,7 @@ if TOOLKIT == TK:
             label = Tk.Label(box, text="Scale factor:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            validation_command = (root.register(self.validate_spinbox_input),
+            validation_command = (self._root.register(self.validate_spinbox_input),
                                   '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
             self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
                                      validatecommand=validation_command)
@@ -382,8 +317,8 @@ if TOOLKIT == TK:
             label = Tk.Label(box, text="Alignment to existing node:")
             label.pack(pady=2, padx=5, anchor="w")
 
-            alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
-            alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+            self._alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
+            self._alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
 
             alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
             vbox = None
@@ -391,7 +326,7 @@ if TOOLKIT == TK:
             for i, ind in enumerate(alignment_index_list):
                 if i % 3 == 0:
                     vbox = Tk.Frame(box)
-                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=alignment_tk_str,
+                Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
                                value=self.ALIGNMENT_LABELS[ind], state=tk_state).pack(expand=True, anchor="w")
                 if (i + 1) % 3 == 0:
                     vbox.pack(side="left", fill="x", expand=True)
@@ -439,20 +374,17 @@ if TOOLKIT == TK:
             box.pack(expand=False)
 
             # Ensure that the window opens centered on the screen
-            root.update()
+            self._root.update()
 
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            window_width = root.winfo_width()
-            window_height = root.winfo_height()
+            screen_width = self._root.winfo_screenwidth()
+            screen_height = self._root.winfo_screenheight()
+            window_width = self._root.winfo_width()
+            window_height = self._root.winfo_height()
             window_xpos = (screen_width/2) - (window_width/2)
             window_ypos = (screen_height/2) - (window_height/2)
-            root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
+            self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
 
-            root.mainloop()
-
-            self.callback(self.text, self.preamble_file, self.global_scale_factor, alignment_tk_str.get(),
-                          tex_command_tk_str.get())
+            self._root.mainloop()
             return self._gui_config
 
         def cb_ok(self, widget=None, data=None):
@@ -465,7 +397,17 @@ if TOOLKIT == TK:
             self.text = self._text_box.get(1.0, Tk.END)
             self.preamble_file = self._preamble.get()
 
+            try:
+                self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get(),
+                              self._tex_command_tk_str.get())
+            except Exception as error:
+                self.show_error_dialog("TexText Error",
+                                  "Error occurred while converting text from Latex to SVG:",
+                                  error)
+                return False
+
             self._frame.quit()
+            return False
 
         def cb_word_wrap(self, widget=None, data=None):
             self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
@@ -487,10 +429,53 @@ if TOOLKIT == TK:
                 self._preamble.delete(0, Tk.END)
                 self._preamble.insert(Tk.END, file_name)
 
+        def show_error_dialog(self, title, message_text, exception):
+
+            # ToDo: Check Windows behavior!! --> -disable
+            self._root.wm_attributes("-topmost", False)
+
+            err_dialog = Tk.Toplevel(self._frame)
+            err_dialog.minsize(300, 400)
+            err_dialog.transient(self._frame)
+            err_dialog.focus_force()
+            err_dialog.grab_set()
+
+            def add_textview(header, text):
+                err_dialog_frame = Tk.Frame(err_dialog)
+                err_dialog_label = Tk.Label(err_dialog_frame, text=header)
+                err_dialog_label.pack(side='top', fill=Tk.X)
+                err_dialog_text = Tk.Text(err_dialog_frame, height=10)
+                err_dialog_text.insert(Tk.END, text)
+                err_dialog_text.pack(side='left', fill=Tk.Y)
+                err_dialog_scrollbar = Tk.Scrollbar(err_dialog_frame)
+                err_dialog_scrollbar.pack(side='right', fill=Tk.Y)
+                err_dialog_scrollbar.config(command=err_dialog_text.yview)
+                err_dialog_text.config(yscrollcommand=err_dialog_scrollbar.set)
+                err_dialog_frame.pack(side='top')
+
+            def close_error_dialog():
+                # ToDo: Check Windows behavior!! -disable
+                self._root.wm_attributes("-topmost", True)
+                err_dialog.destroy()
+
+            err_dialog.protocol("WM_DELETE_WINDOW", close_error_dialog)
+
+            add_textview(message_text, str(exception))
+
+            if isinstance(exception, TexTextCommandFailed):
+                if exception.stdout:
+                    add_textview('Stdout:', exception.stdout.decode('utf-8'))
+
+                if exception.stderr:
+                    add_textview('Stderr:', exception.stderr.decode('utf-8'))
+
+            close_button = Tk.Button(err_dialog, text='OK', command=close_error_dialog)
+            close_button.pack(side='top', fill='x', expand=True)
+
+
 if TOOLKIT in (GTK, GTKSOURCEVIEW):
     class AskTextGTKSource(AskText):
         """GTK + Source Highlighting for editing TexText objects"""
-
 
         def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                      current_texcmd, tex_commands, gui_config):
@@ -760,12 +745,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                               self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
                               self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
             except Exception as error:
-                import traceback
-
-                error_dialog(self._window,
-                             "TexText Error",
-                             "Error occurred while converting text from Latex to SVG:",
-                             error)
+                self.show_error_dialog("TexText Error",
+                                       "Error occurred while converting text from Latex to SVG:",
+                                       error)
                 return False
 
             Gtk.main_quit()
@@ -818,10 +800,9 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     self._preview_callback(text, preamble, self.set_preview_image_from_file,
                                            self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
                 except Exception as error:
-                    error_dialog(self._window,
-                                 "TexText Error",
-                                 "Error occurred while generating preview:",
-                                 error)
+                    self.show_error_dialog("TexText Error",
+                                           "Error occurred while generating preview:",
+                                            error)
                     return False
 
         def set_preview_image_from_file(self, path):
@@ -833,7 +814,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             self._pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
             self._preview_scroll_window.set_has_tooltip(False)
             self.update_preview_representation()
-
 
         def switch_preview_representation(self, widget=None, event=None):
             if event.button == 1: # left click only
@@ -897,8 +877,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
             self._preview_scroll_window.show()
-
-
 
         # ---------- create view window
         def create_buttons(self):
@@ -1018,9 +996,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
 
             # We need buttons with custom labels and stock icons, so we make some
             reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-
-
-
             scale_reset_button = Gtk.Button.new_from_icon_name('edit-undo', Gtk.IconSize.BUTTON)
             scale_reset_button.set_label('Reset ({0:.3f})'.format(reset_scale))
             scale_reset_button.set_always_show_image(True)
@@ -1145,7 +1120,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
             preview_event_box.connect('button-press-event', self.switch_preview_representation)
             preview_event_box.add(self._preview_scroll_window)
 
-
             # Vertical Layout
             vbox = Gtk.VBox(False, 4)
             window.add(vbox)
@@ -1213,7 +1187,6 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                     iter = self._source_buffer.get_iter_at_offset(2)
                     self._source_buffer.place_cursor(iter)
 
-
             # Connect event callbacks
             window.connect("key-press-event", self.cb_key_press)
             text_buffer.connect('changed', self.update_position_label, self, source_view)
@@ -1251,3 +1224,69 @@ if TOOLKIT in (GTK, GTKSOURCEVIEW):
                 # main loop
                 Gtk.main()
                 return self._gui_config
+
+        def show_error_dialog(self, title, message_text, exception):
+
+            dialog = Gtk.Dialog(title, self._window)
+            dialog.set_default_size(450, 300)
+            button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
+            button.connect("clicked", lambda w, d=None: dialog.destroy())
+            message_label = Gtk.Label()
+            message_label.set_markup("<b>{message}</b>".format(message=message_text))
+            message_label.set_justify(Gtk.Justification.LEFT )
+
+            raw_output_box = Gtk.VBox()
+
+            def add_section(header, text):
+
+                text_view = Gtk.TextView()
+                text_view.set_editable(False)
+                text_view.set_left_margin(5)
+                text_view.set_right_margin(5)
+                text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+                text_view.get_buffer().set_text(text)
+                text_view.show()
+
+                scroll_window = Gtk.ScrolledWindow()
+                scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.ALWAYS)
+                scroll_window.set_shadow_type(Gtk.ShadowType.IN)
+                scroll_window.set_min_content_height(150)
+                scroll_window.add(text_view)
+                scroll_window.show()
+
+                if header is None:
+                    dialog.vbox.pack_start(scroll_window, expand=True, fill=True, padding=5)
+                    return
+
+                expander = Gtk.Expander()
+
+                def callback(event):
+                    if expander.get_expanded():
+                        desired_height = 20
+                    else:
+                        desired_height = 150
+                    expander.set_size_request(-1, desired_height)
+
+                expander.connect('activate', callback)
+                expander.add(scroll_window)
+                expander.show()
+
+                expander.set_label(header)
+                expander.set_use_markup(True)
+
+                expander.set_size_request(20, -1)
+                scroll_window.hide()
+
+                dialog.vbox.pack_start(expander, expand=True, fill=True, padding=5)
+
+            dialog.vbox.pack_start(message_label, expand=False, fill=True, padding=5)
+            add_section(None, str(exception))
+            dialog.vbox.pack_start(raw_output_box, expand=False, fill=True, padding=5)
+
+            if isinstance(exception, TexTextCommandFailed):
+                if exception.stdout:
+                    add_section("Stdout: <small><i>(click to expand)</i></small>", exception.stdout.decode('utf-8'))
+                if exception.stderr:
+                    add_section("Stderr: <small><i>(click to expand)</i></small>", exception.stderr.decode('utf-8'))
+            dialog.show_all()
+            dialog.run()
