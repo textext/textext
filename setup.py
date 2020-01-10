@@ -165,7 +165,7 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
 
 
 def remove_previous_installation(extension_dir):
-    previous_installation_files_and_folders = [
+    PREVIOUS_INSTALLATION_FILES_AND_FOLDERS = [
         "asktext.py",
         "default_packages.tex",
         "latexlogparser.py",
@@ -175,7 +175,7 @@ def remove_previous_installation(extension_dir):
         "typesetter.py",
         "win_app_paths.py",
     ]
-    for file_or_dir in previous_installation_files_and_folders:
+    for file_or_dir in PREVIOUS_INSTALLATION_FILES_AND_FOLDERS:
         file_or_dir = os.path.abspath(os.path.join(extension_dir, file_or_dir))
         if os.path.isfile(file_or_dir):
             logger.info("Removing `%s`" % file_or_dir)

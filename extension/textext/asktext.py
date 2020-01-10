@@ -14,7 +14,7 @@ Its used uniformly from textext.py via the factory (AskerFactory) and only the "
 """
 
 DEBUG = False
-debug_text = r"""$
+DEBUG_TEXT = r"""$
 \left(
    \begin{array}{ccc}
      a_{11} & \cdots & a_{1n} \\
@@ -142,7 +142,7 @@ class AskText(object):
             self.text = text
         else:
             if DEBUG:
-                self.text = debug_text
+                self.text = DEBUG_TEXT
             else:
                 self.text = ""
 

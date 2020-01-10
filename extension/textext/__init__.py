@@ -3,40 +3,40 @@
 textext
 =======
 
-:Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2008-04-26
-:Author: Pit Garbe <piiit@gmx.de>
-:Date: 2014-02-03
-:Author: TexText developers
-:Date: 2019-04-05
-:License: BSD
+:author: pauli virtanen <pav@iki.fi>
+:date: 2008-04-26
+:author: pit garbe <piiit@gmx.de>
+:date: 2014-02-03
+:author: textext developers
+:date: 2019-04-05
+:license: bsd
 
-Textext is an extension for Inkscape_ that allows adding
-LaTeX-generated text objects to your SVG drawing. What's more, you can
+textext is an extension for inkscape_ that allows adding
+latex-generated text objects to your svg drawing. what's more, you can
 also *edit* these text objects after creating them.
 
-This brings some of the power of TeX typesetting to Inkscape.
+this brings some of the power of tex typesetting to inkscape.
 
-Textext was initially based on InkLaTeX_ written by Toru Araki,
+textext was initially based on inklatex_ written by toru araki,
 but is now rewritten.
 
-Thanks to Sergei Izmailov, Robert Szalai, Rafal Kolanski, Brian Clarke,
-Florent Becker and Vladislav Gavryusev for contributions.
+thanks to sergei izmailov, robert szalai, rafal kolanski, brian clarke,
+florent becker and vladislav gavryusev for contributions.
 
 .. note::
-   Unfortunately, the TeX input dialog is modal. That is, you cannot
-   do anything else with Inkscape while you are composing the LaTeX
+   unfortunately, the tex input dialog is modal. that is, you cannot
+   do anything else with inkscape while you are composing the latex
    text snippet.
 
-   This is because I have not yet worked out whether it is possible to
-   write asynchronous extensions for Inkscape.
+   this is because i have not yet worked out whether it is possible to
+   write asynchronous extensions for inkscape.
 
 .. note::
-   Textext requires Pdflatex and Pstoedit_ compiled with the ``plot-svg`` back-end
+   textext requires pdflatex and pstoedit_ compiled with the ``plot-svg`` back-end
 
-.. _Pstoedit: http://www.pstoedit.net/pstoedit
-.. _Inkscape: http://www.inkscape.org/
-.. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
+.. _pstoedit: http://www.pstoedit.net/pstoedit
+.. _inkscape: http://www.inkscape.org/
+.. _inklatex: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
 
 from __future__ import print_function
@@ -60,13 +60,13 @@ from errors import *
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
-    __version__ = version_file.readline().strip()
+    __TEXTEXT_VERSION__ = version_file.readline().strip()
 
 if sys.version[0] == '3':
     unicode = str
-    escape_method = 'unicode_escape'
+    ESCAPE_METHOD = 'unicode_escape'
 else:
-    escape_method = 'string-escape'
+    ESCAPE_METHOD = 'string-escape'
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
@@ -138,7 +138,7 @@ try:
             logger.debug("TexText initialized")
             with open(__file__) as fhl:
                 logger.debug("TexText version = %s (md5sum = %s)" %
-                             (repr(__version__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                             (repr(__TEXTEXT_VERSION__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
                              )
             logger.debug("platform.system() = %s" % repr(platform.system()))
             logger.debug("platform.release() = %s" % repr(platform.release()))
@@ -248,7 +248,7 @@ try:
                         logger.debug("Preamble file is not found")
                         preamble_file = ""
 
-                    asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
+                    asker = AskerFactory().asker(__TEXTEXT_VERSION__, text, preamble_file, global_scale_factor, current_scale,
                                                  current_alignment=alignment, current_texcmd=current_tex_command,
                                                  tex_commands=sorted(list(
                                                      self.requirements_checker.available_tex_to_pdf_converters.keys())),
@@ -353,7 +353,7 @@ try:
                         tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
                 # -- Store textext attributes
-                tt_node.set_meta("version", __version__)
+                tt_node.set_meta("version", __TEXTEXT_VERSION__)
                 tt_node.set_meta("texconverter", tex_command)
                 tt_node.set_meta("pdfconverter", 'inkscape')
                 tt_node.set_meta("text", text)
@@ -571,7 +571,7 @@ try:
 
 
     class TexTextElement(inkex.elements.Group):
-        tag_name = "g"
+        tag_name = "g"  # overrides inkex.elements.Group
 
         def __init__(self, svg_filename, uu_in_mm):
             """
@@ -666,13 +666,13 @@ try:
 
         def set_meta(self, key, value):
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            self.set(ns_key, str(value).encode(escape_method).decode('utf-8'))
+            self.set(ns_key, str(value).encode(ESCAPE_METHOD).decode('utf-8'))
             assert self.get_meta(key) == value, (self.get_meta(key), value)
 
         def get_meta(self, key, default=None):
             try:
                 ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-                value = self.get(ns_key).encode('utf-8').decode(escape_method)
+                value = self.get(ns_key).encode('utf-8').decode(ESCAPE_METHOD)
                 if value is None:
                     raise AttributeError('{} has no attribute `{}`'.format(self, key))
                 return value
