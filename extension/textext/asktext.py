@@ -12,6 +12,13 @@ This is the GUI part of TexText, handling several more or less sophisticated dia
 
 Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
 """
+import os
+import sys
+import warnings
+
+from textext.errors import TexTextCommandFailed
+from textext.utility import SuppressStream
+
 
 DEBUG = False
 DEBUG_TEXT = r"""$
@@ -24,19 +31,13 @@ DEBUG_TEXT = r"""$
 \right)
 $"""
 
-WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 
+WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 GTKSOURCEVIEW = "GTK Source View"
 GTK = "GTK"
 TK = "TK"
-
 TOOLKIT = None
 
-import os
-import sys
-import warnings
-from errors import TexTextCommandFailed
-from textext.utility import SuppressStream
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 

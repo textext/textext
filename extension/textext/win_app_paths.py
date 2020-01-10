@@ -9,6 +9,7 @@ import os as _os
 import subprocess as _sp
 import winreg as _wr
 
+
 # Windows Registry key under which the installation dir of Inkscape is stored
 INKSCAPE_REG_KEY = r"Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
 

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-
 import argparse
 import logging
 import os
@@ -10,20 +8,13 @@ import sys
 import stat
 import tempfile
 
-sys.path.append(os.path.join(
-    os.path.dirname(__file__),
-    "extension",
-    "textext"
-))
+# Since setup.py is not called from the Inkscape environment tweak sys.path such we can also
+# import our own modules
+sys.path.append(os.path.join(os.path.dirname(__file__), "extension", "textext"))
+from requirements_check import set_logging_levels, TexTextRequirementsChecker, defaults, \
+    LoggingColors, SUCCESS  # pylint: disable=wrong-import-position
+from utility import Settings  # pylint: disable=wrong-import-position
 
-from requirements_check import \
-    set_logging_levels, \
-    TexTextRequirementsChecker, \
-    defaults, \
-    LoggingColors, \
-    SUCCESS
-
-from utility import Settings
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):

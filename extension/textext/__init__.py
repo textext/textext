@@ -38,8 +38,6 @@ florent becker and vladislav gavryusev for contributions.
 .. _inkscape: http://www.inkscape.org/
 .. _inklatex: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
 """
-
-from __future__ import print_function
 import hashlib
 import logging
 import logging.handlers
@@ -51,10 +49,10 @@ import sys
 import traceback
 import uuid
 
-from requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
-from utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
-    exec_command
-from errors import *
+from textext.requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
+from textext.utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, \
+    Settings, Cache, exec_command
+from textext.errors import *
 
 # Namespace used for all TexText nodes
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -179,7 +177,7 @@ try:
 
         def effect(self):
             """Perform the effect: create/modify TexText objects"""
-            from asktext import AskerFactory
+            from textext.asktext import AskerFactory
 
 
             with logger.debug("TexText.effect"):
@@ -561,7 +559,7 @@ try:
             :return: string containing the error message and some context lines after it
             """
             with logger.debug("Parsing LaTeX log file"):
-                from texoutparse import LatexLogParser
+                from textext.texoutparse import LatexLogParser
 
                 parser = LatexLogParser()
                 with open(self.tmp('log')) as f:

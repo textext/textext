@@ -7,9 +7,9 @@ import shutil
 import stat
 import subprocess
 import tempfile
-
-from errors import *
 import sys
+
+from errors import *  # No absolute import here since utility is also called from setup.py !
 
 
 class ChangeDirectory(object):
@@ -133,7 +133,6 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
             self.buffer = self.buffer[-self.capacity:]
 
     def show_messages(self):
-        import sys
         version_is_good = (2, 7) <= sys.version_info < (3, 0)
         if version_is_good:
             import inkex
