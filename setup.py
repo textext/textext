@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--color",
-        default=defaults.console_colors,
+        default=defaults.CONSOLE_COLORS,
         choices=("always", "never"),
         help="Enables/disable console colors"
     )

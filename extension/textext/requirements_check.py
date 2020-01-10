@@ -1,4 +1,3 @@
-import abc
 import logging
 import os
 import re
@@ -7,32 +6,35 @@ import sys
 
 
 class Defaults(object):
-    __metaclass__ = abc.ABCMeta
+    OS_NAME = None
+    CONSOLE_COLORS = None
+    EXECUTABLE_NAMES = None
 
-    @abc.abstractproperty
-    def os_name(self): pass
+    @property
+    def inkscape_extensions_path(self):
+        """
+        Returns the extension path on the current system. Must be property, not class constant,
+        to ensure that it is called only in the correct context!
+        """
+        raise NotImplementedError
 
-    @abc.abstractproperty
-    def console_colors(self): pass
-
-    @abc.abstractproperty
-    def executable_names(self): pass
-
-    @abc.abstractproperty
-    def inkscape_extensions_path(self): pass
-
-    @abc.abstractmethod
-    def get_system_path(self): pass
+    @property
+    def system_path(self):
+        """
+        Returns the system path on the current system. Must be property, not class constant,
+        to ensure that it is called only in the correct context!
+        """
+        raise NotImplementedError
 
     @staticmethod
-    @abc.abstractmethod
-    def call_command(command, return_code=0): pass
+    def call_command(command, return_code=0):
+        raise NotImplementedError
 
 
 class LinuxDefaults(Defaults):
-    os_name = "linux"
-    console_colors = "always"
-    executable_names = {"inkscape": ["inkscape.beta", "inkscape"],   # BETA-TEST only #
+    OS_NAME = "linux"
+    CONSOLE_COLORS = "always"
+    EXECUTABLE_NAMES = {"inkscape": ["inkscape.beta", "inkscape"],   # BETA-TEST only #
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"]
@@ -42,7 +44,8 @@ class LinuxDefaults(Defaults):
     def inkscape_extensions_path(self):
         return os.path.expanduser("~/.config/inkscape/extensions")
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
@@ -55,14 +58,15 @@ class LinuxDefaults(Defaults):
 
 
 class MacDefaults(LinuxDefaults):
-    os_name = "macos"
-    executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
+    OS_NAME = "macos"
+    EXECUTABLE_NAMES = {"inkscape": ["inkscape", "inkscape-bin"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
                         "xelatex": ["xelatex"]
                         }
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         path = ["/Applications/Inkscape.app/Contents/Resources"]
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
@@ -73,10 +77,9 @@ class MacDefaults(LinuxDefaults):
 
 
 class WindowsDefaults(Defaults):
-
-    os_name = "windows"
-    console_colors = "never"
-    executable_names = {"inkscape": ["inkscape.exe"],
+    OS_NAME = "windows"
+    CONSOLE_COLORS = "never"
+    EXECUTABLE_NAMES = {"inkscape": ["inkscape.exe"],
                         "pdflatex": ["pdflatex.exe"],
                         "lualatex": ["lualatex.exe"],
                         "xelatex": ["xelatex.exe"],
@@ -104,7 +107,7 @@ class WindowsDefaults(Defaults):
                 # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
                 result = h_kernel32.SetConsoleMode(h_stdout, 7)
 
-                self.console_colors = "always"
+                self.CONSOLE_COLORS = "always"
         except (ImportError, AttributeError):
             pass
 
@@ -112,7 +115,8 @@ class WindowsDefaults(Defaults):
     def inkscape_extensions_path(self):
         return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         return self._tweaked_syspath
 
     @staticmethod
@@ -126,7 +130,6 @@ class WindowsDefaults(Defaults):
         if return_code is not None and p.returncode != return_code:
             raise subprocess.CalledProcessError(p.returncode, command)
         return stdout, stderr
-
 
 
 class LoggingColors(object):
@@ -596,9 +599,9 @@ class TexTextRequirementsChecker(object):
 
     def _find_executable_in_path(self, prog_name):
         messages = []
-        for exe_name in defaults.executable_names[prog_name]:
+        for exe_name in defaults.EXECUTABLE_NAMES[prog_name]:
             first_path = None
-            for path in defaults.get_system_path():
+            for path in defaults.system_path:
                 full_path_guess = os.path.join(path, exe_name)
                 self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
                 if self.check_executable(full_path_guess):
@@ -633,11 +636,11 @@ class TexTextRequirementsChecker(object):
             url_template = "https://{user}.github.io/textext/install/{os_name}.html#{os_name}-install-{section}"
             url = url_template.format(
                 user=user,
-                os_name=defaults.os_name,
+                os_name=defaults.OS_NAME,
                 section=section_name
             )
 
-            if defaults.console_colors == "always":
+            if defaults.CONSOLE_COLORS == "always":
                 url_line = "       {}%s{}".format(LoggingColors.FG_LIGHT_BLUE + LoggingColors.UNDERLINED,
                                                      LoggingColors.COLOR_RESET)
             else:
