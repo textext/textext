@@ -50,8 +50,8 @@ import traceback
 import uuid
 
 from textext.requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
-from textext.utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, \
-    Settings, Cache, exec_command
+from textext.utility import ChangeToTemporaryDirectory, CycleBufferHandler, TexTextLogger, \
+    TexTextNestedLoggingGuard, Settings, Cache, exec_command
 from textext.errors import *
 
 # Namespace used for all TexText nodes
@@ -70,22 +70,28 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
+# =======================
+# Setup the logging start
+# There are two channels `file_log_channel` and `user_log_channel`
+# `file_log_channel` dumps detailed log to a file
+# `user_log_channel` accumulates log messages to show them to user via .show_messages() function
+# Full file logging is only done at first run of TexText and if an error occurred in the
+# previous run. This behavior can be deactivated by setting LOG_FORCE_FULL to True
+
+LOG_FORCE_FULL = False  # Set this to true to force full logging (for Debug purposes)
 LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
 
-# There are two channels `file_log_channel` and `user_log_channel`
-# `file_log_channel` dumps detailed log to a file
-# `user_log_channel` accumulates log messages to show them to user via .show_messages() function
-#
 set_logging_levels()
-logging.setLoggerClass(MyLogger)
-__logger = logging.getLogger('TexText')
-logger = NestedLoggingGuard(__logger)
-__logger.setLevel(logging.DEBUG)
+logging.setLoggerClass(TexTextLogger)
+__ttlogger = logging.getLogger('TexText')
+ttlogger = TexTextNestedLoggingGuard(__ttlogger)
+__ttlogger.setLevel(logging.DEBUG)
 
-log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
+log_formatter = logging.Formatter(
+    '[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
@@ -99,8 +105,11 @@ user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 message
 user_log_channel.setLevel(logging.DEBUG)
 user_log_channel.setFormatter(user_formatter)
 
-__logger.addHandler(file_log_channel)
-__logger.addHandler(user_log_channel)
+__ttlogger.addHandler(file_log_channel)
+__ttlogger.addHandler(user_log_channel)
+# Setup the logging end
+# =======================
+
 
 try:
 
@@ -124,33 +133,36 @@ try:
 
             if previous_exit_code is None:
                 logging.disable(logging.NOTSET)
-                logger.debug("First run of TexText. Enforcing DEBUG mode.")
+                ttlogger.debug("First run of TexText. Enforcing DEBUG mode.")
+            elif LOG_FORCE_FULL:
+                logging.disable(logging.NOTSET)
+                ttlogger.debug("LOG_FORCE_FULL == True: DEBUG mode programmatically enforced.")
             elif previous_exit_code == EXIT_CODE_OK:
                 logging.disable(logging.CRITICAL)
             elif previous_exit_code == EXIT_CODE_UNEXPECTED_ERROR:
                 logging.disable(logging.NOTSET)
-                logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
+                ttlogger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
             else:
                 logging.disable(logging.DEBUG)
 
-            logger.debug("TexText initialized")
+            ttlogger.debug("TexText initialized")
             with open(__file__) as fhl:
-                logger.debug("TexText version = %s (md5sum = %s)" %
-                             (repr(__TEXTEXT_VERSION__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
-                             )
-            logger.debug("platform.system() = %s" % repr(platform.system()))
-            logger.debug("platform.release() = %s" % repr(platform.release()))
-            logger.debug("platform.version() = %s" % repr(platform.version()))
+                ttlogger.debug("TexText version = %s (md5sum = %s)" %
+                               (repr(__TEXTEXT_VERSION__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                               )
+            ttlogger.debug("platform.system() = %s" % repr(platform.system()))
+            ttlogger.debug("platform.release() = %s" % repr(platform.release()))
+            ttlogger.debug("platform.version() = %s" % repr(platform.version()))
 
-            logger.debug("platform.machine() = %s" % repr(platform.machine()))
-            logger.debug("platform.uname() = %s" % repr(platform.uname()))
-            logger.debug("platform.mac_ver() = %s" % repr(platform.mac_ver()))
+            ttlogger.debug("platform.machine() = %s" % repr(platform.machine()))
+            ttlogger.debug("platform.uname() = %s" % repr(platform.uname()))
+            ttlogger.debug("platform.mac_ver() = %s" % repr(platform.mac_ver()))
 
-            logger.debug("sys.executable = %s" % repr(sys.executable))
-            logger.debug("sys.version = %s" % repr(sys.version))
-            logger.debug("os.environ = %s" % repr(os.environ))
+            ttlogger.debug("sys.executable = %s" % repr(sys.executable))
+            ttlogger.debug("sys.version = %s" % repr(sys.version))
+            ttlogger.debug("os.environ = %s" % repr(os.environ))
 
-            self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
+            self.requirements_checker = TexTextRequirementsChecker(ttlogger, self.config)
 
             if self.requirements_checker.check() == False:
                 raise TexTextFatalError("TexText requirements are not met. "
@@ -180,7 +192,7 @@ try:
             from textext.asktext import AskerFactory
 
 
-            with logger.debug("TexText.effect"):
+            with ttlogger.debug("TexText.effect"):
 
                 # Find root element
                 old_svg_ele, text, preamble_file, current_scale = self.get_old()
@@ -195,8 +207,8 @@ try:
                     current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
 
                 if text:
-                    logger.debug("Old node text = %s" % repr(text))
-                    logger.debug("Old node scale = %s" % repr(current_scale))
+                    ttlogger.debug("Old node text = %s" % repr(text))
+                    ttlogger.debug("Old node scale = %s" % repr(current_scale))
 
                 # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
                 # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
@@ -204,13 +216,13 @@ try:
                 if old_svg_ele is not None:
 
                     if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
-                        logger.debug("Adjust scale factor for node created with TexText<=0.7")
+                        ttlogger.debug("Adjust scale factor for node created with TexText<=0.7")
                         current_scale *= self.svg.uutounit(1, "pt")
 
                     jac_sqrt = float(old_svg_ele.get_meta("jacobian_sqrt", 1.0))
 
                     if jac_sqrt != 1.0:
-                        logger.debug("Adjust scale factor to account transformations in inkscape")
+                        ttlogger.debug("Adjust scale factor to account transformations in inkscape")
                         current_scale *= old_svg_ele.get_jacobian_sqrt() / jac_sqrt
 
                     alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
@@ -224,26 +236,26 @@ try:
                     global_scale_factor = self.options.scale_factor
 
                     if not preamble_file:
-                        logger.debug("Using default preamble file `%s`" % self.options.preamble_file)
+                        ttlogger.debug("Using default preamble file `%s`" % self.options.preamble_file)
                         preamble_file = self.options.preamble_file
                     else:
-                        logger.debug("Using node preamble file")
+                        ttlogger.debug("Using node preamble file")
                         # Check if preamble file exists at the specified absolute path location. If not, check to find
                         # the file in the default path. If this fails, too, fallback to the default.
                         if not os.path.exists(preamble_file):
-                            logger.debug("Preamble file is NOT found by absolute path")
+                            ttlogger.debug("Preamble file is NOT found by absolute path")
                             preamble_file = os.path.join(os.path.dirname(self.options.preamble_file),
                                                          os.path.basename(preamble_file))
                             if not os.path.exists(preamble_file):
-                                logger.debug("Preamble file is NOT found along with default preamble file")
+                                ttlogger.debug("Preamble file is NOT found along with default preamble file")
                                 preamble_file = self.options.preamble_file
                             else:
-                                logger.debug("Preamble file is found along with default preamble file")
+                                ttlogger.debug("Preamble file is found along with default preamble file")
                         else:
-                            logger.debug("Preamble file found by absolute path")
+                            ttlogger.debug("Preamble file found by absolute path")
 
                     if not os.path.isfile(preamble_file):
-                        logger.debug("Preamble file is not found")
+                        ttlogger.debug("Preamble file is not found")
                         preamble_file = ""
 
                     asker = AskerFactory().asker(__TEXTEXT_VERSION__, text, preamble_file, global_scale_factor, current_scale,
@@ -265,10 +277,10 @@ try:
                                                     _preview_callback,
                                                     _tex_command)
 
-                    with logger.debug("Run TexText GUI"):
+                    with ttlogger.debug("Run TexText GUI"):
                         gui_config = asker.ask(save_callback, preview_callback)
 
-                    with logger.debug("Saving global GUI settings"):
+                    with ttlogger.debug("Saving global GUI settings"):
                         self.config["gui"] = gui_config
                         self.config.save()
 
@@ -295,20 +307,20 @@ try:
 
             tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
-            with logger.debug("TexText.preview"):
-                with logger.debug("args:"):
+            with ttlogger.debug("TexText.preview"):
+                with ttlogger.debug("args:"):
                     for k, v in list(locals().items()):
-                        logger.debug("%s = %s" % (k, repr(v)))
+                        ttlogger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
-                    logger.debug("no text, return")
+                    ttlogger.debug("no text, return")
                     return
 
                 if isinstance(text, bytes):
                     text = text.decode('utf-8')
 
                 with ChangeToTemporaryDirectory():
-                    with logger.debug("Converting tex to pdf"):
+                    with ttlogger.debug("Converting tex to pdf"):
                         converter = TexToPdfConverter(self.requirements_checker)
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_png()
@@ -330,20 +342,20 @@ try:
 
             tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
-            with logger.debug("TexText.do_convert"):
-                with logger.debug("args:"):
+            with ttlogger.debug("TexText.do_convert"):
+                with ttlogger.debug("args:"):
                     for k, v in list(locals().items()):
-                        logger.debug("%s = %s" % (k, repr(v)))
+                        ttlogger.debug("%s = %s" % (k, repr(v)))
 
                 if not text:
-                    logger.debug("no text, return")
+                    ttlogger.debug("no text, return")
                     return
 
                 if isinstance(text, bytes):
                     text = text.decode('utf-8')
 
                 # Convert
-                with logger.debug("Converting tex to svg"):
+                with ttlogger.debug("Converting tex to svg"):
                     with ChangeToTemporaryDirectory():
                         converter = TexToPdfConverter(self.requirements_checker)
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
@@ -368,7 +380,7 @@ try:
 
                 # Place new node in document
                 if old_svg_ele is None:
-                    with logger.debug("Adding new node to document"):
+                    with ttlogger.debug("Adding new node to document"):
                         # Place new nodes in the view center and scale them according to user request
 
                         # ToDo: Remove except block as far as new center props are available in official beta releases
@@ -389,7 +401,7 @@ try:
 
                         self.svg.get_current_layer().add(tt_node)
                 else:
-                    with logger.debug("Replacing node in document"):
+                    with ttlogger.debug("Replacing node in document"):
                         # Rescale existing nodes according to user request
                         relative_scale = user_scale_factor / original_scale
                         tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
@@ -401,7 +413,7 @@ try:
 
                         self.replace_node(old_svg_ele, tt_node)
 
-                with logger.debug("Saving global settings"):
+                with ttlogger.debug("Saving global settings"):
                     # -- Save settings
                     if os.path.isfile(preamble_file):
                         self.config['preamble'] = preamble_file
@@ -491,7 +503,7 @@ try:
             Create a PDF file from latex text
             """
 
-            with logger.debug("Converting .tex to .pdf"):
+            with ttlogger.debug("Converting .tex to .pdf"):
                 # Read preamble
                 preamble_file = os.path.abspath(preamble_file)
                 preamble = ""
@@ -558,7 +570,7 @@ try:
             Strip down tex output to only the first error etc. and discard all the noise
             :return: string containing the error message and some context lines after it
             """
-            with logger.debug("Parsing LaTeX log file"):
+            with ttlogger.debug("Parsing LaTeX log file"):
                 from textext.texoutparse import LatexLogParser
 
                 parser = LatexLogParser()
@@ -816,10 +828,10 @@ try:
 except TexTextInternalError as e:
     # TexTextInternalError should never be raised.
     # It's TexText logic error and should be reported.
-    logger.error(str(e))
-    logger.error(traceback.format_exc())
-    logger.info("TexText finished with error, please run extension again")
-    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
+    ttlogger.error(str(e))
+    ttlogger.error(traceback.format_exc())
+    ttlogger.info("TexText finished with error, please run extension again")
+    ttlogger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
         cache = Cache()
@@ -829,7 +841,7 @@ except TexTextInternalError as e:
         pass
     exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 except TexTextFatalError as e:
-    logger.error(str(e))
+    ttlogger.error(str(e))
     user_log_channel.show_messages()
     try:
         cache = Cache()
@@ -841,10 +853,10 @@ except TexTextFatalError as e:
 except Exception as e:
     # All errors should be handled by above clause.
     # If any propagates here it's TexText logic error and should be reported.
-    logger.error(str(e))
-    logger.error(traceback.format_exc())
-    logger.info("TexText finished with error, please run extension again")
-    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
+    ttlogger.error(str(e))
+    ttlogger.error(traceback.format_exc())
+    ttlogger.info("TexText finished with error, please run extension again")
+    ttlogger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
     user_log_channel.show_messages()
     try:
         cache = Cache()

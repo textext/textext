@@ -50,9 +50,19 @@ def ChangeToTemporaryDirectory():
             yield None
 
 
-class MyLogger(logging.Logger):
+class TexTextLogger(logging.Logger):
     """
-        Needs to produce correct line numbers
+        A logger ensuring that file and line info are printed from the correct frame
+
+        Standard Logger class would write out the frame info from the method which calls
+        self.log(...). In our case these are the calls from TexTextNestedLoggingGuard,
+        i.e. utility.py and the line number of the function containing the log call.
+        By overwriting findCaller we ensure that the frame from which the logging operation
+        originally has been triggered from is found and the line number of the call is identified
+
+        For this purpose we need to walk 4 frames in upward direction
+        (logging/__init__.py -> TexTextNestedLoggingGuard.__init__ -> TexTextNestedLoggingGuard.log
+        -> TexTextNestedLoggingGuard.debug/info... -> position of original call)
     """
     def findCaller(self, *args):
         n_frames_upper = 2
@@ -72,34 +82,57 @@ class MyLogger(logging.Logger):
         return rv
 
 
-class NestedLoggingGuard(object):
-    message_offset = 0
-    message_indent = 2
+class TexTextNestedLoggingGuard(object):
+    """
+        Ensures pretty indentation of nested messages in the logfile.
+
+        An new indentation level can be invoked by the syntax
+
+            with logger.debug("headermessage"):
+                logger.debug("message 1")
+                logger.debug("message 2")
+
+        where logger is an instance of TexTextNestedLoggingGuard.
+    """
+    _MESSAGE_INDENT = 2
+    _message_current_indent = 0
 
     def __init__(self, _logger, lvl=None, message=None):
         self._logger = _logger
         self._level = lvl
         self._message = message
         if lvl is not None and message is not None:
-            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message)
+            self._logger.log(self._level,
+                             " " * TexTextNestedLoggingGuard._message_current_indent +
+                             self._message)
 
     def __enter__(self):
+        """
+            Add indentation when a new group of log messages is opened
+        """
         assert self._level is not None
         assert self._message is not None
-        NestedLoggingGuard.message_offset += NestedLoggingGuard.message_indent
+        TexTextNestedLoggingGuard._message_current_indent += \
+            TexTextNestedLoggingGuard._MESSAGE_INDENT
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+            Remove indentation when a  group of log messages is closed
+        """
         assert self._level is not None
         assert self._message is not None
         if exc_type is None:
             result = "done"
         else:
             result = "failed"
-        NestedLoggingGuard.message_offset -= NestedLoggingGuard.message_indent
+        TexTextNestedLoggingGuard._message_current_indent -= \
+            TexTextNestedLoggingGuard._MESSAGE_INDENT
 
         def tmp1():  # this nesting needed to even number of stack frames in __enter__ and __exit__
             def tmp2():
-                self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message.strip() + " " + result)
+                self._logger.log(self._level,
+                                 " " * TexTextNestedLoggingGuard._message_current_indent +
+                                 self._message.strip() + " " + result)
             tmp2()
         tmp1()
 
@@ -119,7 +152,7 @@ class NestedLoggingGuard(object):
         return self.log(logging.CRITICAL, message)
 
     def log(self, lvl, message):
-        return NestedLoggingGuard(self._logger, lvl, message)
+        return TexTextNestedLoggingGuard(self._logger, lvl, message)
 
 
 class CycleBufferHandler(logging.handlers.BufferingHandler):
