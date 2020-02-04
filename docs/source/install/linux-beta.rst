@@ -76,7 +76,7 @@ executing
 Download and install |TexText|
 ==============================
 
-1. Download the most recent **preview** package from https://github.com/textext/textext/releases
+1. Download the most recent **preview** package from :textext_current_release_page:`GitHub release page <release>`
 2. Extract the package and change into the created directory.
 3. Run :bash:`setup.py` with (**Important!!**) specification of the path to your |Inkscape| executable
    from your terminal:

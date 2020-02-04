@@ -26,8 +26,12 @@ author = 'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe
 
 # The full version, including alpha/beta/rc tags
 release = open("../../extension/textext/VERSION").readline().strip()
-# The short X.Y version
+
+# The short X.Y version (for doc title)
 version = ".".join(release.split(".")[:2])
+
+# Last stable release compatible with Inkscape 0.92
+release_for_inkscape092 = "0.11.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -187,8 +191,16 @@ extlinks = {
     'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
     'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb#'),
     'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue bb#'),
+
+    # Links to current stable release compatible with Inkscape >= 1.0
     'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'v{release}'.format(**locals())),
+
+    # Links to last stable release compatible with Inkscape 0.92
+    'textext_inkscape092_download_zip': ('https://github.com/textext/textext/releases/download/{release_for_inkscape092}/TexText-%s-{release_for_inkscape092}.zip'.format(**locals()), 'v{release_for_inkscape092}-'.format(**locals())),
+    'textext__inkscape092_download_tgz': ('https://github.com/textext/textext/releases/download/{release_for_inkscape092}/TexText-%s-{release_for_inkscape092}.tar.gz'.format(**locals()), 'v{release_for_inkscape092}-'.format(**locals())),
+    'textext_inkscape092_download_exe': ('https://github.com/textext/textext/releases/download/{release_for_inkscape092}/TexText-%s-{release_for_inkscape092}.exe'.format(**locals()), 'v{release_for_inkscape092}-'.format(**locals())),
+    'textext_inkscape092_current_release_page': ('https://github.com/textext/textext/releases/tag/{release_for_inkscape092}#%s'.format(**locals()),'v{release_for_inkscape092}'.format(**locals())),
 }
