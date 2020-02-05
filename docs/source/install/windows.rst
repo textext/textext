@@ -143,7 +143,7 @@ You have two options: A setup script or a GUI based installer.
 Setup script (recommended)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <Windows>`)
+1. Download the most recent package from :textext_0x_current_release_page:`GitHub release page <release>` (direct links: :textext_0x_download_zip:`.zip <Windows>`)
 2. Extract the package and change into the created directory.
 3. Double click on the file :bash:`setup_win.bat`. The script will check if all requirements
    described in :ref:`windows-install-dependencies` are met. If so, it will install the extension
@@ -166,7 +166,7 @@ Installer
 
 If you have trouble with the setup script you can use a GUI based installer:
 
-1. Download the most recent installer from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_exe:`.exe <Windows>`)
+1. Download the most recent installer from :textext_0x_current_release_page:`GitHub release page <release>` (direct links: :textext_0x_download_exe:`.exe <Windows>`)
 2. Use the installer and follow the instructions. It will copy the required files into the user's Inkscape
    configuration directory (usually this is ``%USERPROFILE%\AppData\Roaming\Inkscape``).
 

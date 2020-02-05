@@ -26,8 +26,12 @@ author = 'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe
 
 # The full version, including alpha/beta/rc tags
 release = open("../../extension/textext/VERSION").readline().strip()
-# The short X.Y version
+
+# The short X.Y version (for doc title)
 version = ".".join(release.split(".")[:2])
+
+# Last stable 0.x release (compatible with Inkscape 0.92)
+release_0x = "0.11.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -187,8 +191,16 @@ extlinks = {
     'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
     'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb#'),
     'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue bb#'),
+
+    # Links to current stable release compatible with Inkscape >= 1.0
     'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),
     'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'v{release}'.format(**locals())),
+
+    # Links to last stable release compatible with Inkscape 0.92
+    'textext_0x_download_zip': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.zip'.format(**locals()), 'v{release_0x}-'.format(**locals())),
+    'textext_0x_download_tgz': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.tar.gz'.format(**locals()), 'v{release_0x}-'.format(**locals())),
+    'textext_0x_download_exe': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.exe'.format(**locals()), 'v{release_0x}-'.format(**locals())),
+    'textext_0x_current_release_page': ('https://github.com/textext/textext/releases/tag/{release_0x}#%s'.format(**locals()),'v{release_0x}'.format(**locals())),
 }
