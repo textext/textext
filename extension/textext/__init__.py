@@ -61,7 +61,6 @@ with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
     __TEXTEXT_VERSION__ = version_file.readline().strip()
 
 if sys.version[0] == '3':
-    unicode = str
     ESCAPE_METHOD = 'unicode_escape'
 else:
     ESCAPE_METHOD = 'string-escape'
