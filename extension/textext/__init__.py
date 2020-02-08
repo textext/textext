@@ -838,8 +838,8 @@ except TexTextInternalError as e:
     # It's TexText logic error and should be reported.
     logger.error(str(e))
     logger.error(traceback.format_exc())
-    logger.info("TexText finished with error, please run extension again")
-    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
+    logger.info("TexText finished with error, please run extension again") 
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new?template=bug_report.md")
     user_log_channel.show_messages()
     try:
         cache = Cache()
@@ -864,7 +864,7 @@ except Exception as e:
     logger.error(str(e))
     logger.error(traceback.format_exc())
     logger.info("TexText finished with error, please run extension again")
-    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new")
+    logger.info("If problem persists, please file a bug https://github.com/textext/textext/issues/new?template=bug_report.md")
     user_log_channel.show_messages()
     try:
         cache = Cache()
