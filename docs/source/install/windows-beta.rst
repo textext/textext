@@ -73,14 +73,16 @@ Download and install |TexText|
 
         1. Compared to previous versions of **TexText** for |InkscapeOld| |TexText| does
            not need any conversion utilities like ghostscript, pstoedit or pdfsvg.
+           Furthermore, the required Python bindungs for the GTK-GUI are already included
+           in the windows version of |Inkscape|.
 
-        2. Currently, GTKSourceView is not available in the Windows version of |TexText|, hence
-           syntax highlighting is not enabled.
+        2. Currently, GTKSourceView is not available in the Windows version of |TexText|,
+           hence syntax highlighting is not enabled. An installer will be provided soon.
 
 Now you can launch |Inkscape| by double clicking on ``inkscape.exe`` in ``C:\InkscapeBeta``
 and work with |TexText|
 
-Please report any issues! Thank you!
+**Please report any issues!** Thank you!
 
 
 Switching back to Inkscape |InkscapeOld|
