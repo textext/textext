@@ -1,3 +1,19 @@
+Version 1.0.0-dev.2 (2020-02-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 1.0 (and its beta
+  releases). Please use TexText 0.11.0 if you use Inkscape 0.92.x
+- New: TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"
+       (All extensions are required to be in some submenu)
+- New: Enabled TkInter GUI under Python 3
+- New: Proper parsing and display of LaTeX compiler errors
+- Fixed: New nodes were not being placed in the center of the document
+- Fixed: Scale factor is ignored in new nodes
+- Fixed: Inkscape version never stored in TexText node
+- Fixed: Ctrl+P and Ctrl+Q shortcut not working properly under ALL Python
+         interpreters required by Inkscape
+- Fixed: Setup error URLs do not point to correct issue template
+- Several minor/ internal improvements/ fixes. See commit history of develop branch
+
 Version 1.0.0-dev.1 (2019-12-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - **Important**: This version is only compatible with Inkscape 1.0 (and its beta
