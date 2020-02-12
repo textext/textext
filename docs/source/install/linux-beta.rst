@@ -73,6 +73,67 @@ executing
     ~/squashfs-root/bin/inkscape &
 
 
+Install GUI library
+===================
+
+Install the Python bindings for the graphical user interface of
+|TexText|. You have two options: ``GTK3`` (recommended) or ``Tkinter``.
+
+At first you need to discover the Python interpreter that is used by your
+Inkscape installation. Enter the following command in a terminal
+
+.. code-block:: bash
+
+        python --version
+
+Keep the returned major version number (Python **2** or Python **3**) in mind
+for the following instructions:
+
+
+.. _linux-beta-install-gtk3:
+
+Install Python GTK3 bindings (recommended)
+------------------------------------------
+
+If your Inkscape installation runs **Python 2** you need the Python 2.x bindings for
+gobject-introspection libraries (``python-gi``), the GTK+ graphical user interface library
+(``gir1.2-gtk-3.0``) and the gir files for the GTK+ syntax highlighting widget
+(``gir1.2-gtksource-3.0``)
+
+.. code-block:: bash
+
+    sudo apt-get install python-gi gir1.2-gtk-3.0 gir1.2-gtksource-3.0
+
+If your Inkscape installation runs **Python 3** you need the Python 3 version of the
+gobject-introspection. The rest remains the same:
+
+.. code-block:: bash
+
+    sudo apt-get install python3-gi gir1.2-gtk-3.0 gir1.2-gtksource-3.0
+
+
+.. _linux-beta-install-tkinter:
+
+Install Tkinter (not recommended)
+---------------------------------
+
+Tkinter is functioning but has a limited interface compared to GTK version, so it's not
+recommended. To use ``Tkinter`` install the  Python ``tk`` package.
+
+If your Inkscape installation runs **Python 2**:
+
+.. code-block:: bash
+
+    sudo apt-get install python-tk
+
+
+If your Inkscape installation runs **Python 3**:
+
+.. code-block:: bash
+
+    sudo apt-get install python3-tk
+
+
 Download and install |TexText|
 ==============================
 
