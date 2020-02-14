@@ -12,12 +12,13 @@
 
 .. _linux-beta-install:
 
-==================
-|TexText| on Linux
-==================
+=================================
+|TexText| on Linux (Ubuntu 18.04)
+=================================
 
 This guide explains how to install and use |TexText| together with |Inkscape| on a system
-on which also |InkscapeOld| is installed.
+on which also |InkscapeOld| is installed. Unfortunately, this approach works only with
+Ubuntu 18.04.
 
 Preparation
 ===========
