@@ -208,7 +208,7 @@ try:
                 if preferred_tex_cmd in self.requirements_checker.available_tex_to_pdf_converters.keys():
                     current_tex_command = preferred_tex_cmd
                 else:
-                    current_tex_command = self.requirements_checker.available_tex_to_pdf_converters.keys()[0]
+                    current_tex_command = list(self.requirements_checker.available_tex_to_pdf_converters.keys())[0]
 
                 if text:
                     logger.debug("Old node text = %s" % repr(text))
