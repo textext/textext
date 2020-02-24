@@ -366,7 +366,7 @@ if __name__ == "__main__":
             remove_previous_installation(args.inkscape_extensions_path)
 
             copy_extension_files(
-                src="extension/*",
+                src=os.path.join(os.path.dirname(os.path.abspath(__file__)), "extension/*"),
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
