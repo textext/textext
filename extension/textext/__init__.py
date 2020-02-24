@@ -543,7 +543,6 @@ try:
             """Convert the PDF file to a SVG file"""
             exec_command([
                 self.checker.inkscape_executable,
-                "--without-gui",
                 "--pdf-poppler",
                 "--pdf-page=1",
                 "--export-type=svg",
@@ -558,7 +557,6 @@ try:
             """Convert the PDF file to a SVG file"""
             exec_command([
                 self.checker.inkscape_executable,
-                "--without-gui",
                 "--pdf-poppler",
                 "--pdf-page=1",
                 "--export-type=png",
