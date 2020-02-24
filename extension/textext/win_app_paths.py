@@ -53,7 +53,7 @@ def get_non_syspath_dirs():
                     _wr.CloseKey(key)
                     # Remove exe name
                     dirname = _os.path.dirname(value)
-                    return [dirname] if _os.path.isdir(dirname) else None
+                    return [dirname] if _os.path.isdir(dirname) else []
                 except WindowsError:
                     _wr.CloseKey(key)
             except WindowsError:
