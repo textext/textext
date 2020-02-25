@@ -208,7 +208,7 @@ To install ``xelatex`` on Ubuntu/Debian:
 Install TexText
 ===============
 
-1.  Download the most recent package from :textext_0x_current_release_page:`GitHub release page <release>` (direct links: :textext_0x_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
+1.  Download the most recent package from :textext_0x_current_release_page:`GitHub release page <release>` (direct links: :textext_0x_download_zip:`.zip <Linux>`, :textext_0x_download_tgz:`.tar.gz <Linux>`)
 2.  Extract the package and change to created directory.
 3.  Run :bash:`setup.py` from your terminal:
 
