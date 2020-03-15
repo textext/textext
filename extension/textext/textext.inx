@@ -1,7 +1,7 @@
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
   <name>Tex Text</name>
   <id>org.ekips.filter.textext</id>
-  <dependency type="executable" location="extensions">textext/__init__.py</dependency>
+  <dependency type="executable" location="inx">__init__.py</dependency>
   <effect implements-custom-gui="true">
     <object-type>all</object-type>
     <effects-menu>
@@ -9,6 +9,6 @@
     </effects-menu>
   </effect>
   <script>
-    <command location="extensions" interpreter="python">textext/__init__.py</command>
+    <command location="inx" interpreter="python">__init__.py</command>
   </script>
 </inkscape-extension>
