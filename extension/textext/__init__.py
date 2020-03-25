@@ -548,7 +548,7 @@ try:
                 "--export-type=svg",
                 "--export-text-to-path",
                 "--export-area-drawing",
-                "--export-file", self.tmp('svg'),
+                "--export-filename", self.tmp('svg'),
                 self.tmp('pdf')
             ]
             )
@@ -562,7 +562,7 @@ try:
                 "--export-type=png",
                 "--export-area-drawing",
                 "--export-dpi=300",
-                "--export-file", self.tmp('png'),
+                "--export-filename", self.tmp('png'),
                 self.tmp('pdf')
             ]
             )
