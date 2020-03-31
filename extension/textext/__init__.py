@@ -40,8 +40,6 @@ Florent Becker and Vladislav Gavryusev for contributions.
 """
 
 from __future__ import print_function
-import abc
-import copy
 import hashlib
 import logging
 import logging.handlers
@@ -107,7 +105,6 @@ __logger.addHandler(user_log_channel)
 try:
 
     import inkex
-    import inkex.elements
     from lxml import etree
 
     TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -342,7 +339,7 @@ try:
             :param alignment:
             :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
             """
-            from inkex.transforms import Transform
+            from inkex import Transform
 
             tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
 
@@ -581,10 +578,8 @@ try:
 
                 return parser.errors[0]
 
-    import inkex.svg
 
-
-    class TexTextElement(inkex.elements.Group):
+    class TexTextElement(inkex.Group):
         tag_name = "g"
 
         def __init__(self, svg_filename, uu_in_mm):
@@ -597,9 +592,8 @@ try:
             self._svg_to_textext_node(svg_filename, uu_in_mm)
 
         def _svg_to_textext_node(self, svg_filename, doc_unit_to_mm):
-            from inkex.elements import ShapeElement, Defs
-            from inkex.svg import SvgDocumentElement
-            doc = etree.parse(svg_filename, parser=inkex.elements.SVG_PARSER)
+            from inkex import ShapeElement, Defs, SvgDocumentElement
+            doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
 
             root = doc.getroot()
 
@@ -618,13 +612,12 @@ try:
 
         @staticmethod
         def _expand_defs(root):
-            from inkex.transforms import Transform
-            from inkex.elements import ShapeElement
+            from inkex import Transform, ShapeElement
             from copy import deepcopy
             for el in root:
-                if isinstance(el, inkex.elements.Use):
+                if isinstance(el, inkex.Use):
                     # <group> element will replace <use> node
-                    group = inkex.elements.Group()
+                    group = inkex.Group()
 
                     # add all objects from symbol node
                     for obj in el.href:
@@ -674,7 +667,7 @@ try:
                     el.attrib[name] = new_value
 
         def get_jacobian_sqrt(self):
-            from inkex.transforms import Transform
+            from inkex import Transform
             (a, b, c), (d, e, f) = Transform(self.transform).matrix
             det = a * e - d * b
             assert det != 0
@@ -706,7 +699,7 @@ try:
             :param (str) alignment: A 2-element string list defining the alignment
             :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
             """
-            from inkex.transforms import Transform
+            from inkex import Transform
             scale_transform = Transform("scale(%f)" % relative_scale)
 
             old_transform = Transform(ref_node.transform)
@@ -787,7 +780,7 @@ try:
         def has_colorized_style(self):
             """ Returns true if at least one element of node contains a non-black fill or stroke style """
             for it_node in self.iter():
-                style = it_node.style  # type: inkex.styles.Style
+                style = it_node.style  # type: inkex.Style
                 for style_attrib in ["stroke", "fill"]:
                     if style_attrib in style and \
                             style[style_attrib].lower().replace(" ", "") not in ["rgb(0%,0%,0%)",
@@ -804,7 +797,7 @@ try:
             """
 
             # Take the top level style information which is set when coloring the group in Inkscape
-            style = src_svg_ele.style # type: inkex.styles.Style
+            style = src_svg_ele.style  # type: inkex.Style
 
             # If a style attribute exists we can copy the style, if not, there is nothing to do here
             if len(style):
