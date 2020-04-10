@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0 beta**
-.. |Inkscape| replace:: **Inkscape 1.0 beta**
+.. |TexText| replace:: **TexText for Inkscape 1.0 RC1**
+.. |Inkscape| replace:: **Inkscape 1.0 RC1**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
@@ -17,8 +17,8 @@
 =================================
 
 This guide explains how to install and use |TexText| together with |Inkscape| on a system
-on which also |InkscapeOld| is installed. Unfortunately, this approach works only with
-Ubuntu 18.04.
+on which also |InkscapeOld| is installed. Unfortunately, this approach **works only with
+Ubuntu 18.04**.
 
 Preparation
 ===========
@@ -40,24 +40,23 @@ Preparation
 Download and install the |Inkscape| app image file
 ==================================================
 
-1. You can download |Inkscape| from https://inkscape.org/release/1.0beta2/ . Or
-   execute
+1. Download |Inkscape| build 09960d6 from `Gitlab <https://gitlab.com/inkscape/inkscape/-/jobs/505628089/artifacts/file/Inkscape-09960d6-x86_64.AppImage>`_ or use the following command in a terminal:
 
     .. code-block:: bash
 
-        wget -c https://inkscape.org/gallery/item/16199/Inkscape-2b71d25-x86_64.AppImage
+        wget -c https://gitlab.com/inkscape/inkscape/-/jobs/505628089/artifacts/raw/Inkscape-09960d6-x86_64.AppImage
 
 2. Change into the directory into which you downloaded the AppImage. Then, make it executable:
 
     .. code-block:: bash
 
-        chmod u+x Inkscape-2b71d25-x86_64.AppImage
+        chmod u+x Inkscape-09960d6-x86_64.AppImage
 
 3. Extract the AppImage:
 
     .. code-block:: bash
 
-        ./Inkscape-2b71d25-x86_64.AppImage --appimage-extract
+        ./Inkscape-09960d6-x86_64.AppImage --appimage-extract
 
 4. Optional, if you are not in your home directory: Move the created directory ``squashfs-root``
    into your home directory:

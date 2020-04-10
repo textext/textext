@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0 beta**
-.. |Inkscape| replace:: **Inkscape 1.0 beta**
+.. |TexText| replace:: **TexText for Inkscape 1.0 RC1**
+.. |Inkscape| replace:: **Inkscape 1.0 RC1**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
