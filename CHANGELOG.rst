@@ -1,3 +1,14 @@
+Version 1.0.0-dev.3 (2020-04-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 1.0 Release Candidate 1
+  from April 9th 2020. Please use TexText 0.11.0 if you use Inkscape 0.92.x
+- New: **TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"**
+  (All extensions are required to be in some submenu)
+- Compatibility with Inkscape 1.0 Release Candidate 1 modified extension API
+  (:issue_num:`188`, :issue_num:`193`, :issue_num:`194`, :issue_num:`196`, :issue_num:`202`, :issue_num:`203`)
+- Fixed operand type error (:issue_num:`186`)
+- Windows only: setup_win.bat now supports Python like arguments
+
 Version 1.0.0-dev.2 (2020-02-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - **Important**: This version is only compatible with Inkscape 1.0 (and its beta
