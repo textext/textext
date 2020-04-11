@@ -187,7 +187,7 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .asktext import AskerFactory
+        from .asktext import AskTextDefault
 
 
         with logger.debug("TexText.effect"):
@@ -256,11 +256,11 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = AskerFactory().asker(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                             current_alignment=alignment, current_texcmd=current_tex_command,
-                                             tex_commands=sorted(list(
-                                                 self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                             gui_config=gui_config)
+                asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                       current_alignment=alignment, current_texcmd=current_tex_command,
+                                       tex_commands=sorted(list(
+                                         self.requirements_checker.available_tex_to_pdf_converters.keys())),
+                                       gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD):
