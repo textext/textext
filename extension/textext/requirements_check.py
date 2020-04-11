@@ -84,8 +84,8 @@ class WindowsDefaults(Defaults):
 
     def __init__(self):
         super(WindowsDefaults, self)
-        import win_app_paths as wap
-        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+        from .win_app_paths import get_non_syspath_dirs
+        self._tweaked_syspath = get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
 
         # Windows 10 supports colored output since anniversary update (build 14393)
         # so we try to use it (it has to be enabled since it is always disabled by default!)

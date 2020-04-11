@@ -35,7 +35,7 @@ TOOLKIT = None
 import os
 import sys
 import warnings
-from errors import TexTextCommandFailed
+from .errors import TexTextCommandFailed
 from textext.utility import SuppressStream
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
