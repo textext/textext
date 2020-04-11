@@ -1,4 +1,4 @@
-from textext import *
+from textext.base import *
 import traceback
 
 if __name__ == "__main__":

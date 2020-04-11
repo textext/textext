@@ -16,14 +16,14 @@ sys.path.append(os.path.join(
     "textext"
 ))
 
-from requirements_check import \
+from textext.requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
     defaults, \
     LoggingColors, \
     SUCCESS
 
-from utility import Settings
+from textext.utility import Settings
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
@@ -334,7 +334,7 @@ if __name__ == "__main__":
                         found_files_to_keep[old_filename] = new_filename
                         continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
-                            open(os.path.join("extension", new_filename)) as f_new:
+                            open(new_filename) as f_new:
                         if f_old.read() != f_new.read():
                             logger.debug("Content of `%s` are not identical version in distribution" % old_filename)
                             found_files_to_keep[old_filename] = new_filename
@@ -366,7 +366,7 @@ if __name__ == "__main__":
             remove_previous_installation(args.inkscape_extensions_path)
 
             copy_extension_files(
-                src=os.path.join(os.path.dirname(os.path.abspath(__file__)), "extension/*"),
+                src=os.path.join(os.path.dirname(os.path.abspath(__file__)), "textext"),
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
