@@ -10,12 +10,6 @@ import sys
 import stat
 import tempfile
 
-sys.path.append(os.path.join(
-    os.path.dirname(__file__),
-    "extension",
-    "textext"
-))
-
 from textext.requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
@@ -24,6 +18,7 @@ from textext.requirements_check import \
     SUCCESS
 
 from textext.utility import Settings
+
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
