@@ -8,7 +8,7 @@ import stat
 import subprocess
 import tempfile
 
-from errors import *
+from .errors import *
 import sys
 
 
@@ -146,7 +146,7 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
 
 class Settings(object):
     def __init__(self, basename="config.json"):
-        from requirements_check import defaults
+        from .requirements_check import defaults
         self.values = {}
         self.config_path = os.path.join(defaults.inkscape_extensions_path, "textext", basename)
         try:
