@@ -1,3 +1,14 @@
+Version 1.0.0-dev.4 (2020-04-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 1.0 Release Candidate 1
+  from April 9th 2020. It might or might not work with newer Inkscape releases. Please
+  use TexText 0.11.0 if you use Inkscape 0.92.x
+- New: **TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"**
+  (All extensions are required to be in some submenu)
+- Fixed: Vertical flipping after re-compilation of nodes created with TexText < 1.0
+  (:issue_num:`205`)
+- Fixed: Lost color after re-compilation of node (:issue_num:`206`)
+
 Version 1.0.0-dev.3 (2020-04-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - **Important**: This version is only compatible with Inkscape 1.0 Release Candidate 1
