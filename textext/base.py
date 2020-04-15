@@ -701,14 +701,12 @@ class TexTextElement(inkex.Group):
 
         old_transform = Transform(ref_node.transform)
 
-        # Account for vertical flipping of pstoedit nodes when recompiled via pdf2svg and vice versa
+        # Account for vertical flipping of nodes created via pstoedit in TexText <= 0.11.x
         revert_flip = Transform("scale(1)")
-        if ref_node.get_meta("pdfconverter") == "pdf2svg":
+        if ref_node.get_meta("pdfconverter") == "pstoedit":
             revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
-        composition = old_transform * revert_flip
-
-        composition = scale_transform * composition
+        composition = scale_transform * old_transform * revert_flip
 
         # keep alignment point of drawing intact, calculate required shift
         self.transform = composition
