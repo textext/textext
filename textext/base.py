@@ -803,8 +803,13 @@ class TexTextElement(inkex.Group):
                                 key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
                                                 "fill-opacity"] and value.lower() != "none"}
 
-            # update style of all child nodes
             for it in self.iter():
-                self.style.update(color_style_dict)
-                it.pop("stroke")
-                it.pop("fill")
+                # Update style
+                it.style.update(color_style_dict)
+                # Remove style-duplicating attributes
+                for prop in ("stroke", "fill"):
+                    if prop in style:
+                        it.pop(prop)
+                # Avoid unintentional bolded letters
+                if "stroke-width" not in it.style:
+                    it.style["stroke-width"] = "0"
