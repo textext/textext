@@ -144,9 +144,9 @@ class TexText(inkex.EffectExtension):
             logging.disable(logging.DEBUG)
 
         logger.debug("TexText initialized")
-        with open(__file__) as fhl:
+        with open(__file__, "rb") as fhl:
             logger.debug("TexText version = %s (md5sum = %s)" %
-                         (repr(__version__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                         (repr(__version__), hashlib.md5(fhl.read()).hexdigest())
                          )
         logger.debug("platform.system() = %s" % repr(platform.system()))
         logger.debug("platform.release() = %s" % repr(platform.release()))
