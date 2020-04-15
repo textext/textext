@@ -144,9 +144,9 @@ class TexText(inkex.EffectExtension):
             logging.disable(logging.DEBUG)
 
         logger.debug("TexText initialized")
-        with open(__file__) as fhl:
+        with open(__file__, "rb") as fhl:
             logger.debug("TexText version = %s (md5sum = %s)" %
-                         (repr(__version__), hashlib.md5(fhl.read().encode('utf-8')).hexdigest())
+                         (repr(__version__), hashlib.md5(fhl.read()).hexdigest())
                          )
         logger.debug("platform.system() = %s" % repr(platform.system()))
         logger.debug("platform.release() = %s" % repr(platform.release()))
@@ -801,8 +801,13 @@ class TexTextElement(inkex.Group):
                                 key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
                                                 "fill-opacity"] and value.lower() != "none"}
 
-            # update style of all child nodes
             for it in self.iter():
-                self.style.update(color_style_dict)
-                it.pop("stroke")
-                it.pop("fill")
+                # Update style
+                it.style.update(color_style_dict)
+                # Remove style-duplicating attributes
+                for prop in ("stroke", "fill"):
+                    if prop in style:
+                        it.pop(prop)
+                # Avoid unintentional bolded letters
+                if "stroke-width" not in it.style:
+                    it.style["stroke-width"] = "0"
