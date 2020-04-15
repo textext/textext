@@ -19,7 +19,7 @@ class TmpDir:
 
 if __name__ == "__main__":
 
-    TexTextVersion = open("extension/textext/VERSION").readline().strip()
+    TexTextVersion = open("textext/VERSION").readline().strip()
 
     parser = argparse.ArgumentParser(description="Build TexText distribution archive for selected platforms."
                                                  "If not otherwise specified zip and tgz packages are built "
@@ -64,8 +64,8 @@ if __name__ == "__main__":
         with TmpDir() as tmpdir:
             versioned_subdir = os.path.join(tmpdir,"textext-%s" % TexTextVersion)
             os.mkdir(versioned_subdir)
-            shutil.copytree("./extension",
-                            os.path.join(versioned_subdir, "extension"),
+            shutil.copytree("./textext",
+                            os.path.join(versioned_subdir, "textext"),
                             ignore=git_ignore_patterns  # exclude .gitignore files
                             )
             shutil.copy("setup.py", versioned_subdir)

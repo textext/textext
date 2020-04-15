@@ -3,7 +3,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "TexText for Inkscape 1.0"
-!define /file PRODUCT_VERSION "extension\textext\VERSION"
+!define /file PRODUCT_VERSION "textext\VERSION"
 !define PRODUCT_PUBLISHER "TexText developers"
 !define PRODUCT_WEB_SITE "https://github.com/textext/textext"
 !define PRODUCT_DOC_SITE "https://textext.github.io/textext"
@@ -68,14 +68,11 @@ SectionEnd
 
 Section "TexText" -SEC01
   ; The extension files are installed in the subdir "textext" of the
-  ; Inkscape extension directory $INSTDIR. Only the .inx file is put
-  ; into the extension directory itself
-  File "extension\textext.inx"
-
+  ; Inkscape extension directory $INSTDIR.
   SetOutPath "$INSTDIR\textext"
-  File /x "*.pyc" /x "*.log" "extension\textext\*.*"
+  File /x "*.pyc" /x "*.log" "textext\*.*"
   SetOutPath "$INSTDIR\textext\icons"
-  File /r "extension\textext\icons\*.png"
+  File /r "textext\icons\*.png"
   
   ; Make sure that extension files from old TexText versions < 0.9
   ; are removed (they were put directly into Inkscape's extension
