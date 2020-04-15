@@ -45,8 +45,8 @@ script:
 after_success:
   # Put a tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
   # Reminder: grep -q returns 0 if any match has been found, otherwise nonzero.
-  - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q extension/textext/VERSION; echo $?;)
-  - VERSION=$(head -n 1 extension/textext/VERSION)
+  - VERSION_CHANGED=$(git diff --no-commit-id --name-only -r $TRAVIS_COMMIT_RANGE | grep -q textext/VERSION; echo $?;)
+  - VERSION=$(head -n 1 textext/VERSION)
   - echo 'Version changed                     :' $( [ "$VERSION_CHANGED" == 0 ] && echo "Yes" || echo "No")
   - echo 'Version                             :' $VERSION
   - echo 'Travis branch                       :' $TRAVIS_BRANCH
