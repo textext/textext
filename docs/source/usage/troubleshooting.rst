@@ -148,39 +148,26 @@ programs used in the toolchain. Here is what you have to do in such cases:
 
 5. Check if the conversion from ``pdf`` to ``svg`` succeeds:
 
-    - If you use ``pstoedit + ghostscript`` enter the command
+    .. code-block:: bash
 
-        .. code-block:: bash
+        inkscape --pdf-poppler --pdf-page=1 --export-type=svg --export-text-to-path --export-area-drawing --export-filename test.svg test.pdf
 
-            pstoedit -f plot-svg test.pdf test.svg -dt -ssp -psarg -r9600x9600 -pta
+    .. note::
 
-        .. note::
+        On Windows it may be required to put the name of the directory in which ``inkscape.exe``
+        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
 
-            On Windows it may be required to put the name of the directory in which ``pstoedit.exe``
-            resides in front of ``pstoedit``, e.g. ``c:\Program Files\pstoedit\``.
+    Open the generated file ``test.svg`` with Inkscape and check the result.
 
-    - If you use ``pdf2svg`` enter the command
+6. Check if the conversion from ``svg`` to ``png`` for the preview image succeeds
 
-        .. code-block:: bash
+    .. code-block:: bash
 
-            pdf2svg test.pdf test.svg
+        inkscape --pdf-poppler --pdf-page=1 --export-type=png --export-area-drawing --export-dpi=300 --export-filename test.png test.pdf
 
-        .. note::
+    .. note::
 
-            On Windows it may be required to put the name of the directory in which ``pdf2svg.exe``
-            resides in front of ``pdf2svg``, e.g. ``c:\Program Files\pdf2svg\``.
+        On Windows it may be required to put the name of the directory in which ``inkscape.exe``
+        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
 
-    - Open the generated file ``test.svg`` with Inkscape.
-
-6. Check the generation from ``svg`` to ``png`` for the preview image succeeds
-
-    - Enter the command
-
-        .. code-block:: bash
-
-            inkscape -f test.svg --export-png test.png  --export-id content --export-id-only --export-dpi=200
-
-        .. note::
-
-            On Windows it may be required to put the name of the directory in which ``inkscape.exe``
-            resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
+    Open the generated file ``test.png`` with an image viewer and check the result.

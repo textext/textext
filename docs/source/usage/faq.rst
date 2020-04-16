@@ -78,33 +78,15 @@ in your nodes you have two options:
 
 .. _faq-old-inkscape:
 
-Using TexText with older Inkscape versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. _inkscape-0.48.x-0.91.x-multi: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.48%2B0.91/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe
+Using TexText with Inkscape 0.92.x
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Unfortunately the current |TexText| release does not work with Inkscape versions 0.91.x
-and 0.48.x, at least under Windows. The reason is the underlying Python interpreter
-which must be of version 2.7. If you need to work with an older Inkscape version you are
-encouraged to use |TexText| 0.8.x. You can download it from here
-https://github.com/textext/textext/releases .
-
-These are the required PyGTK-Packages (Windows):
-
- - Inkscape 0.48.x - 0.91.x (`32-bit and 64-bit <inkscape-0.48.x-0.91.x-multi_>`_)
-
-Installation instructions:
-
- - https://github.com/textext/textext/wiki/Installation-instructions
-
-.. note::
-    If you manage to run Inkscape < 0.92 with Python 2.7 you can use the most recent
-    version of |TexText|.
-
+Please use |TexText| 0.11.x, see :ref:`tt0x-installation-toc`
 
 Extension not shown in the Inkscape Extension menu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the the |TexText| entry is not shown in the ``Extension`` menu of Inkscape proceed with
+If the the |TexText| entry is not shown in the ``Extension --> Text`` menu of Inkscape proceed with
 the following checks:
 
 1. Make sure that the setup procedure completed successfully. Double check its final output.
@@ -130,7 +112,7 @@ the following checks:
 
    .. code-block:: bash
 
-        setup_win.bat /p:"--inkscape-extensions-path 'C:\Path\to your extensions'"
+        setup_win.bat --inkscape-extensions-path "C:\Path\to your extensions"
 
    Alternatively you can select the correct directory in the GUI installer.
 
@@ -148,51 +130,4 @@ view of ``stderr`` (see :ref:`trouble_latex`) shows an entry like
 
 the most likely reason is that MiKTeX tries to install a package on the fly and fails to
 do so. Manually compile your code as described in :ref:`trouble_manual_compile`. Then
-you will see what goes wrong so you can fix it. See also the warning in :ref:`windows-install-latex`.
-
-.. _faq-set-inskscape-python-interpreter-to-python2:
-
-Set Inkscape python interpreter to Python2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Inkscape by default uses ``python`` executable to run python extension. On recent systems ``python`` defaults to be ``python3``.
-To run |TexText| you need to change inkscape `python-interpreter` to ``python2``:
-
-..
-    The steps are taken from
-    http://wiki.inkscape.org/wiki/index.php/Extension_Interpreters#Selecting_a_specific_interpreter_version_.28via_preferences_file.29
-
-
-1. Quit all running Inkscape processes
-
-2. Open your ``perferences.xml`` file with a text editor (usually ``~/.config/inkscape/preferences.xml``)
-
-   .. note::
-
-        Find the exact location of preference file by going to :kbd:`Edit|Preferences|System|User Preferences`
-
-3. Search the group which holds settings for the extension system itself and options of various extensions:
-
-   .. code-block:: xml
-
-      <group
-         id="extensions"
-         …
-         org.ekips.filter.gears.teeth="24"
-         org.ekips.filter.gears.pitch="20"
-         org.ekips.filter.gears.angle="20" />
-
-4. Insert a key for the interpreter, for example ``python-interpreter`` for setting the program that should be used to
-   run python extensions, and set the string to the absolute path to the python binary which is compatible with Inkscape's
-   current extension scripts (in the example below, the path is ``/usr/bin/python2.7``, you can determine it in a
-   terminal via the command ``which python2.7`` or ``which python2``):
-
-    .. code-block:: xml
-
-       <group
-          id="extensions"
-          python-interpreter="/usr/bin/python2.7"
-          …
-          org.ekips.filter.gears.teeth="24"
-          org.ekips.filter.gears.pitch="20"
-          org.ekips.filter.gears.angle="20" />
+you will see what goes wrong so you can fix it. See also the warning in :ref:`windows-install-preparation`.
