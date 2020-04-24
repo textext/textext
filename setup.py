@@ -282,7 +282,7 @@ if __name__ == "__main__":
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    settings = Settings()
+    settings = Settings(inkscape_extensions_path=args.inkscape_extensions_path)
 
     checker = TexTextRequirementsChecker(logger, settings)
 
