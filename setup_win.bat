@@ -121,29 +121,42 @@ goto FINAL
 echo Trying to find Inkscape...
 
 rem Inkscape installation path is usually found in the registry
-rem "Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
+rem "SOFTWARE\Inkscape\Inkscape"
 rem under HKLM (Local Machine -> machine wide installation) or
 rem HKCU (Current User -> user installation)
+rem We also have to keep in mind that the values might be in the 32bit or 64bit 
+rem version of the registry (i.e., under SOFTWARE\WOW6432Node\Inkscape\Inkscape
+rem or SOFTWARE\Inkscape\Inkscape)
 for %%R in (HKLM HKCU) do (
-    rem Output of REG QUERY "KeyName" /ve is (first line is a blank line):
-    rem ----
-    rem
-    rem HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe
-    rem     (Standard)    REG_SZ    C:\Program Files\Inkscape\inkscape.exe
-    rem ----
-    rem so we skip the first two lines (skip=2) and then we take the second token
-    rem and the reamining output (tokens=2*), so %%A is REG_SZ and %%B is the path
-    rem even if it contains spaces (tokens are delimited by spaces)
-    echo Trying registry root %%R...
-    for /f "usebackq skip=2 tokens=2*" %%A in (`REG QUERY "%%R\Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe" /ve 2^>nul`) do (
-        set INKSCAPE_EXE=%%B
-    )
-    if defined INKSCAPE_EXE (
-        echo Inkscape found as !INKSCAPE_EXE!
-        echo.
-        for %%S in ("!INKSCAPE_EXE!") do set INKSCAPE_DIR=%%~dpS
-        goto INKSCAPE_FOUND
-    )
+	for %%T in (32 64) do (
+		rem Output of REG QUERY "KeyName" /ve is (first line is a blank line):
+		rem ----
+		rem
+		rem HKEY_LOCAL_MACHINE\SOFTWARE\Inkscape\Inkscape
+		rem     (Standard)    REG_SZ    C:\Program Files\Inkscape
+		rem ----
+		rem so we skip the first two lines (skip=2) and then we take the second token
+		rem and the reamining output (tokens=2*), so %%A is REG_SZ and %%B is the path
+		rem even if it contains spaces (tokens are delimited by spaces)
+		echo Trying registry root %%R [%%T]...
+		for /f "usebackq skip=2 tokens=2*" %%A in (`REG QUERY "%%R\SOFTWARE\Inkscape\Inkscape" /ve /reg:%%T 2^>nul`) do (
+			set INKSCAPE_DIR=%%B
+		)
+		if defined INKSCAPE_DIR (
+			echo Inkscape considered to be installed in !INKSCAPE_DIR!
+			set INKSCAPE_DIR=!INKSCAPE_DIR!\bin
+			echo Setting executable path to !INKSCAPE_DIR!
+			set INKSCAPE_EXE=!INKSCAPE_DIR!\inkscape.exe
+			if exist "!INKSCAPE_EXE!" (
+			    echo !INKSCAPE_EXE! found
+				echo.
+				goto INKSCAPE_FOUND
+			) else (
+				echo !INKSCAPE_EXE! not found
+			)
+			rem for %%S in ("!INKSCAPE_EXE!") do set INKSCAPE_DIR=%%~dpS
+		)
+	)
 )
 
 rem Check if Inkscape is in the system path (not very likely)
@@ -165,7 +178,7 @@ goto INKSCAPE_NOT_FOUND
 :INKSCAPE_FOUND
 rem Check where the Python interpreter is in the Inkscape installation
 echo Trying to detect Python interpreter in Inkscape installation directory...
-set PYTHON_EXE="%INKSCAPE_DIR%python.exe"
+set PYTHON_EXE="%INKSCAPE_DIR%\python.exe"
 if exist "%PYTHON_EXE%" (
     echo %PYTHON_EXE% found
     echo.
