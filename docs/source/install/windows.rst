@@ -24,9 +24,13 @@
 
 Preparation
 ===========
-1. Make sure that Inkscape version 1.0 or later is installed on your system and you selected
-   the ``Install Python 3.8 interpreter`` option during the installation of Inkscape
-   (by default this is the case).
+1. Make sure that Inkscape version 1.0 or later is installed on your system and you checked
+   the ``Python`` option in ``Program Files`` as well as the ``Extensions`` options in
+   ``Inkscape Data`` during the installation of Inkscape (by default this is the case).
+
+    .. figure:: ../images/inkscape-install-options-windows.png
+       :alt: Necessary installation options in Inkscape
+
 
 2. Make sure that an operational LaTeX distribution is installed on your system. You can verify
    this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
