@@ -10,8 +10,9 @@
    :language: latex
    :class: highlight
 
-.. _gtksourceview-windows-64-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-64bit.exe
-.. _gtksourceview-windows-32-bit: https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-32bit.exe
+.. _gtksourceview-windows-64-bit: https://github.com/textext/gtksourceview-for-inkscape-windows/releases/download/1.0.0/Install-GtkSourceView-3.24-Inkscape-1.0-64bit.exe
+.. _gtksourceview-windows-32-bit: https://github.com/textext/gtksourceview-for-inkscape-windows/releases/download/1.0.0/Install-GtkSourceView-3.24-Inkscape-1.0-32bit.exe
+.. _gtksourceview-inkscape-site: https://github.com/textext/gtksourceview-for-inkscape-windows/releases
 
 
 .. _windows-install:
@@ -45,14 +46,16 @@ Preparation
 
 
 3. Optional: If you whish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
-   enabled in the |TexText|-Gui install GTKSourceView. For that purpose download the GTKSourceView package
+   enabled in the |TexText|-Gui install GtkSourceView. For that purpose download the GtkSourceView package
    that matches your Inkscape installation type
 
-   - `GTKSourceview 3 for Inkscape 1.0 64-bit <gtksourceview-windows-64-bit_>`_
-   - `GTKSourceview 3 for Inkscape 1.0 32-bit <gtksourceview-windows-32-bit_>`_
+   - `GtkSourceview 3 for Inkscape 1.0 64-bit <gtksourceview-windows-64-bit_>`_
+   - `GtkSourceview 3 for Inkscape 1.0 32-bit <gtksourceview-windows-32-bit_>`_
 
    and run the corresponding installer. It will add a small amount of files into your |Inkscape|
-   installation. You need administrator privileges for this step.
+   installation. You need administrator privileges for this step. If you do not trust the installer
+   you will find zip packages on the `GtkSourceView for Inkscape project site <gtksourceview-inkscape-site_>`_
+   for manual installation.
 
 .. important::
 
