@@ -35,7 +35,6 @@ def check_cmd_in_syspath(command_name):
 
 def get_non_syspath_dirs():
     """Returns a list containing the directories of the applications which are not found in the system path"""
-    additional_dirs = []
 
     # Try standard registry and the 32bit as well as 64bit mapping of it
     for access_right in [_wr.KEY_READ, _wr.KEY_READ | _wr.KEY_WOW64_32KEY, _wr.KEY_READ | _wr.KEY_WOW64_64KEY]:
@@ -54,4 +53,11 @@ def get_non_syspath_dirs():
                     _wr.CloseKey(key)
             except WindowsError:
                 pass
+
+    # Last chance: Guess at the two common locations
+    for dirname in ["C:\\Program Files\\Inkscape\\bin", "C:\\Program Files (x86)\\Inkscape\\bin"]:
+        if _os.path.isfile(_os.path.join(dirname, "inkscape.exe")):
+            return [dirname]
+
+    # Give up
     return []
