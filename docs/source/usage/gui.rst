@@ -87,7 +87,7 @@ The |TexText| GUI
 |TexText| extension entry
 -------------------------
 
-After installation |TexText| will appear under :menuselection:`Extensions --> Tex Text`:
+After installation |TexText| will appear under :menuselection:`Extensions --> Text --> Tex Text`:
 
 .. figure:: ../images/inkscape-extension.png
    :alt: Extension entry
@@ -104,9 +104,9 @@ Dialog overview
    :alt: Annotated TexText dialog
 
 
-You enter your LaTeX code into the edit box |usage-label-5|. In the case you
-installed PyGTK it will show you line and column numbers. If you
-additionally installed PyGTKSourceView it will also highlight the syntax
+You enter your LaTeX code into the edit box |usage-label-5|. In the case the
+the GTK GUI bindings are available it will show you line and column numbers. If you
+additionally installed GTKSourceView it will also highlight the syntax
 with colors. You can add any valid and also multi-line LaTeX code.
 There are additional settings which can be adjusted to your needs:
 
@@ -136,8 +136,6 @@ from entry to result considerably, so use it! See section :ref:`usage-preview`
 Available TeX compilers
 -----------------------
 
-.. versionadded:: 0.8.0
-
 Your LaTeX code can be compiled using three different compilers:
 :bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex` (as long as the corresponding
 commands are found by your system). You can select the command in the
@@ -153,7 +151,7 @@ Some things to be kept in mind:
  - If you use :bash:`lualatex`/ :bash:`xelatex` for the very first time on your
    system it may take some time until the fonts are setup properly.
    During that time |TexText| might be unresponsive.
- - Windows: :bash:`xelatex`\ tends to be very slow on Windows machines, see
+ - Windows: :bash:`xelatex` tends to be very slow on Windows machines, see
    this post on
    `Stackexchange <https://tex.stackexchange.com/questions/357098/compiling-tex-files-with-xelatex-is-insanely-slow-on-my-windows-machine/357100>`__.
 
@@ -197,8 +195,15 @@ two methods:
 1. After compilation adjust the size of the SVG output using the mouse
    in Inkscape. You should lock the width and height to keep the
    proportion. Be careful to not break the group!
+
+    .. figure:: ../images/inkscape-scaling-locked.png
+       :alt: Locked scaling in Inkscape
+
 2. Before compilation you specifiy a scale factor in the spinbox of the
    groupbox |usage-label-3|.
+
+    .. figure:: ../images/textext-scale-factor.png
+       :alt: TexText scale factor
 
 Both methods are fully compatible. If you scale your SVG output in
 Inkscape the numerical value of the spinbox will be adjusted
@@ -233,8 +238,6 @@ proportions according to the `alignment <usage-alignment_>`_.
 
 Alignment of the output
 -----------------------
-
-.. versionadded:: 0.8.0
 
 When you edit existing nodes it is likely that the size of the produced
 output will change, for example if you modify the input :latex:`$\sin(x)$` to
@@ -280,8 +283,8 @@ There are two ways for colorization of the output:
 
     .. caution::
 
-       Individual symbol colorization done in Inkscape *will not* be kept after
-       re-compilation.
+       Individual colorization of *single characters* done in Inkscape *will not* be
+       kept after re-compilation.
 
 
  2. Alternatively, you can use LaTeX commands like
@@ -317,8 +320,6 @@ Finally, click the ``Save`` button to insert the compiled code into your documen
 Configuration of the default TeX math-environment
 -------------------------------------------------
 
-.. versionadded:: 0.10.0
-
 You can open the ``Settings`` menu |usage-label-7| and then ``New Node Content``
 to define which environment should be selected by default when creating new nodes.
 
@@ -337,7 +338,7 @@ You have the following options:
 
 .. note::
 
-    Currently, this feature is not available in the Tkinter GUI!
+    This feature is not available in the Tkinter GUI!
 
 .. _usage-close-shortcut-config:
 
@@ -364,7 +365,7 @@ You have the following options:
 
 .. note::
 
-    Currently, this feature is not available in the Tkinter GUI!
+    This feature is not available in the Tkinter GUI!
 
 .. _usage-gui-config:
 
@@ -388,7 +389,7 @@ to configure the code editor:
 .. note::
 
    The last three options are only available if you have ``GTKSourceView`` installed
-   together with ``PyGTK`` (see installation instructions :ref:`linux-install`,
+   together with ``GTK`` (see installation instructions :ref:`linux-install`,
    :ref:`windows-install`, :ref:`macos-install`)
 
 

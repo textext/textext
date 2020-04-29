@@ -12,39 +12,51 @@ and *re-edit* LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
--  Compatible with upcoming release of Inkscape 1.0
+-  Compatible with Inkscape **1.0** and **0.92**
 -  Windows/ Linux/ MacOS support
 -  LaTeX generated SVG elements can be re-edited later
--  Multi-line editor with syntax highlighting (see :ref:`§ <usage-dialog-overview>`)
--  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see :ref:`§ <usage-tex-compilers>`)
--  Interoperable scaling in TexText and Inkscape (see :ref:`§ <usage-scaling>`)
--  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see :ref:`§ <usage-preamble-file>`)
--  Colorization via TeX commands/ Inkscape is kept after re-editing (see :ref:`§ <usage-colorization>`)
--  Alignment anchor of the produced output (see :ref:`§ <usage-alignment>`)
--  Font size match with Inkscape text (see :ref:`§ <faq-font-size>`)
--  Preview images  (see :ref:`§ <usage-preview>`)
+-  Multi-line editor with syntax highlighting
+-  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex**
+-  Interoperable scaling in TexText and Inkscape
+-  Customizable TeX preamble (additional packages, parskip, parindent, etc.)
+-  Colorization via TeX commands/ Inkscape is kept after re-editing
+-  Alignment anchor of the produced output
+-  Font size match with Inkscape text
+-  Preview images
 -  Compatibility with TexText down to version 0.4.x
 
+.. note::
+    If you are using Inkscape **0.92** please use the :ref:`discontinued release 0.11 of TexText <tt0x>`
 
 .. _installation-toc:
 
 .. toctree::
     :caption: Installation
-    :maxdepth: 2
+    :maxdepth: 1
     :glob:
 
     install/*
+
 
 .. _usage-toc:
 
 .. toctree::
     :caption: Usage
-    :maxdepth: 2
-    :glob:
+    :maxdepth: 1
 
     usage/gui
     usage/faq
     usage/troubleshooting
+
+
+.. toctree::
+    :caption: Deprecated versions
+    :maxdepth: 2
+    :hidden:
+    :glob:
+
+    textext_0x/textext_0x.rst
+
 
 .. toctree::
     :caption: Credits
@@ -52,6 +64,7 @@ Key features
 
     history.rst
     authors.rst
+
 
 .. toctree::
     :caption: Changelog
