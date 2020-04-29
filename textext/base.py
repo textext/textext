@@ -703,7 +703,7 @@ class TexTextElement(inkex.Group):
 
         # Account for vertical flipping of nodes created via pstoedit in TexText <= 0.11.x
         revert_flip = Transform("scale(1)")
-        if ref_node.get_meta("pdfconverter") == "pstoedit":
+        if ref_node.get_meta("pdfconverter", "pstoedit") == "pstoedit":
             revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
         composition = scale_transform * old_transform * revert_flip
