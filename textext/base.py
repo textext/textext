@@ -49,6 +49,7 @@ import os
 import platform
 import sys
 import uuid
+from io import open # ToDo: For open utf8, remove when Python 2 support is skipped
 
 from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
@@ -570,7 +571,7 @@ class TexToPdfConverter:
             from .texoutparse import LatexLogParser
 
             parser = LatexLogParser()
-            with open(self.tmp('log')) as f:
+            with open(self.tmp('log'), encoding='utf8') as f:
                 parser.process(f)
 
             return parser.errors[0]
