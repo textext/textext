@@ -10,7 +10,8 @@ import subprocess as _sp
 import winreg as _wr
 
 # Windows Registry key under which the installation dir of Inkscape is stored
-INKSCAPE_REG_KEY = r"Software\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
+# Note that "bin" has to be added to that directory
+INKSCAPE_REG_KEY = r"SOFTWARE\Inkscape\Inkscape"
 
 
 def check_cmd_in_syspath(command_name):
@@ -34,14 +35,9 @@ def check_cmd_in_syspath(command_name):
 
 def get_non_syspath_dirs():
     """Returns a list containing the directories of the applications which are not found in the system path"""
-    additional_dirs = []
 
-    # Attention! Since the Python interpreter in Inkscape might be 32-bit for both, the 32- and 64-bit Version of
-    # Inkscape, a standard call of OpenKey from within Python only refers to the WOW6432-tree
-    # of the registry. Hence, to check if the 64-bit version of a program is installed on a
-    # 64-bit Windows we have to force to also look in the standard tree. This is done by adding
-    # the Flag KEY_WOW64_64KEY to the read access flag.
-    for access_right in [_wr.KEY_READ, _wr.KEY_READ | _wr.KEY_WOW64_64KEY]:
+    # Try standard registry and the 32bit as well as 64bit mapping of it
+    for access_right in [_wr.KEY_READ, _wr.KEY_READ | _wr.KEY_WOW64_32KEY, _wr.KEY_READ | _wr.KEY_WOW64_64KEY]:
         # Global instalations put their keys in HKLM (HKEY_LOCAL_MACHINE), user installations
         # put their keys in HKCU (HKEY_CURRENT_USER)
         for hkey in [_wr.HKEY_LOCAL_MACHINE, _wr.HKEY_CURRENT_USER]:
@@ -51,11 +47,17 @@ def get_non_syspath_dirs():
                     # Inkscape stores its installation location in a Standard key -> ""
                     value, _ = _wr.QueryValueEx(key, "")
                     _wr.CloseKey(key)
-                    # Remove exe name
-                    dirname = _os.path.dirname(value)
+                    dirname = _os.path.join(value, "bin")
                     return [dirname] if _os.path.isdir(dirname) else []
                 except WindowsError:
                     _wr.CloseKey(key)
             except WindowsError:
                 pass
+
+    # Last chance: Guess at the two common locations
+    for dirname in ["C:\\Program Files\\Inkscape\\bin", "C:\\Program Files (x86)\\Inkscape\\bin"]:
+        if _os.path.isfile(_os.path.join(dirname, "inkscape.exe")):
+            return [dirname]
+
+    # Give up
     return []

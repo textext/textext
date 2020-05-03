@@ -277,7 +277,9 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler("setup.log")
+    # Explicit path spec since on Windows working directory must be the python.exe directory
+    # which is usually read-only for standard users
+    fh = logging.FileHandler(os.path.join(os.path.dirname(__file__), "textextsetup.log"))
     fh.setLevel(ch.level)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
