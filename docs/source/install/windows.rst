@@ -109,3 +109,13 @@ You are done. Now you can consult the :ref:`usage instructions <gui>`. In case o
 :ref:`troubleshooting`.
 
 
+.. _windows-install-library:
+.. _windows-install-gtk3:
+.. _windows-install-tkinter:
+
+Problems with the GUI framework
+-------------------------------
+
+The GUI framework should already be included in the Inkscape installation on Windows.
+Hence, if the |TexText| installer complains about missing GTK3 or TkInter bindings
+please file a bug report on `github <https://github.com/textext/textext/issues/new/choose>`_
