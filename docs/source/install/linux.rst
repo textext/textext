@@ -22,11 +22,17 @@ Preparation
 ===========
 
 1. Make sure that Inkscape version 1.0 or later is installed on your system via your favorite
-   package manager and is able to launch. You can verify this by invoking :bash:`inkscape` from
-   a terminal.
+   package manager, e.g.
+
+   .. code-block:: bash
+
+        sudo apt install inkscape
+
+   Check if it is able to launch. You can verify this by invoking :bash:`inkscape --version` from
+   a terminal. It should output :bash:`1.0`.
 
    .. important::
-       |TexText| will not function properly if you installed |Inkscape| via snap or flatpack.
+       |TexText| will not function properly if you installed |Inkscape| via **SNAP** or **FLATPACK**.
        The reason is that |Inkscape| will run in sandboxed mode in these environments and, hence,
        cannot access you LaTeX distribution to compile your snippets!
 
@@ -52,13 +58,19 @@ Download and install |TexText|
 
 2. Extract the package and change into the created directory.
 
-3. Run :bash:`setup.py` from your terminal:
+3. If you installed Inkscape via a package manager run :bash:`setup.py` from your terminal:
 
    .. code-block:: bash
 
         python setup.py
 
-   It will copy the required files into the user's Inkscape
+   If you use an Inkscape AppImage install |TexText| as follows:
+
+   .. code-block:: bash
+
+        python setup.py --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
+
+   In both cases it will copy the required files into the user's Inkscape
    configuration directory (usually this is ``~/.config/inkscape/extensions``)
 
    Setup will inform you if some of the prerequisites needed by |TexText| are missing.
@@ -79,7 +91,7 @@ Manually install the GUI library bindings
 =========================================
 
 In the case that |Inkscape| has not been automatically installed together with the necessary
-Python GUI bindungs you need to install them manually. You have two options: ``GTK3`` (recommended)
+Python GUI bindings you need to install them manually. You have two options: ``GTK3`` (recommended)
 or ``Tkinter``.
 
 At first you need to discover the Python interpreter that is used by your
@@ -90,7 +102,8 @@ Inkscape installation. Enter the following command in a terminal
         python --version
 
 Keep the returned major version number (Python **2** or Python **3**) in mind
-for the following instructions:
+for the following instructions. If the command fails try :bash:`python3 --version`. The
+major version is then **3** in the following steps.
 
 
 .. _linux-install-gtk3:
