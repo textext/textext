@@ -21,17 +21,17 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TexText'
-copyright = '2019, Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
+copyright = '2020, Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 author = 'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 
 # The full version, including alpha/beta/rc tags
-release = open("../../extension/textext/VERSION").readline().strip()
+release = open("../../textext/VERSION").readline().strip()
 
 # The short X.Y version (for doc title)
 version = ".".join(release.split(".")[:2])
 
 # Last stable 0.x release (compatible with Inkscape 0.92)
-release_0x = "0.11.0"
+release_0x = "0.11.1"
 
 
 # -- General configuration ---------------------------------------------------

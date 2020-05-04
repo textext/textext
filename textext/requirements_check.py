@@ -84,8 +84,8 @@ class WindowsDefaults(Defaults):
 
     def __init__(self):
         super(WindowsDefaults, self)
-        import win_app_paths as wap
-        self._tweaked_syspath = wap.get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
+        from .win_app_paths import get_non_syspath_dirs
+        self._tweaked_syspath = get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
 
         # Windows 10 supports colored output since anniversary update (build 14393)
         # so we try to use it (it has to be enabled since it is always disabled by default!)
@@ -658,23 +658,23 @@ class TexTextRequirementsChecker(object):
         textext_requirements = (
             Requirement(self.find_inkscape_1_0)
             .prepend_message("ANY", 'Detect inkscape>=1.0')
-            .append_message("ERROR", help_message_with_url("inkscape","inkscape"))
+            .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & (
                     Requirement(self.find_executable, self.pdflatex_prog_name)
                     .on_success(lambda result: add_latex("pdflatex", result["path"]))
-                    .append_message("ERROR", help_message_with_url("latex", "pdflatex"))
+                    .append_message("ERROR", help_message_with_url("preparation", "pdflatex"))
                     | Requirement(self.find_executable, self.lualatex_prog_name)
                     .on_success(lambda result: add_latex("lualatex", result["path"]))
-                    .append_message("ERROR", help_message_with_url("latex", "lualatex"))
+                    .append_message("ERROR", help_message_with_url("preparation", "lualatex"))
                     | Requirement(self.find_executable, self.xelatex_prog_name)
                     .on_success(lambda result: add_latex("xelatex", result["path"]))
-                    .append_message("ERROR", help_message_with_url("latex", "xelatex"))
+                    .append_message("ERROR", help_message_with_url("preparation", "xelatex"))
             ).overwrite_check_message("Detect *latex")
-            .append_message("ERROR", help_message_with_url("latex"))
+            .append_message("ERROR", help_message_with_url("preparation"))
             & (
                     Requirement(self.find_pygtk3).on_success(set_pygtk)
-                    .append_message("ERROR", help_message_with_url("pygtk2"))
+                    .append_message("ERROR", help_message_with_url("gtk3"))
                     | Requirement(self.find_tkinter).on_success(set_tkinter)
                     .append_message("ERROR", help_message_with_url("tkinter"))
             ).overwrite_check_message("Detect GUI library")

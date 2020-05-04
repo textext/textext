@@ -1,4 +1,6 @@
-.. |TexText| replace:: **TexText**
+.. |TexText| replace:: **TexText for Inkscape 1.0**
+.. |Inkscape| replace:: **Inkscape 1.0**
+.. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
    :language: bash
@@ -10,222 +12,143 @@
 
 .. _linux-install:
 
-========================================
-TexText for **Inkscape 0.92.x** on Linux
-========================================
+==================
+|TexText| on Linux
+==================
 
-.. important::
+.. _linux-install-preparation:
 
-    If you would like to try out |TexText| on Inkscape 1.0 beta please use this installation guide:
-    :ref:`linux-beta-install`!
+Preparation
+===========
 
-To install |TexText| on Linux do the following steps:
+1. Make sure that Inkscape version 1.0 or later is installed on your system via your favorite
+   package manager, e.g.
 
-#. `Install dependencies <linux-install-dependencies_>`_ of |TexText|
+   .. code-block:: bash
 
-    - `Install inkscape <linux-install-inkscape_>`_
-    - `Install python2.7 <linux-install-python27_>`_
-    - `Install GUI library (PyGTK2 or TkInter) <linux-install-gui-library_>`_
-    - `Install pdflatex/lualatex/xelatex <linux-install-latex_>`_
-    - `Install pdf->svg converter (pdf2svg or pstoedit) <linux-install-pdf-to-svg-converter_>`_
+        sudo apt install inkscape
 
-#. `Install TexText <linux-install-textext_>`_
+   Check if it is able to launch. You can verify this by invoking :bash:`inkscape --version` from
+   a terminal. It should output :bash:`1.0`.
 
-.. _linux-install-dependencies:
+   .. important::
+       |TexText| will not function properly if you installed |Inkscape| via **SNAP** or **FLATPACK**.
+       The reason is that |Inkscape| will run in sandboxed mode in these environments and, hence,
+       cannot access you LaTeX distribution to compile your snippets!
 
-Install dependencies
-====================
+2. Make sure that an operational LaTeX distribution is installed on your system. You can verify
+   this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
+   :bash:`lualatex --version` in a terminal.
 
-.. _linux-install-inkscape:
+3. Optional: If you whish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
+   enabled in the |TexText|-Gui install GTKSourceView:
 
-Install inkscape
-~~~~~~~~~~~~~~~~
+   .. code-block:: bash
 
-.. important::
-
-    Do not use Inkscape from Canonical's :bash:`snap` package management! If you
-    have it installed via :bash:`snap` uninstall it via :bash:`snap remove inkscape`
-    and install it via the classic way: :bash:`sudo apt-get install inkscape`.
-    This problem affects ALL Inkscape extensions!
-
-To install on Ubuntu/Debian:
-
-.. code-block:: bash
-
-    sudo apt-get install inkscape
-
-.. _linux-install-python27:
-
-Install python2.7
-~~~~~~~~~~~~~~~~~
-
-Make sure that a Python 2.7 distribution is installed and found by
-your system (usually installed by the package ``python2.7``).
-
-To install on Ubuntu/Debian:
-
-.. code-block:: bash
-
-    sudo apt-get install python2.7
+        sudo apt install gir1.2-gtksource-3.0
 
 
-.. warning::
+.. _linux-install-textext:
 
-    On recent systems default Python interpreter is ``python3`` which is incompatible with current version of |TexText|
-    (and other Inkscape extensions). You need to configure Inkscape such that it still uses python2. To check which is
-    your default Python interpreter run ``python --version`` in a terminal. If this command does not return Python
-    version 2.7.x consult instructions to configure Inkscape properly:
-    :ref:`faq-set-inskscape-python-interpreter-to-python2`.
+Download and install |TexText|
+==============================
 
+1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>`
+   (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
 
+2. Extract the package and change into the created directory.
 
-.. _linux-install-gui-library:
+3. If you installed Inkscape via a package manager run :bash:`setup.py` from your terminal:
 
-Install GUI library
-~~~~~~~~~~~~~~~~~~~
+   .. code-block:: bash
 
-Install the Python bindings for the graphical user interface of
-|TexText|. You have two options: ``PyGTK2`` (recommended) or ``Tkinter``:
+        python setup.py
 
-.. _linux-install-pygtk2:
+   If you use an Inkscape AppImage install |TexText| as follows:
 
-Install PyGTK2 (recommended)
-----------------------------
-Install the following packages using your favorite package manager:
+   .. code-block:: bash
 
--  ``python-gtk2``
--  ``python-gtksourceview2`` (enables syntax highlighting)
+        python setup.py --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
 
+   In both cases it will copy the required files into the user's Inkscape
+   configuration directory (usually this is ``~/.config/inkscape/extensions``)
 
-To install on Ubuntu/Debian:
+   Setup will inform you if some of the prerequisites needed by |TexText| are missing.
+   Install them. If setup complains about missing GTK or Tkinter bindings please go to
+   :ref:`linux-install-gui`.
+
+   .. important::
+
+       Compared to previous versions |TexText| does not need any conversion utilities like
+       ghostscript, pstoedit or pdfsvg.
+
+You are done. Now you can consult the :ref:`usage instructions <gui>`. In case of problems consult
+:ref:`troubleshooting`.
+
+.. _linux-install-gui:
+
+Manually install the GUI library bindings
+=========================================
+
+In the case that |Inkscape| has not been automatically installed together with the necessary
+Python GUI bindings you need to install them manually. You have two options: ``GTK3`` (recommended)
+or ``Tkinter``.
+
+At first you need to discover the Python interpreter that is used by your
+Inkscape installation. Enter the following command in a terminal
 
 .. code-block:: bash
 
-    sudo apt-get install python-gtk2 python-gtksourceview2
+        python --version
+
+Keep the returned major version number (Python **2** or Python **3**) in mind
+for the following instructions. If the command fails try :bash:`python3 --version`. The
+major version is then **3** in the following steps.
+
+
+.. _linux-install-gtk3:
+
+Install Python GTK3 bindings (recommended)
+------------------------------------------
+
+If your Inkscape installation runs **Python 2** you need the Python 2.x bindings for
+gobject-introspection libraries (``python-gi``), the GTK+ graphical user interface library
+(``gir1.2-gtk-3.0``) and the gir files for the GTK+ syntax highlighting widget
+(``gir1.2-gtksource-3.0``)
+
+.. code-block:: bash
+
+    sudo apt-get install python-gi gir1.2-gtk-3.0 gir1.2-gtksource-3.0
+
+If your Inkscape installation runs **Python 3** you need the Python 3 version of the
+gobject-introspection. The rest remains the same:
+
+.. code-block:: bash
+
+    sudo apt-get install python3-gi gir1.2-gtk-3.0 gir1.2-gtksource-3.0
+
 
 .. _linux-install-tkinter:
 
 Install Tkinter (not recommended)
 ---------------------------------
 
-Tkinter is functioning but has a limited interface compared to PyGTK2 version, so it's not recommended.
-To use ``Tkinter`` install the  ``python-tk`` pacage using your favorite package manager.
+.. important::
+    Tkinter support is deprecated and will be removed in future versions of |TexText|.
+    If you really need this interface please leave a comment in `this issue on github <https://github.com/textext/textext/issues/209>`_.
 
-To install on Ubuntu/Debian:
+Tkinter is functioning but has a limited interface compared to GTK version, so it's not
+recommended. To use ``Tkinter`` install the  Python ``tk`` package.
+
+If your Inkscape installation runs **Python 2**:
 
 .. code-block:: bash
 
     sudo apt-get install python-tk
 
-.. _linux-install-pdf-to-svg-converter:
 
-Install a pdf->svg converter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Again you have two options: ``pdf2svg`` (recommended) or ``pstoedit + ghostscript``:
-
-.. _linux-install-pdf2svg:
-
-Install pdf2svg (recommended)
-----------------------------------
-Install the ``pdf2svg`` package
-
-To install on Ubuntu/Debian:
+If your Inkscape installation runs **Python 3**:
 
 .. code-block:: bash
 
-    sudo apt-get install pdf2svg
-
-.. _linux-install-pstoedit:
-
-Install pstoedit (not recommended)
-----------------------------------
-
-``pstoedit`` fails to produce `svg` with some versions of ``ghostscript`` so it's
-preferable to use ``pdf2svg``.
-
-To use ``pstoedit`` converter install the ``pstoedit`` package and check versions of
-installed versions of ``pstoedit`` and ``ghostscript``
-
-To install on Ubuntu/Debian:
-
-.. code-block:: bash
-
-    sudo apt-get install pstoedit
-
-To check versions run:
-
-.. code-block:: bash
-
-    pstoedit --version
-    ghostscript --version
-
-.. warning::
-    Those combinations of ``pstoedit`` and ``ghostscript`` versions fails to produce `svg` on
-    most distributions (see  `bb issue 48 <https://bitbucket.org/pitgarbe/textext/issues/48/ghostscript-still-bug-under-linux>`_):
-
-    +--------------+-----------------+
-    | ``pstoedit`` | ``ghostscript`` |
-    +--------------+-----------------+
-    |     3.70     |      9.22       |
-    +--------------+-----------------+
-    |   <= 3.74    |      9.27       |
-    +--------------+-----------------+
-
-    Please report any observations or problems in :issue:`126`.
-
-.. _linux-install-latex:
-
-Install pdflatex/lualatex/xelatex
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``pdflatex`` and ``lualatex`` are part of ``texlive-base`` package. The
-``xelatex`` resides in ``texlive-xetex`` package
-
-To install ``pdflatex`` and ``lualatex`` on Ubuntu/Debian:
-
-.. code-block:: bash
-
-    sudo apt-get install texlive-base
-
-To install ``xelatex`` on Ubuntu/Debian:
-
-.. code-block:: bash
-
-    sudo apt-get install texlive-xetex
-
-.. warning::
-
-    If you have for some reason the Linux MiKTeX distribution installed make sure
-    that automatic package installation is either set to
-    ``Never install missing packages on-the-fly`` or set to
-    ``Always install missing packages on-the-fly``, see
-    `Manage your TeX installation with MiKTeX Console <https://miktex.org/howto/miktex-console>`_.
-
-
-.. _linux-install-textext:
-
-Install TexText
-===============
-
-1.  Download the most recent package from :textext_0x_current_release_page:`GitHub release page <release>` (direct links: :textext_0x_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
-2.  Extract the package and change to created directory.
-3.  Run :bash:`setup.py` from your terminal:
-
-    .. code-block:: bash
-
-        python2 setup.py
-
-    The script will check if all requirements described in :ref:`linux-install-dependencies`
-    are met. If so, it will install the extension files into the user's Inkscape configuration
-    directory (usually this is ``~/.config/inkscape/extensions``). If not, instructions are given
-    helping to fix the problem.
-
-    .. note::
-
-        If you would like to skip the requirement checks during installation call the script
-        from the command line as follows:
-
-        .. code-block:: bash
-
-            python2 setup.py --skip-requirements-check
+    sudo apt-get install python3-tk

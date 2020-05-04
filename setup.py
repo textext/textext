@@ -10,20 +10,15 @@ import sys
 import stat
 import tempfile
 
-sys.path.append(os.path.join(
-    os.path.dirname(__file__),
-    "extension",
-    "textext"
-))
-
-from requirements_check import \
+from textext.requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
     defaults, \
     LoggingColors, \
     SUCCESS
 
-from utility import Settings
+from textext.utility import Settings
+
 
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
@@ -282,12 +277,14 @@ if __name__ == "__main__":
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler("setup.log")
+    # Explicit path spec since on Windows working directory must be the python.exe directory
+    # which is usually read-only for standard users
+    fh = logging.FileHandler(os.path.join(os.path.dirname(__file__), "textextsetup.log"))
     fh.setLevel(ch.level)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    settings = Settings()
+    settings = Settings(inkscape_extensions_path=args.inkscape_extensions_path)
 
     checker = TexTextRequirementsChecker(logger, settings)
 
@@ -334,7 +331,7 @@ if __name__ == "__main__":
                         found_files_to_keep[old_filename] = new_filename
                         continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
-                            open(os.path.join("extension", new_filename)) as f_new:
+                            open(new_filename) as f_new:
                         if f_old.read() != f_new.read():
                             logger.debug("Content of `%s` are not identical version in distribution" % old_filename)
                             found_files_to_keep[old_filename] = new_filename
@@ -366,7 +363,7 @@ if __name__ == "__main__":
             remove_previous_installation(args.inkscape_extensions_path)
 
             copy_extension_files(
-                src="extension/*",
+                src=os.path.join(os.path.dirname(os.path.abspath(__file__)), "textext"),
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
