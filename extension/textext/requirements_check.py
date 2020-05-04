@@ -674,7 +674,7 @@ class TexTextRequirementsChecker(object):
 
         def help_message_with_url(section_name, executable_name=None):
             user = "textext"
-            url_template = "https://{user}.github.io/textext/install/{os_name}.html#{os_name}-install-{section}"
+            url_template = "https://{user}.github.io/textext_0x/install/{os_name}.html#{os_name}-install-{section}"
             url = url_template.format(
                 user=user,
                 os_name=defaults.os_name,
