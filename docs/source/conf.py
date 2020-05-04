@@ -31,7 +31,7 @@ release = open("../../textext/VERSION").readline().strip()
 version = ".".join(release.split(".")[:2])
 
 # Last stable 0.x release (compatible with Inkscape 0.92)
-release_0x = "0.11.0"
+release_0x = "0.11.1"
 
 
 # -- General configuration ---------------------------------------------------
