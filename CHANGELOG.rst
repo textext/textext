@@ -1,20 +1,40 @@
+Version 1.0.0 (2020-05-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 1.0. Please
+  use TexText 0.11.1 if you use Inkscape 0.92.x
+
+- **Major changes**
+    - TexText can now be found in Inkscape menu entry *"Extensions -> Text -> Tex Text"*
+      (All extensions are required to be in some submenu)
+    - Added shortcut CTRL+P for displaying the preview image
+    - TexText does not need *pstoedit*, *ghostscript* and *pdf2svg* as external
+      dependencies anymore
+    - TexText uses GTK3 user interface now, as Inkscape 1.0 does
+    - Full Python 3 compatibility
+    - Windows only: setup_win.bat now supports Python like arguments
+
+- **Important Fixes**
+    - Lost color after re-compilation of node (:issue_num:`206`)
+    - Operand type error (:issue_num:`186`)
+    - Gradient fills not properly rendered (e.g. in color bars)
+      (:issue_num:`148`)
+    - Proper parsing and display of LaTeX compiler errors
+    - Fixed: Double ESC-hit closes TexText window without confirmation
+
+Version 0.11.1 (2020-05-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Important**: This version is only compatible with Inkscape 0.92.x Please
+  use TexText 1.0 if you use Inkscape 1.0
+- Modified URLs for help on dependency installation in setup routine
+
 Version 1.0.0-dev.4 (2020-04-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **Important**: This version is only compatible with Inkscape 1.0 Release Candidate 1
-  from April 9th 2020. It might or might not work with newer Inkscape releases. Please
-  use TexText 0.11.0 if you use Inkscape 0.92.x
-- New: **TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"**
-  (All extensions are required to be in some submenu)
 - Fixed: Vertical flipping after re-compilation of nodes created with TexText < 1.0
   (:issue_num:`205`)
 - Fixed: Lost color after re-compilation of node (:issue_num:`206`)
 
 Version 1.0.0-dev.3 (2020-04-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **Important**: This version is only compatible with Inkscape 1.0 Release Candidate 1
-  from April 9th 2020. Please use TexText 0.11.0 if you use Inkscape 0.92.x
-- New: **TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"**
-  (All extensions are required to be in some submenu)
 - Compatibility with Inkscape 1.0 Release Candidate 1 modified extension API
   (:issue_num:`188`, :issue_num:`193`, :issue_num:`194`, :issue_num:`196`, :issue_num:`202`, :issue_num:`203`)
 - Fixed operand type error (:issue_num:`186`)
@@ -22,10 +42,6 @@ Version 1.0.0-dev.3 (2020-04-10)
 
 Version 1.0.0-dev.2 (2020-02-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **Important**: This version is only compatible with Inkscape 1.0 (and its beta
-  releases). Please use TexText 0.11.0 if you use Inkscape 0.92.x
-- New: **TexText can now be found in Inkscape menu entry "Extensions -> Text -> Tex Text"**
-  (All extensions are required to be in some submenu)
 - New: Enabled TkInter GUI under Python 3
 - New: Proper parsing and display of LaTeX compiler errors
 - Fixed: New nodes were not being placed in the center of the document
@@ -38,8 +54,6 @@ Version 1.0.0-dev.2 (2020-02-10)
 
 Version 1.0.0-dev.1 (2019-12-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- **Important**: This version is only compatible with Inkscape 1.0 (and its beta
-  releases). Please use TexText 0.11.0 if you use Inkscape 0.92.x
 - New: TexText does not need pstoedit, ghostscript and pdf2svg as external
   dependencies anymore
 - New: Added shortcut CTRL+P for displaying the preview image
