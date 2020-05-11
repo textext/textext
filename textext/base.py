@@ -574,10 +574,9 @@ class TexToPdfConverter:
             try:
                 with open(self.tmp('log'), encoding='utf8') as f:
                     parser.process(f)
-                return parser.errors[0] if parser.errors else ""
-            except Exception as excpt:
-                return "TeX compilation failed and additionally parsing of TeX log file also failed ({}). \
-                        See output in stdout for more details.".format(type(excpt).__name__)
+                return parser.errors[0]
+            except Exception as ignored:
+                return "TeX compilation failed. See stdout output for more details"
 
 
 class TexTextElement(inkex.Group):
