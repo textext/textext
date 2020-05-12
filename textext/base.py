@@ -569,12 +569,14 @@ class TexToPdfConverter:
         """
         with logger.debug("Parsing LaTeX log file"):
             from .texoutparse import LatexLogParser
-
             parser = LatexLogParser()
-            with open(self.tmp('log'), encoding='utf8') as f:
-                parser.process(f)
 
-            return parser.errors[0]
+            try:
+                with open(self.tmp('log'), encoding='utf8') as f:
+                    parser.process(f)
+                return parser.errors[0]
+            except Exception as ignored:
+                return "TeX compilation failed. See stdout output for more details"
 
 
 class TexTextElement(inkex.Group):

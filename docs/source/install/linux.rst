@@ -53,6 +53,11 @@ Preparation
 Download and install |TexText|
 ==============================
 
+.. important::
+
+   Compared to previous versions |TexText| does not need any conversion utilities like
+   ghostscript, pstoedit or pdfsvg.
+
 1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>`
    (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
 
@@ -64,12 +69,6 @@ Download and install |TexText|
 
         python setup.py
 
-   If you use an Inkscape AppImage install |TexText| as follows:
-
-   .. code-block:: bash
-
-        python setup.py --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
-
    In both cases it will copy the required files into the user's Inkscape
    configuration directory (usually this is ``~/.config/inkscape/extensions``)
 
@@ -77,10 +76,15 @@ Download and install |TexText|
    Install them. If setup complains about missing GTK or Tkinter bindings please go to
    :ref:`linux-install-gui`.
 
-   .. important::
+   .. note::
 
-       Compared to previous versions |TexText| does not need any conversion utilities like
-       ghostscript, pstoedit or pdfsvg.
+        If you use an Inkscape AppImage |TexText| should be installed as follows. However,
+        due to an `Inkscape bug in AppImages <https://gitlab.com/inkscape/inkscape/-/issues/1306>`_
+        all Python extensions are currently broken:
+
+        .. code-block:: bash
+
+            python setup.py --skip-requirements-check --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
 
 You are done. Now you can consult the :ref:`usage instructions <gui>`. In case of problems consult
 :ref:`troubleshooting`.
