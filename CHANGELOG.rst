@@ -1,3 +1,8 @@
+Version 1.0.1 (2020-05-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: List index out of range if latex compilation fails 
+  (:issue_num:`219`)
+  
 Version 1.0.0 (2020-05-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - **Important**: This version is only compatible with Inkscape 1.0. Please
