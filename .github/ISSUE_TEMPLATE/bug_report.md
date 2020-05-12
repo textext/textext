@@ -54,7 +54,11 @@ If applicable and helpful, add screenshots to help explain your problem.
 - TexText version:
 - Inkscape version:
 - Operating system: [e.g. Windows 10, 1803, 32-bit]
-- SVG-converter installed (pstoedit+ghostscript or pdf2svg):
-- GUI framework installed (PyGTK, PyGTK+PyGTK-Sourceview, TkInter):
 - Windows only: LaTeX-distribution (MiKTeX, TeX-Live):
 - Windows only: TexText installed via batch script or installer file:
+
+**Additional information if you still use Inkscape 0.92.x / TexText 0.11**
+
+- SVG-converter installed (pstoedit+ghostscript or pdf2svg):
+- GUI framework installed (PyGTK, PyGTK+PyGTK-Sourceview, TkInter):
+
