@@ -270,11 +270,13 @@ class TexText(inkex.EffectExtension):
                                            tex_command=tex_cmd,
                                            original_scale=current_scale)
 
-                def preview_callback(_text, _preamble, _preview_callback, _tex_command):
+                def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
                     return self.preview_convert(_text,
                                                 _preamble,
                                                 _preview_callback,
-                                                _tex_command)
+                                                _tex_command,
+                                                _white_bg
+                                                )
 
                 with logger.debug("Run TexText GUI"):
                     gui_config = asker.ask(save_callback, preview_callback)
@@ -294,7 +296,7 @@ class TexText(inkex.EffectExtension):
                                 original_scale=current_scale
                                 )
 
-    def preview_convert(self, text, preamble_file, image_setter, tex_command):
+    def preview_convert(self, text, preamble_file, image_setter, tex_command, white_bg):
         """
         Generates a preview PNG of the LaTeX output using the selected converter.
 
@@ -302,6 +304,7 @@ class TexText(inkex.EffectExtension):
         :param preamble_file:
         :param image_setter: A callback to execute with the file path of the generated PNG
         :param tex_command: Command for tex -> pdf
+        :param (bool) white_bg: set background to white if True
         """
 
         tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
@@ -322,7 +325,7 @@ class TexText(inkex.EffectExtension):
                 with logger.debug("Converting tex to pdf"):
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
-                    converter.pdf_to_png()
+                    converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
     def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
@@ -548,9 +551,9 @@ class TexToPdfConverter:
         ]
         )
 
-    def pdf_to_png(self):
+    def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
-        exec_command([
+        cmd = [
             self.checker.inkscape_executable,
             "--pdf-poppler",
             "--pdf-page=1",
@@ -560,7 +563,14 @@ class TexToPdfConverter:
             "--export-filename", self.tmp('png'),
             self.tmp('pdf')
         ]
-        )
+
+        if white_bg:
+            cmd.extend([
+                "--export-background=#FFFFFF",
+                "--export-background-opacity=1.0"
+            ])
+
+        exec_command(cmd)
 
     def parse_pdf_log(self):
         """
