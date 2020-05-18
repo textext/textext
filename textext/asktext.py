@@ -108,6 +108,7 @@ class AskText(object):
     DEFAULT_NEW_NODE_CONTENT = "Empty"
     DEFAULT_CLOSE_SHORTCUT = "Escape"
     DEFAULT_CONFIRM_CLOSE = True
+    DEFAULT_PREVIEW_WHITE_BACKGROUND = False
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
@@ -500,6 +501,11 @@ class AskTextGTKSource(AskText):
              'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
         ]
 
+        self._preview_white_background_action = [
+            ('WhitePreviewBackground', None, 'White preview background', None,
+             'Set preview background to white', self.on_preview_background_chagned)
+        ]
+
         self._confirm_close_action = [
             ('ConfirmClose', None, '_Confirm Closing of Window', None,
              'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb)
@@ -544,6 +550,7 @@ class AskTextGTKSource(AskText):
             <menu action='ViewMenu'>
               <menuitem action='WordWrap'/>
               {additions}
+              <menuitem action='WhitePreviewBackground'/>
             </menu>
             <menu action='SettingsMenu'>
               <menu action='NewNodeContent'>
@@ -654,6 +661,9 @@ class AskTextGTKSource(AskText):
     def word_wrap_toggled_cb(self, action, sourceview):
         sourceview.set_wrap_mode(Gtk.WrapMode.WORD if action.get_active() else Gtk.WrapMode.NONE)
         self._gui_config["word_wrap"] = action.get_active()
+
+    def on_preview_background_chagned(self, action, sourceview):
+        self._gui_config["white_preview_background"] = action.get_active()
 
     def tabs_toggled_cb(self, action, previous_value, sourceview):
         sourceview.set_tab_width(action.get_current_value())
@@ -772,7 +782,8 @@ class AskTextGTKSource(AskText):
 
             try:
                 self._preview_callback(text, preamble, self.set_preview_image_from_file,
-                                       self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
+                                       self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
+                                       self._gui_config.get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
             except Exception as error:
                 self.show_error_dialog("TexText Error",
                                        "Error occurred while generating preview:",
@@ -1066,6 +1077,7 @@ class AskTextGTKSource(AskText):
         action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
         action_group.add_toggle_actions(self._confirm_close_action, source_view)
         action_group.add_toggle_actions(self._word_wrap_action, source_view)
+        action_group.add_toggle_actions(self._preview_white_background_action, source_view)
         if TOOLKIT == GTKSOURCEVIEW:
             action_group.add_toggle_actions(self._toggle_actions, source_view)
             action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
@@ -1138,6 +1150,8 @@ class AskTextGTKSource(AskText):
         action.set_active(True)
         action = action_group.get_action('ConfirmClose')
         action.set_active(self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
+        action = action_group.get_action('WhitePreviewBackground')
+        action.set_active(self._gui_config.get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
         if TOOLKIT == GTKSOURCEVIEW:
             action = action_group.get_action('ShowNumbers')
             action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
