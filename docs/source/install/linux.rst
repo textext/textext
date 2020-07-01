@@ -40,7 +40,7 @@ Preparation
    this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
    :bash:`lualatex --version` in a terminal.
 
-3. Optional: If you whish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
+3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
    enabled in the |TexText|-Gui install GTKSourceView:
 
    .. code-block:: bash
