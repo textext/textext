@@ -1,3 +1,10 @@
+Version 1.1.0 (2020-07-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Possibility to set a white background for preview images (favourably
+  for dark mode themes)
+- New: Added instructions how to install Inkscape 1.0 on Ubuntu 18.04/ 20.04
+  since it is not shipped by default with these distributions
+
 Version 1.0.1 (2020-05-12)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: List index out of range if latex compilation fails 
