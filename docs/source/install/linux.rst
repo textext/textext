@@ -21,26 +21,45 @@
 Preparation
 ===========
 
-1. Make sure that Inkscape version 1.0 or later is installed on your system via your favorite
-   package manager, e.g.
+1. Make sure that |Inkscape| or later is installed on your system via your favorite
+   package manager.
 
-   .. code-block:: bash
+   On **Ubuntu 18.04** + **20.04** and its derivates |Inkscape| is not part of
+   the default distribution. Perform the following steps to install it:
 
-        sudo apt install inkscape
+   - Remove any old version of Inkscape
+
+       .. code-block:: bash
+
+            sudo apt remove inkscape
+
+   - Add the Inkscape repository to your apt package manager:
+
+       .. code-block:: bash
+
+            sudo add-apt-repository ppa:inkscape.dev/stable
+            sudo apt update
+
+   - Install |Inkscape|
+
+       .. code-block:: bash
+
+            sudo apt install inkscape
 
    Check if it is able to launch. You can verify this by invoking :bash:`inkscape --version` from
    a terminal. It should output :bash:`1.0`.
 
    .. important::
-       |TexText| will not function properly if you installed |Inkscape| via **SNAP** or **FLATPACK**.
+       |TexText| will not function if you installed |Inkscape| via **SNAP** or **FLATPACK**.
        The reason is that |Inkscape| will run in sandboxed mode in these environments and, hence,
-       cannot access you LaTeX distribution to compile your snippets!
+       cannot access you LaTeX distribution to compile your snippets! This is a conceptional
+       problem of snap/ flatpack, not of |TexText|.
 
 2. Make sure that an operational LaTeX distribution is installed on your system. You can verify
    this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
    :bash:`lualatex --version` in a terminal.
 
-3. Optional: If you whish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
+3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
    enabled in the |TexText|-Gui install GTKSourceView:
 
    .. code-block:: bash
