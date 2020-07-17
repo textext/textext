@@ -198,7 +198,7 @@ rem Hence, we change into INKSCAPE_DIR (Attention! Maybe on another drive
 rem as setup_win.bat!) and then call setup.py with its absolute path (%~dp0)
 %INKSCAPE_DIR:~0,2%
 cd %INKSCAPE_DIR%
-set PYTHON_COMMAND=%PYTHON_EXE% %~dp0setup.py %PYTHON_ARGS%
+set PYTHON_COMMAND=%PYTHON_EXE% "%~dp0setup.py" %PYTHON_ARGS%
 echo Trying to run %PYTHON_COMMAND%...
 echo.
 %PYTHON_COMMAND%
