@@ -309,6 +309,16 @@ output.
 .. figure:: ../images/textext-dialog-preview.png
    :alt: Annotated TexText dialog
 
+If you are using a darkmode theme you can select the option ``White preview background``
+option from the ``View`` menu |usage-label-8|:
+
+.. image:: ../images/textext-dialog-preview-standardmode.png
+   :width: 45%
+   :alt: Selection of white preview background
+.. image:: ../images/textext-dialog-preview-darkmode.png
+   :width: 45%
+   :alt: Selection of white preview background
+
 Finally, click the ``Save`` button to insert the compiled code into your document.
 
 .. note::
