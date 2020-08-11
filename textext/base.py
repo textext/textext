@@ -60,12 +60,6 @@ with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
     __version__ = version_file.readline().strip()
 __docformat__ = "restructuredtext en"
 
-if sys.version[0] == '3':
-    unicode = str
-    escape_method = 'unicode_escape'
-else:
-    escape_method = 'string-escape'
-
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
@@ -685,13 +679,13 @@ class TexTextElement(inkex.Group):
 
     def set_meta(self, key, value):
         ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-        self.set(ns_key, str(value).encode(escape_method).decode('utf-8'))
+        self.set(ns_key, value)
         assert self.get_meta(key) == value, (self.get_meta(key), value)
 
     def get_meta(self, key, default=None):
         try:
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            value = self.get(ns_key).encode('utf-8').decode(escape_method)
+            value = self.get(ns_key)
             if value is None:
                 raise AttributeError('{} has no attribute `{}`'.format(self, key))
             return value
