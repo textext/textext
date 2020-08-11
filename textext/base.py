@@ -521,7 +521,7 @@ class TexToPdfConverter:
             # Convert TeX to PDF
 
             # Write tex
-            with open(self.tmp('tex'), 'w') as f_tex:
+            with open(self.tmp('tex'), mode='w', encoding='utf-8') as f_tex:
                 f_tex.write(texwrapper)
 
             # Exec tex_command: tex -> pdf
