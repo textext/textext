@@ -1,7 +1,7 @@
 import os
 import pytest
 import sys
-import textext
+import textext.base as textext
 import tempfile
 import subprocess
 import shutil
@@ -33,7 +33,7 @@ class TempDirectory(object):
         else:
             dn = os.path.join(os.getcwd(), "pytests_results", self.__suffix)
             if not os.path.exists(dn):
-                os.makedirs(dn) # ToDo: Make use of exist_ok flag when porting to Python 3.7
+                os.makedirs(dn)  # ToDo: Make use of exist_ok flag when porting to Python 3.7
             self.__name = dn
         return self
 
@@ -60,12 +60,8 @@ def svg_to_png(svg, png, dpi=None, height=None, render_area="drawing"):
     else:
         raise RuntimeError("Unknwon export option `%s`" % render_area)
 
-    subprocess.call([
-                        "inkscape",
-                        "--export-png=%s" % png
-                    ] + options + [
-                        svg
-                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.call([INKSCAPE_EXE, "--export-type=png"] + options + ["--export-filename=%s" % png] + [svg],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     assert os.path.isfile(png)
 
@@ -134,7 +130,7 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
 
         if diff_pixels > w * h * pixel_diff_rel_tol:
             return False, "diff pixels (%d) > W*H*%f (%f)" % (
-            diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
+                diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
 
         return True, "diff pixels (%d)" % diff_pixels
     else:
@@ -202,7 +198,7 @@ def is_current_version_compatible(test_id,
 
         # run TexText
         tt = textext.TexText()
-        tt.affect([
+        tt.run([
             r"--id=%s" % "content",  # todo: find a TexText node to avoid hard-coded ids
             r"--text=%s" % mod_args["text"],
             r"--scale-factor=%f" % mod_args["scale-factor"],
@@ -212,8 +208,7 @@ def is_current_version_compatible(test_id,
 
         svg2 = os.path.join(tmp_dir, "svg2.svg")
 
-        with open(svg2, "w") as f:
-            tt.document.write(f)
+        tt.document.write(svg2)
 
         svg_to_png(svg2, png2, **render_options)
 
