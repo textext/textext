@@ -200,14 +200,6 @@ def is_current_version_compatible(test_id,
                 or not os.path.isfile(mod_args["preamble-file"]):
             mod_args["preamble-file"] = os.path.join(EXTENSION_DIR, "default_packages.tex")
 
-        if converter == "pstoedit":
-            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg}
-        elif converter == "pdf2svg":
-            textext.CONVERTERS = {textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
-        else:
-            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg,
-                                  textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
-
         # run TexText
         tt = textext.TexText()
         tt.affect([
@@ -249,32 +241,4 @@ def test_compatibility(root, inkscape_version, textext_version, converter, test_
         converter=converter
     )
     sys.stderr.write(message + "\n")
-    assert result, message
-
-
-def test_converters_compatibility(root, inkscape_version, textext_version, converter, test_case):
-    if inkscape_version.startswith("_") or textext_version.startswith("_") or converter.startswith(
-            "_") or test_case.startswith("_"):
-        pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
-                                                                           test_case))
-
-    assert converter in ["pdf2svg", "pstoedit"]
-    # switch converters
-    if converter == "pdf2svg":
-        replaced_converter = "pstoedit"
-    elif converter == "pstoedit":
-        replaced_converter = "pdf2svg"
-
-    test_id = "%s-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, replaced_converter, test_case)
-    result, message = is_current_version_compatible(
-        test_id,
-        svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
-        svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
-        json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
-        converter=replaced_converter,
-        fuzz="50%",
-        pixel_diff_abs_tol=150,
-        pixel_diff_rel_tol=0.005
-    )
-    sys.stderr.write(message+"\n")
     assert result, message
