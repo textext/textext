@@ -8,6 +8,14 @@ import shutil
 import json
 import PIL.Image
 
+if os.name == "nt":
+    EXTENSION_DIR = os.path.join(os.getenv("APPDATA"), "inkscape\\extensions\\textext")
+    INKSCAPE_EXE = "C:\\Program Files\\Inkscape\\bin\\inkscape.com"
+    COMPARE_EXE = ["C:\\Program Files\\ImageMagick-7.0.10-Q8\\magick", "compare"]
+else:
+    EXTENSION_DIR = os.path.expanduser("~/.config/inkscape/extensions/textext")
+    INKSCAPE_EXE = "inkscape"
+    COMPARE_EXE = ["compare"]
 
 # Set this to False to keep results in separate pytests_results folder
 RESULTS_INTO_TEMPDIR = True
@@ -109,14 +117,9 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
 
-    proc = subprocess.Popen([
-        "compare",
-        "-metric", "ae",
-        "-fuzz", fuzz,
-        png1,
-        png2,
-        os.devnull  # we don't want to generate diff image
-    ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(COMPARE_EXE + ["-metric", "ae", "-fuzz", fuzz, png1, png2, os.devnull],
+                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                            # os.devnull -> we don't want to generate diff image
 
     stdout, stderr = proc.communicate()
 
@@ -195,7 +198,7 @@ def is_current_version_compatible(test_id,
         if not "preamble-file" not in mod_args \
                 or not mod_args["preamble-file"] \
                 or not os.path.isfile(mod_args["preamble-file"]):
-            mod_args["preamble-file"] = os.path.expanduser("~/.config/inkscape/extensions/textext/default_packages.tex")
+            mod_args["preamble-file"] = os.path.join(EXTENSION_DIR, "default_packages.tex")
 
         if converter == "pstoedit":
             textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg}
