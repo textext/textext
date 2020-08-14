@@ -5,7 +5,7 @@ branches:
   only:
   - master
   - develop
-  - feature/travis_deploy_for_1.0
+  - pytests_inkscape_1_0
 
 virtualenv:
   system_site_packages: true
@@ -17,8 +17,6 @@ matrix:
       addons:
         apt:
           packages:
-          # Will still load inkscape 0.92.x, hence use manual app image, see below
-          #- inkscape
           - python3-gi
           - python3-gi-cairo
           - gir1.2-gtk-3.0
@@ -28,19 +26,18 @@ matrix:
         - RELEASE_MAKER=true
 
 before_script:
-   # Deactivated until tests are rewritten
-   #- python -m pip install pytest lxml Pillow
-   - wget -c https://inkscape.org/gallery/item/16199/Inkscape-2b71d25-x86_64.AppImage -O ~/bin/inkscape.beta
-   - chmod +x ~/bin/inkscape.beta
-   - export PATH=~/bin:$PATH
+   - python -m pip install pytest lxml Pillow
+   - sudo add-apt-repository --yes ppa:inkscape.dev/stable
+   - sudo apt update
+   - sudo apt install inkscape
    - python test_installation_script.py 2> /dev/null
    - python setup.py
    - wget https://gitlab.com/inkscape/extensions/raw/master/inkscape.extension.rng
 
 
 script:
-  - export PYTHONPATH="`inkscape.beta -x`:$HOME/.config/inkscape/extensions/"
-  #- python -m pytest --verbose -s pytests
+  - export PYTHONPATH="`inkscape --system-data-directory`/extensions:$HOME/.config/inkscape/extensions/"
+  - python -m pytest --verbose -s pytests
   - xmllint --noout --relaxng inkscape.extension.rng textext/textext.inx
 after_success:
   # Put a tag if version has changed and (version contains "-dev" on develop) or (version DOES NOT contain "-dev" on master)
