@@ -1,0 +1,24 @@
+{
+	"description": "rescale in inkscape is coupled with scape-factor",
+	"original" : {
+		"text" : "$$\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$$",
+		"scale-factor" : 1.0,
+		"preamble-file" : null,
+		"pdf_to_png" : "convert"
+	},
+	"modified" : {
+		"text" : "$$\\lim_{y \\to 0} \\frac{\\sin(y)}{y} = 1$$",
+		"scale-factor" : 2.0,
+		"preamble-file" : null
+	},
+	"check" : {
+		"render" : {
+			"scale-is-preserved": true,
+			"render-area": "document",
+			"dpi": 300
+		},
+		"compare" : {
+			"fuzz" : "25%"
+		}
+	}
+} 

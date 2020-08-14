@@ -162,7 +162,7 @@ def is_current_version_compatible(test_id,
     assert os.path.isfile(svg_original)
     assert os.path.isfile(svg_modified)
     assert os.path.isfile(json_config)
-    assert converter in ["pstoedit", "pdf2svg"]
+    assert converter in ["inkscape", "pstoedit", "pdf2svg"]
 
     with TempDirectory(test_id) as tempdir:
         tmp_dir = tempdir.name
