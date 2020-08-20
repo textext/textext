@@ -113,9 +113,10 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
 
-    proc = subprocess.Popen(COMPARE_EXE + ["-metric", "ae", "-fuzz", fuzz, png1, png2, os.devnull],
+    proc = subprocess.Popen(COMPARE_EXE + ["-metric", "ae", "-fuzz", fuzz, png1, png2,
+                                           os.devnull if RESULTS_INTO_TEMPDIR else
+                                           os.path.join(os.path.dirname(png1), "diff.png")],
                             stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                            # os.devnull -> we don't want to generate diff image
 
     stdout, stderr = proc.communicate()
 
