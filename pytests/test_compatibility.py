@@ -192,10 +192,21 @@ def is_current_version_compatible(test_id,
         # overwrite with modified
         mod_args.update(config["modified"])
 
-        if not "preamble-file" not in mod_args \
-                or not mod_args["preamble-file"] \
-                or not os.path.isfile(mod_args["preamble-file"]):
-            mod_args["preamble-file"] = os.path.join(EXTENSION_DIR, "default_packages.tex")
+        # Assing the preamble file: If no one is specified at all, use the default preamble file
+        # from the extension directory. If no file with the specified name exist try to look in the
+        # snippet dir. If this fails, too, use the default preamble from the extension dir
+        extension_dir_preamble_file = os.path.join(EXTENSION_DIR, "default_packages.tex")
+        if "preamble-file" not in mod_args or not mod_args["preamble-file"]:
+            mod_args["preamble-file"] = extension_dir_preamble_file
+        else:
+            if not os.path.isfile(mod_args["preamble-file"]):
+                snippet_dir_preamble_file = os.path.join(
+                    os.path.dirname(os.path.abspath(json_config)),
+                    mod_args["preamble-file"])
+                if os.path.isfile(snippet_dir_preamble_file):
+                    mod_args["preamble-file"] = snippet_dir_preamble_file
+                else:
+                    mod_args["preamble-file"] = extension_dir_preamble_file
 
         # run TexText
         tt = textext.TexText()
