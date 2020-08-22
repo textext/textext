@@ -208,6 +208,9 @@ def is_current_version_compatible(test_id,
                 else:
                     mod_args["preamble-file"] = extension_dir_preamble_file
 
+        if "alignment" not in mod_args:
+            mod_args["alignment"] = "middle center"
+
         # run TexText
         tt = textext.TexText()
         tt.run([
@@ -215,6 +218,7 @@ def is_current_version_compatible(test_id,
             r"--text=%s" % mod_args["text"],
             r"--scale-factor=%f" % mod_args["scale-factor"],
             r"--preamble-file=%s" % mod_args["preamble-file"],
+            r"--alignment=%s" % mod_args["alignment"],
             svg_original
         ], output=False)
 
