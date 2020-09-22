@@ -395,6 +395,8 @@ class TexText(inkex.EffectExtension):
 
                     tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
+                    tt_node.set_none_strokes_to_0pt()
+
                     self.svg.get_current_layer().add(tt_node)
             else:
                 with logger.debug("Replacing node in document"):
@@ -826,3 +828,16 @@ class TexTextElement(inkex.Group):
                 # Avoid unintentional bolded letters
                 if "stroke-width" not in it.style:
                     it.style["stroke-width"] = "0"
+
+    def set_none_strokes_to_0pt(self):
+        """
+        Iterates over all elements of the node. For each element which has the style attribute
+        "stroke" set to "none" a style attribute "stroke-width" with value "0" is added. This
+        ensures that when colorizing the node later in inkscape by setting the node and
+        stroke colors letters do not become bold (letters have "stroke" set to "none" but e.g.
+        horizontal lines in fraction bars and square roots are only affected by stroke colors
+        so for full colorization of a node you need to set the fill as well as the stroke color!).
+        """
+        for it in self.iter():
+            if it.style.get("stroke", "").lower() == "none":
+                it.style["stroke-width"] = "0"
