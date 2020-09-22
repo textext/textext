@@ -814,8 +814,9 @@ class TexTextElement(inkex.Group):
                 it.style.update(color_style_dict)
 
                 # Ensure that simple strokes are also colored if the the group has a fill color
+                # ToDo: Check if this really can be put outside of the loop
                 if "stroke" in it.style and "fill" in color_style_dict:
-                    it.style.update({"stroke": color_style_dict["fill"]})
+                    it.style["stroke"] = color_style_dict["fill"]
 
                 # Remove style-duplicating attributes
                 for prop in ("stroke", "fill"):
