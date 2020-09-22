@@ -60,15 +60,17 @@ class MyLogger(logging.Logger):
         for _ in range(2 + n_frames_upper):  # <-- correct frame
             if f is not None:
                 f = f.f_back
-        rv = "(unknown file)", 0, "(unknown function)"
+        rv = "(unknown file)", 0, "(unknown function)", None
         while hasattr(f, "f_code"):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
             if filename == logging._srcfile:
                 f = f.f_back
                 continue
-            rv = (co.co_filename, f.f_lineno, co.co_name)
+            rv = (co.co_filename, f.f_lineno, co.co_name, None)
             break
+        if sys.version_info[0] == 2:  # ToDo: Remove when Python 2 support is deprecated
+            rv = rv[0:3]
         return rv
 
 
