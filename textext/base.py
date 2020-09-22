@@ -794,8 +794,9 @@ class TexTextElement(inkex.Group):
 
     def import_group_color_style(self, src_svg_ele):
         """
-        Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
-        of self._node. Ensures that non color relevant style attributes are not overwritten.
+        Extracts the color relevant style attributes of src_svg_ele (of class TexTextElement) and
+        applies them to all items  of self. Ensures that non color relevant style
+        attributes are not overwritten.
         """
 
         # Take the top level style information which is set when coloring the group in Inkscape
@@ -811,10 +812,17 @@ class TexTextElement(inkex.Group):
             for it in self.iter():
                 # Update style
                 it.style.update(color_style_dict)
+
+                # Ensure that simple strokes are also colored if the the group has a fill color
+                # ToDo: Check if this really can be put outside of the loop
+                if "stroke" in it.style and "fill" in color_style_dict:
+                    it.style["stroke"] = color_style_dict["fill"]
+
                 # Remove style-duplicating attributes
                 for prop in ("stroke", "fill"):
                     if prop in style:
                         it.pop(prop)
+
                 # Avoid unintentional bolded letters
                 if "stroke-width" not in it.style:
                     it.style["stroke-width"] = "0"
