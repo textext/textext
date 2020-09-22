@@ -9,7 +9,7 @@
 	},
 	"modified" : {
 		"text" : "$$\\lim_{y \\to 0} \\frac{\\sin(y)}{y} = 1$$",
-		"scale-factor" : 2.0,
+		"scale-factor" : 2.311,
 		"preamble-file" : null
 	},
 	"check" : {
@@ -19,7 +19,7 @@
 			"dpi": 300
 		},
 		"compare" : {
-			"fuzz" : "10%"
+			"fuzz" : "50%"
 		}
 	}
 } 

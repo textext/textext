@@ -1,5 +1,5 @@
 {
-	"description": "rescale in inkscape is coupled with scape-factor",
+	"description" : "Preserve inkscape color on re-edit",
 	"original" : {
 		"text" : "$$\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$$",
 		"scale-factor" : 1.0,
@@ -9,7 +9,7 @@
 	},
 	"modified" : {
 		"text" : "$$\\lim_{y \\to 0} \\frac{\\sin(y)}{y} = 1$$",
-		"scale-factor" : 2.0,
+		"scale-factor" : 1.0,
 		"preamble-file" : null
 	},
 	"check" : {
@@ -19,7 +19,7 @@
 			"dpi": 300
 		},
 		"compare" : {
-			"fuzz" : "10%"
+			"fuzz" : "40%"
 		}
 	}
 } 

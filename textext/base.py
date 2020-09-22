@@ -180,10 +180,21 @@ class TexText(inkex.EffectExtension):
             default=self.config.get('scale', 1.0)
         )
 
+        self.arg_parser.add_argument(
+            "--alignment",
+            type=str,
+            default=self.DEFAULT_ALIGNMENT
+        )
+
+        self.arg_parser.add_argument(
+            "--tex_command",
+            type=str,
+            default=self.DEFAULT_TEXCMD
+        )
+
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
         from .asktext import AskTextDefault
-
 
         with logger.debug("TexText.effect"):
 
@@ -285,8 +296,8 @@ class TexText(inkex.EffectExtension):
                                 self.options.preamble_file,
                                 self.options.scale_factor,
                                 old_svg_ele,
-                                self.DEFAULT_ALIGNMENT,
-                                self.DEFAULT_TEXCMD,
+                                self.options.alignment,
+                                self.options.tex_command,
                                 original_scale=current_scale
                                 )
 

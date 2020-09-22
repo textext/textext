@@ -1,15 +1,14 @@
 {
-	"description": "rescale in inkscape is coupled with scape-factor",
 	"original" : {
-		"text" : "$$\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$$",
+		"text" : "$$\\lim_{n \\to \\infty} \\left(1+\\frac{1}{n}\\right)^n = e$$",
 		"scale-factor" : 1.0,
 		"preamble-file" : null,
 		"pdf_to_svg" : "pstoedit",
 		"pdf_to_png" : "convert"
 	},
 	"modified" : {
-		"text" : "$$\\lim_{y \\to 0} \\frac{\\sin(y)}{y} = 1$$",
-		"scale-factor" : 2.0,
+		"text" : "$$\\lim_{k \\to \\infty} \\left(1+\\frac{1}{k}\\right)^k = e$$",
+		"scale-factor" : 1.0,
 		"preamble-file" : null
 	},
 	"check" : {
@@ -19,7 +18,7 @@
 			"dpi": 300
 		},
 		"compare" : {
-			"fuzz" : "10%"
+			"fuzz" : "50%"
 		}
 	}
 } 
