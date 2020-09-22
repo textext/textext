@@ -839,5 +839,5 @@ class TexTextElement(inkex.Group):
         so for full colorization of a node you need to set the fill as well as the stroke color!).
         """
         for it in self.iter():
-            if "stroke" in it.style and it.style["stroke"].lower() == "none":
+            if it.style.get("stroke", "").lower() == "none":
                 it.style["stroke-width"] = "0"
