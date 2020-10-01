@@ -469,8 +469,10 @@ class TexText(inkex.EffectExtension):
         Replace an XML node old_node with new_node
         """
         parent = old_node.getparent()
+        old_id = old_node.get_id()
         parent.remove(old_node)
         parent.append(new_node)
+        new_node.set_id(old_id)
         self.copy_style(old_node, new_node)
 
     @staticmethod
