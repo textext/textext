@@ -84,8 +84,8 @@ The |TexText| GUI
 
 .. _usage-extension-entry:
 
-|TexText| extension entry
--------------------------
+Invoking |TexText| extension
+----------------------------
 
 After installation |TexText| will appear under :menuselection:`Extensions --> Text --> Tex Text`:
 
@@ -94,6 +94,13 @@ After installation |TexText| will appear under :menuselection:`Extensions --> Te
 
 When you select it, a dialog will appear that lets you enter any LaTeX
 code you want (presumably your formula).
+
+.. tip:: Once you have opened |TexText| via the menu entry in an Inkscape session
+   you can subsequently open it using the keyboard shortcut :bash:`ALT` + :bash:`Q`
+   ("Previous extension").
+
+   Alternatively, you can specify your own keyboard shortcut, see :ref:`define-keyboard-shortcut`
+   in the FAQ.
 
 .. _usage-dialog-overview:
 
