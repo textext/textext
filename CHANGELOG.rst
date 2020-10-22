@@ -1,3 +1,14 @@
+Version 1.2.0 (2020-10-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: On Windows and Inkscape 1.0.1 TK interface is shown only
+  (:issue_num:`253`)
+- Fixed: Color of TexText nodes set in Inkscape not kept after
+  recompilation (:issue_num:`245`)
+- Fixed: `temp.tex` file not encoded in UTF-8 (:issue_num:`241`)
+- Fixed: Installation on Windows via batch file fails if path to
+  batch file contains spaces (:issue_num:`232`)
+- New: TexText group ID is kept after recompilation (:issue_num:`256`)
+
 Version 1.1.0 (2020-07-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Possibility to set a white background for preview images (favourably

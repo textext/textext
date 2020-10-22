@@ -15,6 +15,22 @@ Frequently Asked Questions (FAQ)
 
 .. contents:: :local:
 
+.. _define-keyboard-shortcut:
+
+Defining keyboard shortcut for opening |TexText| dialog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. In Inkscape open :bash:`Edit` -> :bash:`Preferences` ->
+   :bash:`Interface` -> :bash:`Keyboard Shortcuts`
+
+2. Find the |TexText| entry in the :bash:`Extensions` category
+
+3. Within the :bash:`Shortcut` column click next to the |TexText| entry.
+   An entry `New accelerator` appears in the :bash:`Shortcut` column.
+
+4. Now type the keyboard shortcut you intend to use, e.g. :bash:`CTRL` + :bash:`T`.
+   Inkscape informs you if the shortcut is already in use.
+
 .. _faq-font-size:
 
 Explicit setting of font size

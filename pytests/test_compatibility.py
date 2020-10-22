@@ -1,13 +1,21 @@
 import os
 import pytest
 import sys
-import textext
+import textext.base as textext
 import tempfile
 import subprocess
 import shutil
 import json
 import PIL.Image
 
+if os.name == "nt":
+    EXTENSION_DIR = os.path.join(os.getenv("APPDATA"), "inkscape\\extensions\\textext")
+    INKSCAPE_EXE = "C:\\Program Files\\Inkscape\\bin\\inkscape.com"
+    COMPARE_EXE = ["C:\\Program Files\\ImageMagick-7.0.10-Q8\\magick", "compare"]
+else:
+    EXTENSION_DIR = os.path.expanduser("~/.config/inkscape/extensions/textext")
+    INKSCAPE_EXE = "inkscape"
+    COMPARE_EXE = ["compare"]
 
 # Set this to False to keep results in separate pytests_results folder
 RESULTS_INTO_TEMPDIR = True
@@ -25,7 +33,7 @@ class TempDirectory(object):
         else:
             dn = os.path.join(os.getcwd(), "pytests_results", self.__suffix)
             if not os.path.exists(dn):
-                os.makedirs(dn) # ToDo: Make use of exist_ok flag when porting to Python 3.7
+                os.makedirs(dn)  # ToDo: Make use of exist_ok flag when porting to Python 3.7
             self.__name = dn
         return self
 
@@ -52,12 +60,8 @@ def svg_to_png(svg, png, dpi=None, height=None, render_area="drawing"):
     else:
         raise RuntimeError("Unknwon export option `%s`" % render_area)
 
-    subprocess.call([
-                        "inkscape",
-                        "--export-png=%s" % png
-                    ] + options + [
-                        svg
-                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.call([INKSCAPE_EXE, "--export-type=png"] + options + ["--export-filename=%s" % png] + [svg],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     assert os.path.isfile(png)
 
@@ -109,14 +113,10 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
 
-    proc = subprocess.Popen([
-        "compare",
-        "-metric", "ae",
-        "-fuzz", fuzz,
-        png1,
-        png2,
-        os.devnull  # we don't want to generate diff image
-    ], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(COMPARE_EXE + ["-metric", "ae", "-fuzz", fuzz, png1, png2,
+                                           os.devnull if RESULTS_INTO_TEMPDIR else
+                                           os.path.join(os.path.dirname(png1), "diff.png")],
+                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
     stdout, stderr = proc.communicate()
 
@@ -131,7 +131,7 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
 
         if diff_pixels > w * h * pixel_diff_rel_tol:
             return False, "diff pixels (%d) > W*H*%f (%f)" % (
-            diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
+                diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
 
         return True, "diff pixels (%d)" % diff_pixels
     else:
@@ -163,7 +163,7 @@ def is_current_version_compatible(test_id,
     assert os.path.isfile(svg_original)
     assert os.path.isfile(svg_modified)
     assert os.path.isfile(json_config)
-    assert converter in ["pstoedit", "pdf2svg"]
+    assert converter in ["inkscape", "pstoedit", "pdf2svg"]
 
     with TempDirectory(test_id) as tempdir:
         tmp_dir = tempdir.name
@@ -192,33 +192,38 @@ def is_current_version_compatible(test_id,
         # overwrite with modified
         mod_args.update(config["modified"])
 
-        if not "preamble-file" not in mod_args \
-                or not mod_args["preamble-file"] \
-                or not os.path.isfile(mod_args["preamble-file"]):
-            mod_args["preamble-file"] = os.path.expanduser("~/.config/inkscape/extensions/textext/default_packages.tex")
-
-        if converter == "pstoedit":
-            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg}
-        elif converter == "pdf2svg":
-            textext.CONVERTERS = {textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
+        # Assing the preamble file: If no one is specified at all, use the default preamble file
+        # from the extension directory. If no file with the specified name exist try to look in the
+        # snippet dir. If this fails, too, use the default preamble from the extension dir
+        extension_dir_preamble_file = os.path.join(EXTENSION_DIR, "default_packages.tex")
+        if "preamble-file" not in mod_args or not mod_args["preamble-file"]:
+            mod_args["preamble-file"] = extension_dir_preamble_file
         else:
-            textext.CONVERTERS = {textext.PstoeditPlotSvg.get_pdf_converter_name(): textext.PstoeditPlotSvg,
-                                  textext.Pdf2SvgPlotSvg.get_pdf_converter_name(): textext.Pdf2SvgPlotSvg}
+            if not os.path.isfile(mod_args["preamble-file"]):
+                snippet_dir_preamble_file = os.path.join(
+                    os.path.dirname(os.path.abspath(json_config)),
+                    mod_args["preamble-file"])
+                if os.path.isfile(snippet_dir_preamble_file):
+                    mod_args["preamble-file"] = snippet_dir_preamble_file
+                else:
+                    mod_args["preamble-file"] = extension_dir_preamble_file
+
+        if "alignment" not in mod_args:
+            mod_args["alignment"] = "middle center"
 
         # run TexText
         tt = textext.TexText()
-        tt.affect([
+        tt.run([
             r"--id=%s" % "content",  # todo: find a TexText node to avoid hard-coded ids
             r"--text=%s" % mod_args["text"],
             r"--scale-factor=%f" % mod_args["scale-factor"],
             r"--preamble-file=%s" % mod_args["preamble-file"],
-            svg_original
-        ], output=False)
+            r"--alignment=%s" % mod_args["alignment"],
+            svg_original])
 
         svg2 = os.path.join(tmp_dir, "svg2.svg")
 
-        with open(svg2, "w") as f:
-            tt.document.write(f)
+        tt.document.write(svg2)
 
         svg_to_png(svg2, png2, **render_options)
 
@@ -246,32 +251,4 @@ def test_compatibility(root, inkscape_version, textext_version, converter, test_
         converter=converter
     )
     sys.stderr.write(message + "\n")
-    assert result, message
-
-
-def test_converters_compatibility(root, inkscape_version, textext_version, converter, test_case):
-    if inkscape_version.startswith("_") or textext_version.startswith("_") or converter.startswith(
-            "_") or test_case.startswith("_"):
-        pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
-                                                                           test_case))
-
-    assert converter in ["pdf2svg", "pstoedit"]
-    # switch converters
-    if converter == "pdf2svg":
-        replaced_converter = "pstoedit"
-    elif converter == "pstoedit":
-        replaced_converter = "pdf2svg"
-
-    test_id = "%s-%s-%s-%s-%s" % (inkscape_version, textext_version, converter, replaced_converter, test_case)
-    result, message = is_current_version_compatible(
-        test_id,
-        svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),
-        svg_modified=os.path.join(root, inkscape_version, textext_version, converter, test_case, "modified.svg"),
-        json_config=os.path.join(root, inkscape_version, textext_version, converter, test_case, "config.json"),
-        converter=replaced_converter,
-        fuzz="50%",
-        pixel_diff_abs_tol=150,
-        pixel_diff_rel_tol=0.005
-    )
-    sys.stderr.write(message+"\n")
     assert result, message

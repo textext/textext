@@ -60,12 +60,6 @@ with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
     __version__ = version_file.readline().strip()
 __docformat__ = "restructuredtext en"
 
-if sys.version[0] == '3':
-    unicode = str
-    escape_method = 'unicode_escape'
-else:
-    escape_method = 'string-escape'
-
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
@@ -186,10 +180,21 @@ class TexText(inkex.EffectExtension):
             default=self.config.get('scale', 1.0)
         )
 
+        self.arg_parser.add_argument(
+            "--alignment",
+            type=str,
+            default=self.DEFAULT_ALIGNMENT
+        )
+
+        self.arg_parser.add_argument(
+            "--tex_command",
+            type=str,
+            default=self.DEFAULT_TEXCMD
+        )
+
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
         from .asktext import AskTextDefault
-
 
         with logger.debug("TexText.effect"):
 
@@ -291,8 +296,8 @@ class TexText(inkex.EffectExtension):
                                 self.options.preamble_file,
                                 self.options.scale_factor,
                                 old_svg_ele,
-                                self.DEFAULT_ALIGNMENT,
-                                self.DEFAULT_TEXCMD,
+                                self.options.alignment,
+                                self.options.tex_command,
                                 original_scale=current_scale
                                 )
 
@@ -401,6 +406,8 @@ class TexText(inkex.EffectExtension):
 
                     tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
 
+                    tt_node.set_none_strokes_to_0pt()
+
                     self.svg.get_current_layer().add(tt_node)
             else:
                 with logger.debug("Replacing node in document"):
@@ -462,8 +469,10 @@ class TexText(inkex.EffectExtension):
         Replace an XML node old_node with new_node
         """
         parent = old_node.getparent()
+        old_id = old_node.get_id()
         parent.remove(old_node)
         parent.append(new_node)
+        new_node.set_id(old_id)
         self.copy_style(old_node, new_node)
 
     @staticmethod
@@ -521,7 +530,7 @@ class TexToPdfConverter:
             # Convert TeX to PDF
 
             # Write tex
-            with open(self.tmp('tex'), 'w') as f_tex:
+            with open(self.tmp('tex'), mode='w', encoding='utf-8') as f_tex:
                 f_tex.write(texwrapper)
 
             # Exec tex_command: tex -> pdf
@@ -685,13 +694,13 @@ class TexTextElement(inkex.Group):
 
     def set_meta(self, key, value):
         ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-        self.set(ns_key, str(value).encode(escape_method).decode('utf-8'))
+        self.set(ns_key, value)
         assert self.get_meta(key) == value, (self.get_meta(key), value)
 
     def get_meta(self, key, default=None):
         try:
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
-            value = self.get(ns_key).encode('utf-8').decode(escape_method)
+            value = self.get(ns_key)
             if value is None:
                 raise AttributeError('{} has no attribute `{}`'.format(self, key))
             return value
@@ -800,8 +809,9 @@ class TexTextElement(inkex.Group):
 
     def import_group_color_style(self, src_svg_ele):
         """
-        Extracts the color relevant style attributes of src_svg_ele (of class SVGElement) and applies them to all items
-        of self._node. Ensures that non color relevant style attributes are not overwritten.
+        Extracts the color relevant style attributes of src_svg_ele (of class TexTextElement) and
+        applies them to all items  of self. Ensures that non color relevant style
+        attributes are not overwritten.
         """
 
         # Take the top level style information which is set when coloring the group in Inkscape
@@ -817,10 +827,30 @@ class TexTextElement(inkex.Group):
             for it in self.iter():
                 # Update style
                 it.style.update(color_style_dict)
+
+                # Ensure that simple strokes are also colored if the the group has a fill color
+                # ToDo: Check if this really can be put outside of the loop
+                if "stroke" in it.style and "fill" in color_style_dict:
+                    it.style["stroke"] = color_style_dict["fill"]
+
                 # Remove style-duplicating attributes
                 for prop in ("stroke", "fill"):
                     if prop in style:
                         it.pop(prop)
+
                 # Avoid unintentional bolded letters
                 if "stroke-width" not in it.style:
                     it.style["stroke-width"] = "0"
+
+    def set_none_strokes_to_0pt(self):
+        """
+        Iterates over all elements of the node. For each element which has the style attribute
+        "stroke" set to "none" a style attribute "stroke-width" with value "0" is added. This
+        ensures that when colorizing the node later in inkscape by setting the node and
+        stroke colors letters do not become bold (letters have "stroke" set to "none" but e.g.
+        horizontal lines in fraction bars and square roots are only affected by stroke colors
+        so for full colorization of a node you need to set the fill as well as the stroke color!).
+        """
+        for it in self.iter():
+            if it.style.get("stroke", "").lower() == "none":
+                it.style["stroke-width"] = "0"

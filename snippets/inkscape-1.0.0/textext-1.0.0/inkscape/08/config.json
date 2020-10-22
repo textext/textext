@@ -1,0 +1,24 @@
+{
+	"description": "Cyrillic utf-8 characters are properly rendered",
+	"original" : {
+		"text" : "Ильюшин Ил-62 - элегантный самолет!",
+		"scale-factor" : 1.0,
+		"preamble-file" : "utf8_cyrillic_packages.tex",
+		"pdf_to_png" : "convert"
+	},
+	"modified" : {
+		"text" : "Ильюшин Ил-62 - элегантный самолет!",
+		"scale-factor" : 1.0,
+		"preamble-file" : "utf8_cyrillic_packages.tex"
+	},
+	"check" : {
+		"render" : {
+			"scale-is-preserved": true,
+			"render-area": "document",
+			"dpi": 300
+		},
+		"compare" : {
+			"fuzz" : "0%"
+		}
+	}
+} 

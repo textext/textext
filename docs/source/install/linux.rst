@@ -86,6 +86,12 @@ Download and install |TexText|
 
    .. code-block:: bash
 
+        python3 setup.py
+
+   or
+
+   .. code-block:: bash
+
         python setup.py
 
    In both cases it will copy the required files into the user's Inkscape
