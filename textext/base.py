@@ -157,10 +157,24 @@ class TexText(inkex.EffectExtension):
 
         self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
 
-        if self.requirements_checker.check() == False:
-            raise TexTextFatalError("TexText requirements are not met. "
-                                    "Please follow instructions "
-                                    "https://textext.github.io/textext/")
+        if previous_exit_code == EXIT_CODE_OK and "requirements_checker" in self.cache.values:
+            self.requirements_checker.inkscape_executable = self.cache["requirements_checker"][
+                "inkscape_executable"]
+            self.requirements_checker.available_tex_to_pdf_converters = self.cache["requirements_checker"][
+                "available_tex_to_pdf_converters"]
+            self.requirements_checker.available_pdf_to_svg_converters = self.cache["requirements_checker"][
+                "available_pdf_to_svg_converters"]
+        else:
+            if self.requirements_checker.check() == False:
+                raise TexTextFatalError("TexText requirements are not met. "
+                                        "Please follow instructions "
+                                        "https://textext.github.io/textext/")
+            else:
+                self.cache["requirements_checker"] = {
+                    "inkscape_executable": self.requirements_checker.inkscape_executable,
+                    "available_tex_to_pdf_converters": self.requirements_checker.available_tex_to_pdf_converters,
+                    "available_pdf_to_svg_converters": self.requirements_checker.available_pdf_to_svg_converters,
+                }
 
         super(TexText, self).__init__()
 
