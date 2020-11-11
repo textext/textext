@@ -387,7 +387,7 @@ class TexText(inkex.EffectExtension):
             tt_node.set_meta("version", __version__)
             tt_node.set_meta("texconverter", tex_command)
             tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta("text", text)
+            tt_node.set_meta_text(text)
             tt_node.set_meta("preamble", preamble_file)
             tt_node.set_meta("scale", str(user_scale_factor))
             tt_node.set_meta("alignment", str(alignment))
@@ -467,7 +467,7 @@ class TexText(inkex.EffectExtension):
             node.__class__ = TexTextElement
 
             try:
-                text = node.get_meta('text')
+                text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
 
@@ -710,6 +710,19 @@ class TexTextElement(inkex.Group):
         ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
         self.set(ns_key, value)
         assert self.get_meta(key) == value, (self.get_meta(key), value)
+
+    def set_meta_text(self, value):
+        encoded_value = value.encode('unicode_escape').decode('utf-8')
+        self.set_meta('text', encoded_value)
+
+    def get_meta_text(self):
+        node_version = self.get_meta("version", '0.7')
+        encoded_text = self.get_meta('text')
+
+        if node_version != '1.2.0':
+            return encoded_text.encode('utf-8').decode('unicode_escape')
+        else:
+            return encoded_text
 
     def get_meta(self, key, default=None):
         try:
