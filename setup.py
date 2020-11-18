@@ -20,6 +20,15 @@ from textext.requirements_check import \
 from textext.utility import Settings
 
 
+# Hotfix for Inkscape 1.0.1 on Windows: HarfBuzz-0.0.typelib is missing
+# in the Inkscape installation Python subsystem, hence we ship
+# it manually and set the search path accordingly here
+# ToDo: Remove this hotfix when Inkscape 1.0.2 is released and mark
+#       Inkscape 1.0.1 as incompatible with TexText
+if os.name == "nt":
+    os.environ['GI_TYPELIB_PATH'] = os.path.abspath(os.path.join(os.path.dirname(__file__), "textext"))
+
+
 # taken from https://stackoverflow.com/a/3041990/1741477
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
