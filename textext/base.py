@@ -306,8 +306,13 @@ class TexText(inkex.EffectExtension):
                     self.config.save()
 
             else:
-                # ToDo: I think this is completely broken...
-                self.do_convert(self.options.text,
+                # In case TT has been called with --text="" the old node is
+                # just re-compiled if one exists
+                if self.options.text == "" and text is not None:
+                    new_text = text
+                else:
+                    new_text = self.options.text
+                self.do_convert(new_text,
                                 self.options.preamble_file,
                                 self.options.scale_factor,
                                 old_svg_ele,
