@@ -219,7 +219,7 @@ def is_current_version_compatible(test_id,
             r"--scale-factor=%f" % mod_args["scale-factor"],
             r"--preamble-file=%s" % mod_args["preamble-file"],
             r"--alignment=%s" % mod_args["alignment"],
-            svg_original])
+            svg_original], output=os.devnull)
 
         svg2 = os.path.join(tmp_dir, "svg2.svg")
 
