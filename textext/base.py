@@ -83,7 +83,8 @@ log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s   
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
-                                                        backupCount=2  # up to two log files
+                                                        backupCount=2,  # up to two log files
+                                                        encoding="utf-8"
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
