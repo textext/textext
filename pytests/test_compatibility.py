@@ -171,7 +171,7 @@ def is_current_version_compatible(test_id,
         png1 = os.path.join(tmp_dir, "1.png")
         png2 = os.path.join(tmp_dir, "2.png")
 
-        config = json.load(open(json_config))
+        config = json.load(open(json_config, encoding="utf-8"))
         check_render = config["check"]["render"]
 
         render_options = {}
