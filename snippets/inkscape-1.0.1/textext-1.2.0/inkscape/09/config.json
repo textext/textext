@@ -1,0 +1,26 @@
+{
+	"description": "Alignment at top left corner",
+	"original" : {
+		"text" : "$$y(t) = \\sin(\\omega t)$$",
+		"scale-factor" : 1.0,
+		"preamble-file" : null,
+		"pdf_to_png" : "convert",
+		"alignment" : "middle center"
+	},
+	"modified" : {
+		"text" : "$$y(t) = \\int\\limits_0^t\\sin(\\omega \\tau)\\mathrm{d}\\tau$$",
+		"scale-factor" : 1.0,
+		"preamble-file" : null,
+		"alignment" : "top left"
+	},
+	"check" : {
+		"render" : {
+			"scale-is-preserved": true,
+			"render-area": "document",
+			"dpi": 300
+		},
+		"compare" : {
+			"fuzz" : "0%"
+		}
+	}
+} 

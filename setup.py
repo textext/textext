@@ -9,6 +9,7 @@ import shutil
 import sys
 import stat
 import tempfile
+import fnmatch
 
 from textext.requirements_check import \
     set_logging_levels, \
@@ -18,6 +19,15 @@ from textext.requirements_check import \
     SUCCESS
 
 from textext.utility import Settings
+
+
+# Hotfix for Inkscape 1.0.1 on Windows: HarfBuzz-0.0.typelib is missing
+# in the Inkscape installation Python subsystem, hence we ship
+# it manually and set the search path accordingly here
+# ToDo: Remove this hotfix when Inkscape 1.0.2 is released and mark
+#       Inkscape 1.0.1 as incompatible with TexText
+if os.name == "nt":
+    os.environ['GI_TYPELIB_PATH'] = os.path.abspath(os.path.join(os.path.dirname(__file__), "textext"))
 
 
 # taken from https://stackoverflow.com/a/3041990/1741477
@@ -114,6 +124,21 @@ class CopyFileAlreadyExistsError(RuntimeError):
     pass
 
 
+_ignore_patterns = [
+    '__pycache__',
+    '*.pyc',
+    '*.log',
+]
+
+
+def is_ignored(filename):
+    for pattern in _ignore_patterns:
+        if fnmatch.fnmatch(filename, pattern):
+            return True
+
+    return False
+
+
 def copy_extension_files(src, dst, if_already_exists="raise"):
     """
     src: glob expresion to copy from
@@ -131,6 +156,10 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
     for file in glob.glob(src):
         basename = os.path.basename(file)
         destination = os.path.join(dst, basename)
+
+        if is_ignored(basename):
+            continue
+
         if os.path.exists(destination):
             if if_already_exists == "raise":
                 logger.critical("Can't copy `%s`: `%s` already exists" % (file, destination))
