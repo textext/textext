@@ -1,3 +1,19 @@
+Version 1.3.0 (2020-11-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Double backslashes and missing line breaks occur when using
+  TexText 1.2.0 on nodes created with TexText <= 1.1 (:issue_num:`265`)
+
+  **Note: A one-time manual insertion of line breaks will be necessary
+  when opening such nodes. When having saved them again the line breaks
+  are kept in the future. Double backslashes are replaced by single ones
+  automatically.**
+- Fixed: Opening TexText is slow (:issue_num:`263`)
+- Fixed: Windows installation script complains about missing
+  Python GTK3 bindings (:issue_num:`262`)
+- New: Added explanation to the FAQ/ documentation how to
+  define a shortcut for opening TexText (:issue_num:`259`). Refer to
+  https://textext.github.io/textext/usage/faq.html#defining-keyboard-shortcut-for-opening-textext-dialog
+
 Version 1.2.0 (2020-10-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: On Windows and Inkscape 1.0.1 TK interface is shown only
