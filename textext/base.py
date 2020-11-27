@@ -83,7 +83,8 @@ log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s   
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
-                                                        backupCount=2  # up to two log files
+                                                        backupCount=2,  # up to two log files
+                                                        encoding="utf-8"
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
@@ -305,8 +306,13 @@ class TexText(inkex.EffectExtension):
                     self.config.save()
 
             else:
-                # ToDo: I think this is completely broken...
-                self.do_convert(self.options.text,
+                # In case TT has been called with --text="" the old node is
+                # just re-compiled if one exists
+                if self.options.text == "" and text is not None:
+                    new_text = text
+                else:
+                    new_text = self.options.text
+                self.do_convert(new_text,
                                 self.options.preamble_file,
                                 self.options.scale_factor,
                                 old_svg_ele,

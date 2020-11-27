@@ -113,7 +113,8 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
 
-    proc = subprocess.Popen(COMPARE_EXE + ["-metric", "ae", "-fuzz", fuzz, png1, png2,
+    proc = subprocess.Popen(COMPARE_EXE + ["-channel", "rgba", "-metric", "ae",
+                                           "-fuzz", fuzz, png1, png2,
                                            os.devnull if RESULTS_INTO_TEMPDIR else
                                            os.path.join(os.path.dirname(png1), "diff.png")],
                             stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -171,7 +172,7 @@ def is_current_version_compatible(test_id,
         png1 = os.path.join(tmp_dir, "1.png")
         png2 = os.path.join(tmp_dir, "2.png")
 
-        config = json.load(open(json_config))
+        config = json.load(open(json_config, encoding="utf-8"))
         check_render = config["check"]["render"]
 
         render_options = {}
@@ -219,7 +220,7 @@ def is_current_version_compatible(test_id,
             r"--scale-factor=%f" % mod_args["scale-factor"],
             r"--preamble-file=%s" % mod_args["preamble-file"],
             r"--alignment=%s" % mod_args["alignment"],
-            svg_original])
+            svg_original], output=os.devnull)
 
         svg2 = os.path.join(tmp_dir, "svg2.svg")
 

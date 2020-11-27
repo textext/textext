@@ -1,15 +1,13 @@
 {
-	"description": "transformations in Inkscape are preserved across editing",
 	"original" : {
-		"text" : "$$\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$$",
+		"text" : "$$\\lim_{n \\to \\infty} \\left(1+\\frac{1}{n}\\right)^n = e$$",
 		"scale-factor" : 1.0,
 		"preamble-file" : null,
-		"pdf_to_svg" : "pdfs2vg",
 		"pdf_to_png" : "convert"
 	},
 	"modified" : {
-		"text" : "$$\\lim_{y \\to 0} \\frac{\\sin(y)}{y} = 1$$",
-		"scale-factor" : 3.086,
+		"text" : "$$\\lim_{k \\to \\infty} \\left(1+\\frac{1}{k}\\right)^k = e$$",
+		"scale-factor" : 1.0,
 		"preamble-file" : null
 	},
 	"check" : {
