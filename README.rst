@@ -30,13 +30,11 @@ Download
 
 Download of the most recent version (and older ones): https://github.com/textext/textext/releases
 
-
 Documentation
 -------------
 
-Documentation hosted at https://textext.github.io/textext
-It contains `installation <installation-toc_>`_ and `usage <usage-toc_>`_ instructions
-
+Documentation hosted at https://textext.github.io/textext.
+It contains `installation <installation-toc_>`_ and `usage <usage-toc_>`_ instructions.
 
 History
 -------
