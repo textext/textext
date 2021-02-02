@@ -94,22 +94,22 @@ echo use TexText are not met. In the last case the script lists the steps to
 echo be done for an successfull installation.
 echo.
 echo setup_win --inkscape-executable "C:\Path\to\Inkscape installation\inkscape.exe"
-echo Installs TexText with the default options assuming that Inkscape is located
-echo in the directory "C:\Path\to\Inkscape installation\". This syntax is only
-echo required if you have not installed Inkscape via an installer but from a
-echo zip package.
+echo Installs TexText with the default options assuming that the inkscape executable
+echo can be called via "C:\Path\to\Inkscape installation\inkscape.exe". This syntax
+echo is only required if you have not installed Inkscape via an installer but from a
+echo zip package. Note the double quotes sourrounding the path.
 echo.
 echo setup_win --option1 "value 1" --option2 "value 2"
 echo Installs TexText using the Python distribution shipped with
 echo Inkscape and directly passes the parameter string
 echo --option1 "value 1" --option2 "value 2" to setup.py. You can pass any
 echo parameters understood by setup.py. Call setup_win --help to list all available
-echo options.
+echo options. Note the double quotes sourrounding the values.
 echo.
 echo You can combine the last two calling syntaxes, of course.
 echo.
 echo Example:
-echo setup_win.bat --inkscape-executable "C:\Program Files\Inkscape" 
+echo setup_win.bat --inkscape-executable "C:\Program Files\Inkscape\inkscape.exe" 
 echo --pdflatex-executable "C:\Program Files\MiKTeX 2.9\miktex\bin\x64\pdflatex.exe"
 goto FINAL
 
@@ -219,9 +219,9 @@ goto FINAL
 :INKSCAPE_NOT_FOUND
 echo Inkscape neither found in the registry, nor in the most common
 echo installation directories nor in the system path!
-echo Specifiy an explicit directory via the --inkscape-executable option 
-echo to look for if you installed Inkscape from a zip package. E.g.:
-echo setup_win --inkscape-executable "C:\Path\to\Inkscape installation\"
+echo Specifiy an explicit location of inkscape.exe via the --inkscape-executable
+echo option if you installed Inkscape from a zip package. E.g.:
+echo setup_win --inkscape-executable "C:\Path\to\Inkscape installation\inkscape.exe"
 echo.
 echo Cannot continue!
 echo.
