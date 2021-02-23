@@ -118,7 +118,7 @@ goto FINAL
 
 
 :DETECT_INKSCAPE_LOCATION
-echo Trying to find Inkscape...
+echo Trying to find Inkscape in Windows Registry...
 
 rem Inkscape installation path is usually found in the registry
 rem "SOFTWARE\Inkscape\Inkscape"
@@ -127,6 +127,7 @@ rem HKCU (Current User -> user installation)
 rem We also have to keep in mind that the values might be in the 32bit or 64bit 
 rem version of the registry (i.e., under SOFTWARE\WOW6432Node\Inkscape\Inkscape
 rem or SOFTWARE\Inkscape\Inkscape)
+rem This holds if Inkscape has been installed via via NSIS, not via MSI
 for %%R in (HKLM HKCU) do (
 	for %%T in (32 64) do (
 		rem Output of REG QUERY "KeyName" /ve is (first line is a blank line):
@@ -138,27 +139,43 @@ for %%R in (HKLM HKCU) do (
 		rem so we skip the first two lines (skip=2) and then we take the second token
 		rem and the reamining output (tokens=2*), so %%A is REG_SZ and %%B is the path
 		rem even if it contains spaces (tokens are delimited by spaces)
-		echo Trying registry root %%R [%%T]...
+		echo    Trying registry root %%R [%%T]...
 		for /f "usebackq skip=2 tokens=2*" %%A in (`REG QUERY "%%R\SOFTWARE\Inkscape\Inkscape" /ve /reg:%%T 2^>nul`) do (
-			set INKSCAPE_DIR=%%B
+			if exist %%B (
+				set INKSCAPE_DIR=%%B
+			)
 		)
 		if defined INKSCAPE_DIR (
-			echo Inkscape considered to be installed in !INKSCAPE_DIR!
+			echo    Inkscape considered to be installed in !INKSCAPE_DIR!
 			set INKSCAPE_DIR=!INKSCAPE_DIR!\bin
-			echo Setting executable path to !INKSCAPE_DIR!
+			echo    Setting executable path to !INKSCAPE_DIR!
 			set INKSCAPE_EXE=!INKSCAPE_DIR!\inkscape.exe
 			if exist "!INKSCAPE_EXE!" (
 			    echo !INKSCAPE_EXE! found
 				echo.
-				goto INKSCAPE_FOUND
+				goto    INKSCAPE_FOUND
 			) else (
-				echo !INKSCAPE_EXE! not found
+				echo    !INKSCAPE_EXE! not found
 			)
-			rem for %%S in ("!INKSCAPE_EXE!") do set INKSCAPE_DIR=%%~dpS
 		)
 	)
 )
 
+rem If we did non succeed in the registry lets have a look 
+rem at the most common install locations
+echo Trying the usual Windows install locations...
+for %%D in (C, D, E, F, G, H) do (
+	for %%F in ("Program Files", "Program Files (x86)") do (
+		set INKSCAPE_DIR=%%D:\%%~F\Inkscape\bin
+		echo    Trying !INKSCAPE_DIR!...
+		set INKSCAPE_EXE=!INKSCAPE_DIR!\inkscape.exe
+		if exist "!INKSCAPE_EXE!" (
+			echo    !INKSCAPE_EXE! found
+			echo.
+			goto INKSCAPE_FOUND
+		)
+	)
+)
 rem Check if Inkscape is in the system path (not very likely)
 echo Trying system path...
 for %%c in (inkscape.exe) do (
@@ -166,7 +183,7 @@ for %%c in (inkscape.exe) do (
     set INKSCAPE_EXE=!INKSCAPE_DIR!inkscape.exe
 )
 if defined INKSCAPE_DIR (
-    echo Inkscape found in system path, installed in %INKSCAPE_DIR%
+    echo    Inkscape found in system path, installed in %INKSCAPE_DIR%
     echo.
     goto INKSCAPE_FOUND
 )
