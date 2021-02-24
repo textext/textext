@@ -13,8 +13,8 @@ rem Allow access to modified variables in if and for constructs by
 rem !VAR! (%VAR% would not result in modified value as one would expect...)
 setlocal EnableDelayedExpansion
 
+set INKSCAPE_EXENAME=inkscape.exe
 set "INKSCAPE_DIR="
-set "INKSCAPE_EXE="
 set "PYTHON_ARGS="
 set "PATHON_EXE="
 set "PYTHON_COMMAND="
@@ -49,15 +49,12 @@ if defined args (
 		for /f "usebackq tokens=1* delims= " %%C in ('%%A') do (
 			rem Check for explicitely given inkscape executable
 			if /I "%%C"=="inkscape-executable" if not "%%D"=="" (
-				set INKSCAPE_EXE=%%D
-				if not exist "!INKSCAPE_EXE!" (
-					echo !INKSCAPE_EXE! not found!
+				if not exist "%%D" (
+					echo %%D not found!
 					goto FINAL
 				) else (
-					echo !INKSCAPE_EXE! found!
-					for %%i in (!INKSCAPE_EXE!) do (
-						set INKSCAPE_DIR=%%~dpi
-					)
+					echo %%D found!
+					set INKSCAPE_DIR=%%~dpD
 				)				
 			) else (
 				echo No value specified for key --%%C
@@ -149,13 +146,12 @@ for %%R in (HKLM HKCU) do (
 			echo    Inkscape considered to be installed in !INKSCAPE_DIR!
 			set INKSCAPE_DIR=!INKSCAPE_DIR!\bin
 			echo    Setting executable path to !INKSCAPE_DIR!
-			set INKSCAPE_EXE=!INKSCAPE_DIR!\inkscape.exe
-			if exist "!INKSCAPE_EXE!" (
-			    echo !INKSCAPE_EXE! found
+			if exist "!INKSCAPE_DIR!\!INKSCAPE_EXENAME!" (
+			    echo !INKSCAPE_DIR!\!INKSCAPE_EXENAME! found
 				echo.
 				goto    INKSCAPE_FOUND
 			) else (
-				echo    !INKSCAPE_EXE! not found
+				echo    !INKSCAPE_DIR!\!INKSCAPE_EXENAME! not found
 			)
 		)
 	)
@@ -168,9 +164,8 @@ for %%D in (C, D, E, F, G, H) do (
 	for %%F in ("Program Files", "Program Files (x86)") do (
 		set INKSCAPE_DIR=%%D:\%%~F\Inkscape\bin
 		echo    Trying !INKSCAPE_DIR!...
-		set INKSCAPE_EXE=!INKSCAPE_DIR!\inkscape.exe
-		if exist "!INKSCAPE_EXE!" (
-			echo    !INKSCAPE_EXE! found
+		if exist "!INKSCAPE_DIR!\inkscape.exe" (
+			echo    !INKSCAPE_DIR!\inkscape.exe found
 			echo.
 			goto INKSCAPE_FOUND
 		)
@@ -180,7 +175,6 @@ rem Check if Inkscape is in the system path (not very likely)
 echo Trying system path...
 for %%c in (inkscape.exe) do (
     set INKSCAPE_DIR=%%~dp$PATH:c
-    set INKSCAPE_EXE=!INKSCAPE_DIR!inkscape.exe
 )
 if defined INKSCAPE_DIR (
     echo    Inkscape found in system path, installed in %INKSCAPE_DIR%
@@ -223,7 +217,8 @@ goto FINAL
 
 
 :INKSCAPE_NOT_FOUND
-echo Inkscape neither found in the registry nor on the system path!
+echo Inkscape neither found in the registry, nor in the most common
+echo installation directories nor in the system path!
 echo Specifiy an explicit directory via the --inkscape-executable option 
 echo to look for if you installed Inkscape from a zip package. E.g.:
 echo setup_win --inkscape-executable "C:\Path\to\Inkscape installation\"
