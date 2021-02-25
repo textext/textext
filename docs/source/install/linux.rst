@@ -121,8 +121,11 @@ Download and install |TexText|
 
             python setup.py --skip-requirements-check --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
 
-You are done. Now you can consult the :ref:`usage instructions <gui>`. In case of problems consult
-:ref:`troubleshooting`.
+.. note::
+
+    In case of installation problems refer to the :ref:`trouble_installation` in the :ref:`troubleshooting` section!
+
+You are done. Now you can consult the :ref:`usage instructions <gui>`.
 
 .. _linux-install-gui:
 

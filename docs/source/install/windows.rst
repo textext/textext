@@ -82,17 +82,15 @@ Setup script (recommended)
 
 .. note::
 
-    If you would like to skip the requirement checks during installation call the script
-    from the command line as follows:
+    In case of installation problems refer to the :ref:`trouble_installation` in the :ref:`troubleshooting` section!
 
-    .. code-block:: bash
 
-        setup_win.bat --skip-requirements-check
+
 
 Installer
 ---------
 
-If you have trouble with the setup script you can use a GUI based installer:
+You can also use a GUI based installer:
 
 1. Download the most recent installer from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_exe:`.exe <Windows>`)
 2. Use the installer and follow the instructions. It will copy the required files into the user's Inkscape
@@ -105,9 +103,7 @@ If you have trouble with the setup script you can use a GUI based installer:
     :ref:`above <windows-install-preparation>` correctly.
 
 
-You are done. Now you can consult the :ref:`usage instructions <gui>`. In case of problems consult
-:ref:`troubleshooting`.
-
+You are done. Now you can consult the :ref:`usage instructions <gui>`.
 
 .. _windows-install-library:
 .. _windows-install-gtk3:
