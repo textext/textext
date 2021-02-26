@@ -83,7 +83,8 @@ log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s   
 
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
-                                                        backupCount=2  # up to two log files
+                                                        backupCount=2,  # up to two log files
+                                                        encoding="utf-8"
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
@@ -157,10 +158,24 @@ class TexText(inkex.EffectExtension):
 
         self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
 
-        if self.requirements_checker.check() == False:
-            raise TexTextFatalError("TexText requirements are not met. "
-                                    "Please follow instructions "
-                                    "https://textext.github.io/textext/")
+        if previous_exit_code == EXIT_CODE_OK and "requirements_checker" in self.cache.values:
+            self.requirements_checker.inkscape_executable = self.cache["requirements_checker"][
+                "inkscape_executable"]
+            self.requirements_checker.available_tex_to_pdf_converters = self.cache["requirements_checker"][
+                "available_tex_to_pdf_converters"]
+            self.requirements_checker.available_pdf_to_svg_converters = self.cache["requirements_checker"][
+                "available_pdf_to_svg_converters"]
+        else:
+            if self.requirements_checker.check() == False:
+                raise TexTextFatalError("TexText requirements are not met. "
+                                        "Please follow instructions "
+                                        "https://textext.github.io/textext/")
+            else:
+                self.cache["requirements_checker"] = {
+                    "inkscape_executable": self.requirements_checker.inkscape_executable,
+                    "available_tex_to_pdf_converters": self.requirements_checker.available_tex_to_pdf_converters,
+                    "available_pdf_to_svg_converters": self.requirements_checker.available_pdf_to_svg_converters,
+                }
 
         super(TexText, self).__init__()
 
@@ -291,8 +306,13 @@ class TexText(inkex.EffectExtension):
                     self.config.save()
 
             else:
-                # ToDo: I think this is completely broken...
-                self.do_convert(self.options.text,
+                # In case TT has been called with --text="" the old node is
+                # just re-compiled if one exists
+                if self.options.text == "" and text is not None:
+                    new_text = text
+                else:
+                    new_text = self.options.text
+                self.do_convert(new_text,
                                 self.options.preamble_file,
                                 self.options.scale_factor,
                                 old_svg_ele,
@@ -373,7 +393,7 @@ class TexText(inkex.EffectExtension):
             tt_node.set_meta("version", __version__)
             tt_node.set_meta("texconverter", tex_command)
             tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta("text", text)
+            tt_node.set_meta_text(text)
             tt_node.set_meta("preamble", preamble_file)
             tt_node.set_meta("scale", str(user_scale_factor))
             tt_node.set_meta("alignment", str(alignment))
@@ -453,7 +473,7 @@ class TexText(inkex.EffectExtension):
             node.__class__ = TexTextElement
 
             try:
-                text = node.get_meta('text')
+                text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
 
@@ -696,6 +716,19 @@ class TexTextElement(inkex.Group):
         ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
         self.set(ns_key, value)
         assert self.get_meta(key) == value, (self.get_meta(key), value)
+
+    def set_meta_text(self, value):
+        encoded_value = value.encode('unicode_escape').decode('utf-8')
+        self.set_meta('text', encoded_value)
+
+    def get_meta_text(self):
+        node_version = self.get_meta("version", '0.7')
+        encoded_text = self.get_meta('text')
+
+        if node_version != '1.2.0':
+            return encoded_text.encode('utf-8').decode('unicode_escape')
+        else:
+            return encoded_text
 
     def get_meta(self, key, default=None):
         try:

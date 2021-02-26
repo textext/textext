@@ -77,7 +77,9 @@ Download and install |TexText|
    Compared to previous versions |TexText| does not need any conversion utilities like
    ghostscript, pstoedit or pdfsvg.
 
-1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>`
+1. If you are on Debian Bullseye or later refer to section :ref:`linux-textext-packages`.
+   Otherwise download the most recent package from the
+   :textext_current_release_page:`GitHub release page <release>`
    (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
 
 2. Extract the package and change into the created directory.
@@ -111,8 +113,11 @@ Download and install |TexText|
 
             python setup.py --skip-requirements-check --inkscape-executable /home/path/to/your/appimage/Inkscape-4035a4f-x86_64.AppImage
 
-You are done. Now you can consult the :ref:`usage instructions <gui>`. In case of problems consult
-:ref:`troubleshooting`.
+.. note::
+
+    In case of installation problems refer to the :ref:`trouble_installation` in the :ref:`troubleshooting` section!
+
+You are done. Now you can consult the :ref:`usage instructions <gui>`.
 
 .. _linux-install-gui:
 
@@ -181,3 +186,17 @@ If your Inkscape installation runs **Python 3**:
 .. code-block:: bash
 
     sudo apt-get install python3-tk
+
+
+.. _linux-textext-packages:
+
+Installation on Debian Bullseye and later
+=========================================
+
+TexText can be installed directly from the official repositories:
+
+   .. code-block:: bash
+
+        sudo apt install inkscape-textext
+
+Then consult the :ref:`usage instructions <gui>`.

@@ -1,4 +1,6 @@
 .. |TexText| replace:: **TexText**
+.. |Lin| replace:: **Linux/ MacOS**
+.. |Win| replace:: **Windows**
 
 .. role:: bash(code)
    :language: bash
@@ -13,6 +15,105 @@
 Troubleshooting
 ---------------
 
+.. contents:: :local:
+    :depth: 1
+
+.. _trouble_installation:
+
+Installation problems
+=====================
+
+The setup script offers several command line options which may help to fix the
+most common problems during the installation process. For this purpose open a
+Terminal or Windows Command Prompt and enter one of the commands listed below:
+
+- Inkscape is not found by the installation script -> specify the path to the executable:
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --inkscape-executable '/path/to/my Inkscape/inkscape'
+
+    - |Win| (note the double quotes!)
+
+    .. code-block:: bash
+
+        setup_win.bat --inkscape-executable "C:\My\Installation Location\bin\inkscape.exe"
+
+- Inkscape does not find |TexText| although it has been installed -> notify the setup script
+  about a user-defined (non-standard) installation location for the Inkscape extensions
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --inkscape-extensions-path '/path/to/user defined/location'
+
+    - |Win| (note the double quotes!)
+
+    .. code-block:: bash
+
+        setup_win.bat --inkscape-extensions-path "C:\Users\My extension location"
+
+- The LaTeX engines are not found in the system path by the setup script -> specify the
+  path to the executables:
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --pdflatex-executable '/path/to/my latex/pdflatex'
+
+    also available: ``--lualatex-executable`` and ``--xelatex-executable`` for the LuaLaTex and
+    XeLaTeX executables, respectively.
+
+    - |Win| (note the double quotes!)
+
+    .. code-block:: bash
+
+        setup_win.bat --pdflatex-executable "C:\Program Files\My Latex\pdflatex.exe"
+
+    also available: ``--lualatex-executable`` and ``--xelatex-executable`` for the LuaLaTex and
+    XeLaTeX executables, respectively.
+
+- Completely skip all requirement checks during installation and just copy the |TexText| files into
+  the extension directory:
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --skip-requirements-check
+
+    - |Win|
+
+    .. code-block:: bash
+
+        setup_win.bat --skip-requirements-check
+
+- General help:
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --help
+
+    - |Win|
+
+    .. code-block:: bash
+
+        setup_win.bat --help
+
+.. important::
+
+    Do not hesitate to file a report if you cannot solve your installation problems:
+    `github <https://github.com/textext/textext/issues/new/choose>`_
+
+Problems running |TexText|
+==========================
+
 There are three main reasons why something may went wrong:
 
 1. Your LaTeX code contains invalid commands or syntax errors.
@@ -20,7 +121,7 @@ There are three main reasons why something may went wrong:
 2. The installed toolchain for the conversion of your code to a valid SVG element
    is for some reason broken.
 
-3. |TexText| contains a bug and you are the person who discovers it!
+3. |TexText| contains a bug and you are the person who discovered it!
 
 |TexText| helps you to resolve such issues by offering detailed error and logging information.
 
