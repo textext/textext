@@ -1,3 +1,12 @@
+Version 1.3.1 (2021-02-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Setup script fails on Windows if Inkscape has been installed
+  via the .msi installer (:issue_num:`280`)
+- Fixed: Imprecise instructions regarding location of Inkscape
+  executable in Windows setup script (:issue_num:`280`)
+- Added: Detailed explanation of setup script options (Linux, MacOS,
+  Windows)
+
 Version 1.3.0 (2020-11-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Double backslashes and missing line breaks occur when using
