@@ -1,0 +1,6 @@
+
+
+Authors
+-------
+
+.. include:: ../../AUTHORS.rst
