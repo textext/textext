@@ -33,7 +33,7 @@ Terminal or Windows Command Prompt and enter one of the commands listed below:
 
     .. code-block:: bash
 
-        python setup.py --inkscape-executable /path/to/my\ Inkscape/inkscape
+        python setup.py --inkscape-executable '/path/to/my Inkscape/inkscape'
 
     - |Win| (note the double quotes!)
 
@@ -48,7 +48,7 @@ Terminal or Windows Command Prompt and enter one of the commands listed below:
 
     .. code-block:: bash
 
-        python setup.py --inkscape-extensions-path /path/to/user\ defined/location
+        python setup.py --inkscape-extensions-path '/path/to/user defined/location'
 
     - |Win| (note the double quotes!)
 
@@ -63,7 +63,7 @@ Terminal or Windows Command Prompt and enter one of the commands listed below:
 
     .. code-block:: bash
 
-        python setup.py --pdflatex-executable /path/to/my\ latex/pdflatex
+        python setup.py --pdflatex-executable '/path/to/my latex/pdflatex'
 
     also available: ``--lualatex-executable`` and ``--xelatex-executable`` for the LuaLaTex and
     XeLaTeX executables, respectively.
