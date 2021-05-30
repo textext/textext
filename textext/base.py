@@ -587,14 +587,17 @@ class TexToPdfConverter:
 
         E.g. $\\overline x$ -> the line above x is converted from stroke to path
         """
-        exec_command([
-            self.checker.inkscape_executable,
-            "-g",
-            "--batch-process",
-            "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;FileClose".format(self.tmp('svg')),
-            self.tmp('svg')
-        ]
-        )
+        try:
+            exec_command([
+                self.checker.inkscape_executable,
+                "-g",
+                "--batch-process",
+                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;FileClose".format(self.tmp('svg')),
+                self.tmp('svg')
+            ]
+            )
+        except (TexTextCommandNotFound, TexTextCommandFailed):
+            pass
 
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
