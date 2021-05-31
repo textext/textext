@@ -1,16 +1,19 @@
 """
-:Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2008-04-26
-:Author: Pit Garbe <piiit@gmx.de>
-:Date: 2014-02-03
-:Author: TexText developers
-:Date: 2019-04-05
-:License: BSD
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
 
-This is the GUI part of TexText, handling several more or less sophisticated dialog windows
- depending on the installed tools.
+Copyright (c) 2006-2021 TexText developers.
 
-Its used uniformly from textext.py via the factory (AskerFactory) and only the "ask" method is called.
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
+
+This is the GUI part of TexText, handling several more or less
+sophisticated dialog windows depending on the installed tools.
+
+It is used uniformly from base.py via the ask method of the
+AskText class depending on the available GUI framework
+(TkInter or GTK3).
 """
 
 DEBUG = False

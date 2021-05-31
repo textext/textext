@@ -1,9 +1,15 @@
 """
-:Author: Jan Winkler
-:Date: 2019-12-02
-:License: BSD
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
 
-win_app_paths.py: Provides a crude mechanism trying to determine the install dir of inkscape
+Copyright (c) 2006-2021 TexText developers.
+
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
+
+Provides a crude mechanism trying to determine the install dir of inkscape
+on Windows machines
 """
 import os as _os
 import subprocess as _sp
