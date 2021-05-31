@@ -132,6 +132,16 @@ the following checks:
 
    Alternatively you can select the correct directory in the GUI installer.
 
+Error message "GUI framework cannot be initialized"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The reason for this error might be related to a missing package in your
+TeX distribution, see :ref:`faq_missing_packages` just below.
+In that case the error message is quite misleading.
+
+
+.. _faq_missing_packages:
+
 Windows with MiKTeX: Compilation fails with empty error dialog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
