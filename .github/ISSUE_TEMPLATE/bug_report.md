@@ -6,6 +6,10 @@ labels: ''
 assignees: ''
 
 ---
+**Before submitting a bug report make sure you have checked the
+  [FAQ](https://textext.github.io/textext/usage/faq.html) and
+  [Troubleshooting](https://textext.github.io/textext/usage/troubleshooting.html)
+  sections in the documentation!**
 
 **Description of the problem/ steps to reproduce**
 A clear and concise description of what the bug is and what you expected to happen.
