@@ -1,44 +1,13 @@
 """
-=======
-textext
-=======
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
 
-:Author: Pauli Virtanen <pav@iki.fi>
-:Date: 2008-04-26
-:Author: Pit Garbe <piiit@gmx.de>
-:Date: 2014-02-03
-:Author: TexText developers
-:Date: 2019-04-05
-:License: BSD
+Copyright (c) 2006-2021 TexText developers.
 
-Textext is an extension for Inkscape_ that allows adding
-LaTeX-generated text objects to your SVG drawing. What's more, you can
-also *edit* these text objects after creating them.
-
-This brings some of the power of TeX typesetting to Inkscape.
-
-Textext was initially based on InkLaTeX_ written by Toru Araki,
-but is now rewritten.
-
-Thanks to Sergei Izmailov, Robert Szalai, Rafal Kolanski, Brian Clarke,
-Florent Becker and Vladislav Gavryusev for contributions.
-
-.. note::
-   Unfortunately, the TeX input dialog is modal. That is, you cannot
-   do anything else with Inkscape while you are composing the LaTeX
-   text snippet.
-
-   This is because I have not yet worked out whether it is possible to
-   write asynchronous extensions for Inkscape.
-
-.. note::
-   Textext requires Pdflatex and Pstoedit_ compiled with the ``plot-svg`` back-end
-
-.. _Pstoedit: http://www.pstoedit.net/pstoedit
-.. _Inkscape: http://www.inkscape.org/
-.. _InkLaTeX: http://www.kono.cis.iwate-u.ac.jp/~arakit/inkscape/inklatex.html
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
 """
-
 from __future__ import print_function
 import hashlib
 import logging
@@ -387,6 +356,7 @@ class TexText(inkex.EffectExtension):
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_svg()
+                    converter.stroke_to_path()
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
             # -- Store textext attributes
@@ -579,6 +549,24 @@ class TexToPdfConverter:
             self.tmp('pdf')
         ]
         )
+
+    def stroke_to_path(self):
+        """
+        Convert stroke elements to path elements for easier colorization and scaling in Inkscape
+
+        E.g. $\\overline x$ -> the line above x is converted from stroke to path
+        """
+        try:
+            exec_command([
+                self.checker.inkscape_executable,
+                "-g",
+                "--batch-process",
+                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg')),
+                self.tmp('svg')
+            ]
+            )
+        except (TexTextCommandNotFound, TexTextCommandFailed):
+            pass
 
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""

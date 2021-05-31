@@ -1,3 +1,16 @@
+"""
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
+
+Copyright (c) 2006-2021 TexText developers.
+
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
+
+Classes for handling and checking of the dependencies required
+to successfully run TexText.
+"""
 import abc
 import logging
 import os
@@ -9,6 +22,7 @@ import sys
 class Defaults(object):
     __metaclass__ = abc.ABCMeta
 
+    # ToDo: Change to @property @abstractmethod when discarding Python 2.7 support
     @abc.abstractproperty
     def os_name(self): pass
 

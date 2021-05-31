@@ -9,7 +9,7 @@ SHA=`git rev-parse --verify HEAD`
 WD="$PWD"
 
 function doCompile {
-  python2 -m pip install -r docs/requirements.txt
+  python -m pip install -r docs/requirements.txt
   make -C ./docs html
 }
 

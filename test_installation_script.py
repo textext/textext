@@ -1,13 +1,21 @@
 """
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
+
+Copyright (c) 2006-2021 TexText developers.
+
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
 
 This script creates fake executables (pdflatex, python2.7, etc...)
 to test requirements check in setup.py
 
-All fake executables are created in temporary directory and safely deleted at the end.
+All fake executables are created in temporary directory and safely
+deleted at the end.
 
-setup.py is running with PATH set to temporary directory, so actual environment
-does not affect this test
-
+setup.py is running with PATH set to temporary directory, so
+actual environment does not affect this test
 """
 import os
 import shutil
