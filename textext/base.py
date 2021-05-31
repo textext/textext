@@ -592,7 +592,7 @@ class TexToPdfConverter:
                 self.checker.inkscape_executable,
                 "-g",
                 "--batch-process",
-                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;FileClose".format(self.tmp('svg')),
+                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg')),
                 self.tmp('svg')
             ]
             )
