@@ -282,7 +282,7 @@ Colorization of the output
 There are two ways for colorization of the output:
 
  1. The most natural way is to select the produced SVG output in Inkscape and set the fill
-    **and** the contour color to the same value according to your needs.
+    color to the same value according to your needs.
     When you re-compile your node this color will be persevered as long as
     you do not use any color specifications in your LaTeX code. You can also
     colorize characters individually be selecting them with the mouse after
@@ -296,8 +296,9 @@ There are two ways for colorization of the output:
 
  2. Alternatively, you can use LaTeX commands like
     :latex:`\textcolor` in your code to colorize the node according to your
-    needs. If you use such commands any colorization done by Inkscape will
-    be lost after re-compilation. This method is the recommended one if you
+    needs. The required color package is already included in the ``default_packages.tex``
+    preamble file shipped with |TexText|. If you use such commands any colorization done
+    by Inkscape will be lost after re-compilation. This method is the recommended one if you
     would like a character wise colorization of your output.
 
 .. _usage-preview:

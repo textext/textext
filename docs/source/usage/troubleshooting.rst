@@ -256,11 +256,25 @@ programs used in the toolchain. Here is what you have to do in such cases:
     .. note::
 
         On Windows it may be required to put the name of the directory in which ``inkscape.exe``
-        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
+        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\bin\``.
 
     Open the generated file ``test.svg`` with Inkscape and check the result.
 
-6. Check if the conversion from ``svg`` to ``png`` for the preview image succeeds
+6. Check if the conversion of the strokes to paths in the ``svg`` succeeds:
+
+    .. code-block:: bash
+
+        inkscape -g --batch-process --actions="EditSelectAll;StrokeToPath;export-filename:test.svg;export-do;EditUndo;FileClose" test.svg
+
+    .. note::
+
+        On Windows it may be required to put the name of the directory in which ``inkscape.exe``
+        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\bin\``.
+
+    Open the generated file ``test.svg`` with Inkscape and check the result (Visually there will
+    be no difference between the svg generated in this step and that from step 5).
+
+7. Check if the conversion from ``svg`` to ``png`` for the preview image succeeds
 
     .. code-block:: bash
 
@@ -269,6 +283,6 @@ programs used in the toolchain. Here is what you have to do in such cases:
     .. note::
 
         On Windows it may be required to put the name of the directory in which ``inkscape.exe``
-        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\``.
+        resides in front of ``inkscape``, e.g. ``c:\Program Files\Inkscape\bin\``.
 
     Open the generated file ``test.png`` with an image viewer and check the result.
