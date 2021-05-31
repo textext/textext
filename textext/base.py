@@ -387,6 +387,7 @@ class TexText(inkex.EffectExtension):
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_svg()
+                    converter.stroke_to_path()
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
             # -- Store textext attributes
@@ -579,6 +580,24 @@ class TexToPdfConverter:
             self.tmp('pdf')
         ]
         )
+
+    def stroke_to_path(self):
+        """
+        Convert stroke elements to path elements for easier colorization and scaling in Inkscape
+
+        E.g. $\\overline x$ -> the line above x is converted from stroke to path
+        """
+        try:
+            exec_command([
+                self.checker.inkscape_executable,
+                "-g",
+                "--batch-process",
+                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg')),
+                self.tmp('svg')
+            ]
+            )
+        except (TexTextCommandNotFound, TexTextCommandFailed):
+            pass
 
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
