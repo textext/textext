@@ -1,3 +1,18 @@
+Version 1.4.0 (2021-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: TexText svg nodes can be colorized now by a single click even
+  if they contain strokes (as, for example, in fractions,
+  square-roots or overlines). Just select the node in Inkscape and
+  click on the fill color in the color bar as you do it with normal
+  Inkscape text (:issue_num:`291`).
+
+  *Note*: Due to this, execution time per node compilation is longer
+  compared to previous versions of TexText. However, you do not need to
+  colorize strokes manually in Inkscape anymore. On Windows, also
+  a slight flickering on the screen might appear while the TeX code
+  is compiled.
+- Documentation improvements
+
 Version 1.3.1 (2021-02-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Setup script fails on Windows if Inkscape has been installed
