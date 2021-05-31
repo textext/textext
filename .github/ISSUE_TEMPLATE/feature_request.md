@@ -6,6 +6,9 @@ labels: ''
 assignees: ''
 
 ---
+**Before submitting a feature request make sure you have checked in the
+  [documentation](https://textext.github.io/textext) if it does
+  already exist!**
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
