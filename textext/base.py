@@ -33,7 +33,7 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
+LOG_LOCATION = os.path.join(os.path.dirname(__file__))
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
