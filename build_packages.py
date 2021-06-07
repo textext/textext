@@ -75,18 +75,17 @@ if __name__ == "__main__":
 
         with TmpDir() as tmpdir:
             versioned_subdir = os.path.join(tmpdir,"textext-%s" % TexTextVersion)
+            extension_subdir = os.path.join(versioned_subdir, "textext")
             os.mkdir(versioned_subdir)
             shutil.copytree("./textext",
-                            os.path.join(versioned_subdir, "textext"),
+                            extension_subdir,
                             ignore=git_ignore_patterns  # exclude .gitignore files
                             )
-            shutil.copy("setup.py", versioned_subdir)
-            shutil.copy("LICENSE.txt", versioned_subdir)
-            if platform == "windows":
-                shutil.copy("setup_win.bat", versioned_subdir)
-            if platform == "inkscape":
-                shutil.copy("setup_win.bat", versioned_subdir)
-                shutil.copy("INSTALL.txt", versioned_subdir)
+            shutil.copy("LICENSE.txt", extension_subdir)
+            if platform != "inkscape":
+                shutil.copy("setup.py", versioned_subdir)
+                if platform == "windows":
+                    shutil.copy("setup_win.bat", versioned_subdir)
             for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
                 print("Successfully created %s" % os.path.basename(filename))
