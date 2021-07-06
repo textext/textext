@@ -197,7 +197,7 @@ two methods:
 1. After compilation adjust the size of the SVG output using the mouse
    in Inkscape. You should lock the width and height to keep the
    proportion. Be careful to not break the group!
-2. Before compilation you specifiy a scale factor in the spinbox of the
+2. Before compilation you specify a scale factor in the spinbox of the
    groupbox |tt0x-usage-label-3|.
 
 Both methods are fully compatible. If you scale your SVG output in
