@@ -206,7 +206,7 @@ two methods:
     .. figure:: ../images/inkscape-scaling-locked.png
        :alt: Locked scaling in Inkscape
 
-2. Before compilation you specifiy a scale factor in the spinbox of the
+2. Before compilation you specify a scale factor in the spinbox of the
    groupbox |usage-label-3|.
 
     .. figure:: ../images/textext-scale-factor.png
