@@ -1062,7 +1062,6 @@ class AskTextGTKSource(AskText):
         adv_settings_hbox = Gtk.HBox(True, 0)
         adv_settings_hbox.pack_start(adv_settings_frame, True, True, 5)
 
-
         # --- TeX code window ---
         # Scrolling Window with Source View inside
         scroll_window = Gtk.ScrolledWindow()
@@ -1233,7 +1232,7 @@ class AskTextGTKSource(AskText):
             # create first window
             with SuppressStream():  # suppress GTK Warings printed directly to stderr in C++
                 window = self.create_window()
-            window.set_default_size(500, 500)
+            window.set_default_size(500, 575)
             # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
             # bad hide/show/hide hack, see issue #114
             window.show()
