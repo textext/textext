@@ -1047,20 +1047,19 @@ class AskTextGTKSource(AskText):
 
         alignment_box.pack_start(self._alignment_combobox, True, True, 2)
 
-        # --- Scale and alignment together in one "line"
+        # Advanced settings
+        adv_settings_frame = Gtk.Frame()
+        adv_settings_frame.set_label("SVG output")
+        self._conv_stroke2path = Gtk.CheckButton(label="No strokes")
+        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) can be easily \ncolored in Inkscape (Time consuming compilation!)")
+        self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
+        adv_settings_frame.add(self._conv_stroke2path)
+
+        # --- Scale, alignment and advanced settings together in one "line"
         scale_align_hbox = Gtk.HBox(homogeneous=False, spacing=0)
         scale_align_hbox.pack_start(scale_frame, False, False, 5)
         scale_align_hbox.pack_start(alignment_frame, True, True, 5)
-
-        # Advanced settings
-        adv_settings_frame = Gtk.Frame()
-        adv_settings_frame.set_label("Advanced settings")
-        self._conv_stroke2path = Gtk.CheckButton(label="Convert strokes to path (time consuming!)")
-        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) can be easily colored in Inkscape")
-        self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
-        adv_settings_frame.add(self._conv_stroke2path)
-        adv_settings_hbox = Gtk.HBox(True, 0)
-        adv_settings_hbox.pack_start(adv_settings_frame, True, True, 5)
+        scale_align_hbox.pack_start(adv_settings_frame, True, True, 5)
 
         # --- TeX code window ---
         # Scrolling Window with Source View inside
@@ -1146,7 +1145,6 @@ class AskTextGTKSource(AskText):
 
         vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
         vbox.pack_start(scale_align_hbox, False, False, 0)
-        vbox.pack_start(adv_settings_hbox, False, False, 5)
 
         vbox.pack_start(scroll_window, True, True, 0)
         vbox.pack_start(self.pos_label, False, False, 0)
@@ -1160,8 +1158,7 @@ class AskTextGTKSource(AskText):
         self._same_height_objects = [
             preamble_frame,
             texcmd_frame,
-            scale_align_hbox,
-            adv_settings_hbox
+            scale_align_hbox
         ]
 
         self._preview_scroll_window.hide()
@@ -1232,7 +1229,7 @@ class AskTextGTKSource(AskText):
             # create first window
             with SuppressStream():  # suppress GTK Warings printed directly to stderr in C++
                 window = self.create_window()
-            window.set_default_size(500, 575)
+            window.set_default_size(500, 525)
             # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
             # bad hide/show/hide hack, see issue #114
             window.show()

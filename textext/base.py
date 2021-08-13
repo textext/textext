@@ -455,7 +455,7 @@ class TexText(inkex.EffectExtension):
                 text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
-                conv_stroke_to_path = bool(node.get_meta('stroke_to_path', 0))
+                conv_stroke_to_path = bool(node.get_meta('stroke-to-path', 0))
 
                 return node, text, preamble, scale, conv_stroke_to_path
 
