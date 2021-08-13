@@ -261,19 +261,32 @@ class AskTextTK(AskText):
                                        command=self.select_preamble_file)
         self._askfilename_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
-        box.pack(fill="x", pady=5, expand=True)
+        box.pack(fill="x", pady=0, expand=True)
+
+        # Frame holding the advanced settings and the tex command
+        box2 = Tk.Frame(self._frame, relief="flat")
+        box2.pack(fill="x", pady=5, expand=True)
+
+        # Frame box for advanced settings
+        self._convert_strokes_to_path = Tk.BooleanVar()
+        self._convert_strokes_to_path.set(self.current_convert_strokes_to_path)
+        box = Tk.Frame(box2, relief="groove", borderwidth=2)
+        label = Tk.Label(box, text="SVG-output:")
+        label.pack(pady=2, padx=5, anchor="w")
+        Tk.Checkbutton(box, text="No strokes", variable=self._convert_strokes_to_path, onvalue=True, offvalue=False).pack(side="left", expand=False, anchor="w")
+        box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
 
         # Frame box for tex command
         self._tex_command_tk_str = Tk.StringVar()
         self._tex_command_tk_str.set(self.current_texcmd)
-
-        box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
+        box = Tk.Frame(box2, relief="groove", borderwidth=2)
         label = Tk.Label(box, text="TeX command:")
         label.pack(pady=2, padx=5, anchor="w")
         for tex_command in self.TEX_COMMANDS:
             Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
                            value=tex_command).pack(side="left", expand=False, anchor="w")
-        box.pack(fill="x", pady=5, expand=True)
+        box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
+
 
         # Frame box for scale factor and reset buttons
         box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
@@ -385,10 +398,11 @@ class AskTextTK(AskText):
             return
         self.text = self._text_box.get(1.0, Tk.END)
         self.preamble_file = self._preamble.get()
+        self.current_convert_strokes_to_path = self._convert_strokes_to_path.get()
 
         try:
             self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get(),
-                          self._tex_command_tk_str.get(), False)
+                          self._tex_command_tk_str.get(), self.current_convert_strokes_to_path)
         except Exception as error:
             self.show_error_dialog("TexText Error",
                               "Error occurred while converting text from Latex to SVG:",
