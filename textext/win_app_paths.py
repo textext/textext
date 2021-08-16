@@ -17,7 +17,8 @@ import winreg as _wr
 
 # Windows Registry key under which the installation dir of Inkscape is stored
 # Note that "bin" has to be added to that directory
-INKSCAPE_REG_KEY = r"SOFTWARE\Inkscape\Inkscape"
+INKSCAPE_REG_KEY_NSIS = r"SOFTWARE\Inkscape\Inkscape"
+INKSCAPE_REG_KEY_MSI = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\inkscape.exe"
 
 
 def check_cmd_in_syspath(command_name):
@@ -42,13 +43,13 @@ def check_cmd_in_syspath(command_name):
 def get_non_syspath_dirs():
     """Returns a list containing the directories of the applications which are not found in the system path"""
 
-    # Try standard registry and the 32bit as well as 64bit mapping of it
+    # Try standard registry and the 32bit as well as 64bit mapping of it (Inkscape installed via NSIS exe installer)
     for access_right in [_wr.KEY_READ, _wr.KEY_READ | _wr.KEY_WOW64_32KEY, _wr.KEY_READ | _wr.KEY_WOW64_64KEY]:
         # Global instalations put their keys in HKLM (HKEY_LOCAL_MACHINE), user installations
         # put their keys in HKCU (HKEY_CURRENT_USER)
         for hkey in [_wr.HKEY_LOCAL_MACHINE, _wr.HKEY_CURRENT_USER]:
             try:
-                key = _wr.OpenKey(hkey, INKSCAPE_REG_KEY, 0, access_right)
+                key = _wr.OpenKey(hkey, INKSCAPE_REG_KEY_NSIS, 0, access_right)
                 try:
                     # Inkscape stores its installation location in a Standard key -> ""
                     value, _ = _wr.QueryValueEx(key, "")
@@ -59,6 +60,19 @@ def get_non_syspath_dirs():
                     _wr.CloseKey(key)
             except WindowsError:
                 pass
+
+    # Try standard registry and the 32bit as well as 64bit mapping of it (Inkscape installed via MSI installer)
+    for access_right in [_wr.KEY_READ, _wr.KEY_READ | _wr.KEY_WOW64_32KEY, _wr.KEY_READ | _wr.KEY_WOW64_64KEY]:
+        try:
+            key = _wr.OpenKey(_wr.HKEY_LOCAL_MACHINE, INKSCAPE_REG_KEY_MSI, 0, access_right)
+            try:
+                # Inkscape stores its installation location in a Standard key -> ""
+                dirname, _ = _wr.QueryValueEx(key, "Path")
+                return [dirname] if _os.path.isdir(dirname) else []
+            except WindowsError:
+                _wr.CloseKey(key)
+        except WindowsError:
+            pass
 
     # Last chance: Guess at the two common locations
     for dirname in ["C:\\Program Files\\Inkscape\\bin", "C:\\Program Files (x86)\\Inkscape\\bin"]:
