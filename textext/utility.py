@@ -160,12 +160,11 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
 
 
 class Settings(object):
-    def __init__(self, basename="config.json", inkscape_extensions_path=None):
-        if inkscape_extensions_path is None:
-            from .requirements_check import defaults
-            inkscape_extensions_path = defaults.inkscape_extensions_path
+    def __init__(self, basename="config.json", directory=None):
+        if directory is None:
+            directory = os.getcwd()
         self.values = {}
-        self.config_path = os.path.join(inkscape_extensions_path, "textext", basename)
+        self.config_path = os.path.join(directory, basename)
         try:
             self.load()
         except ValueError as e:

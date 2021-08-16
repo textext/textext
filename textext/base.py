@@ -93,7 +93,7 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings("config.json")
+        self.config = Settings(directory=os.path.dirname(os.path.realpath(__file__)))
         self.cache = Cache()
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
