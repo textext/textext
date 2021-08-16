@@ -61,7 +61,7 @@
        ns2:preamble="/home/winkler/.config/inkscape/extensions/textext/default_packages.tex"
        ns2:scale="1.0"
        ns2:alignment="middle center"
-       ns2:stroke-to-path="True"
+       ns2:stroke-to-path="1"
        ns2:inkscapeversion="1.1"
        ns2:jacobian_sqrt="0.352778"
        id="g153">

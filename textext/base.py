@@ -375,7 +375,7 @@ class TexText(inkex.EffectExtension):
             tt_node.set_meta("preamble", preamble_file)
             tt_node.set_meta("scale", str(user_scale_factor))
             tt_node.set_meta("alignment", str(alignment))
-            tt_node.set_meta("stroke-to-path", str(convert_stroke_to_path))
+            tt_node.set_meta("stroke-to-path", str(int(convert_stroke_to_path)))
             try:
                 inkscape_version = self.document.getroot().get('inkscape:version')
                 tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -455,7 +455,7 @@ class TexText(inkex.EffectExtension):
                 text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
-                conv_stroke_to_path = bool(node.get_meta('stroke-to-path', 0))
+                conv_stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
 
                 return node, text, preamble, scale, conv_stroke_to_path
 
