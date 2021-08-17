@@ -29,6 +29,14 @@ class TmpDir:
             shutil.rmtree(self.path)
 
 
+def copy_textext_files(target_dir):
+    shutil.copytree("./textext",
+                    target_dir,
+                    ignore=git_ignore_patterns  # exclude .gitignore files
+                    )
+    shutil.copy("LICENSE.txt", target_dir)
+
+
 if __name__ == "__main__":
 
     TexTextVersion = open("textext/VERSION").readline().strip()
@@ -74,18 +82,22 @@ if __name__ == "__main__":
         git_ignore_patterns = shutil.ignore_patterns(*open(".gitignore").read().split("\n"))
 
         with TmpDir() as tmpdir:
-            versioned_subdir = os.path.join(tmpdir,"textext-%s" % TexTextVersion)
-            extension_subdir = os.path.join(versioned_subdir, "textext")
-            os.mkdir(versioned_subdir)
-            shutil.copytree("./textext",
-                            extension_subdir,
-                            ignore=git_ignore_patterns  # exclude .gitignore files
-                            )
-            shutil.copy("LICENSE.txt", extension_subdir)
+            # Platform dependent packages have the content
+            # textext-x.y.z
+            #    textext (module dir)
+            #    setup.py
+            # Package for package manager has the content
+            # textext  (module dir)
             if platform != "inkscape":
+                versioned_subdir = os.path.join(tmpdir,"textext-%s" % TexTextVersion)
+                extension_subdir = os.path.join(versioned_subdir, "textext")
+                copy_textext_files(extension_subdir)
                 shutil.copy("setup.py", versioned_subdir)
                 if platform == "windows":
                     shutil.copy("setup_win.bat", versioned_subdir)
+            else:
+                copy_textext_files(os.path.join(tmpdir, "textext"))
+
             for fmt in formats:
                 filename = shutil.make_archive(PackageName, fmt, tmpdir)
                 print("Successfully created %s" % os.path.basename(filename))
