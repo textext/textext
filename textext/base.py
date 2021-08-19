@@ -33,7 +33,7 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
+LOG_LOCATION = os.path.join(os.path.dirname(__file__))
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
@@ -93,7 +93,7 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings("config.json")
+        self.config = Settings(directory=os.path.dirname(os.path.realpath(__file__)))
         self.cache = Cache()
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
