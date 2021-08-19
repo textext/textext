@@ -296,9 +296,9 @@ There are two ways for colorization of the output:
 
     Note, that bars occuring in ``\frac``, ``\sqrt``, ``\overline`` and other commands are
     colored only by this method if you check the ``No strokes`` option in the ``SVG-Output``
-    box |usage-label-5|. Please note that setting of this option will considerably
-    increase compilation time due to Inkscape API limitations. Hence, this option is
-    disabled by default in new nodes.
+    box |usage-label-5| (see :ref:`usage-dialog-overview`). Please note that setting
+    of this option will considerably increase compilation time due to Inkscape API
+    limitations. Hence, this option is disabled by default in new nodes.
 
     .. figure:: ../images/textext-stroke-to-path-color-issue.png
        :alt: Explanation of stroke to path colorization issue
