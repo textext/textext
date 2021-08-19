@@ -33,7 +33,7 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.join(defaults.inkscape_extensions_path, "textext")
+LOG_LOCATION = os.path.join(os.path.dirname(__file__))
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
@@ -93,7 +93,7 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings("config.json")
+        self.config = Settings(directory=os.path.dirname(os.path.realpath(__file__)))
         self.cache = Cache()
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
@@ -183,7 +183,7 @@ class TexText(inkex.EffectExtension):
         with logger.debug("TexText.effect"):
 
             # Find root element
-            old_svg_ele, text, preamble_file, current_scale = self.get_old()
+            old_svg_ele, text, preamble_file, current_scale, current_convert_strokes_to_path = self.get_old()
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
@@ -248,15 +248,17 @@ class TexText(inkex.EffectExtension):
 
                 asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
                                        current_alignment=alignment, current_texcmd=current_tex_command,
+                                       current_convert_strokes_to_path=current_convert_strokes_to_path,
                                        tex_commands=sorted(list(
                                          self.requirements_checker.available_tex_to_pdf_converters.keys())),
                                        gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                                  tex_cmd=TexText.DEFAULT_TEXCMD):
+                                  tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
                     return self.do_convert(_text, _preamble, _scale, old_svg_ele,
                                            alignment,
                                            tex_command=tex_cmd,
+                                           convert_stroke_to_path=conv_stroke_to_path,
                                            original_scale=current_scale)
 
                 def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
@@ -287,6 +289,7 @@ class TexText(inkex.EffectExtension):
                                 old_svg_ele,
                                 self.options.alignment,
                                 self.options.tex_command,
+                                convert_stroke_to_path=False,
                                 original_scale=current_scale
                                 )
 
@@ -323,7 +326,7 @@ class TexText(inkex.EffectExtension):
                     image_setter(converter.tmp('png'))
 
     def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
-                   original_scale=None):
+                   convert_stroke_to_path, original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -332,7 +335,9 @@ class TexText(inkex.EffectExtension):
         :param user_scale_factor:
         :param old_svg_ele:
         :param alignment:
-        :param tex_cmd: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
+        :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
+        :param convert_stroke_to_path: Determines if converter.stroke_to_path() is called
+        :param original_scale Scale factor of old node
         """
         from inkex import Transform
 
@@ -356,7 +361,10 @@ class TexText(inkex.EffectExtension):
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_svg()
-                    converter.stroke_to_path()
+
+                    if convert_stroke_to_path:
+                        converter.stroke_to_path()
+
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
 
             # -- Store textext attributes
@@ -367,6 +375,7 @@ class TexText(inkex.EffectExtension):
             tt_node.set_meta("preamble", preamble_file)
             tt_node.set_meta("scale", str(user_scale_factor))
             tt_node.set_meta("alignment", str(alignment))
+            tt_node.set_meta("stroke-to-path", str(int(convert_stroke_to_path)))
             try:
                 inkscape_version = self.document.getroot().get('inkscape:version')
                 tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -430,8 +439,8 @@ class TexText(inkex.EffectExtension):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_svg_ele, latex_text, preamble_file_name, scale)
-        :rtype: (TexTextElement, str, str, float)
+        :return: (old_svg_ele, latex_text, preamble_file_name, scale, conv_stroke_to_path)
+        :rtype: (TexTextElement, str, str, float, bool)
         """
 
         for node in self.svg.selected.values():
@@ -446,13 +455,14 @@ class TexText(inkex.EffectExtension):
                 text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
+                conv_stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
 
-                return node, text, preamble, scale
+                return node, text, preamble, scale, conv_stroke_to_path
 
             except (TypeError, AttributeError) as ignored:
                 pass
 
-        return None, "", "", None
+        return None, "", "", None, False
 
     def replace_node(self, old_node, new_node):
         """

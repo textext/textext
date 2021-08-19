@@ -48,6 +48,11 @@
             :width: 1em
             :target: usage-dialog-overview_
 
+.. |usage-label-9| image:: ../images/annotation_label_9.png
+            :height: 1em
+            :width: 1em
+            :target: usage-dialog-overview_
+
 .. |tl| image:: ../images/alignment-top-left.svg.png
             :target: usage-alignment_
 
@@ -124,17 +129,18 @@ There are additional settings which can be adjusted to your needs:
 -  The scale factor (group box |usage-label-3|). See section :ref:`usage-scaling`.
 -  The alignment relative to the previous version of your code (group
    box |usage-label-4|, only available when re-editing your code). See section :ref:`usage-alignment`.
+-  Options for the produced SVG output (checkbox |usage-label-5|). See section :ref:`colorization`.
 -  The coloring of the output using TeX commands or Inkscape settings.
    See section :ref:`usage-colorization`.
--  The default math environment in new nodes (menu |usage-label-7|), see section :ref:`usage-default-math-environment-config`.
--  The appearance of the editor (menu |usage-label-8|), see section :ref:`usage-gui-config`.
+-  The default math environment in new nodes (menu |usage-label-8|), see section :ref:`usage-default-math-environment-config`.
+-  The appearance of the editor (menu |usage-label-9|), see section :ref:`usage-gui-config`.
 
 Your LaTeX code and the accompanying settings will be stored within the
 new SVG node in the document. This allows you to edit the LaTeX node
 later by selecting it and running the *Tex Text* extension (which will
 then show the dialog containing the saved values).
 
-There is a preview button |usage-label-6| as well, which shortens the feedback cycle
+There is a preview button |usage-label-7| as well, which shortens the feedback cycle
 from entry to result considerably, so use it! See section :ref:`usage-preview`
 
 
@@ -206,7 +212,7 @@ two methods:
     .. figure:: ../images/inkscape-scaling-locked.png
        :alt: Locked scaling in Inkscape
 
-2. Before compilation you specifiy a scale factor in the spinbox of the
+2. Before compilation you specify a scale factor in the spinbox of the
    groupbox |usage-label-3|.
 
     .. figure:: ../images/textext-scale-factor.png
@@ -282,11 +288,24 @@ Colorization of the output
 There are two ways for colorization of the output:
 
  1. The most natural way is to select the produced SVG output in Inkscape and set the fill
-    color to the same value according to your needs.
-    When you re-compile your node this color will be persevered as long as
-    you do not use any color specifications in your LaTeX code. You can also
-    colorize characters individually be selecting them with the mouse after
-    having pressed :kbd:`F2`. Be careful not to break the group.
+    color to the same value according to your needs. When you re-compile your node this color will be persevered as long as
+    you do not use any color specifications in your LaTeX code.
+
+    .. versionadded:: 1.5.0
+       *No strokes* checkbox
+
+    Note, that bars occuring in ``\frac``, ``\sqrt``, ``\overline`` and other commands are
+    colored only by this method if you check the ``No strokes`` option in the ``SVG-Output``
+    box |usage-label-5| (see :ref:`usage-dialog-overview`). Please note that setting
+    of this option will considerably increase compilation time due to Inkscape API
+    limitations. Hence, this option is disabled by default in new nodes.
+
+    .. figure:: ../images/textext-stroke-to-path-color-issue.png
+       :alt: Explanation of stroke to path colorization issue
+
+
+    You can also colorize characters individually be selecting them with the mouse
+    after having pressed :kbd:`F2`. Be careful not to break the group.
 
     .. caution::
 
@@ -306,7 +325,7 @@ There are two ways for colorization of the output:
 Preview button
 --------------
 
-When pressing the ``Preview`` button |usage-label-6| your code will be compiled and the result
+When pressing the ``Preview`` button |usage-label-7| your code will be compiled and the result
 is displayed as an image in the area below the LaTeX code input field. If the
 output extends a certain size it is displayed scaled so it fits into the available
 area. You can double click into the preview image to obtain the result in original
@@ -318,7 +337,7 @@ output.
    :alt: Annotated TexText dialog
 
 If you are using a darkmode theme you can select the option ``White preview background``
-option from the ``View`` menu |usage-label-8|:
+option from the ``View`` menu |usage-label-9|:
 
 .. image:: ../images/textext-dialog-preview-standardmode.png
    :width: 45%
@@ -338,7 +357,7 @@ Finally, click the ``Save`` button to insert the compiled code into your documen
 Configuration of the default TeX math-environment
 -------------------------------------------------
 
-You can open the ``Settings`` menu |usage-label-7| and then ``New Node Content``
+You can open the ``Settings`` menu |usage-label-8| and then ``New Node Content``
 to define which environment should be selected by default when creating new nodes.
 
 .. figure:: ../images/textext-dialog-with-settings-menus-new-node.png
@@ -365,7 +384,7 @@ Selecting the shortcut for closing the |TexText| window
 
 .. versionadded:: 0.11.0
 
-In the ``Settings`` menu |usage-label-7| you can configure by ``Confirm Closing Window`` if |TexText| should ask for
+In the ``Settings`` menu |usage-label-8| you can configure by ``Confirm Closing Window`` if |TexText| should ask for
 confirmation to close the window in case you made changes to your text. Furthermore, under ``Close TexText Shortcut``
 you can select a shortcut for closing the |TexText| window.
 
@@ -390,7 +409,7 @@ You have the following options:
 Configuration of the code editor
 --------------------------------
 
-You can open the ``View`` menu |usage-label-8| which offers some possibilities
+You can open the ``View`` menu |usage-label-9| which offers some possibilities
 to configure the code editor:
 
 .. figure:: ../images/textext-dialog-with-view-menus.png

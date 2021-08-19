@@ -1,3 +1,20 @@
+Version 1.5.0 (2021-08-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Changed: The feature enabling easy colorization of TexText svg nodes
+  containing `\sqrt`, `\frac`, and other commands introducing strokes
+  (lines) in Inkscape is now optional, see documentation_.
+  Reason for this is the increased compilation time (cf. :issue_num:`304`).
+
+- New (experimental): Support of Inkscape extension manager
+  (manual install of file downloaded from `Inkscape extension site`_)
+
+- New (Inkscape on MS Windows): User defined locations of Inkscape
+  installed via the msi-Installer are correctly identified by the
+  setup-script.
+
+.. _documentation: https://jcwinkler.github.io/textext/usage/gui.html#colorization-of-the-output
+.. _Inkscape extension site: https://inkscape.org/~jcwinkler/%E2%98%85textext
+
 Version 1.4.0 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: TexText svg nodes can be colorized now by a single click even
