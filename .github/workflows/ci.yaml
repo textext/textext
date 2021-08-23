@@ -1,0 +1,45 @@
+name: Continuous Integration Tests
+on:
+  push:
+    branches: [master, develop, github_actions]
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+    branches: [master, develop, github_actions]
+    paths-ignore:
+      - 'docs/**'
+  # Allows manual invocation:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        sudo add-apt-repository --yes ppa:inkscape.dev/stable
+        sudo apt update
+        sudo apt install -y texlive-latex-base texlive-fonts-recommended texlive-lang-cyrillic cm-super
+        sudo apt install inkscape
+        # Needed for xmllint:
+        sudo apt install libxml2-utils
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        # Needed by Inkscape extensions and image processing:
+        pip install lxml Pillow
+    - name: Test installation script
+      run: |
+        python test_installation_script.py 2> /dev/null
+        python setup.py
+        wget https://gitlab.com/inkscape/extensions/raw/master/inkscape.extension.rng
+    - name: Perfom unit-tests
+      run: |
+        export PYTHONPATH="`inkscape --system-data-directory`/extensions:$HOME/.config/inkscape/extensions/"
+        python -m pytest --verbose -s pytests
+        xmllint --noout --relaxng inkscape.extension.rng textext/textext.inx

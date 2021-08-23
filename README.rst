@@ -1,4 +1,6 @@
-Status master: |Build Status Master|, Status develop: |Build Status Develop|
+.. image:: https://github.com/textext/textext/actions/workflows/ci.yaml/badge.svg?branch=master
+    :target: https://github.com/textext/textext/actions/workflows/ci.yaml
+    :alt: Status of continuous integration tests
 
 TexText - A TeX extension for Inkscape
 ======================================
@@ -15,14 +17,14 @@ Key features
 
 -  Windows/ Linux/ MacOS support
 -  LaTeX generated SVG elements can be re-edited later
--  Multi-line editor with syntax highlighting (see `§ <usage-dialog-overview_>`_)
--  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (see `§ <usage-tex-compilers_>`_)
--  Interoperable scaling in TexText and Inkscape (see `§ <usage-scaling_>`_)
--  Font size match with Inkscape text (see `§ <usage-font_>`_)
--  Customizable TeX preamble (additional packages, parskip, parindent, etc.) (see `§ <usage-preamble-file_>`_)
--  Colorization via TeX commands/Inkscape is kept after re-editing (see `§ <usage-colorization_>`_)
--  Alignment anchor of the produced output (see `§ <usage-alignment_>`_)
--  Preview images  (see `§ <usage-preview_>`_)
+-  Multi-line editor with syntax highlighting (`Read more... <usage-dialog-overview_>`_)
+-  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (`Read more... <usage-tex-compilers_>`_)
+-  Interoperable scaling in TexText and Inkscape (`Read more...  <usage-scaling_>`_)
+-  Font size match with Inkscape text (`Read more... <usage-font_>`_)
+-  Customizable TeX preamble for e.g. additional packages, parskip, parindent, etc. (`Read more...  <usage-preamble-file_>`_)
+-  Colorization via TeX commands/ Inkscape is kept after re-editing (`Read more... <usage-colorization_>`_)
+-  Alignment anchor of the produced output (`Read more...  <usage-alignment_>`_)
+-  Preview images  (`Read more... <usage-preview_>`_)
 -  Compatibility with TexText down to version 0.4.x
 
 Download
@@ -44,12 +46,6 @@ at https://bitbucket.org/pitgarbe/textext until January 2018.
 Originally, TexText had been developed by `Pauli
 Virtanen <http://www.iki.fi/pav/software/textext/>`__ based on the
 plugin InkLaTeX written by Toru Araki.
-
-.. |Build Status Master| image:: https://travis-ci.com/textext/textext.svg?branch=master
-   :target: https://travis-ci.com/textext/textext
-
-.. |Build Status Develop| image:: https://travis-ci.com/textext/textext.svg?branch=develop
-   :target: https://travis-ci.com/textext/textext
 
 .. _documentation:         https://textext.github.io/textext
 .. _installation-toc:      https://textext.github.io/textext#installation-toc
