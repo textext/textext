@@ -1,3 +1,7 @@
+.. image:: https://github.com/textext/textext/actions/workflows/ci.yaml/badge.svg?branch=master
+    :target: https://github.com/textext/textext/actions/workflows/ci.yaml
+    :alt: Status of continuous integration tests
+
 TexText - A TeX extension for Inkscape
 ======================================
 
