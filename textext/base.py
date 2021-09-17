@@ -388,14 +388,8 @@ class TexText(inkex.EffectExtension):
             if old_svg_ele is None:
                 with logger.debug("Adding new node to document"):
                     # Place new nodes in the view center and scale them according to user request
-
-                    # ToDo: Remove except block as far as new center props are available in official beta releases
-                    try:
-                        node_center = tt_node.bounding_box().center
-                        view_center = self.svg.namedview.center
-                    except AttributeError:
-                        node_center = tt_node.bounding_box().center()
-                        view_center = self.svg.get_center_position()
+                    node_center = tt_node.bounding_box().center
+                    view_center = self.svg.namedview.center
 
                     # Collect all layers incl. the current layers such that the top layer
                     # is the first one in the list
