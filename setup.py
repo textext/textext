@@ -231,7 +231,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=defaults.inkscape_extensions_path,
+        default=defaults.inkscape_user_extensions_path,
         type=str,
         help="Path to inkscape extensions directory"
     )
@@ -294,8 +294,7 @@ if __name__ == "__main__":
 
     files_to_keep = {  # old_name : new_name
         "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex",  # new layout
-        "textext/config.json": "textext/config.json"  # new layout
+        "textext/default_packages.tex": "textext/default_packages.tex"
     }
 
     args = parser.parse_args()
@@ -322,7 +321,7 @@ if __name__ == "__main__":
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    settings = Settings(directory=os.path.join(args.inkscape_extensions_path, "textext"))
+    settings = Settings(directory=defaults.textext_config_path)
 
     checker = TexTextRequirementsChecker(logger, settings)
 

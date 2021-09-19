@@ -163,6 +163,9 @@ class Settings(object):
     def __init__(self, basename="config.json", directory=None):
         if directory is None:
             directory = os.getcwd()
+        else:
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
         self.values = {}
         self.config_path = os.path.join(directory, basename)
         try:

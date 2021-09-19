@@ -33,6 +33,10 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
+LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
+if not os.path.isdir(LOG_LOCATION):
+    os.makedirs(LOG_LOCATION)
+LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
 
 # There are two channels `file_log_channel` and `user_log_channel`
 # `file_log_channel` dumps detailed log to a file
@@ -46,27 +50,6 @@ __logger.setLevel(logging.DEBUG)
 
 log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
 
-user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
-user_log_channel.setLevel(logging.DEBUG)
-user_log_channel.setFormatter(user_formatter)
-
-__logger.addHandler(user_log_channel)
-
-SCRIPT_LOCATION=os.path.dirname(__file__)
-LOG_LOCATION=None
-if os.access(SCRIPT_LOCATION, os.W_OK):
-    LOG_LOCATION=SCRIPT_LOCATION
-elif os.access(defaults.inkscape_extensions_path, os.W_OK):
-    LOG_LOCATION=defaults.inkscape_extensions_path
-else:
-    LOG_LOCATION=os.getcwd()
-
-if not os.path.isdir(LOG_LOCATION):
-    os.makedirs(LOG_LOCATION)
-
-LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")
-
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
                                                         backupCount=2,  # up to two log files
@@ -75,7 +58,13 @@ file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
 
+user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
+user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
+user_log_channel.setLevel(logging.DEBUG)
+user_log_channel.setFormatter(user_formatter)
+
 __logger.addHandler(file_log_channel)
+__logger.addHandler(user_log_channel)
 
 import inkex
 from lxml import etree
@@ -104,7 +93,7 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings(directory=os.path.dirname(os.path.realpath(__file__)))
+        self.config = Settings(directory=defaults.textext_config_path)
         self.cache = Cache()
         previous_exit_code = self.cache.get("previous_exit_code", None)
 

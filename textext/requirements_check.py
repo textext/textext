@@ -33,7 +33,13 @@ class Defaults(object):
     def executable_names(self): pass
 
     @abc.abstractproperty
-    def inkscape_extensions_path(self): pass
+    def inkscape_user_extensions_path(self): pass
+
+    @abc.abstractproperty
+    def textext_config_path(self): pass
+
+    @abc.abstractproperty
+    def textext_logfile_path(self): pass
 
     @abc.abstractmethod
     def get_system_path(self): pass
@@ -53,8 +59,16 @@ class LinuxDefaults(Defaults):
                         }
 
     @property
-    def inkscape_extensions_path(self):
+    def inkscape_user_extensions_path(self):
         return os.path.expanduser("~/.config/inkscape/extensions")
+
+    @property
+    def textext_config_path(self):
+        return os.path.expanduser("~/.config/textext")
+
+    @property
+    def textext_logfile_path(self):
+        return os.path.expanduser("~/.cache/textext")
 
     def get_system_path(self):
         return os.environ["PATH"].split(os.path.pathsep)
@@ -82,8 +96,16 @@ class MacDefaults(LinuxDefaults):
         return path
 
     @property
-    def inkscape_extensions_path(self):
+    def inkscape_user_extensions_path(self):
         return os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions")
+
+    @property
+    def textext_config_path(self):
+        return os.path.expanduser("~/Library/Preferences/textext")
+
+    @property
+    def textext_logfile_path(self):
+        return os.path.expanduser("~/Library/Preferences/textext")
 
 
 class WindowsDefaults(Defaults):
@@ -123,8 +145,17 @@ class WindowsDefaults(Defaults):
             pass
 
     @property
-    def inkscape_extensions_path(self):
+    def inkscape_user_extensions_path(self):
         return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
+
+    @property
+    def textext_config_path(self):
+        return os.path.join(os.getenv("APPDATA"), "textext")
+
+    @property
+    def textext_logfile_path(self):
+        return os.path.join(os.getenv("APPDATA"), "textext")
+
 
     def get_system_path(self):
         return self._tweaked_syspath
