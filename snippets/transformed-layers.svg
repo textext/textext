@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="289.13138mm"
+   height="185.31303mm"
+   viewBox="0 0 289.13138 185.31304"
+   version="1.1"
+   id="svg1892"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="transformed-layers.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1894"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.0139278"
+     inkscape:cx="546.39001"
+     inkscape:cy="350.61669"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer3"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     fit-margin-top="5"
+     fit-margin-left="5"
+     fit-margin-right="5"
+     fit-margin-bottom="5" />
+  <defs
+     id="defs1889" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline"
+     transform="translate(5,5)">
+    <g
+       inkscape:groupmode="layer"
+       id="layer2"
+       inkscape:label="Ebene 2"
+       style="display:inline"
+       transform="matrix(2,0,0,1,15,40)">
+      <g
+         inkscape:groupmode="layer"
+         id="layer3"
+         inkscape:label="Ebene 3"
+         style="display:inline"
+         transform="translate(30,60)">
+        <circle
+           style="display:inline;fill:#0000ff;fill-opacity:0.4;stroke-width:0.264583"
+           id="path1549"
+           cx="30"
+           cy="30"
+           r="30" />
+        <rect
+           style="fill:none;stroke:#0000ff;stroke-width:0.264583"
+           id="rect317"
+           width="60"
+           height="60"
+           x="0.1322915"
+           y="0.1322915" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+           x="61.420486"
+           y="11.264808"
+           id="text2127"><tspan
+             sodipodi:role="line"
+             id="tspan2125"
+             style="font-size:2.82222px;fill:#0000ff;stroke-width:0.264583"
+             x="61.420486"
+             y="11.264808">Layer 3</tspan><tspan
+             sodipodi:role="line"
+             style="font-size:2.82222px;fill:#0000ff;stroke-width:0.264583"
+             x="61.420486"
+             y="14.792583"
+             id="tspan4838">transform = translate(30,60)</tspan></text>
+      </g>
+      <circle
+         style="display:inline;fill:#008000;fill-opacity:0.4;stroke-width:0.264583"
+         id="path1549-8"
+         cx="30.000004"
+         cy="30"
+         r="30" />
+      <rect
+         style="display:inline;fill:none;stroke:#008000;stroke-width:0.264583"
+         id="rect317-3"
+         width="60"
+         height="60"
+         x="0.1322915"
+         y="0.13229179" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.25;font-family:sans-serif;display:inline;fill:#008000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="61.420486"
+         y="7.1779623"
+         id="text2127-3"><tspan
+           sodipodi:role="line"
+           id="tspan2125-3"
+           style="font-size:2.82222px;fill:#008000;stroke-width:0.264583"
+           x="61.420486"
+           y="7.1779623">Layer 2</tspan><tspan
+           sodipodi:role="line"
+           style="font-size:2.82222px;fill:#008000;stroke-width:0.264583"
+           x="61.420486"
+           y="10.705737"
+           id="tspan4296">transform = matrix(2,0,0,1,15,40)</tspan></text>
+    </g>
+    <circle
+       style="display:inline;fill:#ff0000;fill-opacity:0.4;stroke-width:0.264583"
+       id="path1549-8-8"
+       cx="30.000004"
+       cy="30"
+       r="30" />
+    <rect
+       style="display:inline;fill:none;stroke:#ff0000;stroke-width:0.264583"
+       id="rect317-3-0"
+       width="60"
+       height="60"
+       x="0.1322915"
+       y="0.13229179" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82222px;line-height:1.25;font-family:sans-serif;display:inline;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="61.420486"
+       y="3.0911169"
+       id="text2127-3-5"><tspan
+         sodipodi:role="line"
+         id="tspan2125-3-8"
+         style="font-size:2.82222px;fill:#ff0000;stroke-width:0.264583"
+         x="61.420486"
+         y="3.0911169">Layer 1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.23333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="74.668549"
+       y="5.0225477"
+       id="text1694"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="74.668549"
+         y="5.0225477"
+         id="tspan3342">For this test to work center the view on the ellipse of layer 2.</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="74.668549"
+         y="10.31421"
+         id="tspan10338">Then make sure that layer 3 is the current active layer. Then</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="74.668549"
+         y="15.605872"
+         id="tspan3344">and create a LaTeX snippet. It should be</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="74.668549"
+         y="20.897533"
+         id="tspan3346">placed under the ellipse of layer 2.</tspan></text>
+  </g>
+</svg>
