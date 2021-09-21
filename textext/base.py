@@ -388,16 +388,27 @@ class TexText(inkex.EffectExtension):
             if old_svg_ele is None:
                 with logger.debug("Adding new node to document"):
                     # Place new nodes in the view center and scale them according to user request
+                    node_center = tt_node.bounding_box().center
+                    view_center = self.svg.namedview.center
 
-                    # ToDo: Remove except block as far as new center props are available in official beta releases
-                    try:
-                        node_center = tt_node.bounding_box().center
-                        view_center = self.svg.namedview.center
-                    except AttributeError:
-                        node_center = tt_node.bounding_box().center()
-                        view_center = self.svg.get_center_position()
+                    # Collect all layers incl. the current layers such that the top layer
+                    # is the first one in the list
+                    layers = []
+                    parent_layer = self.svg.get_current_layer()
+                    while parent_layer is not None:
+                        layers.insert(0, parent_layer)
+                        parent_layer = parent_layer.getparent()
 
-                    tt_node.transform = (Transform(translate=view_center) *    # place at view center
+                    # Compute the transform mapping the view coordinate system onto the
+                    # current layer
+                    full_layer_transform = Transform()
+                    for layer in layers:
+                        full_layer_transform *= layer.transform
+
+                    # Place the node in the center of the view. Here we need to be aware of
+                    # transforms in the layers, hence the inverse layer transformation
+                    tt_node.transform = (-full_layer_transform *               # map to view coordinate system
+                                         Transform(translate=view_center) *    # place at view center
                                          Transform(scale=user_scale_factor) *  # scale
                                          Transform(translate=-node_center) *   # place node at origin
                                          tt_node.transform                     # use original node transform
