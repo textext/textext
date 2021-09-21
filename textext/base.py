@@ -94,7 +94,7 @@ class TexText(inkex.EffectExtension):
     def __init__(self):
 
         self.config = Settings(directory=defaults.textext_config_path)
-        self.cache = Cache()
+        self.cache = Cache(directory=defaults.textext_config_path)
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
         if previous_exit_code is None:
