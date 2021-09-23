@@ -33,11 +33,6 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
-if not os.path.isdir(LOG_LOCATION):
-    os.makedirs(LOG_LOCATION)
-LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
-
 # There are two channels `file_log_channel` and `user_log_channel`
 # `file_log_channel` dumps detailed log to a file
 # `user_log_channel` accumulates log messages to show them to user via .show_messages() function
@@ -47,9 +42,22 @@ logging.setLoggerClass(MyLogger)
 __logger = logging.getLogger('TexText')
 logger = NestedLoggingGuard(__logger)
 __logger.setLevel(logging.DEBUG)
-
 log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
 
+# First install the user logger so in case anything fails with the file logger
+# we have at least some information in the abort dialog
+# Contributed by Thermi@github.com
+user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
+user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
+user_log_channel.setLevel(logging.DEBUG)
+user_log_channel.setFormatter(user_formatter)
+__logger.addHandler(user_log_channel)
+
+# Now we try to install the file logger.
+LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
+if not os.path.isdir(LOG_LOCATION):
+    os.makedirs(LOG_LOCATION)
+LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log") # ToDo: When not writable continue but give a message somewhere
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
                                                         backupCount=2,  # up to two log files
@@ -57,14 +65,7 @@ file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
-
-user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
-user_log_channel.setLevel(logging.DEBUG)
-user_log_channel.setFormatter(user_formatter)
-
 __logger.addHandler(file_log_channel)
-__logger.addHandler(user_log_channel)
 
 import inkex
 from lxml import etree
