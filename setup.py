@@ -231,7 +231,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=defaults.inkscape_extensions_path,
+        default=defaults.inkscape_user_extensions_path,
         type=str,
         help="Path to inkscape extensions directory"
     )
@@ -286,6 +286,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--all-users",
+        default=None,
+        action='store_true',
+        help="Install globally for all users"
+    )
+
+    parser.add_argument(
         "--color",
         default=defaults.console_colors,
         choices=("always", "never"),
@@ -294,12 +301,10 @@ if __name__ == "__main__":
 
     files_to_keep = {  # old_name : new_name
         "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex",  # new layout
-        "textext/config.json": "textext/config.json"  # new layout
+        "textext/default_packages.tex": "textext/default_packages.tex"
     }
 
     args = parser.parse_args()
-    args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
 
     if args.color == "always":
         LoggingColors.enable_colors = True
@@ -322,7 +327,7 @@ if __name__ == "__main__":
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    settings = Settings(directory=os.path.join(args.inkscape_extensions_path, "textext"))
+    settings = Settings(directory=defaults.textext_config_path)
 
     checker = TexTextRequirementsChecker(logger, settings)
 
@@ -356,6 +361,50 @@ if __name__ == "__main__":
             exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
+        if args.all_users:
+            # Determine path of global installation if requested
+            logger.info("Global installation requested, trying to find system extension path...")
+
+            if args.inkscape_executable is not None:
+                logger.info("Inkscape executable given as `%s`" % args.inkscape_executable)
+                inkscape_executable = args.inkscape_executable
+            else:
+                # This is quite complicated and in fact only necessary on Windows.
+                # In Windows inkscape.exe is not in the system path so we use the
+                # tweaked path return by default.get_system_path() and iterate
+                # over its elements
+                # ToDo: Make this smarter and more intuitive!
+                logger.info("Trying to find Inkscape executable automatically...")
+                inkscape_executable = None
+                for inkscape_exe_name in defaults.executable_names["inkscape"]:
+                    for path in defaults.get_system_path():
+                        test_path = os.path.join(path, inkscape_exe_name)
+                        if os.path.isfile(test_path) and os.access(test_path, os.X_OK):
+                            inkscape_executable = test_path
+                            logger.info("Inkscape executable found as `%s`" % inkscape_executable)
+                            break
+                if inkscape_executable is None:
+                    logger.error("No Inkscape executable found in system path.")
+                    exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
+
+            # Query the system extension path
+            [args.inkscape_extensions_path, err] = defaults.inkscape_system_extensions_path(
+                inkscape_executable)
+            if args.inkscape_extensions_path is None:
+                logger.error("Determination of system extension directory failed (Error message: %s)" % err)
+                exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
+            else:
+                logger.info("System extensions are in %s" % args.inkscape_extensions_path)
+
+            # Check write access in system extension path
+            if not os.access(args.inkscape_extensions_path, os.W_OK):
+                logger.error(
+                    "You do not have write privileges in `%s`! Please run setup script as administrator/ with sudo."
+                    % args.inkscape_extensions_path)
+                exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
+        else:
+            # local installation
+            args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
 
         if args.keep_previous_installation_files is None:
             found_files_to_keep = {}
