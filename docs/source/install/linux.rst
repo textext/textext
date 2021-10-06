@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0**
-.. |Inkscape| replace:: **Inkscape 1.0**
+.. |TexText| replace:: **TexText for Inkscape 1.x**
+.. |Inkscape| replace:: **Inkscape 1.x**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
@@ -47,7 +47,7 @@ Preparation
             sudo apt install inkscape
 
    Check if it is able to launch. You can verify this by invoking :bash:`inkscape --version` from
-   a terminal. It should output :bash:`1.0`.
+   a terminal. It should output a version number greater or equal then 1.0.
 
    .. important::
        |TexText| will not function if you installed |Inkscape| via **SNAP** or **FLATPACK**.

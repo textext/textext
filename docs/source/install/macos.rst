@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0**
-.. |Inkscape| replace:: **Inkscape 1.0**
+.. |TexText| replace:: **TexText for Inkscape 1.x**
+.. |Inkscape| replace:: **Inkscape 1.x**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 
