@@ -1,19 +1,28 @@
+Version 1.6.0 (2021-10-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Generated svg objects appear sometimes flipped or far away from
+  the view center (:issue_num:`283`, :issue_num:`313`)
+
+- New: It is now possible to install TexText system wide for all users
+  (setup script only, see
+  `setup documentation <https://textext.github.io/textext/install/advanced.html>`_,
+  :issue_num:`247`, :issue_num:`314`)
+
 Version 1.5.0 (2021-08-19)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Changed: The feature enabling easy colorization of TexText svg nodes
   containing `\sqrt`, `\frac`, and other commands introducing strokes
-  (lines) in Inkscape is now optional, see documentation_.
+  (lines) in Inkscape is now optional, see
+  `documentation <https://textext.github.io/textext/usage/gui.html#colorization-of-the-output>`_.
   Reason for this is the increased compilation time (cf. :issue_num:`304`).
 
 - New (experimental): Support of Inkscape extension manager
-  (manual install of file downloaded from `Inkscape extension site`_)
+  (manual install of file downloaded from
+  `Inkscape extension site <https://inkscape.org/~jcwinkler/%E2%98%85textext>`_)
 
 - New (Inkscape on MS Windows): User defined locations of Inkscape
   installed via the msi-Installer are correctly identified by the
   setup-script.
-
-.. _documentation: https://jcwinkler.github.io/textext/usage/gui.html#colorization-of-the-output
-.. _Inkscape extension site: https://inkscape.org/~jcwinkler/%E2%98%85textext
 
 Version 1.4.0 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
