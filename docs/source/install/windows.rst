@@ -80,6 +80,9 @@ Setup script (recommended)
    files into the user's Inkscape configuration directory (usually this is
    ``%USERPROFILE%\AppData\Roaming\Inkscape``).
 
+See :ref:`advanced-install` for further options provided by
+:bash:`setup_win.bat`.
+
 .. note::
 
     In case of installation problems refer to the :ref:`trouble_installation` in the :ref:`troubleshooting` section!

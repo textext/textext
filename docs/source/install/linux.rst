@@ -103,6 +103,9 @@ Download and install |TexText|
    Install them. If setup complains about missing GTK or Tkinter bindings please go to
    :ref:`linux-install-gui`.
 
+   See :ref:`advanced-install` for further options provided by
+   :bash:`setup.py`.
+
    .. note::
 
         If you use an Inkscape AppImage |TexText| should be installed as follows. However,

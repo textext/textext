@@ -33,9 +33,11 @@ Key features
 .. toctree::
     :caption: Installation
     :maxdepth: 1
-    :glob:
 
-    install/*
+    install/linux
+    install/windows
+    install/macos
+    install/advanced
 
 
 .. _usage-toc:

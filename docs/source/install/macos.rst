@@ -66,6 +66,9 @@ Download and install |TexText|
    The script  will copy the required files into the user's Inkscape
    configuration directory (usually this is ``~/.config/inkscape/extensions``)
 
+See :ref:`advanced-install` for further options provided by
+:bash:`setup.py`.
+
 .. note::
 
     In case of installation problems refer to the :ref:`trouble_installation` in the :ref:`troubleshooting` section!
