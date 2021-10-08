@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0**
-.. |Inkscape| replace:: **Inkscape 1.0**
+.. |TexText| replace:: **TexText for Inkscape 1.x**
+.. |Inkscape| replace:: **Inkscape 1.x**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
@@ -79,6 +79,9 @@ Setup script (recommended)
    described :ref:`above <windows-install-preparation>` are met. If so, it will install the extension
    files into the user's Inkscape configuration directory (usually this is
    ``%USERPROFILE%\AppData\Roaming\Inkscape``).
+
+See :ref:`advanced-install` for further options provided by
+:bash:`setup_win.bat`.
 
 .. note::
 

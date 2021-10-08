@@ -33,11 +33,6 @@ EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
 
-LOG_LOCATION = os.path.join(os.path.dirname(__file__))
-if not os.path.isdir(LOG_LOCATION):
-    os.makedirs(LOG_LOCATION)
-LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log")  # todo: check destination is writeable
-
 # There are two channels `file_log_channel` and `user_log_channel`
 # `file_log_channel` dumps detailed log to a file
 # `user_log_channel` accumulates log messages to show them to user via .show_messages() function
@@ -47,9 +42,22 @@ logging.setLoggerClass(MyLogger)
 __logger = logging.getLogger('TexText')
 logger = NestedLoggingGuard(__logger)
 __logger.setLevel(logging.DEBUG)
-
 log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
 
+# First install the user logger so in case anything fails with the file logger
+# we have at least some information in the abort dialog
+# Contributed by Thermi@github.com
+user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
+user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
+user_log_channel.setLevel(logging.DEBUG)
+user_log_channel.setFormatter(user_formatter)
+__logger.addHandler(user_log_channel)
+
+# Now we try to install the file logger.
+LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
+if not os.path.isdir(LOG_LOCATION):
+    os.makedirs(LOG_LOCATION)
+LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log") # ToDo: When not writable continue but give a message somewhere
 file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         maxBytes=500 * 1024,  # up to 500 kB
                                                         backupCount=2,  # up to two log files
@@ -57,14 +65,7 @@ file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                         )
 file_log_channel.setLevel(logging.NOTSET)
 file_log_channel.setFormatter(log_formatter)
-
-user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
-user_log_channel.setLevel(logging.DEBUG)
-user_log_channel.setFormatter(user_formatter)
-
 __logger.addHandler(file_log_channel)
-__logger.addHandler(user_log_channel)
 
 import inkex
 from lxml import etree
@@ -93,8 +94,8 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings(directory=os.path.dirname(os.path.realpath(__file__)))
-        self.cache = Cache()
+        self.config = Settings(directory=defaults.textext_config_path)
+        self.cache = Cache(directory=defaults.textext_config_path)
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
         if previous_exit_code is None:
@@ -388,16 +389,27 @@ class TexText(inkex.EffectExtension):
             if old_svg_ele is None:
                 with logger.debug("Adding new node to document"):
                     # Place new nodes in the view center and scale them according to user request
+                    node_center = tt_node.bounding_box().center
+                    view_center = self.svg.namedview.center
 
-                    # ToDo: Remove except block as far as new center props are available in official beta releases
-                    try:
-                        node_center = tt_node.bounding_box().center
-                        view_center = self.svg.namedview.center
-                    except AttributeError:
-                        node_center = tt_node.bounding_box().center()
-                        view_center = self.svg.get_center_position()
+                    # Collect all layers incl. the current layers such that the top layer
+                    # is the first one in the list
+                    layers = []
+                    parent_layer = self.svg.get_current_layer()
+                    while parent_layer is not None:
+                        layers.insert(0, parent_layer)
+                        parent_layer = parent_layer.getparent()
 
-                    tt_node.transform = (Transform(translate=view_center) *    # place at view center
+                    # Compute the transform mapping the view coordinate system onto the
+                    # current layer
+                    full_layer_transform = Transform()
+                    for layer in layers:
+                        full_layer_transform *= layer.transform
+
+                    # Place the node in the center of the view. Here we need to be aware of
+                    # transforms in the layers, hence the inverse layer transformation
+                    tt_node.transform = (-full_layer_transform *               # map to view coordinate system
+                                         Transform(translate=view_center) *    # place at view center
                                          Transform(scale=user_scale_factor) *  # scale
                                          Transform(translate=-node_center) *   # place node at origin
                                          tt_node.transform                     # use original node transform

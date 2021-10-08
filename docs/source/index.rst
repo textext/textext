@@ -12,7 +12,7 @@ and *re-edit* LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
--  Compatible with Inkscape **1.0** and **0.92**
+-  Compatible with Inkscape **1.x** and **0.92**
 -  Windows/ Linux/ MacOS support
 -  LaTeX generated SVG elements can be re-edited later
 -  Multi-line editor with syntax highlighting
@@ -33,9 +33,11 @@ Key features
 .. toctree::
     :caption: Installation
     :maxdepth: 1
-    :glob:
 
-    install/*
+    install/linux
+    install/windows
+    install/macos
+    install/advanced
 
 
 .. _usage-toc:

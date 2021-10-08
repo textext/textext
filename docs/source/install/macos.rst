@@ -1,5 +1,5 @@
-.. |TexText| replace:: **TexText for Inkscape 1.0**
-.. |Inkscape| replace:: **Inkscape 1.0**
+.. |TexText| replace:: **TexText for Inkscape 1.x**
+.. |Inkscape| replace:: **Inkscape 1.x**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 
@@ -65,6 +65,9 @@ Download and install |TexText|
 
    The script  will copy the required files into the user's Inkscape
    configuration directory (usually this is ``~/.config/inkscape/extensions``)
+
+See :ref:`advanced-install` for further options provided by
+:bash:`setup.py`.
 
 .. note::
 
