@@ -32,7 +32,7 @@ Preparation
 
    .. code-block:: bash
 
-        brew cask install inkscape
+        brew install --cask inkscape
 
    Verify that inkscape launches and is of version >= 1.x.
 
