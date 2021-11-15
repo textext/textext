@@ -648,7 +648,8 @@ class AskTextGTKSource(AskText):
         """
 
         try:
-            text = open(path).read()
+            with open(path) as file_handle:
+                text = file_handle.read()
         except IOError:
             print("Couldn't load file: %s", path)
             return False
