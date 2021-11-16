@@ -18,6 +18,7 @@ went into the development of the project.
 - Brian Clarke
 - Florent Becker
 - jocelynetienne@github
+- Michael Struwig
 - Noel Kuntze <noel.kuntze@thermi.consulting>
 - Robert Szalai
 - Rafal Kolanski
