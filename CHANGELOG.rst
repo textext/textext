@@ -1,3 +1,9 @@
+Version 1.6.1 (2021-11-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: When LaTeX-code is imported via the `File` - `Open` dialog
+  the error message `ResourceWarning: unclosed file <_io.TextIOWrapper name'...'`
+  is shown. (:issue_num:`322`)
+
 Version 1.6.0 (2021-10-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Generated svg objects appear sometimes flipped or far away from
