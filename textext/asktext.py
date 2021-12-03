@@ -96,9 +96,9 @@ def set_monospace_font(text_view):
     :param text_view: A GTK TextView
     """
     try:
-        import pango
-
-        font_desc = pango.FontDescription('monospace 11')
+#         import pango
+        from gi.repository import Pango
+        font_desc = Pango.FontDescription('monospace 16')
         if font_desc:
             text_view.modify_font(font_desc)
     except ImportError:
