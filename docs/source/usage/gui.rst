@@ -129,7 +129,7 @@ There are additional settings which can be adjusted to your needs:
 -  The scale factor (group box |usage-label-3|). See section :ref:`usage-scaling`.
 -  The alignment relative to the previous version of your code (group
    box |usage-label-4|, only available when re-editing your code). See section :ref:`usage-alignment`.
--  Options for the produced SVG output (checkbox |usage-label-5|). See section :ref:`colorization`.
+-  Options for the produced SVG output (checkbox |usage-label-5|). See section :ref:`usage-colorization`.
 -  The coloring of the output using TeX commands or Inkscape settings.
    See section :ref:`usage-colorization`.
 -  The default math environment in new nodes (menu |usage-label-8|), see section :ref:`usage-default-math-environment-config`.
