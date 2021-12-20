@@ -415,6 +415,8 @@ to configure the code editor:
 .. figure:: ../images/textext-dialog-with-view-menus.png
     :alt: TexText view menu
 
+- ``Font Size``: Here you can set the font size used in the code editor (since version 1.7.0).
+
 - ``Word Wrap``: If this option is checked long lines are wrapped automatically to window width.
 
 - ``Show line numbers``: If this option is checked line numbers are printed on the left hand side of the editor.
