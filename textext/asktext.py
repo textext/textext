@@ -90,15 +90,15 @@ except (ImportError, TypeError, ValueError) as _:
                            "installation instructions on https://textext.github.io/textext/ !")
 
 
-def set_monospace_font(text_view):
+def set_monospace_font(text_view, font_size):
     """
     Set the font to monospace in the text view
     :param text_view: A GTK TextView
+    :param font_size: The font size in the TextView in pt
     """
     try:
-#         import pango
         from gi.repository import Pango
-        font_desc = Pango.FontDescription('monospace 16')
+        font_desc = Pango.FontDescription('monospace %d' % (font_size))
         if font_desc:
             text_view.modify_font(font_desc)
     except ImportError:
@@ -116,10 +116,12 @@ class AskText(object):
     DEFAULT_AUTOINDENT = True
     DEFAULT_INSERTSPACES = True
     DEFAULT_TABWIDTH = 4
+    DEFAULT_FONTSIZE = 11
     DEFAULT_NEW_NODE_CONTENT = "Empty"
     DEFAULT_CLOSE_SHORTCUT = "Escape"
     DEFAULT_CONFIRM_CLOSE = True
     DEFAULT_PREVIEW_WHITE_BACKGROUND = False
+    FONT_SIZE = [11, 12, 14, 16]
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
@@ -502,6 +504,7 @@ class AskTextGTKSource(AskText):
                 ('FileMenu', None, '_File'),
                 ('ViewMenu', None, '_View'),
                 ('SettingsMenu', None, '_Settings'),
+                ('FontSize', None, 'Editor Font Si_ze'),
                 ('NewNodeContent', None, '_New Node Content'),
                 ('CloseShortcut', None, 'Close TexText _Shortcut'),
                 ('TabsWidth', None, '_Tabs Width'),
@@ -511,6 +514,7 @@ class AskTextGTKSource(AskText):
                 ('FileMenu', None, '_File'),
                 ('ViewMenu', None, '_View'),
                 ('SettingsMenu', None, '_Settings'),
+                ('FontSize', None, 'Editor Font Si_ze'),
                 ('NewNodeContent', None, '_New Node Content'),
                 ('CloseShortcut', None, '_Close TexText Shortcut'),
             ]
@@ -528,6 +532,15 @@ class AskTextGTKSource(AskText):
             ('WordWrap', None, '_Word Wrap', None,
              'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
         ]
+
+        self._font_size_actions = [
+            ('FontSize11', None, '1_1 pt', None, 'Set editor font size to 11pt', 0),
+            ('FontSize12', None, '1_2 pt', None, 'Set editor font size to 12pt', 1),
+            ('FontSize14', None, '1_4 pt', None, 'Set editor font size to 14pt', 2),
+            ('FontSize16', None, '1_6 pt', None, 'Set editor font size to 16pt', 3)
+        ]
+        font_size = "\n".join(
+            ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._font_size_actions])
 
         self._preview_white_background_action = [
             ('WhitePreviewBackground', None, 'White preview background', None,
@@ -576,6 +589,9 @@ class AskTextGTKSource(AskText):
               <menuitem action='Open'/>
             </menu>
             <menu action='ViewMenu'>
+              <menu action='FontSize'>
+                {font_size}
+              </menu>
               <menuitem action='WordWrap'/>
               {additions}
               <menuitem action='WhitePreviewBackground'/>
@@ -591,7 +607,7 @@ class AskTextGTKSource(AskText):
             </menu>
           </menubar>
         </ui>
-        """.format(additions=gtksourceview_ui_additions,
+        """.format(additions=gtksourceview_ui_additions, font_size=font_size,
                    new_node_content=new_node_content, close_shortcut=close_shortcut)
 
     @staticmethod
@@ -700,6 +716,10 @@ class AskTextGTKSource(AskText):
 
     def new_node_content_cb(self, action, previous_value, sourceview):
         self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
+
+    def font_size_cb(self, action, previous_value, sourceview):
+        self._gui_config["font_size"] = self.FONT_SIZE[action.get_current_value()]
+        set_monospace_font(sourceview, self._gui_config["font_size"])
 
     def close_shortcut_cb(self, action, previous_value, sourceview):
         self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
@@ -1103,7 +1123,7 @@ class AskTextGTKSource(AskText):
         self._source_view.set_size_request(-1, 150)
 
         scroll_window.add(self._source_view)
-        set_monospace_font(self._source_view)
+        set_monospace_font(self._source_view, self.DEFAULT_FONTSIZE)
 
         # Action group and UI manager
         ui_manager = Gtk.UIManager()
@@ -1116,6 +1136,7 @@ class AskTextGTKSource(AskText):
         action_group.add_actions(self.buffer_actions, text_buffer)
         action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
         action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
+        action_group.add_radio_actions(self._font_size_actions, -1, self.font_size_cb, source_view)
         action_group.add_toggle_actions(self._confirm_close_action, source_view)
         action_group.add_toggle_actions(self._word_wrap_action, source_view)
         action_group.add_toggle_actions(self._preview_white_background_action, source_view)
@@ -1182,6 +1203,9 @@ class AskTextGTKSource(AskText):
         groups = ui_manager.get_action_groups()
         # retrieve the view action group at position 0 in the list
         action_group = groups[0]
+        font_size_value = self._gui_config.get("font_size", self.DEFAULT_FONTSIZE)
+        action = action_group.get_action('FontSize{}'.format(font_size_value))
+        action.set_active(True)
         action = action_group.get_action('WordWrap')
         action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
         new_node_content_value = self._gui_config.get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
