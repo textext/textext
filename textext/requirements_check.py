@@ -620,18 +620,17 @@ class TexTextRequirementsChecker(object):
         return RequirementCheckResult(True, ["TkInter is found"])
 
     def find_inkscape_1_0(self):
-        from distutils.version import LooseVersion
         try:
             executable = self.find_executable('inkscape')['path']
             stdout, stderr = defaults.call_command([executable, "--version"])
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
         for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-            m = re.search(r"Inkscape (\d+.\d+[-\w]*)", stdout_line)
+            m = re.search(r"Inkscape ((\d+).(\d+)[.\d+][-\w]*)", stdout_line)
 
             if m:
-                found_version = m.group(1)
-                if LooseVersion(found_version) >= LooseVersion("1.0"):
+                found_version, major, minor = m.groups()
+                if int(major) >= 1:
                     return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
                 else:
                     return RequirementCheckResult(False, [
