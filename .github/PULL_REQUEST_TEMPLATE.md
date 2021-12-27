@@ -1,4 +1,6 @@
-Thank you for your contribution to TexText. Please provide the following information before opening this pull request:
+Thank you for your contribution to TexText. Please make sure you have rebased your work
+on the most recent commit of the upstrem `develop` branch and that the pull request targets
+the `develop` branch. Additionally, provide the following information before opening this pull request:
 
 Related issue(s):
 
