@@ -76,12 +76,18 @@ REQUIREMENT_CHECK_ERROR = 65
 
 good_configurations = []
 
+# Definition of working combinations of Inkscape and LaTeX
 for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
-    good_configurations.append([("inkscape", "Inkscape 1.0alpha2 (883c7bc, 2019-06-02)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.0 (4035a4fb49, 2020-05-01)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.2-dev (1dd7bebcbd, 2021-12-20)"), latex])
 
+# Test: Installation of working combinations must succeed
 for good_configuration in good_configurations:
     test_configuration(good_configuration, REQUIREMENT_CHECK_SUCCESS)
 
+# Test: If one component of the working combinations is missing
+# installation must fail
 for good_configuration in good_configurations:
     for i in range(len(good_configuration)):
         # good configuration without one element is bad
@@ -89,24 +95,24 @@ for good_configuration in good_configurations:
         print(bad_configuration)
         test_configuration(bad_configuration, REQUIREMENT_CHECK_ERROR)
 
+# Test wrong Inkscape version and no pdflatex installed
 test_configuration([
     ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
 ], REQUIREMENT_CHECK_ERROR)
 
+# Test wrong Inkscape version and pdflatex installed
 test_configuration([
     ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
     ("pdflatex",)
 ], REQUIREMENT_CHECK_ERROR)
 
+# Test what's happening when no version information
+# is returned by Inkscape
 test_configuration([
     ("inkscape",),
     ("pdflatex",),
 ], REQUIREMENT_CHECK_UNKNOWN)
 
-test_configuration([
-    ("inkscape", "Inkscape 1.0beta2 (2b71d25, 2019-12-03)"),
-    ("pdflatex",),
-], REQUIREMENT_CHECK_SUCCESS)
-
+# Test: Nothing is installed -> Installation must fail
 test_configuration([
 ], REQUIREMENT_CHECK_ERROR)
