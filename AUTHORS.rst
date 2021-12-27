@@ -13,15 +13,17 @@ The following people also contributed to TexText, either by
 contributions to the source code or by suggestions in discussions that
 went into the development of the project.
 
-- Alexander Blinne <alexander.blinne@uni-jena.de>
-- Antonio Russo <antonio.e.russo@gmail.com>
+- Alexander Blinne
+- Antonio Russo
 - Brian Clarke
 - Florent Becker
 - jocelynetienne@github
+- Markus Wallerberger
 - Michael Struwig
-- Noel Kuntze <noel.kuntze@thermi.consulting>
+- Noel Kuntze
 - Robert Szalai
 - Rafal Kolanski
 - Toru Araki
 - veltsov@github
 - Vladislav Gavryusev
+- xuestrange@github
