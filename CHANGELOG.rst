@@ -1,3 +1,10 @@
+Version 1.7.0 (2021-12-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Adjustable font size in LaTeX code editor (GTK GUI only)
+- Fixed: distutils deprecation warning when running under Python 3.10
+- Open: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
+  (:issue_num:`338`)
+
 Version 1.6.1 (2021-11-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: When LaTeX-code is imported via the `File` - `Open` dialog
