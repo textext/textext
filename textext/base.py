@@ -22,7 +22,7 @@ from io import open # ToDo: For open utf8, remove when Python 2 support is skipp
 
 from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
-    exec_command
+    exec_command, check_minimal_required_version
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
@@ -366,7 +366,7 @@ class TexText(inkex.EffectExtension):
                     if convert_stroke_to_path:
                         converter.stroke_to_path()
 
-                    tt_node = TexTextElement(converter.tmp("svg"), self.svg.unittouu("1mm"))
+                    tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
 
             # -- Store textext attributes
             tt_node.set_meta("version", __version__)
@@ -391,6 +391,14 @@ class TexText(inkex.EffectExtension):
                     # Place new nodes in the view center and scale them according to user request
                     node_center = tt_node.bounding_box().center
                     view_center = self.svg.namedview.center
+
+                    # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
+                    # not in doc units! Hence, we need to convert the value to the document unit.
+                    # so the transform is correct later.
+                    if hasattr(inkex, "__version__"):
+                        if check_minimal_required_version(inkex.__version__, "1.2.0"):
+                            view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
+                            view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
                     # Collect all layers incl. the current layers such that the top layer
                     # is the first one in the list
@@ -631,16 +639,16 @@ class TexToPdfConverter:
 class TexTextElement(inkex.Group):
     tag_name = "g"
 
-    def __init__(self, svg_filename, uu_in_mm):
+    def __init__(self, svg_filename, document_unit):
         """
         :param svg_filename: The name of the file containing the svg-snippet
-        :param uu_in_mm: The units of the document into which the node is going to be placed into
-                         expressed in mm
+        :param document_unit: String specifyling the unit of the document into which the node is going
+                              to be placed ("mm", "pt", ...)
         """
         super(TexTextElement, self).__init__()
-        self._svg_to_textext_node(svg_filename, uu_in_mm)
+        self._svg_to_textext_node(svg_filename, document_unit)
 
-    def _svg_to_textext_node(self, svg_filename, doc_unit_to_mm):
+    def _svg_to_textext_node(self, svg_filename, document_unit):
         from inkex import ShapeElement, Defs, SvgDocumentElement
         doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
 
@@ -657,7 +665,9 @@ class TexTextElement(inkex.Group):
         self.make_ids_unique()
 
         # Ensure that snippet is correctly scaled according to the units of the document
-        self.transform.add_scale(doc_unit_to_mm/root.unittouu("1mm"))
+        # We scale it here such that its size is correct in the document units
+        # (Usually pt returned from poppler to mm in the main document)
+        self.transform.add_scale(root.uutounit("1{}".format(root.unit), document_unit))
 
     @staticmethod
     def _expand_defs(root):
