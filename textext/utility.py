@@ -260,22 +260,20 @@ def exec_command(cmd, ok_return_value=0):
     return out + err
 
 
-def check_minimal_required_version(actual_version_str, required_version_str):
-    """ Checks if an actual version meets at least a specified version requirement
+def version_greater_or_equal_than(version_str, other_version_str):
+    """ Checks if a version number is >= than another version number
 
-    Version strings must be of type "N.M.Rarb" where N, M, R are non negative decimal numbers
-    < 1000 and arb is an arbitrary string, e.g. "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev"
-
-    Args:
-        required_version_str (str): The required version number
-        actual_version_str (str): The version number to be tested
+    Version numbers are passed as strings and must be of type "N.M.Rarb" where N, M, R
+    are non negative decimal numbers < 1000 and arb is an arbitrary string.
+    For example, "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev" are valid version strings.
 
     Returns:
-        True if the actual version is equal or greater then the required version, otherwise false
+        True if the version number is equal or greater then the other version number,
+        otherwise false
 
     """
     def ver_str_to_float(ver_str):
-        """ Parse version string and returns them as float
+        """ Parse version string and returns it as a floating point value
 
         Returns The version string as floating point number for easy comparison
         (minor version and relase number padded with zeros). E.g. "1.23.4dev" -> 1.023004.
@@ -289,7 +287,7 @@ def check_minimal_required_version(actual_version_str, required_version_str):
         else:
             return float("nan")
 
-    return ver_str_to_float(actual_version_str) >= ver_str_to_float(required_version_str)
+    return ver_str_to_float(version_str) >= ver_str_to_float(other_version_str)
 
 
 MAC = "Darwin"

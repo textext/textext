@@ -22,7 +22,7 @@ from io import open # ToDo: For open utf8, remove when Python 2 support is skipp
 
 from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
-    exec_command, check_minimal_required_version
+    exec_command, version_greater_or_equal_than
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
@@ -396,7 +396,7 @@ class TexText(inkex.EffectExtension):
                     # not in doc units! Hence, we need to convert the value to the document unit.
                     # so the transform is correct later.
                     if hasattr(inkex, "__version__"):
-                        if check_minimal_required_version(inkex.__version__, "1.2.0"):
+                        if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
                             view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
                             view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
