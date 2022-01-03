@@ -20,6 +20,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import re
 
 from .errors import *
 import sys
@@ -257,6 +258,38 @@ def exec_command(cmd, ok_return_value=0):
                                    stdout=out,
                                    stderr=err)
     return out + err
+
+
+def check_minimal_required_version(actual_version_str, required_version_str):
+    """ Checks if an actual version meets at least a specified version requirement
+
+    Version strings must be of type "N.M.Rarb" where N, M, R are non negative decimal numbers
+    < 1000 and arb is an arbitrary string, e.g. "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev"
+
+    Args:
+        required_version_str (str): The required version number
+        actual_version_str (str): The version number to be tested
+
+    Returns:
+        True if the actual version is equal or greater then the required version, otherwise false
+
+    """
+    def ver_str_to_float(ver_str):
+        """ Parse version string and returns them as float
+
+        Returns The version string as floating point number for easy comparison
+        (minor version and relase number padded with zeros). E.g. "1.23.4dev" -> 1.023004.
+        If conversion fails returns NaN.
+
+        """
+        m = re.search(r"(\d+).(\d+).(\d+)[-\w]*", ver_str)
+        if m is not None:
+            ver_maj, ver_min, ver_rel = m.groups()
+            return float("{}.{:0>3}{:0>3}".format(ver_maj, ver_min, ver_rel))
+        else:
+            return float("nan")
+
+    return ver_str_to_float(actual_version_str) >= ver_str_to_float(required_version_str)
 
 
 MAC = "Darwin"
