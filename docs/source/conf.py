@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TexText'
-copyright = '2021, TexText developers'
+copyright = '2022, TexText developers'
 author = 'Alexander Blinne, Antonio Russo, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 
 # The full version, including alpha/beta/rc tags

@@ -1,3 +1,8 @@
+Version 1.7.1 (2022-01-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
+  (:issue_num:`338`)
+
 Version 1.7.0 (2021-12-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Adjustable font size in LaTeX code editor (GTK GUI only)
