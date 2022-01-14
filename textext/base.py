@@ -505,8 +505,8 @@ class TexToPdfConverter:
     """
     Base class for Latex -> SVG converters
     """
+    DEFAULT_DOCUMENT_CLASS=r"\documentclass{article}"
     DOCUMENT_TEMPLATE = r"""
-    \documentclass{article}
     %s
     \pagestyle{empty}
     \begin{document}
@@ -542,6 +542,10 @@ class TexToPdfConverter:
             if os.path.isfile(preamble_file):
                 with open(preamble_file, 'r') as f:
                     preamble += f.read()
+
+            # Add default document class to preamble if necessary
+            if not _contains_document_class(preamble):
+                preamble = self.DEFAULT_DOCUMENT_CLASS + preamble
 
             # Options pass to LaTeX-related commands
 
@@ -634,6 +638,22 @@ class TexToPdfConverter:
                 return parser.errors[0]
             except Exception as ignored:
                 return "TeX compilation failed. See stdout output for more details"
+
+
+def _contains_document_class(preamble):
+    """Return True if `preamble` contains a documentclass-like command.
+    
+    Also, checks and consideres if the command is commented out or not.
+    """
+    lines = preamble.split("\n")
+    document_commands = ["\documentclass{", "\documentclass[",
+                        "\documentstyle{", "\documentstyle["]
+    for line in lines:
+        for document_command in document_commands:
+            if (document_command in line
+                and "%" not in line.split(document_command)[0]):
+                return True
+    return False
 
 
 class TexTextElement(inkex.Group):
