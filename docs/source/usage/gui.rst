@@ -175,9 +175,11 @@ Preamble file
 Be aware of including the required packages in the *preamble file* if you
 use special commands in your code that rely on such packages. The
 preamble file can be chosen by the selector |usage-label-2|. The default preamble
-file shipped with |TexText| includes the following packages:
+file shipped with |TexText| includes the following:
 
 .. code-block:: latex
+
+    \documentclass{article}
 
     \usepackage{amsmath,amsthm,amssymb,amsfonts}
     \usepackage{color}
@@ -186,7 +188,6 @@ Basically, your LaTeX code will be inserted into this environment:
 
 .. code-block:: latex
 
-    \documentclass{article}
     % ***preamble file content***
     \pagestyle{empty}
     \begin{document}
@@ -194,7 +195,8 @@ Basically, your LaTeX code will be inserted into this environment:
     \end{document}
 
 This will be typeset, converted to SVG and inserted into your Inkscape
-document.
+document. If no :latex:`\documentclass` or :latex:`\documentstyle` is specified
+in the preamble file, :latex:`\documentclass{article}` is used by default.
 
 .. _usage-scaling:
 

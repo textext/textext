@@ -54,6 +54,17 @@ The resulting text should be of equal height as if has been typeset directly in 
 .. figure:: ../images/texttext-fontsize-example.png
    :alt: Font size example
 
+If you want to change the default font size you can do that by specifying it in the
+:ref:`usage-preamble-file`.
+
+.. code-block:: latex
+
+    \documentclass[12pt]{article}
+    % ***rest of the preamble file***
+
+This is convenient, e.g., if you want to create multiple nodes with the same,
+specific font size.
+
 .. _faq-font-custom-font:
 
 Selection of special fonts
