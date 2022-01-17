@@ -643,7 +643,7 @@ class TexToPdfConverter:
 def _contains_document_class(preamble):
     """Return True if `preamble` contains a documentclass-like command.
     
-    Also, checks and consideres if the command is commented out or not.
+    Also, checks and considers if the command is commented out or not.
     """
     lines = preamble.split("\n")
     document_commands = ["\documentclass{", "\documentclass[",
