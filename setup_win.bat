@@ -60,6 +60,19 @@ if defined args (
 				echo No value specified for key --%%C
 				goto PRINT_USAGE
 			)
+			rem Check for given --portable-apps-dir argument
+			if /I "%%C"=="portable-apps-dir" if not "%%D"=="" (
+				if not exist "%%D" (
+					echo %%D not found!
+					goto FINAL
+				) else (
+					echo %%D found!
+					set INKSCAPE_DIR=%%D\InkscapePortable\App\Inkscape\bin
+				)				
+			) else (
+				echo No value specified for key --%%C
+				goto PRINT_USAGE
+			)
 			set PYTHON_ARGS=!PYTHON_ARGS!--%%A
 		)
 		rem Repeat operation with remaining argument list

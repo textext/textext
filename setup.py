@@ -265,6 +265,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--portable-apps-dir",
+        default=None,
+        type=str,
+        help="PortableApps installation directory (Windows only)"
+    )
+
+    parser.add_argument(
         "--skip-requirements-check",
         default=False,
         action='store_true',
@@ -327,7 +334,23 @@ if __name__ == "__main__":
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    settings = Settings(directory=defaults.textext_config_path)
+    # Address special Portable Apps directory structure, we cannot do requirement checks
+    # because we run setup from outside of PortableApps
+    if args.portable_apps_dir:
+        if not os.path.isdir(args.portable_apps_dir):
+            logger.error("Path specified for PortableApps is not a valid directory!")
+            exit(EXIT_REQUIREMENT_CHECK_FAILED)
+        if os.name != "nt":
+            logger.error("The --portable-apps-dir argument can only be used under MS Windows!")
+            exit(EXIT_REQUIREMENT_CHECK_FAILED)
+        args.inkscape_executable = os.path.join(args.portable_apps_dir,
+                                                "InkscapePortable\\App\\Inkscape\\bin\\inkscape.exe")
+        args.inkscape_extensions_path = os.path.join(args.portable_apps_dir,
+                                                     "InkscapePortable\\Data\\settings\\extensions")
+        args.skip_requirements_check = True
+        settings = Settings(directory=os.path.join(args.portable_apps_dir, "InkscapePortable\\Data\\settings\\textext"))
+    else:
+        settings = Settings(directory=defaults.textext_config_path)
 
     checker = TexTextRequirementsChecker(logger, settings)
 
