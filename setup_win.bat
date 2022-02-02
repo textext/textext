@@ -50,10 +50,10 @@ if defined args (
 			rem Check for explicitely given inkscape executable
 			if /I "%%C"=="inkscape-executable" if not "%%D"=="" (
 				if not exist "%%D" (
-					echo %%D not found!
+					echo Specified directory %%D for Inkscape executable not found!
 					goto FINAL
 				) else (
-					echo %%D found!
+				    rem Just take the path from %%D
 					set INKSCAPE_DIR=%%~dpD
 				)				
 			) else (
@@ -63,12 +63,16 @@ if defined args (
 			rem Check for given --portable-apps-dir argument
 			if /I "%%C"=="portable-apps-dir" if not "%%D"=="" (
 				if not exist "%%D" (
-					echo %%D not found!
+					echo Specified PortableApps directory %%D not found!
 					goto FINAL
 				) else (
-					echo %%D found!
-					set INKSCAPE_DIR=%%D\InkscapePortable\App\Inkscape\bin
-				)				
+					set arg=%%D
+					rem Remove quotes
+					set arg=!arg:"=%!
+					rem Remove possible trailing whitespaces
+					if "!arg:~-1!"==" " set arg=!arg:~0,-1!
+					set INKSCAPE_DIR=!arg!\InkscapePortable\App\Inkscape\bin
+				)
 			) else (
 				echo No value specified for key --%%C
 				goto PRINT_USAGE
@@ -233,9 +237,9 @@ set PYTHON_EXE="%INKSCAPE_DIR%\python.exe"
 if exist "%PYTHON_EXE%" (
     echo %PYTHON_EXE% found
     echo.
-    
-goto RUN_SETUP_PY
+    goto RUN_SETUP_PY
 ) else (
+    echo %PYTHON_EXE% not found!
 	goto PYTHON_NOT_FOUND
 )
 
