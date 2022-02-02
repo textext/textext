@@ -21,6 +21,8 @@
 |TexText| on Windows
 ====================
 
+If you use Inkscape in PortableApps please go to `these special instructions <portableapps-install_>`_.
+
 .. _windows-install-preparation:
 
 Preparation
@@ -118,3 +120,32 @@ Problems with the GUI framework
 The GUI framework should already be included in the Inkscape installation on Windows.
 Hence, if the |TexText| installer complains about missing GTK3 or TkInter bindings
 please file a bug report on `github <https://github.com/textext/textext/issues/new/choose>`_
+
+.. _portableapps-install:
+
+Installation for Inkscape in PortableApps
+=========================================
+
+If you use Inkscape in PortableApps you have to proceed as follows:
+
+1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>` (direct links: :textext_download_zip:`.zip <Windows>`)
+2. Extract the package and change into the created directory.
+3. Open a Windows command prompt or Windows power shell window  in this directory
+   (``SHIFT`` + right-click in the Windows explorer, then select `Open powershell window here`)
+4. Enter and execute the following command where ``C:\Path\To\Your\PartableApps\Installation``
+   is the path to your PortableApps installation (usually this is ``C:\User\YourUserName\PortableApps``):
+
+   .. code-block:: bash
+
+        setup_win.bat --portable-apps-dir "C:\Path\To\Your\PartableApps\Installation"
+
+   If you also use your LaTeX system from PortableApps use the following command instead:
+
+   .. code-block:: bash
+
+        setup_win.bat --portable-apps-dir "C:\Path\To\Your\PartableApps\Installation" --pdflatex-executable "C:\Path\To\pdflatex.exe"
+
+   (use ``--lualatex-executable`` and ``--xelatex-executable`` if you also want to have
+   lualatex and xelatex available as well)
+
+   See :ref:`advanced-install` for further options provided by :bash:`setup_win.bat`.
