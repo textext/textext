@@ -334,8 +334,7 @@ if __name__ == "__main__":
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    # Address special Portable Apps directory structure, we cannot do requirement checks
-    # because we run setup from outside of PortableApps
+    # Address special Portable Apps directory structure
     if args.portable_apps_dir:
         if not os.path.isdir(args.portable_apps_dir):
             logger.error("Path specified for PortableApps is not a valid directory!")
@@ -347,7 +346,6 @@ if __name__ == "__main__":
                                                 "InkscapePortable\\App\\Inkscape\\bin\\inkscape.exe")
         args.inkscape_extensions_path = os.path.join(args.portable_apps_dir,
                                                      "InkscapePortable\\Data\\settings\\extensions")
-        args.skip_requirements_check = True
         settings = Settings(directory=os.path.join(args.portable_apps_dir, "InkscapePortable\\Data\\settings\\textext"))
     else:
         settings = Settings(directory=defaults.textext_config_path)
