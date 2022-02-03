@@ -21,6 +21,7 @@ went into the development of the project.
 - Markus Wallerberger
 - Michael Struwig
 - Noel Kuntze
+- Patrick Kappl
 - Robert Szalai
 - Rafal Kolanski
 - Toru Araki

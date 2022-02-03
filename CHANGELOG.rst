@@ -1,3 +1,11 @@
+Version 1.8.0 (2022-02-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: It is now possible to use the ``\documentclass`` statement in the
+  preamble file. This makes it easier to adjust the fontsize. Old preamble
+  files without the ``\documentclass`` statement can still be used.
+- Changed: Instructions for installation of TexText for Inkscape in
+  Windows PortableApps (fixes :issue_num:`288`)
+
 Version 1.7.1 (2022-01-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
