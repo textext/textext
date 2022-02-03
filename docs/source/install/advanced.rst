@@ -20,13 +20,11 @@ options to adapt the installation process to your system configuration:
 
 --inkscape-extensions-path INKSCAPE_EXTENSIONS_PATH
     Path to inkscape extensions directory. Use this if the user
-    extensions are installed in an unusual place, e.g. when using |Inkscape|
-    in PortableApps on Windows.
+    extensions are installed in an unusual place.
 
 --inkscape-executable INKSCAPE_EXECUTABLE
     Full path to inkscape executable.  Use this if |Inkscape| is not found
-    automatically by the setup script (Test- or Beta-installations, Portable
-    Apps on Windows).
+    automatically by the setup script (Test- or Beta-installations).
 
 --pdflatex-executable PDFLATEX_EXECUTABLE
     Full path to pdflatex executable.
@@ -36,6 +34,18 @@ options to adapt the installation process to your system configuration:
 
 --xelatex-executable XELATEX_EXECUTABLE
     Full path to xelatex executable.
+
+--portable-apps-dir INSTALLATION_DIRECTORY_OF_PORTABLEAPPS
+    Windows only: If you use Inkscape from PortableApps use this parameter
+    to specifiy the directory into which PortableApps has been installed, e.g.
+    ``C:\Users\YourUserName\PortableApps``. It ensures that |TexText| is
+    installed correctly into the PortableApps structure.
+
+    .. attention::
+        If you also have your LaTeX distribution installed in PortableApps
+        you need to specify the paths to the latex executables by
+        using the ``--pdflatex-executable`` and/or ``--lualatex-executable``
+        and/or ``--xelatex-executable`` arguments.
 
 --skip-requirements-check
     Bypass minimal requirements check. |TexText| will be installed even if
