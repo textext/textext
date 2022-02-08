@@ -1,6 +1,4 @@
-.. image:: https://github.com/textext/textext/actions/workflows/ci.yaml/badge.svg?branch=master
-    :target: https://github.com/textext/textext/actions/workflows/ci.yaml
-    :alt: Status of continuous integration tests
+|status-ci| |status-downloads|
 
 TexText - A TeX extension for Inkscape
 ======================================
@@ -58,3 +56,10 @@ plugin InkLaTeX written by Toru Araki.
 .. _usage-colorization:    https://textext.github.io/textext/usage/gui.html#usage-colorization
 .. _usage-alignment:       https://textext.github.io/textext/usage/gui.html#usage-alignment
 .. _usage-preview:         https://textext.github.io/textext/usage/gui.html#preview-button
+
+.. |status-ci| image:: https://github.com/textext/textext/actions/workflows/ci.yaml/badge.svg?branch=master
+    :target: https://github.com/textext/textext/actions/workflows/ci.yaml
+    :alt: Status of continuous integration tests
+.. |status-downloads| image:: https://img.shields.io/github/downloads/textext/textext/total   
+    :alt: GitHub all releases    
+
