@@ -202,7 +202,10 @@ class Settings(object):
         return self.values.get(key)
 
     def __setitem__(self, key, value):
-        self.values[key] = value
+        if value is not None:
+            self.values[key] = value
+        else:
+            self.values.pop(key, None)
 
 
 class Cache(Settings):

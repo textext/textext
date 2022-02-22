@@ -368,6 +368,8 @@ if __name__ == "__main__":
                 exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
 
             settings["%s-executable" % executable_name] = executable_path
+        else:
+            settings["%s-executable" % executable_name] = None
 
     if not args.skip_requirements_check:
 
