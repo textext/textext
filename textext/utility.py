@@ -190,6 +190,14 @@ class Settings(object):
             return default
         return result
 
+    def delete_file(self):
+        if os.path.exists(self.config_path):
+            try:
+                os.remove(self.config_path)
+            except OSError as err:
+                TexTextFatalError("Config `%s` could not be deleted. Error message: %s" % (
+                                  self.config_path, str(err)))
+
     def __getitem__(self, key):
         return self.values.get(key)
 
