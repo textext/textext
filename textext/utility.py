@@ -168,6 +168,7 @@ class Settings(object):
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
         self.values = {}
+        self.directory = directory
         self.config_path = os.path.join(directory, basename)
         try:
             self.load()
