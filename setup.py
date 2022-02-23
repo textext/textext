@@ -27,7 +27,7 @@ from textext.requirements_check import \
     LoggingColors, \
     SUCCESS
 
-from textext.utility import Settings
+from textext.utility import Settings, Cache
 
 
 # Hotfix for Inkscape 1.0.1 on Windows: HarfBuzz-0.0.typelib is missing
@@ -350,6 +350,9 @@ if __name__ == "__main__":
     else:
         settings = Settings(directory=defaults.textext_config_path)
 
+    CachedSettings = Cache(directory=settings.directory)
+    CachedSettings.delete_file()
+
     checker = TexTextRequirementsChecker(logger, settings)
 
     for executable_name in [
@@ -365,6 +368,8 @@ if __name__ == "__main__":
                 exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
 
             settings["%s-executable" % executable_name] = executable_path
+        else:
+            settings["%s-executable" % executable_name] = None
 
     if not args.skip_requirements_check:
 
