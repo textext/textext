@@ -168,6 +168,7 @@ class Settings(object):
             if not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
         self.values = {}
+        self.directory = directory
         self.config_path = os.path.join(directory, basename)
         try:
             self.load()
@@ -189,11 +190,22 @@ class Settings(object):
             return default
         return result
 
+    def delete_file(self):
+        if os.path.exists(self.config_path):
+            try:
+                os.remove(self.config_path)
+            except OSError as err:
+                TexTextFatalError("Config `%s` could not be deleted. Error message: %s" % (
+                                  self.config_path, str(err)))
+
     def __getitem__(self, key):
         return self.values.get(key)
 
     def __setitem__(self, key, value):
-        self.values[key] = value
+        if value is not None:
+            self.values[key] = value
+        else:
+            self.values.pop(key, None)
 
 
 class Cache(Settings):
