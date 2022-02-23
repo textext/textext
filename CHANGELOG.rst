@@ -1,3 +1,9 @@
+Version 1.8.1 (2022-02-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: When re-installing TexText with diffent paths to latex excutables
+  compared to the original setup these new paths are not recognized when
+  invoking TexText from Inkscape (:issue_num:`345`).
+
 Version 1.8.0 (2022-02-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: It is now possible to use the ``\documentclass`` statement in the
