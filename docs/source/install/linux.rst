@@ -81,8 +81,8 @@ Download and install |TexText|
 
 1. If you are on Debian Bullseye or later refer to section :ref:`linux-textext-packages`.
    Otherwise download the most recent package from the
-   :textext_current_release_page:`GitHub release page <release>`
-   (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
+   :textext_current_release_page:`release`
+   (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`)
 
 2. Extract the package and change into the created directory.
 
@@ -135,8 +135,8 @@ Download and install |TexText|
 ------------------------------
 
 1. Download the most recent package from the
-   :textext_current_release_page:`GitHub release page <release>`
-   (direct links: :textext_download_zip:`.zip <Linux>`, :textext_download_tgz:`.tar.gz <Linux>`)
+   :textext_current_release_page:`release`
+   (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`)
 
 2. Extract the package and change into the created directory.
 

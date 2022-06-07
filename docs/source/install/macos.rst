@@ -42,8 +42,8 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
    1.x.
 
 3. Download the most recent package of |TexText| from
-   :textext_current_release_page:`GitHub release page <release>`
-   (direct link: :textext_download_zip:`.zip <MacOS>`)
+   :textext_current_release_page:`release`
+   (direct link: :textext_download_zip:`MacOS`)
 
    Extract the package and change into the created directory.
 
@@ -156,7 +156,7 @@ Download and install |TexText|
 ==============================
 
 1. Download the most recent package from :textext_current_release_page:`GitHub release page <release>`
-   (direct link: :textext_download_zip:`.zip <MacOS>`)
+   (direct link: :textext_download_zip:`MacOS`)
 
 2. Extract the package and change into the created directory.
 

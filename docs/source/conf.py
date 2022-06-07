@@ -66,7 +66,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 nitpicky = True
 
@@ -187,20 +187,20 @@ epub_exclude_files = ['search.html']
 # -- Extension configuration -------------------------------------------------
 
 extlinks = {
-    'issue_num': ('https://github.com/textext/textext/issues/%s', '#'),
-    'issue': ('https://github.com/textext/textext/issues/%s', 'issue #'),
-    'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb#'),
-    'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue bb#'),
+    'issue_num': ('https://github.com/textext/textext/issues/%s', '%s'),
+    'issue': ('https://github.com/textext/textext/issues/%s', 'issue %s'),
+    'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb%s'),
+    'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue (on BitBucket) %s'),
 
     # Links to current stable release compatible with Inkscape >= 1.0
-    'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'v{release}-'.format(**locals())),
-    'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'v{release}-'.format(**locals())),
-    'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'v{release}-'.format(**locals())),
-    'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'v{release}'.format(**locals())),
+    'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'zip-file for %s'),
+    'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'tgz-file for %s'),
+    'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'exe-installer for %s'),
+    'textext_current_release_page':    ('https://github.com/textext/textext/releases/tag/{release}#%s'.format(**locals()), 'Github %s page'),
 
     # Links to last stable release compatible with Inkscape 0.92
-    'textext_0x_download_zip': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.zip'.format(**locals()), 'v{release_0x}-'.format(**locals())),
-    'textext_0x_download_tgz': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.tar.gz'.format(**locals()), 'v{release_0x}-'.format(**locals())),
-    'textext_0x_download_exe': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.exe'.format(**locals()), 'v{release_0x}-'.format(**locals())),
-    'textext_0x_current_release_page': ('https://github.com/textext/textext/releases/tag/{release_0x}#%s'.format(**locals()),'v{release_0x}'.format(**locals())),
+    'textext_0x_download_zip': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.zip'.format(**locals()), 'zip-file for %s'),
+    'textext_0x_download_tgz': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.tar.gz'.format(**locals()), 'tgz-file for %s'),
+    'textext_0x_download_exe': ('https://github.com/textext/textext/releases/download/{release_0x}/TexText-%s-{release_0x}.exe'.format(**locals()), 'exe-installer for %s'),
+    'textext_0x_current_release_page': ('https://github.com/textext/textext/releases/tag/{release_0x}#%s'.format(**locals()),'Github %s page'),
 }
