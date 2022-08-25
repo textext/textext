@@ -44,7 +44,7 @@ class TemporaryDirectory(object):
         self.dir_name = None
 
     def __enter__(self):
-        self.dir_name = tempfile.mkdtemp("textext_")
+        self.dir_name = tempfile.mkdtemp(prefix="textext_")
         return self.dir_name
 
     def __exit__(self, exc_type, exc_val, exc_tb):
