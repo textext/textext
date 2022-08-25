@@ -47,7 +47,6 @@ class FakeExecutablesMaker(object):
         command_name = os.path.join(self.dirname, name)
         with open(command_name, "w") as fout:
             fout.write("#!%s\n" % sys.executable)
-            fout.write("from __future__ import print_function\n")
             fout.write("import sys\n")
             fout.write("print(%s, file=sys.%s)" % (repr(output), channel))
         os.chmod(command_name, 0o755)

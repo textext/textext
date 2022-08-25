@@ -8,7 +8,6 @@ TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
 for full license details.
 """
-from __future__ import print_function
 import hashlib
 import logging
 import logging.handlers
