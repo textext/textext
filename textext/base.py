@@ -17,7 +17,6 @@ import os
 import platform
 import sys
 import uuid
-from io import open # ToDo: For open utf8, remove when Python 2 support is skipped
 
 from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
