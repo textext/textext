@@ -11,190 +11,12 @@ for full license details.
 Classes for handling and checking of the dependencies required
 to successfully run TexText.
 """
-from abc import ABCMeta, abstractmethod
 import logging
 import os
 import re
 import subprocess
 import sys
-
-
-class Defaults(object):
-    __metaclass__ = ABCMeta
-
-    @property
-    @abstractmethod
-    def os_name(self):
-        pass
-
-    @property
-    @abstractmethod
-    def console_colors(self):
-        pass
-
-    @property
-    @abstractmethod
-    def executable_names(self):
-        pass
-
-    @property
-    @abstractmethod
-    def inkscape_user_extensions_path(self):
-        pass
-
-    def inkscape_system_extensions_path(self, inkscape_exe_path):
-        try:
-            stdout, stderr = self.call_command([inkscape_exe_path, "--system-data-directory"])
-            path = os.path.join(stdout.decode("utf-8", 'ignore').rstrip(), "extensions")
-            err = None
-        except subprocess.CalledProcessError as excpt:
-            path = None
-            err = "Command `%s` failed, stdout: `%s`, stderr: `%s`" % (excpt.cmd, excpt.stdout, excpt.stderr)
-        except UnicodeDecodeError as excpt:
-            path = None
-            err = excpt.reason
-
-        return [path, err]
-
-    @property
-    @abstractmethod
-    def textext_config_path(self): pass
-
-    @property
-    @abstractmethod
-    def textext_logfile_path(self): pass
-
-    @property
-    @abstractmethod
-    def get_system_path(self): pass
-
-    @staticmethod
-    @abstractmethod
-    def call_command(command, return_code=0): pass
-
-
-class LinuxDefaults(Defaults):
-    os_name = "linux"
-    console_colors = "always"
-    executable_names = {"inkscape": ["inkscape"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
-                        }
-
-    @property
-    def inkscape_user_extensions_path(self):
-        return os.path.expanduser("~/.config/inkscape/extensions")
-
-    @property
-    def textext_config_path(self):
-        return os.path.expanduser("~/.config/textext")
-
-    @property
-    def textext_logfile_path(self):
-        return os.path.expanduser("~/.cache/textext")
-
-    def get_system_path(self):
-        return os.environ["PATH"].split(os.path.pathsep)
-
-    @staticmethod
-    def call_command(command, return_code=0):
-        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        if return_code is not None and p.returncode != return_code:
-            raise subprocess.CalledProcessError(p.returncode,command)
-        return stdout, stderr
-
-
-class MacDefaults(LinuxDefaults):
-    os_name = "macos"
-    executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
-                        }
-
-    def get_system_path(self):
-        path = ["/Applications/Inkscape.app/Contents/Resources"]
-        path += os.environ["PATH"].split(os.path.pathsep)
-        return path
-
-    @property
-    def inkscape_user_extensions_path(self):
-        return os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions")
-
-    @property
-    def textext_config_path(self):
-        return os.path.expanduser("~/Library/Preferences/textext")
-
-    @property
-    def textext_logfile_path(self):
-        return os.path.expanduser("~/Library/Preferences/textext")
-
-
-class WindowsDefaults(Defaults):
-
-    os_name = "windows"
-    console_colors = "never"
-    executable_names = {"inkscape": ["inkscape.exe"],
-                        "pdflatex": ["pdflatex.exe"],
-                        "lualatex": ["lualatex.exe"],
-                        "xelatex": ["xelatex.exe"],
-                        }
-
-    def __init__(self):
-        super(WindowsDefaults, self)
-        from .win_app_paths import get_non_syspath_dirs
-        self._tweaked_syspath = get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
-
-        # Windows 10 supports colored output since anniversary update (build 14393)
-        # so we try to use it (it has to be enabled since it is always disabled by default!)
-        try:
-            wininfo = sys.getwindowsversion()
-            if wininfo.major >= 10 and wininfo.build >= 14393:
-
-                import ctypes as ct
-                h_kernel32 = ct.windll.kernel32
-
-                #  STD_OUTPUT_HANDLE = -11
-                # -> https://docs.microsoft.com/en-us/windows/console/getstdhandle
-                h_stdout = h_kernel32.GetStdHandle(-11)
-
-                # ENABLE_PROCESSED_OUTPUT  | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING = 7
-                # -> https://docs.microsoft.com/en-us/windows/console/setconsolemode
-                result = h_kernel32.SetConsoleMode(h_stdout, 7)
-
-                self.console_colors = "always"
-        except (ImportError, AttributeError):
-            pass
-
-    @property
-    def inkscape_user_extensions_path(self):
-        return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
-
-    @property
-    def textext_config_path(self):
-        return os.path.join(os.getenv("APPDATA"), "textext")
-
-    @property
-    def textext_logfile_path(self):
-        return os.path.join(os.getenv("APPDATA"), "textext")
-
-    def get_system_path(self):
-        return self._tweaked_syspath
-
-    @staticmethod
-    def call_command(command, return_code=0): # type: (List,Optional[int]) -> Tuple[str, str]
-        # Ensure that command window does not pop up on Windows!
-        info = subprocess.STARTUPINFO()
-        info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        info.wShowWindow = subprocess.SW_HIDE
-        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
-        stdout, stderr = p.communicate()
-        if return_code is not None and p.returncode != return_code:
-            raise subprocess.CalledProcessError(p.returncode, command)
-        return stdout, stderr
-
+from .environment import system_env
 
 
 class LoggingColors(object):
@@ -608,8 +430,8 @@ class TexTextRequirementsChecker(object):
     def find_pygtk3(self):
         try:
             executable = sys.executable
-            defaults.call_command([executable, "-c", "import gi;"+
-                                                     "gi.require_version('Gtk', '3.0');"+
+            system_env.call_command([executable, "-c", "import gi;" +
+                                                     "gi.require_version('Gtk', '3.0');" +
                                                      "from gi.repository import Gtk, Gdk, GdkPixbuf"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["GTK3 is not found"])
@@ -622,7 +444,7 @@ class TexTextRequirementsChecker(object):
         else:
             import_tk_script = "import Tkinter; import tkMessageBox; import tkFileDialog;"
         try:
-            defaults.call_command(
+            system_env.call_command(
                 [executable, "-c", import_tk_script])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["TkInter is not found"])
@@ -632,7 +454,7 @@ class TexTextRequirementsChecker(object):
     def find_inkscape_1_0(self):
         try:
             executable = self.find_executable('inkscape')['path']
-            stdout, stderr = defaults.call_command([executable, "--version"])
+            stdout, stderr = system_env.call_command([executable, "--version"])
         except (KeyError, OSError):
             return RequirementCheckResult(False, ["inkscape is not found"])
         for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
@@ -663,9 +485,9 @@ class TexTextRequirementsChecker(object):
 
     def _find_executable_in_path(self, prog_name):
         messages = []
-        for exe_name in defaults.executable_names[prog_name]:
+        for exe_name in system_env.executable_names[prog_name]:
             first_path = None
-            for path in defaults.get_system_path():
+            for path in system_env.get_system_path():
                 full_path_guess = os.path.join(path, exe_name)
                 self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
                 if self.check_executable(full_path_guess):
@@ -700,11 +522,11 @@ class TexTextRequirementsChecker(object):
             url_template = "https://{user}.github.io/textext/install/{os_name}.html#{os_name}-install-{section}"
             url = url_template.format(
                 user=user,
-                os_name=defaults.os_name,
+                os_name=system_env.os_name,
                 section=section_name
             )
 
-            if defaults.console_colors == "always":
+            if system_env.console_colors == "always":
                 url_line = "       {}%s{}".format(LoggingColors.FG_LIGHT_BLUE + LoggingColors.UNDERLINED,
                                                      LoggingColors.COLOR_RESET)
             else:
@@ -761,12 +583,6 @@ class TexTextRequirementsChecker(object):
 
 get_levels_colors = LoggingColors()
 
-if sys.platform.startswith("win"):
-    defaults = WindowsDefaults()
-elif sys.platform.startswith("darwin"):
-    defaults = MacDefaults()
-else:
-    defaults = LinuxDefaults()
 
 VERBOSE = 5
 SUCCESS = 41

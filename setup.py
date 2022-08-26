@@ -23,7 +23,7 @@ import fnmatch
 from textext.requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
-    defaults, \
+    system_env, \
     LoggingColors, \
     SUCCESS
 
@@ -231,7 +231,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=defaults.inkscape_user_extensions_path,
+        default=system_env.inkscape_user_extensions_path,
         type=str,
         help="Path to inkscape extensions directory"
     )
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--color",
-        default=defaults.console_colors,
+        default=system_env.console_colors,
         choices=("always", "never"),
         help="Enables/disable console colors"
     )
@@ -348,7 +348,7 @@ if __name__ == "__main__":
                                                      "InkscapePortable\\Data\\settings\\extensions")
         settings = Settings(directory=os.path.join(args.portable_apps_dir, "InkscapePortable\\Data\\settings\\textext"))
     else:
-        settings = Settings(directory=defaults.textext_config_path)
+        settings = Settings(directory=system_env.textext_config_path)
 
     CachedSettings = Cache(directory=settings.directory)
     CachedSettings.delete_file()
@@ -402,8 +402,8 @@ if __name__ == "__main__":
                 # ToDo: Make this smarter and more intuitive!
                 logger.info("Trying to find Inkscape executable automatically...")
                 inkscape_executable = None
-                for inkscape_exe_name in defaults.executable_names["inkscape"]:
-                    for path in defaults.get_system_path():
+                for inkscape_exe_name in system_env.executable_names["inkscape"]:
+                    for path in system_env.get_system_path():
                         test_path = os.path.join(path, inkscape_exe_name)
                         if os.path.isfile(test_path) and os.access(test_path, os.X_OK):
                             inkscape_executable = test_path
@@ -414,7 +414,7 @@ if __name__ == "__main__":
                     exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
 
             # Query the system extension path
-            [args.inkscape_extensions_path, err] = defaults.inkscape_system_extensions_path(
+            [args.inkscape_extensions_path, err] = system_env.inkscape_system_extensions_path(
                 inkscape_executable)
             if args.inkscape_extensions_path is None:
                 logger.error("Determination of system extension directory failed (Error message: %s)" % err)

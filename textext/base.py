@@ -18,7 +18,8 @@ import platform
 import sys
 import uuid
 
-from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
+from .environment import system_env
+from .requirements_check import set_logging_levels, TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
     exec_command, version_greater_or_equal_than
 from .errors import *
@@ -52,7 +53,7 @@ user_log_channel.setFormatter(user_formatter)
 __logger.addHandler(user_log_channel)
 
 # Now we try to install the file logger.
-LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
+LOG_LOCATION = os.path.join(system_env.textext_logfile_path)
 if not os.path.isdir(LOG_LOCATION):
     os.makedirs(LOG_LOCATION)
 LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log") # ToDo: When not writable continue but give a message somewhere
@@ -92,8 +93,8 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings(directory=defaults.textext_config_path)
-        self.cache = Cache(directory=defaults.textext_config_path)
+        self.config = Settings(directory=system_env.textext_config_path)
+        self.cache = Cache(directory=system_env.textext_config_path)
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
         if previous_exit_code is None:
