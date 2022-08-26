@@ -11,7 +11,7 @@ for full license details.
 Classes for handling and checking of the dependencies required
 to successfully run TexText.
 """
-import abc
+from abc import ABCMeta, abstractmethod
 import logging
 import os
 import re
@@ -20,20 +20,27 @@ import sys
 
 
 class Defaults(object):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
 
-    # ToDo: Change to @property @abstractmethod when discarding Python 2.7 support
-    @abc.abstractproperty
-    def os_name(self): pass
+    @property
+    @abstractmethod
+    def os_name(self):
+        pass
 
-    @abc.abstractproperty
-    def console_colors(self): pass
+    @property
+    @abstractmethod
+    def console_colors(self):
+        pass
 
-    @abc.abstractproperty
-    def executable_names(self): pass
+    @property
+    @abstractmethod
+    def executable_names(self):
+        pass
 
-    @abc.abstractproperty
-    def inkscape_user_extensions_path(self): pass
+    @property
+    @abstractmethod
+    def inkscape_user_extensions_path(self):
+        pass
 
     def inkscape_system_extensions_path(self, inkscape_exe_path):
         try:
@@ -49,17 +56,20 @@ class Defaults(object):
 
         return [path, err]
 
-    @abc.abstractproperty
+    @property
+    @abstractmethod
     def textext_config_path(self): pass
 
-    @abc.abstractproperty
+    @property
+    @abstractmethod
     def textext_logfile_path(self): pass
 
-    @abc.abstractmethod
+    @property
+    @abstractmethod
     def get_system_path(self): pass
 
     @staticmethod
-    @abc.abstractmethod
+    @abstractmethod
     def call_command(command, return_code=0): pass
 
 
