@@ -12,7 +12,6 @@ Utilities for improving, formatting and decorating log file output.
 """
 import logging
 import os
-import sys
 
 LOGLEVEL_VERBOSE = 5
 LOGLEVEL_SUCCESS = 41
@@ -38,8 +37,6 @@ class MyLogger(logging.Logger):
                 continue
             rv = (co.co_filename, f.f_lineno, co.co_name, None)
             break
-        if sys.version_info[0] == 2:  # ToDo: Remove when Python 2 support is deprecated
-            rv = rv[0:3]
         return rv
 
 
@@ -205,4 +202,3 @@ def set_logging_levels():
 
 # Use this object for query logging colors
 get_level_colors = LoggingColors()
-
