@@ -1,3 +1,10 @@
+Version 1.8.2 (2022-08-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Each time the extension is executed an annoying warning
+  ``<frozen importlib._bootstrap>:671: ImportWarning: DynamicImporter.exec_module() not found; falling back to load_module()``
+  is shown (actually, this is the problem of the underlying GTK-framework, not
+  of TexText) (:issue:`350`)
+
 Version 1.8.1 (2022-02-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: When re-installing TexText with diffent paths to latex excutables
