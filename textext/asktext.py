@@ -74,11 +74,13 @@ try:
     # ======
     from contextlib import redirect_stderr
     import io
-    with redirect_stderr(io.StringIO()) as f:
+    with redirect_stderr(io.StringIO()) as h:
         from gi.repository import Gtk
-    stderr_str = f.getvalue()
-    if stderr_str.find("ImportWarning: DynamicImporter") == -1:
-        sys.stderr.write(stderr_str)
+
+    # Sort out messages matching the ImportWarning, keep all others and send them to stderr
+    for msg in (val for val in h.getvalue().splitlines(keepends=True)
+                    if val and val.find("ImportWarning: DynamicImporter") == -1):
+        sys.stderr.write(msg)
     # ======
 
     from gi.repository import Gdk, GdkPixbuf
