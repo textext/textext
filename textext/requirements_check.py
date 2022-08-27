@@ -10,98 +10,20 @@ for full license details.
 
 Classes for handling and checking of the dependencies required
 to successfully run TexText.
+
+For historic reasons this module provides very powerful mechanisms
+to check if TexText is able to run, esp. when installed from the
+command line. With most recent Inkscape versions
+the number of dependencies have been heavily reduced but we keep this
+module alive anyway.
 """
 import logging
 import os
 import re
 import subprocess
 import sys
+from .log_util import LoggingColors, get_level_colors, LOGLEVEL_VERBOSE, LOGLEVEL_SUCCESS, LOGLEVEL_UNKNOWN
 from .environment import system_env
-
-
-class LoggingColors(object):
-    enable_colors = False
-
-    COLOR_RESET = "\033[0m"
-    FG_DEFAULT = "\033[39m"
-    FG_BLACK = "\033[30m"
-    FG_RED = "\033[31m"
-    FG_GREEN = "\033[32m"
-    FG_YELLOW = "\033[33m"
-    FG_BLUE = "\033[34m"
-    FG_MAGENTA = "\033[35m"
-    FG_CYAN = "\033[36m"
-    FG_LIGHT_GRAY = "\033[37m"
-    FG_DARK_GRAY = "\033[90m"
-    FG_LIGHT_RED = "\033[91m"
-    FG_LIGHT_GREEN = "\033[92m"
-    FG_LIGHT_YELLOW = "\033[93m"
-    FG_LIGHT_BLUE = "\033[94m"
-    FG_LIGHT_MAGENTA = "\033[95m"
-    FG_LIGHT_CYAN = "\033[96m"
-    FG_WHITE = "\033[97m"
-
-    BG_DEFAULT = "\033[49m"
-    BG_BLACK = "\033[40m"
-    BG_RED = "\033[41m"
-    BG_GREEN = "\033[42m"
-    BG_YELLOW = "\033[43m"
-    BG_BLUE = "\033[44m"
-    BG_MAGENTA = "\033[45m"
-    BG_CYAN = "\033[46m"
-    BG_LIGHT_GRAY = "\033[47m"
-    BG_DARK_GRAY = "\033[100m"
-    BG_LIGHT_RED = "\033[101m"
-    BG_LIGHT_GREEN = "\033[102m"
-    BG_LIGHT_YELLOW = "\033[103m"
-    BG_LIGHT_BLUE = "\033[104m"
-    BG_LIGHT_MAGENTA = "\033[105m"
-    BG_LIGHT_CYAN = "\033[106m"
-    BG_WHITE = "\033[107m"
-
-    UNDERLINED = "\033[4m"
-
-    def __call__(self):
-        levels = [
-            VERBOSE,  # 5
-            logging.DEBUG,  # 10
-            logging.INFO,  # 20
-            logging.WARNING,  # 30
-            logging.ERROR,  # 40
-            SUCCESS,  # 41
-            UNKNOWN,  # 42
-            logging.CRITICAL  # 50
-        ]
-        names = [
-            "VERBOSE ",
-            "DEBUG   ",
-            "INFO    ",
-            "WARNING ",
-            "ERROR   ",
-            "SUCCESS ",
-            "UNKNOWN ",
-            "CRITICAL"
-        ]
-        colors = [
-            self.COLOR_RESET,
-            self.COLOR_RESET,
-            self.BG_DEFAULT + self.FG_LIGHT_BLUE,
-            self.BG_YELLOW + self.FG_WHITE,
-            self.BG_DEFAULT + self.FG_RED,
-            self.BG_DEFAULT + self.FG_GREEN,
-            self.BG_DEFAULT + self.FG_YELLOW,
-            self.BG_RED + self.FG_WHITE,
-        ]
-        if not LoggingColors.enable_colors:
-            colors = [""] * len(colors)
-            self.COLOR_RESET = ""
-        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, self.COLOR_RESET
-
-
-def set_logging_levels():
-    level_colors, COLOR_RESET = get_levels_colors()
-    for name, (level, color) in level_colors.items():
-        logging.addLevelName(level, color + name + COLOR_RESET)
 
 
 class TrinaryLogicValue(object):
@@ -157,23 +79,23 @@ class RequirementCheckResult(object):
     @property
     def color(self):
         if self.value == True:
-            return get_levels_colors()[0]["SUCCESS "][1]
+            return get_level_colors()[0]["SUCCESS "][1]
         elif self.value == False:
-            return get_levels_colors()[0]["ERROR   "][1]
+            return get_level_colors()[0]["ERROR   "][1]
         else:
-            return get_levels_colors()[0]["UNKNOWN "][1]
+            return get_level_colors()[0]["UNKNOWN "][1]
 
     def print_to_logger(self, logger, offset=0, prefix="", parent=None):
-        _, reset_color = get_levels_colors()
+        _, reset_color = get_level_colors()
 
         if self.is_critical:
             lvl = logging.CRITICAL
         elif self.value == True:
-            lvl = SUCCESS
+            lvl = LOGLEVEL_SUCCESS
         elif self.value == False:
             lvl = logging.INFO
         else:
-            lvl = UNKNOWN
+            lvl = LOGLEVEL_UNKNOWN
 
         value_repr = {
             True: "Succ",
@@ -431,8 +353,8 @@ class TexTextRequirementsChecker(object):
         try:
             executable = sys.executable
             system_env.call_command([executable, "-c", "import gi;" +
-                                                     "gi.require_version('Gtk', '3.0');" +
-                                                     "from gi.repository import Gtk, Gdk, GdkPixbuf"])
+                                     "gi.require_version('Gtk', '3.0');" +
+                                     "from gi.repository import Gtk, Gdk, GdkPixbuf"])
         except (KeyError, OSError, subprocess.CalledProcessError):
             return RequirementCheckResult(False, ["GTK3 is not found"])
         return RequirementCheckResult(True, ["GTK3 is found"])
@@ -489,9 +411,9 @@ class TexTextRequirementsChecker(object):
             first_path = None
             for path in system_env.get_system_path():
                 full_path_guess = os.path.join(path, exe_name)
-                self.logger.log(VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
+                self.logger.log(LOGLEVEL_VERBOSE, "Looking for `%s` in `%s`" % (exe_name, path))
                 if self.check_executable(full_path_guess):
-                    self.logger.log(VERBOSE, "`%s` is found at `%s`" % (exe_name, path))
+                    self.logger.log(LOGLEVEL_VERBOSE, "`%s` is found at `%s`" % (exe_name, path))
                     messages.append("`%s` is found at `%s`" % (exe_name, path))
                     if first_path is None:
                         first_path = path
@@ -581,9 +503,4 @@ class TexTextRequirementsChecker(object):
         return check_result.value
 
 
-get_levels_colors = LoggingColors()
 
-
-VERBOSE = 5
-SUCCESS = 41
-UNKNOWN = 42

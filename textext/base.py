@@ -19,8 +19,9 @@ import sys
 import uuid
 
 from .environment import system_env
-from .requirements_check import set_logging_levels, TexTextRequirementsChecker
-from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
+from .log_util import MyLogger, NestedLoggingGuard, set_logging_levels
+from .requirements_check import TexTextRequirementsChecker
+from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, Settings, Cache, \
     exec_command, version_greater_or_equal_than
 from .errors import *
 

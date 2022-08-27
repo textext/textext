@@ -20,13 +20,9 @@ import stat
 import tempfile
 import fnmatch
 
-from textext.requirements_check import \
-    set_logging_levels, \
-    TexTextRequirementsChecker, \
-    system_env, \
-    LoggingColors, \
-    SUCCESS
-
+from textext.requirements_check import  TexTextRequirementsChecker
+from textext.environment import system_env
+from textext.log_util import LoggingColors, set_logging_levels, LOGLEVEL_SUCCESS
 from textext.utility import Settings, Cache
 
 
@@ -482,6 +478,6 @@ if __name__ == "__main__":
             )
         settings.save()
 
-    logger.log(SUCCESS, "--> TexText has been SUCCESSFULLY installed on your system <--")
+    logger.log(LOGLEVEL_SUCCESS, "--> TexText has been SUCCESSFULLY installed on your system <--")
 
     exit(EXIT_SUCCESS)
