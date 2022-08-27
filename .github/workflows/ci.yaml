@@ -16,11 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
     - name: Install dependencies
       run: |
         sudo add-apt-repository --yes ppa:inkscape.dev/stable
@@ -32,7 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         # Needed by Inkscape extensions and image processing:
-        pip install lxml Pillow
+        pip install lxml cssselect Pillow
     - name: Test installation script
       run: |
         python test_installation_script.py 2> /dev/null
