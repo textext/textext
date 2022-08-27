@@ -57,9 +57,29 @@ try:
         os.environ['GI_TYPELIB_PATH'] = os.path.dirname(os.path.abspath(__file__))
 
     import gi
-
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk
+
+    # The import statement
+    # from gi.repository import Gtk
+    # writes a warning into stderr under Python 3.10 which always pops up after the
+    # extensions has been executed:
+    # "DynamicImporter.exec_module() not found; falling back to load_module()"
+    # We redirect stderr here into a string, check if
+    # this warning has been writen and silently discard it. If something else has
+    # been written to stderr we pass it to stderr.
+    # Related issues:
+    # https://gitlab.com/inkscape/extensions/-/issues/463
+    # ToDo: Remove the stuff around the import statement when this has been fixed in
+    #       updated Python 3.10 releases or is properly handled by Inkscape
+    # ======
+    from contextlib import redirect_stderr
+    import io
+    with redirect_stderr(io.StringIO()) as f:
+        from gi.repository import Gtk
+    stderr_str = f.getvalue()
+    if stderr_str.find("ImportWarning: DynamicImporter") == -1:
+        sys.stderr.write(stderr_str)
+    # ======
 
     from gi.repository import Gdk, GdkPixbuf
 
