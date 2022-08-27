@@ -1,8 +1,15 @@
+Version 1.8.2 (2022-08-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Each time the extension is executed an annoying warning
+  ``<frozen importlib._bootstrap>:671: ImportWarning: DynamicImporter.exec_module() not found; falling back to load_module()``
+  is shown (actually, this is the problem of the underlying GTK-framework, not
+  of TexText) (:issue:`350`)
+
 Version 1.8.1 (2022-02-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: When re-installing TexText with diffent paths to latex excutables
   compared to the original setup these new paths are not recognized when
-  invoking TexText from Inkscape (:issue_num:`345`).
+  invoking TexText from Inkscape (:issue:`345`).
 
 Version 1.8.0 (2022-02-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -10,35 +17,35 @@ Version 1.8.0 (2022-02-03)
   preamble file. This makes it easier to adjust the fontsize. Old preamble
   files without the ``\documentclass`` statement can still be used.
 - Changed: Instructions for installation of TexText for Inkscape in
-  Windows PortableApps (fixes :issue_num:`288`)
+  Windows PortableApps (fixes :issue:`288`)
 
 Version 1.7.1 (2022-01-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
-  (:issue_num:`338`)
+  (:issue:`338`)
 
 Version 1.7.0 (2021-12-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Adjustable font size in LaTeX code editor (GTK GUI only)
 - Fixed: distutils deprecation warning when running under Python 3.10
 - Open: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
-  (:issue_num:`338`)
+  (:issue:`338`)
 
 Version 1.6.1 (2021-11-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: When LaTeX-code is imported via the `File` - `Open` dialog
   the error message `ResourceWarning: unclosed file <_io.TextIOWrapper name'...'`
-  is shown. (:issue_num:`322`)
+  is shown. (:issue:`322`)
 
 Version 1.6.0 (2021-10-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Generated svg objects appear sometimes flipped or far away from
-  the view center (:issue_num:`283`, :issue_num:`313`)
+  the view center (:issue:`283`, :issue:`313`)
 
 - New: It is now possible to install TexText system wide for all users
   (setup script only, see
   `setup documentation <https://textext.github.io/textext/install/advanced.html>`_,
-  :issue_num:`247`, :issue_num:`314`)
+  :issue:`247`, :issue:`314`)
 
 Version 1.5.0 (2021-08-19)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,7 +53,7 @@ Version 1.5.0 (2021-08-19)
   containing `\sqrt`, `\frac`, and other commands introducing strokes
   (lines) in Inkscape is now optional, see
   `documentation <https://textext.github.io/textext/usage/gui.html#colorization-of-the-output>`_.
-  Reason for this is the increased compilation time (cf. :issue_num:`304`).
+  Reason for this is the increased compilation time (cf. :issue:`304`).
 
 - New (experimental): Support of Inkscape extension manager
   (manual install of file downloaded from
@@ -62,7 +69,7 @@ Version 1.4.0 (2021-05-31)
   if they contain strokes (as, for example, in fractions,
   square-roots or overlines). Just select the node in Inkscape and
   click on the fill color in the color bar as you do it with normal
-  Inkscape text (:issue_num:`291`).
+  Inkscape text (:issue:`291`).
 
   *Note*: Due to this, execution time per node compilation is longer
   compared to previous versions of TexText. However, you do not need to
@@ -74,38 +81,38 @@ Version 1.4.0 (2021-05-31)
 Version 1.3.1 (2021-02-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Setup script fails on Windows if Inkscape has been installed
-  via the .msi installer (:issue_num:`280`)
+  via the .msi installer (:issue:`280`)
 - Fixed: Imprecise instructions regarding location of Inkscape
-  executable in Windows setup script (:issue_num:`280`)
+  executable in Windows setup script (:issue:`280`)
 - Added: Detailed explanation of setup script options (Linux, MacOS,
   Windows)
 
 Version 1.3.0 (2020-11-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Double backslashes and missing line breaks occur when using
-  TexText 1.2.0 on nodes created with TexText <= 1.1 (:issue_num:`265`)
+  TexText 1.2.0 on nodes created with TexText <= 1.1 (:issue:`265`)
 
   **Note: A one-time manual insertion of line breaks will be necessary
   when opening such nodes. When having saved them again the line breaks
   are kept in the future. Double backslashes are replaced by single ones
   automatically.**
-- Fixed: Opening TexText is slow (:issue_num:`263`)
+- Fixed: Opening TexText is slow (:issue:`263`)
 - Fixed: Windows installation script complains about missing
-  Python GTK3 bindings (:issue_num:`262`)
+  Python GTK3 bindings (:issue:`262`)
 - New: Added explanation to the FAQ/ documentation how to
-  define a shortcut for opening TexText (:issue_num:`259`). Refer to
+  define a shortcut for opening TexText (:issue:`259`). Refer to
   https://textext.github.io/textext/usage/faq.html#defining-keyboard-shortcut-for-opening-textext-dialog
 
 Version 1.2.0 (2020-10-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: On Windows and Inkscape 1.0.1 TK interface is shown only
-  (:issue_num:`253`)
+  (:issue:`253`)
 - Fixed: Color of TexText nodes set in Inkscape not kept after
-  recompilation (:issue_num:`245`)
-- Fixed: `temp.tex` file not encoded in UTF-8 (:issue_num:`241`)
+  recompilation (:issue:`245`)
+- Fixed: `temp.tex` file not encoded in UTF-8 (:issue:`241`)
 - Fixed: Installation on Windows via batch file fails if path to
-  batch file contains spaces (:issue_num:`232`)
-- New: TexText group ID is kept after recompilation (:issue_num:`256`)
+  batch file contains spaces (:issue:`232`)
+- New: TexText group ID is kept after recompilation (:issue:`256`)
 
 Version 1.1.0 (2020-07-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,7 +124,7 @@ Version 1.1.0 (2020-07-17)
 Version 1.0.1 (2020-05-12)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: List index out of range if latex compilation fails 
-  (:issue_num:`219`)
+  (:issue:`219`)
   
 Version 1.0.0 (2020-05-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,10 +142,10 @@ Version 1.0.0 (2020-05-04)
     - Windows only: setup_win.bat now supports Python like arguments
 
 - **Important Fixes**
-    - Lost color after re-compilation of node (:issue_num:`206`)
-    - Operand type error (:issue_num:`186`)
+    - Lost color after re-compilation of node (:issue:`206`)
+    - Operand type error (:issue:`186`)
     - Gradient fills not properly rendered (e.g. in color bars)
-      (:issue_num:`148`)
+      (:issue:`148`)
     - Proper parsing and display of LaTeX compiler errors
     - Fixed: Double ESC-hit closes TexText window without confirmation
 
@@ -151,14 +158,14 @@ Version 0.11.1 (2020-05-04)
 Version 1.0.0-dev.4 (2020-04-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Vertical flipping after re-compilation of nodes created with TexText < 1.0
-  (:issue_num:`205`)
-- Fixed: Lost color after re-compilation of node (:issue_num:`206`)
+  (:issue:`205`)
+- Fixed: Lost color after re-compilation of node (:issue:`206`)
 
 Version 1.0.0-dev.3 (2020-04-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Compatibility with Inkscape 1.0 Release Candidate 1 modified extension API
-  (:issue_num:`188`, :issue_num:`193`, :issue_num:`194`, :issue_num:`196`, :issue_num:`202`, :issue_num:`203`)
-- Fixed operand type error (:issue_num:`186`)
+  (:issue:`188`, :issue:`193`, :issue:`194`, :issue:`196`, :issue:`202`, :issue:`203`)
+- Fixed operand type error (:issue:`186`)
 - Windows only: setup_win.bat now supports Python like arguments
 
 Version 1.0.0-dev.2 (2020-02-10)
@@ -179,7 +186,7 @@ Version 1.0.0-dev.1 (2019-12-17)
   dependencies anymore
 - New: Added shortcut CTRL+P for displaying the preview image
 - Fixed: Gradient fills not properly rendered (e.g. in color bars)
-  (:issue_num:`148`)
+  (:issue:`148`)
 - Fixed: Double ESC-hit closes TexText window without confirmation
 - Internal: Improved exception handling
 - Open: On Windows source code syntax highlighting is currently not available
@@ -190,7 +197,7 @@ Version 0.11.0 (2019-06-22)
   TexText window. You can select between `Escape` (default), `CTRL + Q` and
   `None`.
 - New (GTK-version only): TexText asks for confirmation to close the window
-  in case you made changes to your text (:issue_num:`127`).
+  in case you made changes to your text (:issue:`127`).
 - New: The annoying "Extension is working" window is not shown anymore.
 - New: Improved dependency check on incompatible pstoedit and ghostscript
   versions
@@ -201,35 +208,35 @@ features will be included in TexText for Inkscape 1.0.
 Version 0.10.2 (2019-05-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Disallowed pstoedit 3.73 + ghostscript 9.27 combination during
-  installation (:issue_num:`126`)
+  installation (:issue:`126`)
 
 Version 0.10.1 (2019-04-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Inkscape binary not found during installation on some MacOS
-  installations (:issue_num:`120`)
+  installations (:issue:`120`)
 
 Version 0.10.0 (2019-04-05)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Possibility to define default math environment when creating new nodes
   (empty, inline math, display math)
 - Fixed: Two grey windows appear with no text inside. Inkscape freezes and
-  becomes unusable (:issue_num:`114`)
+  becomes unusable (:issue:`114`)
 - Fixed: Log file cannot be written in system wide installations of TexText
-  (:issue_num:`111`)
+  (:issue:`111`)
 - Internal: Automatic CI deployment and documentation upload (thanks to
   Sergei Izmailov)
 
 Version 0.9.1 (2018-12-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: UnicodeDecodeError in setup.py / setup_win.bat
-  (:issue_num:`101`)
+  (:issue:`101`)
 
 
 Version 0.9.0 (2018-12-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Scripted setup procedure with automatic check of the
-  dependencies (:issue_num:`54`, :issue_num:`66`)
-- New: Added possibility to wrap long lines (:issue_num:`47`)
+  dependencies (:issue:`54`, :issue:`66`)
+- New: Added possibility to wrap long lines (:issue:`47`)
 - New: GUI settings saved to disk and reloaded at next call
   (word wrap, auto-indent, spaces instead of tab, showing line numbers,
   tab-width)
@@ -238,13 +245,13 @@ Version 0.9.0 (2018-12-20)
   to display the preview image in original size with vertical and
   horizontal scrolling enabled.
 - New: Improved error dialog
-- New: Imagemagick is not necessary anymore (:issue_num:`60`)
-- New: Automatic dependency checks during installation (:issue_num:`54`)
-- New: More detailed and informative logging (:issue_num:`35`)
-- Fixed: TeX compile error messages reappear (:issue_num:`17`)
-- Internal: Change extension repository layout (:issue_num:`28`)
-- Internal: Store TexText config in extension folder (:issue_num:`69`)
-- Internal: Add CI to monitor backward compatibility (:issue_num:`57`)
+- New: Imagemagick is not necessary anymore (:issue:`60`)
+- New: Automatic dependency checks during installation (:issue:`54`)
+- New: More detailed and informative logging (:issue:`35`)
+- Fixed: TeX compile error messages reappear (:issue:`17`)
+- Internal: Change extension repository layout (:issue:`28`)
+- Internal: Store TexText config in extension folder (:issue:`69`)
+- Internal: Add CI to monitor backward compatibility (:issue:`57`)
 - Abandoned: Support for Inkscape <= 0.91.x (see :ref:`faq-old-inkscape` for your options)
 
 Very big thanks go to Sergei Izmailov who again contributed a huge bunch of
@@ -254,12 +261,12 @@ great improvements for this release of the extension.
 Version 0.8.2 (2018-12-12)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 v0.8.2:
-  - Fixed: pstoedit/pdf2svg interoperability on distorted nodes :issue_num:`56`
+  - Fixed: pstoedit/pdf2svg interoperability on distorted nodes :issue:`56`
 
 Version 0.8.1 (2018-08-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Loss of user defined preamble file path when re-editing
-  nodes (:issue_num:`40`, thanks to veltsov@github).
+  nodes (:issue:`40`, thanks to veltsov@github).
 - Added file chooser button for selection of preamble file in Tk
   interface
 
@@ -276,14 +283,14 @@ Version 0.8.0 (2018-08-21)
 Version 0.7.3 (2018-05-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Failure when trying to re-edit nodes created with very old versions of
-  TexText. (:issue_num:`15`: "Recompiling of nodes created with TexText < 0.5 fails")
+  TexText. (:issue:`15`: "Recompiling of nodes created with TexText < 0.5 fails")
 
-- Fixed: :issue_num:`19`: Missing width and height attributes in svg document
+- Fixed: :issue:`19`: Missing width and height attributes in svg document
   lead to crash
 
 Version 0.7.2 (2018-04-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Fixed: Failure on missing Inkscape version key (:issue_num:`10`: "Error occurred while
+- Fixed: Failure on missing Inkscape version key (:issue:`10`: "Error occurred while
   converting text from LaTeX to SVG")
 
 
@@ -291,10 +298,10 @@ Version 0.7.1 (2018-02-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed:
   Wrong scaling so that text with explicitly defined font size does not match
-  size of text with equal font size in Inkscape 0.92.x (:issue_num:`1`)
+  size of text with equal font size in Inkscape 0.92.x (:issue:`1`)
 
 - Fixed:
-  "Zero length field name in format" error in Inkcape <= 0.91 (:issue_num:`6`)
+  "Zero length field name in format" error in Inkcape <= 0.91 (:issue:`6`)
 
 
 .. note::
