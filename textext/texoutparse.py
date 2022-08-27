@@ -28,14 +28,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 END OF LICENSE
-
-Adapted to be compatible with Python 2.7 by TexText developers
 """
 import re
 from collections import deque
 
 
-class LogFileMessage(object):
+class LogFileMessage:
     """
     Helper class for storing log file messages.
 
@@ -54,13 +52,13 @@ class LogFileMessage(object):
         try:
             return self.info[item]
         except KeyError:
-            raise KeyError('Item {item} was not found.', format(item=item))
+            raise KeyError(f'Item {item} was not found.')
 
     def __setitem__(self, key, value):
         self.info[key] = value
 
 
-class _LineIterWrapper(object):
+class _LineIterWrapper:
     """
     Wrapper around an iterable that allows peeking ahead to get context lines
     without consuming the iterator.
@@ -79,9 +77,6 @@ class _LineIterWrapper(object):
             self.current = current = next(self.iterable)
         return current
 
-    def next(self):
-        return self.__next__()
-
     def __iter__(self):
         return self
 
@@ -97,7 +92,7 @@ class _LineIterWrapper(object):
         return rv
 
 
-class LatexLogParser(object):
+class LatexLogParser:
     """
     Parser for LaTeX Log files.
 
@@ -137,8 +132,9 @@ class LatexLogParser(object):
         self.context_lines = context_lines
 
     def __str__(self):
-        return "Errors: {len_err}, Warnings: {len_warn},  Badboxes: {len_bb}".format(
-            len_err=len(self.errors), len_warn=len(self.warnings), len_bb=len(self.badboxes))
+        return (f"Errors: {len(self.errors)}, "
+                f"Warnings: {len(self.warnings)}, "
+                f"Badboxes: {len(self.badboxes)}")
 
     def process(self, lines):
         """
@@ -154,7 +150,7 @@ class LatexLogParser(object):
         # cache the line processor for speed
         process_line = self.process_line
 
-        for _, line in enumerate(lines_iterable):
+        for i, line in enumerate(lines_iterable):
             if not line:
                 continue
             err = process_line(line)
@@ -312,7 +308,7 @@ class LatexLogParser(object):
         :return: LogFileMessage object.
         """
         message = LogFileMessage()
-        message["type"] = "Missing {grp}".format(grp=match.group(1))
+        message["type"] = f"Missing {match.group(1)}"
         message["key"] = match.group(2)
         message["page"] = match.group(3)
         message["line"] = match.group(4)
