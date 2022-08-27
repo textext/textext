@@ -18,7 +18,7 @@ LOGLEVEL_SUCCESS = 41
 LOGLEVEL_UNKNOWN = 42
 
 
-class MyLogger(logging.Logger):
+class TexTextLogger(logging.Logger):
     """
         Needed to produce correct line numbers
     """

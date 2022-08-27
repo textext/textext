@@ -19,7 +19,7 @@ import sys
 import uuid
 
 from .environment import system_env
-from .log_util import MyLogger, NestedLoggingGuard, set_logging_levels
+from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels
 from .requirements_check import TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, Settings, Cache, \
     exec_command, version_greater_or_equal_than
@@ -38,7 +38,7 @@ EXIT_CODE_UNEXPECTED_ERROR = 60
 # `user_log_channel` accumulates log messages to show them to user via .show_messages() function
 #
 set_logging_levels()
-logging.setLoggerClass(MyLogger)
+logging.setLoggerClass(TexTextLogger)
 __logger = logging.getLogger('TexText')
 logger = NestedLoggingGuard(__logger)
 __logger.setLevel(logging.DEBUG)
