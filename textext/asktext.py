@@ -74,6 +74,7 @@ try:
     # ======
     from contextlib import redirect_stderr
     import io
+
     with redirect_stderr(io.StringIO()) as h:
         from gi.repository import Gtk
 
