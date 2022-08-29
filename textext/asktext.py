@@ -32,7 +32,7 @@ TOOLKIT = None
 
 # Try GTK first
 #   If successful, try GTKSourceView (bonus points!)
-#   If unsuccessful, try TK (first for Python 3, then for Python 2)
+#   If unsuccessful, try TKinter
 #   When not even TK could be imported, abort with error message
 try:
     # Hotfix for Inkscape 1.0.1 on Windows: HarfBuzz-0.0.typelib is missing
@@ -83,14 +83,9 @@ try:
 
 except (ImportError, TypeError, ValueError) as _:
     try:
-        if sys.version_info[0] == 3: # TK for Python 3 (if this fails, try Python 2 below)
-            import tkinter as Tk
-            from tkinter import messagebox as TkMsgBoxes
-            from tkinter import filedialog as TkFileDialogs
-        else: # TK for Python 2
-            import Tkinter as Tk
-            import tkMessageBox as TkMsgBoxes
-            import tkFileDialog as TkFileDialogs
+        import tkinter as Tk
+        from tkinter import messagebox as TkMsgBoxes
+        from tkinter import filedialog as TkFileDialogs
         TOOLKIT = TK
 
     except ImportError:
