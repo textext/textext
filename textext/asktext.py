@@ -38,8 +38,9 @@ TOOLKIT = None
 import os
 import sys
 import warnings
+from contextlib import redirect_stderr
 from .errors import TexTextCommandFailed
-from textext.utility import SuppressStream
+
 
 # unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
 
@@ -72,7 +73,6 @@ try:
     # ToDo: Remove the stuff around the import statement when this has been fixed in
     #       updated Python 3.10 releases or is properly handled by Inkscape
     # ======
-    from contextlib import redirect_stderr
     import io
 
     with redirect_stderr(io.StringIO()) as h:
@@ -1289,7 +1289,7 @@ class AskTextGTKSource(AskText):
             self._preview_callback = preview_callback
 
             # create first window
-            with SuppressStream():  # suppress GTK Warings printed directly to stderr in C++
+            with redirect_stderr(None):
                 window = self.create_window()
             window.set_default_size(500, 525)
             # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
