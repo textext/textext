@@ -17,12 +17,13 @@ import os
 import platform
 import sys
 import uuid
+import subprocess
 
 from .environment import system_env
 from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels
 from .requirements_check import TexTextRequirementsChecker
 from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, Settings, Cache, \
-    exec_command, version_greater_or_equal_than
+    version_greater_or_equal_than
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
@@ -529,6 +530,40 @@ class TexToPdfConverter:
         """
         return self.tmp_base + '.' + suffix
 
+    @staticmethod
+    def exec_command(cmd, ok_return_value=0):
+        """
+        Run given command, check return value, and return
+        concatenated stdout and stderr.
+        :param cmd: Command to execute
+        :param ok_return_value: The expected return value after successful completion
+        :raises: TexTextCommandNotFound, TexTextCommandFailed
+        """
+
+        try:
+            # hides the command window for cli tools that are run (in Windows)
+            info = None
+            if platform.system() == "Windows":
+                info = subprocess.STARTUPINFO()
+                info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                info.wShowWindow = subprocess.SW_HIDE
+
+            p = subprocess.Popen(cmd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 stdin=subprocess.PIPE,
+                                 startupinfo=info)
+            out, err = p.communicate()
+        except OSError as err:
+            raise TexTextCommandNotFound("Command %s failed: %s" % (' '.join(cmd), err))
+
+        if ok_return_value is not None and p.returncode != ok_return_value:
+            raise TexTextCommandFailed(message="Command %s failed (code %d)" % (' '.join(cmd), p.returncode),
+                                       return_code=p.returncode,
+                                       stdout=out,
+                                       stderr=err)
+        return out + err
+
     def tex_to_pdf(self, tex_command, latex_text, preamble_file):
         """
         Create a PDF file from latex text
@@ -559,7 +594,7 @@ class TexToPdfConverter:
 
             # Exec tex_command: tex -> pdf
             try:
-                exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
+                self.exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
             except TexTextCommandFailed as error:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
@@ -572,7 +607,7 @@ class TexToPdfConverter:
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
-        exec_command([
+        self.exec_command([
             self.checker.inkscape_executable,
             "--pdf-poppler",
             "--pdf-page=1",
@@ -591,7 +626,7 @@ class TexToPdfConverter:
         E.g. $\\overline x$ -> the line above x is converted from stroke to path
         """
         try:
-            exec_command([
+            self.exec_command([
                 self.checker.inkscape_executable,
                 "-g",
                 "--batch-process",
@@ -621,7 +656,7 @@ class TexToPdfConverter:
                 "--export-background-opacity=1.0"
             ])
 
-        exec_command(cmd)
+        self.exec_command(cmd)
 
     def parse_pdf_log(self):
         """

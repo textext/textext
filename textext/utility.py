@@ -15,15 +15,12 @@ import contextlib
 import json
 import logging.handlers
 import os
-import platform
 import shutil
 import stat
-import subprocess
 import tempfile
 import re
 
 from .errors import *
-import sys
 
 
 class ChangeDirectory(object):
@@ -142,40 +139,6 @@ class Cache(Settings):
             pass
 
 
-def exec_command(cmd, ok_return_value=0):
-    """
-    Run given command, check return value, and return
-    concatenated stdout and stderr.
-    :param cmd: Command to execute
-    :param ok_return_value: The expected return value after successful completion
-    :raises: TexTextCommandNotFound, TexTextCommandFailed
-    """
-
-    try:
-        # hides the command window for cli tools that are run (in Windows)
-        info = None
-        if PLATFORM == WINDOWS:
-            info = subprocess.STARTUPINFO()
-            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            info.wShowWindow = subprocess.SW_HIDE
-
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             stdin=subprocess.PIPE,
-                             startupinfo=info)
-        out, err = p.communicate()
-    except OSError as err:
-        raise TexTextCommandNotFound("Command %s failed: %s" % (' '.join(cmd), err))
-
-    if ok_return_value is not None and p.returncode != ok_return_value:
-        raise TexTextCommandFailed(message="Command %s failed (code %d)" % (' '.join(cmd), p.returncode),
-                                   return_code=p.returncode,
-                                   stdout=out,
-                                   stderr=err)
-    return out + err
-
-
 def version_greater_or_equal_than(version_str, other_version_str):
     """ Checks if a version number is >= than another version number
 
@@ -204,8 +167,3 @@ def version_greater_or_equal_than(version_str, other_version_str):
             return float("nan")
 
     return ver_str_to_float(version_str) >= ver_str_to_float(other_version_str)
-
-
-MAC = "Darwin"
-WINDOWS = "Windows"
-PLATFORM = platform.system()
