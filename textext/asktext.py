@@ -15,15 +15,6 @@ It is used uniformly from base.py via the ask method of the
 AskText class depending on the available GUI framework
 (TkInter or GTK3).
 """
-
-WINDOW_TITLE = "Enter LaTeX Formula - TexText"
-
-GTKSOURCEVIEW = "GTK Source View"
-GTK = "GTK"
-TK = "TK"
-
-TOOLKIT = None
-
 import os
 import sys
 import warnings
@@ -31,7 +22,13 @@ from contextlib import redirect_stderr
 from .errors import TexTextCommandFailed
 
 
-# unfortunately, with Inkscape being 32bit on OSX, I couldn't get GTKSourceView to work, yet
+WINDOW_TITLE = "Enter LaTeX Formula - TexText"
+GTKSOURCEVIEW = "GTK Source View"
+GTK = "GTK"
+TK = "TK"
+
+TOOLKIT = None
+
 
 # Try GTK first
 #   If successful, try GTKSourceView (bonus points!)
