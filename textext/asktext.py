@@ -16,17 +16,6 @@ AskText class depending on the available GUI framework
 (TkInter or GTK3).
 """
 
-DEBUG = False
-debug_text = r"""$
-\left(
-   \begin{array}{ccc}
-     a_{11} & \cdots & a_{1n} \\
-     \vdots & \ddots & \vdots \\
-     a_{m1} & \cdots & a_{mn}
-   \end{array}
-\right)
-$"""
-
 WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 
 GTKSOURCEVIEW = "GTK Source View"
@@ -154,10 +143,7 @@ class AskText(object):
         if len(text) > 0:
             self.text = text
         else:
-            if DEBUG:
-                self.text = debug_text
-            else:
-                self.text = ""
+            self.text = ""
 
         self.textext_version = version_str
         self.callback = None
