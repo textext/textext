@@ -22,7 +22,7 @@ import subprocess
 from .environment import system_env
 from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels
 from .requirements_check import TexTextRequirementsChecker
-from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, Settings, Cache, \
+from .utility import change_to_temp_dir, CycleBufferHandler, Settings, Cache, \
     version_greater_or_equal_than
 from .errors import *
 
@@ -320,7 +320,7 @@ class TexText(inkex.EffectExtension):
             if isinstance(text, bytes):
                 text = text.decode('utf-8')
 
-            with ChangeToTemporaryDirectory():
+            with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
@@ -359,7 +359,7 @@ class TexText(inkex.EffectExtension):
 
             # Convert
             with logger.debug("Converting tex to svg"):
-                with ChangeToTemporaryDirectory():
+                with change_to_temp_dir():
                     converter = TexToPdfConverter(self.requirements_checker)
                     converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_svg()
