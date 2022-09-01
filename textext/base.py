@@ -22,8 +22,7 @@ import subprocess
 from .environment import system_env
 from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels
 from .requirements_check import TexTextRequirementsChecker
-from .utility import change_to_temp_dir, CycleBufferHandler, Settings, Cache, \
-    version_greater_or_equal_than
+from .utility import change_to_temp_dir, CycleBufferHandler, Settings, Cache
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
@@ -397,7 +396,7 @@ class TexText(inkex.EffectExtension):
                     # not in doc units! Hence, we need to convert the value to the document unit.
                     # so the transform is correct later.
                     if hasattr(inkex, "__version__"):
-                        if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
+                        if self.version_greater_or_equal_than(inkex.__version__, "1.2.0"):
                             view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
                             view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
@@ -500,6 +499,37 @@ class TexText(inkex.EffectExtension):
     def copy_style(old_node, new_node):
         # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
         return
+
+    @staticmethod
+    def version_greater_or_equal_than(version_str, other_version_str):
+        """ Checks if a version number is >= than another version number
+
+        Version numbers are passed as strings and must be of type "N.M.Rarb" where N, M, R
+        are non negative decimal numbers < 1000 and arb is an arbitrary string.
+        For example, "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev" are valid version strings.
+
+        Returns:
+            True if the version number is equal or greater then the other version number,
+            otherwise false
+
+        """
+
+        def ver_str_to_float(ver_str):
+            """ Parse version string and returns it as a floating point value
+
+            Returns The version string as floating point number for easy comparison
+            (minor version and relase number padded with zeros). E.g. "1.23.4dev" -> 1.023004.
+            If conversion fails returns NaN.
+
+            """
+            m = re.search(r"(\d+).(\d+).(\d+)[-\w]*", ver_str)
+            if m is not None:
+                ver_maj, ver_min, ver_rel = m.groups()
+                return float("{}.{:0>3}{:0>3}".format(ver_maj, ver_min, ver_rel))
+            else:
+                return float("nan")
+
+        return ver_str_to_float(version_str) >= ver_str_to_float(other_version_str)
 
 
 class TexToPdfConverter:
