@@ -16,7 +16,6 @@ import json
 import logging.handlers
 import os
 import tempfile
-import re
 
 from .errors import *
 
