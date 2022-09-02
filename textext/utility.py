@@ -15,6 +15,7 @@ import contextlib
 import json
 import logging.handlers
 import os
+import sys
 import tempfile
 
 from .errors import *
@@ -42,14 +43,7 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
             self.buffer = self.buffer[-self.capacity:]
 
     def show_messages(self):
-        import sys
-        version_is_good = (2, 7) <= sys.version_info < (3, 0)
-        if version_is_good:
-            import inkex
-            """show messages to user and empty buffer"""
-            inkex.errormsg("\n".join([self.format(record) for record in self.buffer]))
-        else:
-            sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
+        sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
         self.flush()
 
 
