@@ -22,7 +22,8 @@ import subprocess
 from .environment import system_env
 from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels, CycleBufferHandler
 from .requirements_check import TexTextRequirementsChecker
-from .utility import change_to_temp_dir, Settings, Cache
+from .settings import Settings, Cache
+from .utility import change_to_temp_dir
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
