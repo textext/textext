@@ -20,9 +20,9 @@ import uuid
 import subprocess
 
 from .environment import system_env
-from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels
+from .log_util import TexTextLogger, NestedLoggingGuard, set_logging_levels, CycleBufferHandler
 from .requirements_check import TexTextRequirementsChecker
-from .utility import change_to_temp_dir, CycleBufferHandler, Settings, Cache
+from .utility import change_to_temp_dir, Settings, Cache
 from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:

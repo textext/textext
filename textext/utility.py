@@ -13,9 +13,7 @@ system command execution
 """
 import contextlib
 import json
-import logging.handlers
 import os
-import sys
 import tempfile
 
 from .errors import *
@@ -30,21 +28,6 @@ def change_to_temp_dir():
             yield
         finally:
             os.chdir(orig_dir)
-
-
-class CycleBufferHandler(logging.handlers.BufferingHandler):
-
-    def __init__(self, capacity):
-        super(CycleBufferHandler, self).__init__(capacity)
-
-    def emit(self, record):
-        self.buffer.append(record)
-        if len(self.buffer) > self.capacity:
-            self.buffer = self.buffer[-self.capacity:]
-
-    def show_messages(self):
-        sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
-        self.flush()
 
 
 class Settings(object):

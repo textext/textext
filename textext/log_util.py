@@ -11,7 +11,9 @@ for full license details.
 Utilities for improving, formatting and decorating log file output.
 """
 import logging
+import logging.handlers
 import os
+import sys
 
 LOGLEVEL_VERBOSE = 5
 LOGLEVEL_SUCCESS = 41
@@ -202,3 +204,18 @@ def set_logging_levels():
 
 # Use this object for query logging colors
 get_level_colors = LoggingColors()
+
+
+class CycleBufferHandler(logging.handlers.BufferingHandler):
+
+    def __init__(self, capacity):
+        super(CycleBufferHandler, self).__init__(capacity)
+
+    def emit(self, record):
+        self.buffer.append(record)
+        if len(self.buffer) > self.capacity:
+            self.buffer = self.buffer[-self.capacity:]
+
+    def show_messages(self):
+        sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
+        self.flush()
