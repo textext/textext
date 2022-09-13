@@ -1,11 +1,11 @@
 name: Continuous Integration Tests
 on:
   push:
-    branches: [master, develop, github_actions]
+    branches: [develop, github_actions]
     paths-ignore:
       - 'docs/**'
   pull_request:
-    branches: [master, develop, github_actions]
+    branches: [develop, github_actions]
     paths-ignore:
       - 'docs/**'
   # Allows manual invocation:
