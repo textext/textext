@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import Tuple, Union
 
 from .log_util_new import NestedLoggingGuard
 from .environment import system_env
@@ -34,23 +35,24 @@ class DependencyCheck(object):
         super(DependencyCheck, self).__init__()
         self._logger = logger
 
-    def detect_inkscape(self, inkscape_exe_path: str = None, no_path_check: bool = False) -> str:
+    def detect_inkscape(self, inkscape_exe_path: str = None) -> str:
         exe_path = ""
-        inkscape_exe_path = self.detect_executable("inkscape", inkscape_exe_path, no_path_check)
+        inkscape_exe_path = self.detect_executable("inkscape", inkscape_exe_path)
         if inkscape_exe_path and self.check_inkscape_version(inkscape_exe_path):
             exe_path = inkscape_exe_path
         return exe_path
 
-    def detect_pdflatex(self, pdflatex_exe_path: str = None, no_path_check: bool = False) -> str:
-        return self.detect_executable("pdflatex", pdflatex_exe_path, no_path_check)
+    def detect_pdflatex(self, pdflatex_exe_path: str = None) -> str:
+        return self.detect_executable("pdflatex", pdflatex_exe_path)
 
-    def detect_xelatex(self, xelatex_exe_path: str = None, no_path_check: bool = False) -> str:
-        return self.detect_executable("xelatex", xelatex_exe_path, no_path_check)
+    def detect_xelatex(self, xelatex_exe_path: str = None) -> str:
+        return self.detect_executable("xelatex", xelatex_exe_path)
 
-    def detect_lualatex(self, lualatex_exe_path: str = None, no_path_check: bool = False) -> str:
-        return self.detect_executable("lualatex", lualatex_exe_path, no_path_check)
+    def detect_lualatex(self, lualatex_exe_path: str = None) -> str:
+        return self.detect_executable("lualatex", lualatex_exe_path)
 
-    def check(self, inkscape_exe_path, pdflatex_exe_path, lualatex_exe_path, xelatex_exe_path):
+    def check(self, inkscape_exe_path, pdflatex_exe_path, lualatex_exe_path, xelatex_exe_path) -> \
+            Union[Tuple[str, str, str, str], None]:
         with self._logger.info("Checking TexText dependencies..."):
             inkscape_exe_path = self.detect_inkscape(inkscape_exe_path)
             gtk_available = self.detect_pygtk3()
@@ -67,23 +69,16 @@ class DependencyCheck(object):
                 self._logger.critical("Not all requirements are fulfilled!")
                 return None
 
-    def detect_executable(self, prog_name: str, exe_path: str = None, no_path_check: bool = False) -> str:
+    def detect_executable(self, prog_name: str, exe_path: str = None) -> str:
         """
-        Tries to find an executable at given location or/ and in system oath
-
-        This method tries to locate an executable of a program in the system path.
-        Additionally, it offers the possibility to check the existance of the
-        executable at a specified location.
+        Tries to find an executable at a given location or in the system oath
 
         Args:
-            prog_name (str): The name of the program. It is used as a key
-                in the executable_names property of the system_env object
-                imported from the environment module (e.g. "inkscape")
-            exe_path (str, optional): The guessed path of the executable (e.g.
-                "C:\\Program Files\\Inkscape\\bin\\inkscape.exe")
-            no_path_check (bool): Set this to True if you would like to avoid the
-                automatic check in the system path if the specified path in
-                exe_path is not valid.
+            prog_name (str): The name of the program (key in
+                system_env.executable_names (e.g. "inkscape")
+            exe_path (str, optional): The path of the executable to
+                check. If None, the executable will be searched in the system
+                path
 
         Returns:
             The absolute path of the executable as a string if the executable has been
@@ -91,20 +86,15 @@ class DependencyCheck(object):
             string.
 
         """
-        with self._logger.info("Trying to detect executbale of {0}...".format(prog_name)):
-            if exe_path:
-                with self._logger.info("Checking for {0} at given path `{1}`...".format(prog_name, exe_path)):
-                    if self.check_executable(prog_name, exe_path):
-                        self._logger.info("{0} is found at `{1}`".format(prog_name, exe_path))
-                        return exe_path
-                    else:
-                        if no_path_check:
-                            self._logger.error("{0} is NOT found at `{1}`.".format(prog_name, exe_path))
-                            return ""
-                        else:
-                            self._logger.warning("{0} is NOT found at `{1}`, trying to find in system path now...".
-                                                 format(prog_name, exe_path))
-
+        if exe_path:
+            with self._logger.info("Checking for {0} at given path `{1}`...".format(prog_name, exe_path)):
+                if self.check_executable(prog_name, exe_path):
+                    self._logger.info("{0} is found at `{1}`".format(prog_name, exe_path))
+                    return exe_path
+                else:
+                    self._logger.error("{0} is NOT found at `{1}`.".format(prog_name, exe_path))
+                    return ""
+        else:
             with self._logger.info("Trying to find {0} in system path...".format(prog_name)):
                 found_path = self.find_executable_in_path(prog_name)
                 if found_path:
@@ -115,8 +105,7 @@ class DependencyCheck(object):
 
     def check_executable(self, prog_name: str, exe_path: str) -> bool:
         """
-        Checks if specified file exists and is executable. Corresponding messages
-        will be written into the logfile.
+        Checks if specified file exists and is executable.
 
         Args:
             prog_name (str): The name of the program (e.g. "inkscape", used for logging only)
@@ -136,12 +125,11 @@ class DependencyCheck(object):
 
     def find_executable_in_path(self, prog_name: str) -> str:
         """
-        Tries to find an executable of a program in the system path. Corresponding messages
-        are written into the logfile
+        Tries to find an executable of a program in the system path.
 
         Args:
-            prog_name (str): The name of the program. It is used as a key in the executable_names
-                property of the system_env object imported from the environment module
+            prog_name (str): The name of the program (key in system_env.executable_names
+                (e.g. "inkscape")
 
         Returns:
             The absolute path to the executable if it has been found, otherwise an empty string.
