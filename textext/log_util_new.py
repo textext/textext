@@ -237,7 +237,10 @@ def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: b
     # Add the handler for file output
     try:
         os.makedirs(logfile_dir, exist_ok=True)
-        log_file_handler = logging.FileHandler(os.path.join(logfile_dir, logfile_name))
+        log_file_handler = logging.handlers.RotatingFileHandler(os.path.join(logfile_dir, logfile_name),
+                                                                maxBytes=500 * 1024,  # up to 500 kB
+                                                                backupCount=2,  # up to two log files
+                                                                encoding="utf-8")
     except OSError as error:
         basic_logger.error("Unable to create logfile. Error message: {0}".format(error.strerror))
     else:
