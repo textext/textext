@@ -18,7 +18,6 @@ import platform
 import sys
 import uuid
 import subprocess
-
 from .environment import system_env
 from .log_util_new import setup_logging, NestedLoggingGuard
 from .requirements_check import TexTextRequirementsChecker
@@ -26,36 +25,32 @@ from .settings import Settings, Cache
 from .utility import change_to_temp_dir
 from .errors import *
 
-with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
-    __version__ = version_file.readline().strip()
+# Open logger before accessing Inkscape modules, so we can catch properly any erros thrown by them
+logger, log_console_hanlder = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
+                                            logfile_name="textext.log", cached_console_logging = True)
+import inkex
+from lxml import etree
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
-
-logger, log_console_hanlder = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
-                                            logfile_name="textext.log", cached_console_logging = True)
-
-import inkex
-from lxml import etree
-
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
 XLINK_NS = u"http://www.w3.org/1999/xlink"
-
 ID_PREFIX = "textext-"
-
 NSS = {
     u'textext': TEXTEXT_NS,
     u'svg': SVG_NS,
     u'xlink': XLINK_NS,
 }
 
+with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
+    __version__ = version_file.readline().strip()
+
 
 # ------------------------------------------------------------------------------
 # Inkscape plugin functionality
 # ------------------------------------------------------------------------------
-
 class TexText(inkex.EffectExtension):
 
     DEFAULT_ALIGNMENT = "middle center"
