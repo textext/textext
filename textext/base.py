@@ -28,7 +28,6 @@ from .errors import *
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
     __version__ = version_file.readline().strip()
-__docformat__ = "restructuredtext en"
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
