@@ -502,11 +502,11 @@ class TexToPdfConverter:
     """
     DEFAULT_DOCUMENT_CLASS = r"\documentclass{article}"
     DOCUMENT_TEMPLATE = r"""
-    %s
-    \pagestyle{empty}
-    \begin{document}
-    %s
-    \end{document}
+    {0}
+    \pagestyle{{empty}}
+    \begin{{document}}
+    {1}
+    \end{{document}}
     """
 
     LATEX_OPTIONS = ['-interaction=nonstopmode',
@@ -578,7 +578,7 @@ class TexToPdfConverter:
 
             # Options pass to LaTeX-related commands
 
-            texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
+            texwrapper = self.DOCUMENT_TEMPLATE.format(preamble, latex_text)
 
             # Convert TeX to PDF
 
