@@ -677,8 +677,8 @@ def _contains_document_class(preamble):
     Also, checks and considers if the command is commented out or not.
     """
     lines = preamble.split("\n")
-    document_commands = ["\\documentclass{", "\\documentclass[",
-                        "\\documentstyle{", "\\documentstyle["]
+    document_commands = [r"\documentclass{", r"\documentclass[",
+                         r"\documentstyle{", r"\documentstyle["]
     for line in lines:
         for document_command in document_commands:
             if document_command in line and "%" not in line.split(document_command)[0]:
