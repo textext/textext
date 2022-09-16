@@ -19,7 +19,6 @@ import traceback
 
 if __name__ == "__main__":
     try:
-
         effect = TexText()
         effect.run()
         effect.cache["previous_exit_code"] = EXIT_CODE_OK
@@ -35,22 +34,24 @@ if __name__ == "__main__":
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
         log_console_hanlder.show_messages()
         try:
-            cache = Cache()
+            cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
         except:
             pass
         exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
+
     except TexTextFatalError as e:
         logger.error(str(e))
         log_console_hanlder.show_messages()
         try:
-            cache = Cache()
+            cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
             cache.save()
         except:
             pass
         exit(EXIT_CODE_EXPECTED_ERROR)  # Bad setup
+
     except Exception as e:
         # All errors should be handled by above clause.
         # If any propagates here it's TexText logic error and should be reported.
@@ -61,7 +62,7 @@ if __name__ == "__main__":
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
         log_console_hanlder.show_messages()
         try:
-            cache = Cache()
+            cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
         except:
