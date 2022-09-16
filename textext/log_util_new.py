@@ -244,7 +244,6 @@ def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: b
     except OSError as error:
         basic_logger.error("Unable to create logfile. Error message: {0}".format(error.strerror))
     else:
-        basic_logger.info("Logfile created: {0}".format(log_file_handler.baseFilename))
         log_file_handler.setLevel(logging.DEBUG)
         log_file_handler.setFormatter(LoggingFormatter(colored_messages=False, with_datetime=True, with_source=True))
         basic_logger.addHandler(log_file_handler)
