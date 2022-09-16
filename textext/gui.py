@@ -12,7 +12,7 @@ This is the GUI part of TexText, handling several more or less
 sophisticated dialog windows depending on the installed tools.
 
 It is used uniformly from base.py via the ask method of the
-AskText class depending on the available GUI framework
+TexTextGuiBase class depending on the available GUI framework
 (TkInter or GTK3).
 """
 import os
@@ -101,7 +101,7 @@ def set_monospace_font(text_view, font_size):
         pass
 
 
-class AskText(object):
+class TexTextGuiBase(object):
     """GUI for editing TexText objects"""
 
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
@@ -195,13 +195,13 @@ class AskText(object):
         return scale_factor
 
 
-class AskTextTK(AskText):
+class TexTextGuiTK(TexTextGuiBase):
     """TK GUI for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, current_convert_strokes_to_path, gui_config):
-        super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                        current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config)
+        super(TexTextGuiTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
+                                           current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config)
         self._frame = None
         self._scale = None
 
@@ -471,14 +471,14 @@ class AskTextTK(AskText):
         close_button.pack(side='top', fill='x', expand=True)
 
 
-class AskTextGTKSource(AskText):
+class TexTextGuiGTK(TexTextGuiBase):
     """GTK + Source Highlighting for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
                  current_texcmd, current_convert_strokes_to_path, gui_config):
-        super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                               current_alignment, current_texcmd, current_convert_strokes_to_path,
-                                               gui_config)
+        super(TexTextGuiGTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
+                                            current_alignment, current_texcmd, current_convert_strokes_to_path,
+                                            gui_config)
         self._preview = None  # type: Gtk.Image
         self._pixbuf = None  # type: GdkPixbuf
         self.preview_representation = "SCALE"  # type: str
@@ -617,14 +617,14 @@ class AskTextGTKSource(AskText):
         if response == Gtk.ResponseType.OK:
             filename = chooser.get_filename()
             if filename:
-                AskTextGTKSource.open_file(text_buffer, filename)
+                TexTextGuiGTK.open_file(text_buffer, filename)
         chooser.destroy()
 
     @staticmethod
     def update_position_label(text_buffer, asktext, view):
         """
         Update the position label below the source code view
-        :param (AskTextGTKSource) asktext:
+        :param (TexTextGuiGTK) asktext:
         :param text_buffer:
         :param view:
         """
@@ -681,7 +681,7 @@ class AskTextGTKSource(AskText):
         else:
             path = os.path.abspath(filename)
 
-        AskTextGTKSource.load_file(text_buffer, path)
+        TexTextGuiGTK.load_file(text_buffer, path)
 
     # Callback methods for the various menu items at the top of the window
     def numbers_toggled_cb(self, action, sourceview):
@@ -1340,6 +1340,6 @@ class AskTextGTKSource(AskText):
 
 
 if TOOLKIT == TK:
-    AskTextDefault = AskTextTK
+    TexTextGui = TexTextGuiTK
 elif TOOLKIT in (GTK, GTKSOURCEVIEW):
-    AskTextDefault = AskTextGTKSource
+    TexTextGui = TexTextGuiGTK

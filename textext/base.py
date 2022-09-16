@@ -120,7 +120,7 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .asktext import AskTextDefault
+        from .gui import TexTextGui
 
         with logger.debug("TexText.effect"):
 
@@ -136,7 +136,7 @@ class TexText(inkex.EffectExtension):
             current_tex_command = self.config.get("previous_tex_command", self.DEFAULT_TEXCMD)
 
             # This is very important when re-editing nodes which have been created using TexText <= 0.7.
-            # It ensures that the scale factor which is displayed in the AskText dialog is adjusted
+            # It ensures that the scale factor which is displayed in the TexTextGuiBase dialog is adjusted
             # in such a way that the size of the node is preserved when recompiling the LaTeX code.
             # ("version" attribute introduced in 0.7.1)
             if old_svg_ele is not None:
@@ -186,10 +186,10 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                       current_alignment=alignment, current_texcmd=current_tex_command,
-                                       current_convert_strokes_to_path=current_convert_strokes_to_path,
-                                       gui_config=gui_config)
+                asker = TexTextGui(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                   current_alignment=alignment, current_texcmd=current_tex_command,
+                                   current_convert_strokes_to_path=current_convert_strokes_to_path,
+                                   gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
