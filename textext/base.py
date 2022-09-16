@@ -20,7 +20,6 @@ import uuid
 import subprocess
 from .environment import system_env
 from .log_util_new import setup_logging
-from .requirements_check import TexTextRequirementsChecker
 from .settings import Settings, Cache
 from .utility import change_to_temp_dir
 from .errors import *
@@ -89,27 +88,6 @@ class TexText(inkex.EffectExtension):
         logger.debug("sys.version = {0}".format(sys.version))
         logger.debug("os.environ = {0}".format(os.environ))
 
-        self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
-
-        if previous_exit_code == EXIT_CODE_OK and "requirements_checker" in self.cache.values:
-            self.requirements_checker.inkscape_executable = self.cache["requirements_checker"][
-                "inkscape_executable"]
-            self.requirements_checker.available_tex_to_pdf_converters = self.cache["requirements_checker"][
-                "available_tex_to_pdf_converters"]
-            self.requirements_checker.available_pdf_to_svg_converters = self.cache["requirements_checker"][
-                "available_pdf_to_svg_converters"]
-        else:
-            if not self.requirements_checker.check():
-                raise TexTextFatalError("TexText requirements are not met. "
-                                        "Please follow instructions "
-                                        "https://textext.github.io/textext/")
-            else:
-                self.cache["requirements_checker"] = {
-                    "inkscape_executable": self.requirements_checker.inkscape_executable,
-                    "available_tex_to_pdf_converters": self.requirements_checker.available_tex_to_pdf_converters,
-                    "available_pdf_to_svg_converters": self.requirements_checker.available_pdf_to_svg_converters,
-                }
-
         super(TexText, self).__init__()
 
         self.arg_parser.add_argument(
@@ -151,16 +129,11 @@ class TexText(inkex.EffectExtension):
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
-            preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
-
-            if preferred_tex_cmd in self.requirements_checker.available_tex_to_pdf_converters.keys():
-                current_tex_command = preferred_tex_cmd
-            else:
-                current_tex_command = list(self.requirements_checker.available_tex_to_pdf_converters.keys())[0]
-
             if text:
                 logger.debug("Old node text = {0}".format(text))
                 logger.debug("Old node scale = {0}".format(current_scale))
+
+            current_tex_command = self.config.get("previous_tex_command", self.DEFAULT_TEXCMD)
 
             # This is very important when re-editing nodes which have been created using TexText <= 0.7.
             # It ensures that the scale factor which is displayed in the AskText dialog is adjusted
@@ -180,7 +153,9 @@ class TexText(inkex.EffectExtension):
 
                 alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
 
-                current_tex_command = old_svg_ele.get_meta("texconverter", current_tex_command)
+                current_tex_command = old_svg_ele.get_meta("texconverter",
+                                                           self.config.get("previous_tex_command",
+                                                                           TexText.DEFAULT_TEXCMD))
 
             gui_config = self.config.get("gui", {})
 
@@ -214,8 +189,6 @@ class TexText(inkex.EffectExtension):
                 asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
                                        current_alignment=alignment, current_texcmd=current_tex_command,
                                        current_convert_strokes_to_path=current_convert_strokes_to_path,
-                                       tex_commands=sorted(list(
-                                         self.requirements_checker.available_tex_to_pdf_converters.keys())),
                                        gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
@@ -269,7 +242,8 @@ class TexText(inkex.EffectExtension):
         :param (bool) white_bg: set background to white if True
         """
 
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+        # ToDo: Ask user if not defined!
+        tex_executable = self.config.get("{0}-executable".format(tex_command))
 
         with logger.debug("TexText.preview"):
             with logger.debug("args:"):
@@ -285,8 +259,9 @@ class TexText(inkex.EffectExtension):
 
             with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    converter = TexToPdfConverter(latex_exe=tex_executable,
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
@@ -306,7 +281,8 @@ class TexText(inkex.EffectExtension):
         """
         from inkex import Transform
 
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+        # ToDo: Ask user what to do if not def.
+        tex_executable = self.config.get("{0}-executable".format(tex_command))
 
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
@@ -323,8 +299,9 @@ class TexText(inkex.EffectExtension):
             # Convert
             with logger.debug("Converting tex to svg"):
                 with change_to_temp_dir():
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    converter = TexToPdfConverter(latex_exe=tex_executable,
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_svg()
 
                     if convert_stroke_to_path:
@@ -512,9 +489,10 @@ class TexToPdfConverter:
     LATEX_OPTIONS = ['-interaction=nonstopmode',
                      '-halt-on-error']
 
-    def __init__(self, checker):
+    def __init__(self, inkscape_exe: str, latex_exe: str):
         self.tmp_base = 'tmp'
-        self.checker = checker  # type: requirements_check.TexTextRequirementsChecker
+        self._inkscape_exe = inkscape_exe
+        self._latex_exe = latex_exe
 
     # --- Internal
     def tmp(self, suffix):
@@ -558,7 +536,7 @@ class TexToPdfConverter:
                                        stderr=err)
         return out + err
 
-    def tex_to_pdf(self, tex_command, latex_text, preamble_file):
+    def tex_to_pdf(self, latex_text, preamble_file):
         """
         Create a PDF file from latex text
         """
@@ -588,7 +566,7 @@ class TexToPdfConverter:
 
             # Exec tex_command: tex -> pdf
             try:
-                self.exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
+                self.exec_command([self._latex_exe, self.tmp('tex')] + self.LATEX_OPTIONS)
             except TexTextCommandFailed as error:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
@@ -597,12 +575,12 @@ class TexToPdfConverter:
                     raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
 
             if not os.path.exists(self.tmp('pdf')):
-                raise TexTextConversionError("{0} didn't produce output {1}".format(tex_command, self.tmp('pdf')))
+                raise TexTextConversionError("{0} didn't produce output {1}".format(self._latex_exe, self.tmp('pdf')))
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
         self.exec_command([
-            self.checker.inkscape_executable,
+            self._inkscape_exe,
             "--pdf-poppler",
             "--pdf-page=1",
             "--export-type=svg",
@@ -621,7 +599,7 @@ class TexToPdfConverter:
         """
         try:
             self.exec_command([
-                self.checker.inkscape_executable,
+                self._inkscape_exe,
                 "-g",
                 "--batch-process",
                 "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".
@@ -635,7 +613,7 @@ class TexToPdfConverter:
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
         cmd = [
-            self.checker.inkscape_executable,
+            self._inkscape_exe,
             "--pdf-poppler",
             "--pdf-page=1",
             "--export-type=png",

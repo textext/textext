@@ -122,8 +122,8 @@ class AskText(object):
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
-        self.TEX_COMMANDS = tex_commands
+                 current_texcmd, current_convert_strokes_to_path, gui_config):
+        self.TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
         if len(text) > 0:
             self.text = text
         else:
@@ -199,9 +199,9 @@ class AskTextTK(AskText):
     """TK GUI for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
+                 current_texcmd, current_convert_strokes_to_path, gui_config):
         super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                        current_alignment, current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config)
+                                        current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config)
         self._frame = None
         self._scale = None
 
@@ -475,10 +475,10 @@ class AskTextGTKSource(AskText):
     """GTK + Source Highlighting for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
+                 current_texcmd, current_convert_strokes_to_path, gui_config):
         super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                                current_alignment, current_texcmd, current_convert_strokes_to_path,
-                                               tex_commands, gui_config)
+                                               gui_config)
         self._preview = None  # type: Gtk.Image
         self._pixbuf = None  # type: GdkPixbuf
         self.preview_representation = "SCALE"  # type: str
