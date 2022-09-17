@@ -85,21 +85,6 @@ except (ImportError, TypeError, ValueError) as _:
                            "installation instructions on https://textext.github.io/textext/ !")
 
 
-def set_monospace_font(text_view, font_size):
-    """
-    Set the font to monospace in the text view
-    :param text_view: A GTK TextView
-    :param font_size: The font size in the TextView in pt
-    """
-    try:
-        from gi.repository import Pango
-        font_desc = Pango.FontDescription('monospace {0}'.format(font_size))
-        if font_desc:
-            text_view.modify_font(font_desc)
-    except ImportError:
-        pass
-
-
 class TexTextGuiBase(object):
     """GUI for editing TexText objects"""
 
@@ -624,6 +609,21 @@ class TexTextGuiGTK(TexTextGuiBase):
                    new_node_content=new_node_content, close_shortcut=close_shortcut)
 
     @staticmethod
+    def set_monospace_font(text_view, font_size):
+        """
+        Set the font to monospace in the text view
+        :param text_view: A GTK TextView
+        :param font_size: The font size in the TextView in pt
+        """
+        try:
+            from gi.repository import Pango
+            font_desc = Pango.FontDescription('monospace {0}'.format(font_size))
+            if font_desc:
+                text_view.modify_font(font_desc)
+        except ImportError:
+            pass
+
+    @staticmethod
     def open_file_cb(_, text_buffer):
         """
         Present file chooser to select a source code file
@@ -735,7 +735,7 @@ class TexTextGuiGTK(TexTextGuiBase):
     # noinspection PyUnusedLocal
     def font_size_cb(self, action, previous_value, sourceview):
         self._gui_config["font_size"] = self.FONT_SIZE[action.get_current_value()]
-        set_monospace_font(sourceview, self._gui_config["font_size"])
+        self.set_monospace_font(sourceview, self._gui_config["font_size"])
 
     # noinspection PyUnusedLocal
     def close_shortcut_cb(self, action, previous_value, sourceview):
@@ -1149,7 +1149,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._source_view.set_size_request(-1, 150)
 
         scroll_window.add(self._source_view)
-        set_monospace_font(self._source_view, self.DEFAULT_FONTSIZE)
+        self.set_monospace_font(self._source_view, self.DEFAULT_FONTSIZE)
 
         # Action group and UI manager
         ui_manager = Gtk.UIManager()
