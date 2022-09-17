@@ -22,7 +22,6 @@ from contextlib import redirect_stderr
 from .errors import TexTextCommandFailed
 
 
-WINDOW_TITLE = "Enter LaTeX Formula - TexText"
 GTKSOURCEVIEW = "GTK Source View"
 GTK = "GTK"
 TK = "TK"
@@ -54,20 +53,20 @@ try:
     import io
 
     with redirect_stderr(io.StringIO()) as h:
-        from gi.repository import Gtk
+        from gi.repository import Gtk  # noqa
 
     # Sort out messages matching the ImportWarning, keep all others and send them to stderr
     for msg in (val for val in h.getvalue().splitlines(keepends=True)
-                    if val and val.find("ImportWarning: DynamicImporter") == -1):
+                if val and val.find("ImportWarning: DynamicImporter") == -1):
         sys.stderr.write(msg)
     # ======
 
-    from gi.repository import Gdk, GdkPixbuf
+    from gi.repository import Gdk, GdkPixbuf  # noqa
 
     try:
 
         gi.require_version('GtkSource', '3.0')
-        from gi.repository import GtkSource
+        from gi.repository import GtkSource  # noqa
 
         TOOLKIT = GTKSOURCEVIEW
     except (ImportError, TypeError, ValueError) as _:
@@ -75,9 +74,9 @@ try:
 
 except (ImportError, TypeError, ValueError) as _:
     try:
-        import tkinter as Tk
-        from tkinter import messagebox as TkMsgBoxes
-        from tkinter import filedialog as TkFileDialogs
+        import tkinter as tk
+        from tkinter import messagebox as tk_msg_boxes
+        from tkinter import filedialog as tk_file_dialogs
         TOOLKIT = TK
 
     except ImportError:
@@ -94,7 +93,7 @@ def set_monospace_font(text_view, font_size):
     """
     try:
         from gi.repository import Pango
-        font_desc = Pango.FontDescription('monospace %d' % (font_size))
+        font_desc = Pango.FontDescription('monospace {0}'.format(font_size))
         if font_desc:
             text_view.modify_font(font_desc)
     except ImportError:
@@ -160,14 +159,6 @@ class TexTextGuiBase(object):
         raise NotImplementedError()
 
     def show_error_dialog(self, title, message_text, exception):
-        """
-        Presents an error dialog
-
-        :param parent: Parent window
-        :param title: Error title text
-        :param message_text: Message text to be displayed
-        :param exception: Exception thrown
-        """
         raise NotImplementedError()
 
     @staticmethod
@@ -198,28 +189,46 @@ class TexTextGuiBase(object):
 class TexTextGuiTK(TexTextGuiBase):
     """TK GUI for editing TexText objects"""
 
-    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, gui_config):
-        super(TexTextGuiTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                           current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config)
+    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor,
+                 current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config):
+
+        super(TexTextGuiTK, self).__init__(version_str, text, preamble_file, global_scale_factor,
+                                           current_scale_factor, current_alignment, current_texcmd,
+                                           current_convert_strokes_to_path, gui_config)
+
+        # ToDo: Check which of this variables are  needed as class attributes
+        self._root = None
         self._frame = None
         self._scale = None
+        self._preamble = None
+        self._askfilename_button = None
+        self._convert_strokes_to_path = None
+        self._tex_command_tk_str = None
+        self._reset_button = None
+        self._global_button = None
+        self._alignment_tk_str = None
+        self._word_wrap_tkva = None
+        self._word_wrap_checkbotton = None
+        self._word_wrap_tkval = None
+        self._text_box = None
+        self._cancel = None
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
         """Callback for Cancel button"""
         raise SystemExit(1)
 
+    # noinspection PyUnusedLocal, PyPep8Naming
     @staticmethod
     def validate_spinbox_input(d, i, P, s, S, v, V, W):
-        """ Ensure that only floating point numbers are accepted as input of a Tk widget
+        """ Ensure that only floating point numbers are accepted as input of a tk widget
             Inspired from:
             https://stackoverflow.com/questions/4140437/interactively-validating-entry-widget-content-in-tkinter
 
             S -> string coming from user, s -> current string in the box, P -> resulting string in the box
             d -> Command (insert = 1, delete = 0), i -> Index position of cursor
             Note: Selecting an entry and copying something from the clipboard is rejected by this method. Reason:
-            Without validation Tk appends the content of the clipboard at the end of the selection leading to
+            Without validation tk appends the content of the clipboard at the end of the selection leading to
             invalid content. So with or without this validation method you need to delete the content of the
             box before inserting the new stuff.
         """
@@ -238,135 +247,135 @@ class TexTextGuiTK(TexTextGuiBase):
     def ask(self, callback, preview_callback=None):
         self.callback = callback
 
-        self._root = Tk.Tk()
+        self._root = tk.Tk()
         self._root.title("TexText {0}".format(self.textext_version))
 
-        self._frame = Tk.Frame(self._root)
+        self._frame = tk.Frame(self._root)
         self._frame.pack()
 
-        # Frame box for preamble file
-        box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="Preamble file:")
+        # Framebox for preamble file
+        box = tk.Frame(self._frame, relief="groove", borderwidth=2)
+        label = tk.Label(box, text="Preamble file:")
         label.pack(pady=2, padx=5, anchor="w")
-        self._preamble = Tk.Entry(box)
+        self._preamble = tk.Entry(box)
         self._preamble.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
-        self._preamble.insert(Tk.END, self.preamble_file)
+        self._preamble.insert(tk.END, self.preamble_file)
 
-        self._askfilename_button = Tk.Button(box, text="Select...",
-                                       command=self.select_preamble_file)
+        self._askfilename_button = tk.Button(box, text="Select...",
+                                             command=self.select_preamble_file)
         self._askfilename_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
         box.pack(fill="x", pady=0, expand=True)
 
         # Frame holding the advanced settings and the tex command
-        box2 = Tk.Frame(self._frame, relief="flat")
+        box2 = tk.Frame(self._frame, relief="flat")
         box2.pack(fill="x", pady=5, expand=True)
 
-        # Frame box for advanced settings
-        self._convert_strokes_to_path = Tk.BooleanVar()
+        # Framebox for advanced settings
+        self._convert_strokes_to_path = tk.BooleanVar()
         self._convert_strokes_to_path.set(self.current_convert_strokes_to_path)
-        box = Tk.Frame(box2, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="SVG-output:")
+        box = tk.Frame(box2, relief="groove", borderwidth=2)
+        label = tk.Label(box, text="SVG-output:")
         label.pack(pady=2, padx=5, anchor="w")
-        Tk.Checkbutton(box, text="No strokes", variable=self._convert_strokes_to_path, onvalue=True, offvalue=False).pack(side="left", expand=False, anchor="w")
-        box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
+        tk.Checkbutton(box, text="No strokes", variable=self._convert_strokes_to_path,
+                       onvalue=True, offvalue=False).pack(side="left", expand=False, anchor="w")
+        box.pack(side=tk.RIGHT, fill="x", pady=5, expand=True)
 
-        # Frame box for tex command
-        self._tex_command_tk_str = Tk.StringVar()
+        # Framebox for tex command
+        self._tex_command_tk_str = tk.StringVar()
         self._tex_command_tk_str.set(self.current_texcmd)
-        box = Tk.Frame(box2, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="TeX command:")
+        box = tk.Frame(box2, relief="groove", borderwidth=2)
+        label = tk.Label(box, text="TeX command:")
         label.pack(pady=2, padx=5, anchor="w")
         for tex_command in self.TEX_COMMANDS:
-            Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
+            tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
                            value=tex_command).pack(side="left", expand=False, anchor="w")
-        box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
+        box.pack(side=tk.RIGHT, fill="x", pady=5, expand=True)
 
-
-        # Frame box for scale factor and reset buttons
-        box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="Scale factor:")
+        # Framebox for scale factor and reset buttons
+        box = tk.Frame(self._frame, relief="groove", borderwidth=2)
+        label = tk.Label(box, text="Scale factor:")
         label.pack(pady=2, padx=5, anchor="w")
 
         validation_command = (self._root.register(self.validate_spinbox_input),
                               '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        self._scale = Tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
+        self._scale = tk.Spinbox(box, from_=0.001, to=10, increment=0.001, validate="key",
                                  validatecommand=validation_command)
         self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
         self._scale.delete(0, "end")
         self._scale.insert(0, self.scale_factor_after_loading())
 
         reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-        self._reset_button = Tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
+        self._reset_button = tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
                                        command=self.reset_scale_factor)
         self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
         if self.text == "":
-            self._reset_button.config(state=Tk.DISABLED)
+            self._reset_button.config(state=tk.DISABLED)
 
-        self._global_button = Tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
+        self._global_button = tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
                                         command=self.use_global_scale_factor)
         self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
         box.pack(fill="x", pady=5, expand=True)
 
         # Alignment
-        box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="Alignment to existing node:")
+        box = tk.Frame(self._frame, relief="groove", borderwidth=2)
+        label = tk.Label(box, text="Alignment to existing node:")
         label.pack(pady=2, padx=5, anchor="w")
 
-        self._alignment_tk_str = Tk.StringVar() # Does not work in ctor, and Tk.Tk() in front opens 2nd window
-        self._alignment_tk_str.set(self.current_alignment) # Variable holding the radio button selection
+        self._alignment_tk_str = tk.StringVar()  # Does not work in ctor, and tk.tk() in front opens 2nd window
+        self._alignment_tk_str.set(self.current_alignment)  # Variable holding the radio button selection
 
-        alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8] # To pick labels columnwise: xxx-left, xxx-center, ...
+        alignment_index_list = [0, 3, 6, 1, 4, 7, 2, 5, 8]  # To pick labels columnwise: xxx-left, xxx-center, ...
         vbox = None
-        tk_state = Tk.DISABLED if self.text == "" else Tk.NORMAL
+        tk_state = tk.DISABLED if self.text == "" else tk.NORMAL
         for i, ind in enumerate(alignment_index_list):
             if i % 3 == 0:
-                vbox = Tk.Frame(box)
-            Tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
+                vbox = tk.Frame(box)
+            tk.Radiobutton(vbox, text=self.ALIGNMENT_LABELS[ind], variable=self._alignment_tk_str,
                            value=self.ALIGNMENT_LABELS[ind], state=tk_state).pack(expand=True, anchor="w")
             if (i + 1) % 3 == 0:
                 vbox.pack(side="left", fill="x", expand=True)
         box.pack(fill="x")
 
         # Word wrap status
-        self._word_wrap_tkval = Tk.BooleanVar()
+        self._word_wrap_tkval = tk.BooleanVar()
         self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
 
         # Frame with text input field and word wrap checkbox
-        box = Tk.Frame(self._frame, relief="groove", borderwidth=2)
-        ibox = Tk.Frame(box)
-        label = Tk.Label(ibox, text="LaTeX code:")
-        self._word_wrap_checkbotton = Tk.Checkbutton(ibox, text="Word wrap", variable=self._word_wrap_tkval,
+        box = tk.Frame(self._frame, relief="groove", borderwidth=2)
+        ibox = tk.Frame(box)
+        label = tk.Label(ibox, text="LaTeX code:")
+        self._word_wrap_checkbotton = tk.Checkbutton(ibox, text="Word wrap", variable=self._word_wrap_tkval,
                                                      onvalue=True, offvalue=False, command=self.cb_word_wrap)
-        label.pack(pady=0, padx=5, side = "left", anchor="w")
-        self._word_wrap_checkbotton.pack(pady=0, padx=5, side = "right", anchor="w")
+        label.pack(pady=0, padx=5, side="left", anchor="w")
+        self._word_wrap_checkbotton.pack(pady=0, padx=5, side="right", anchor="w")
         ibox.pack(expand=True, fill="both", pady=0, padx=0)
 
-        ibox = Tk.Frame(box)
-        iibox = Tk.Frame(ibox)
-        self._text_box = Tk.Text(iibox, width=70, height=12) # 70 chars, 12 lines
-        hscrollbar = Tk.Scrollbar(iibox, orient=Tk.HORIZONTAL, command=self._text_box.xview)
-        self._text_box["xscrollcommand"]=hscrollbar.set
-        self._text_box.pack(expand=True, fill="both", pady=0, padx=1, anchor = "w")
+        ibox = tk.Frame(box)
+        iibox = tk.Frame(ibox)
+        self._text_box = tk.Text(iibox, width=70, height=12)  # 70 chars, 12 lines
+        hscrollbar = tk.Scrollbar(iibox, orient=tk.HORIZONTAL, command=self._text_box.xview)
+        self._text_box["xscrollcommand"] = hscrollbar.set
+        self._text_box.pack(expand=True, fill="both", pady=0, padx=1, anchor="w")
         hscrollbar.pack(expand=True, fill="both", pady=2, padx=5)
 
-        vscrollbar = Tk.Scrollbar(ibox, orient=Tk.VERTICAL, command=self._text_box.yview)
-        self._text_box["yscrollcommand"]=vscrollbar.set
+        vscrollbar = tk.Scrollbar(ibox, orient=tk.VERTICAL, command=self._text_box.yview)
+        self._text_box["yscrollcommand"] = vscrollbar.set
         iibox.pack(expand=True, fill="both", pady=0, padx=1, side="left", anchor="e")
-        vscrollbar.pack(expand=True, fill="y", pady=2, padx=1, side = "left", anchor = "e")
+        vscrollbar.pack(expand=True, fill="y", pady=2, padx=1, side="left", anchor="e")
         ibox.pack(expand=True, fill="both", pady=0, padx=5)
 
-        self._text_box.insert(Tk.END, self.text)
-        self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+        self._text_box.insert(tk.END, self.text)
+        self._text_box.configure(wrap=tk.WORD if self._word_wrap_tkval.get() else tk.NONE)
 
         box.pack(fill="x", pady=2)
 
         # OK and Cancel button
-        box = Tk.Frame(self._frame)
-        self._ok_button = Tk.Button(box, text="OK", command=self.cb_ok)
+        box = tk.Frame(self._frame)
+        self._ok_button = tk.Button(box, text="OK", command=self.cb_ok)
         self._ok_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
-        self._cancel = Tk.Button(box, text="Cancel", command=self.cb_cancel)
+        self._cancel = tk.Button(box, text="Cancel", command=self.cb_cancel)
         self._cancel.pack(ipadx=10, ipady=4, pady=5, padx=5, side="right")
         box.pack(expand=False)
 
@@ -388,10 +397,10 @@ class TexTextGuiTK(TexTextGuiBase):
         try:
             self.global_scale_factor = float(self._scale.get())
         except ValueError:
-            TkMsgBoxes.showerror("Scale factor error",
-                                 "Please enter a valid floating point number for the scale factor!")
+            tk_msg_boxes.showerror("Scale factor error",
+                                   "Please enter a valid floating point number for the scale factor!")
             return
-        self.text = self._text_box.get(1.0, Tk.END)
+        self.text = self._text_box.get(1.0, tk.END)
         self.preamble_file = self._preamble.get()
         self.current_convert_strokes_to_path = self._convert_strokes_to_path.get()
 
@@ -400,15 +409,16 @@ class TexTextGuiTK(TexTextGuiBase):
                           self._tex_command_tk_str.get(), self.current_convert_strokes_to_path)
         except Exception as error:
             self.show_error_dialog("TexText Error",
-                              "Error occurred while converting text from Latex to SVG:",
-                              error)
+                                   "Error occurred while converting text from Latex to SVG:",
+                                   error)
             return False
 
         self._frame.quit()
         return False
 
+    # noinspection PyUnusedLocal
     def cb_word_wrap(self, widget=None, data=None):
-        self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
+        self._text_box.configure(wrap=tk.WORD if self._word_wrap_tkval.get() else tk.NONE)
         self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
 
     def reset_scale_factor(self, _=None):
@@ -420,33 +430,33 @@ class TexTextGuiTK(TexTextGuiBase):
         self._scale.insert(0, self.global_scale_factor)
 
     def select_preamble_file(self):
-        file_name = TkFileDialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
-                                                  title="Select preamble file",
-                                                  filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
+        file_name = tk_file_dialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
+                                                    title="Select preamble file",
+                                                    filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
         if file_name is not None:
-            self._preamble.delete(0, Tk.END)
-            self._preamble.insert(Tk.END, file_name)
+            self._preamble.delete(0, tk.END)
+            self._preamble.insert(tk.END, file_name)
 
     def show_error_dialog(self, title, message_text, exception):
 
         # ToDo: Check Windows behavior!! --> -disable
         self._root.wm_attributes("-topmost", False)
 
-        err_dialog = Tk.Toplevel(self._frame)
+        err_dialog = tk.Toplevel(self._frame)
         err_dialog.minsize(300, 400)
         err_dialog.transient(self._frame)
         err_dialog.focus_force()
         err_dialog.grab_set()
 
         def add_textview(header, text):
-            err_dialog_frame = Tk.Frame(err_dialog)
-            err_dialog_label = Tk.Label(err_dialog_frame, text=header)
-            err_dialog_label.pack(side='top', fill=Tk.X)
-            err_dialog_text = Tk.Text(err_dialog_frame, height=10)
-            err_dialog_text.insert(Tk.END, text)
-            err_dialog_text.pack(side='left', fill=Tk.Y)
-            err_dialog_scrollbar = Tk.Scrollbar(err_dialog_frame)
-            err_dialog_scrollbar.pack(side='right', fill=Tk.Y)
+            err_dialog_frame = tk.Frame(err_dialog)
+            err_dialog_label = tk.Label(err_dialog_frame, text=header)
+            err_dialog_label.pack(side='top', fill=tk.X)
+            err_dialog_text = tk.Text(err_dialog_frame, height=10)
+            err_dialog_text.insert(tk.END, text)
+            err_dialog_text.pack(side='left', fill=tk.Y)
+            err_dialog_scrollbar = tk.Scrollbar(err_dialog_frame)
+            err_dialog_scrollbar.pack(side='right', fill=tk.Y)
             err_dialog_scrollbar.config(command=err_dialog_text.yview)
             err_dialog_text.config(yscrollcommand=err_dialog_scrollbar.set)
             err_dialog_frame.pack(side='top')
@@ -467,7 +477,7 @@ class TexTextGuiTK(TexTextGuiBase):
             if exception.stderr:
                 add_textview('Stderr:', exception.stderr.decode('utf-8'))
 
-        close_button = Tk.Button(err_dialog, text='OK', command=close_error_dialog)
+        close_button = tk.Button(err_dialog, text='OK', command=close_error_dialog)
         close_button.pack(side='top', fill='x', expand=True)
 
 
@@ -479,6 +489,8 @@ class TexTextGuiGTK(TexTextGuiBase):
         super(TexTextGuiGTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
                                             current_alignment, current_texcmd, current_convert_strokes_to_path,
                                             gui_config)
+
+        # ToDo: Check which of this variables are  needed as class attributes
         self._preview = None  # type: Gtk.Image
         self._pixbuf = None  # type: GdkPixbuf
         self.preview_representation = "SCALE"  # type: str
@@ -487,6 +499,14 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._texcmd_cbox = None
         self._preview_callback = None
         self._source_view = None
+        self._preview_button = None
+        self._alignment_combobox = None
+        self._conv_stroke2path = None
+        self.pos_label = None
+        self._preview_button = None
+        self._alignment_combobox = None
+        self._conv_stroke2path = None
+        self._same_height_objects = None
 
         self.buffer_actions = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
@@ -607,7 +627,6 @@ class TexTextGuiGTK(TexTextGuiBase):
     def open_file_cb(_, text_buffer):
         """
         Present file chooser to select a source code file
-        :param text_buffer: The target text buffer to show the loaded text in
         """
         chooser = Gtk.FileChooserDialog('Open file...', None,
                                         Gtk.FileChooserAction.OPEN,
@@ -700,29 +719,36 @@ class TexTextGuiGTK(TexTextGuiBase):
         sourceview.set_wrap_mode(Gtk.WrapMode.WORD if action.get_active() else Gtk.WrapMode.NONE)
         self._gui_config["word_wrap"] = action.get_active()
 
+    # noinspection PyUnusedLocal
     def on_preview_background_chagned(self, action, sourceview):
         self._gui_config["white_preview_background"] = action.get_active()
 
+    # noinspection PyUnusedLocal
     def tabs_toggled_cb(self, action, previous_value, sourceview):
         sourceview.set_tab_width(action.get_current_value())
         self._gui_config["tab_width"] = action.get_current_value()
 
+    # noinspection PyUnusedLocal
     def new_node_content_cb(self, action, previous_value, sourceview):
         self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
 
+    # noinspection PyUnusedLocal
     def font_size_cb(self, action, previous_value, sourceview):
         self._gui_config["font_size"] = self.FONT_SIZE[action.get_current_value()]
         set_monospace_font(sourceview, self._gui_config["font_size"])
 
+    # noinspection PyUnusedLocal
     def close_shortcut_cb(self, action, previous_value, sourceview):
         self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
         self._cancel_button.set_tooltip_text(
             "Don't save changes ({})".format(self._close_shortcut_actions[action.get_current_value()][2]).replace(
                 "_", ""))
 
+    # noinspection PyUnusedLocal
     def confirm_close_toggled_cb(self, action, sourceview):
         self._gui_config["confirm_close"] = action.get_active()
 
+    # noinspection PyUnusedLocal
     def cb_key_press(self, widget, event, data=None):
         """
         Handle keyboard shortcuts
@@ -746,7 +772,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
         if (close_shortcut_value == 'Escape' and Gdk.keyval_name(event.keyval) == 'Escape') or \
            (close_shortcut_value == 'CtrlQ' and Gdk.keyval_name(event.keyval) == 'q' and
-            ctrl_is_pressed):
+           ctrl_is_pressed):
             self._cancel_button.clicked()
             return True
 
@@ -786,9 +812,11 @@ class TexTextGuiGTK(TexTextGuiBase):
         """Callback for Cancel button"""
         self.window_deleted_cb(widget, None, None)
 
+    # noinspection PyUnusedLocal
     def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
         self.update_position_label(text_buffer, self, view)
 
+    # noinspection PyUnusedLocal
     def window_deleted_cb(self, widget, event, view):
         if (self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
                 and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
@@ -812,6 +840,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         Gtk.main_quit()
         return False
 
+    # noinspection PyUnusedLocal
     def update_preview(self, widget):
         """Update the preview image of the GUI using the callback it gave """
         if self._preview_callback:
@@ -828,11 +857,12 @@ class TexTextGuiGTK(TexTextGuiBase):
             try:
                 self._preview_callback(text, preamble, self.set_preview_image_from_file,
                                        self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                                       self._gui_config.get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
+                                       self._gui_config.get("white_preview_background",
+                                                            self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
             except Exception as error:
                 self.show_error_dialog("TexText Error",
                                        "Error occurred while generating preview:",
-                                        error)
+                                       error)
                 return False
 
     def set_preview_image_from_file(self, path):
@@ -845,9 +875,10 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._preview_scroll_window.set_has_tooltip(False)
         self.update_preview_representation()
 
+    # noinspection PyUnusedLocal
     def switch_preview_representation(self, widget=None, event=None):
-        if event.button == 1: # left click only
-            if event.type == Gdk.EventType._2BUTTON_PRESS:  # only double click
+        if event.button == 1:  # left click only
+            if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:  # only double click
                 if self.preview_representation == "SCALE":
                     if self._preview_scroll_window.get_has_tooltip():
                         self.preview_representation = "SCROLL"
@@ -875,7 +906,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             pixbuf = self._pixbuf
             if scale != 1:
                 pixbuf = self._pixbuf.scale_simple(int(image_width * scale), int(image_height * scale),
-                                                                              GdkPixbuf.InterpType.BILINEAR)
+                                                   GdkPixbuf.InterpType.BILINEAR)
                 self._preview_scroll_window.set_tooltip_text("Double click: scale to original size")
 
             self._preview.set_from_pixbuf(pixbuf)
@@ -889,16 +920,16 @@ class TexTextGuiGTK(TexTextGuiBase):
 
             scroll_bar_width = 30
 
-            desired_preview_area_height = image_height
+            preview_area_height = image_height
             if image_width + scroll_bar_width >= textview_width:
-                desired_preview_area_height += scroll_bar_width
+                preview_area_height += scroll_bar_width
 
-            if desired_preview_area_height>max_preview_height or image_width > textview_width:
+            if preview_area_height > max_preview_height or image_width > textview_width:
                 self._preview_scroll_window.set_tooltip_text("Double click: scale to fit window")
 
             self._preview.set_from_pixbuf(self._pixbuf)
             self._preview.set_size_request(image_width, image_height)
-            return desired_preview_area_height
+            return preview_area_height
 
         if self.preview_representation == "SCROLL":
             desired_preview_area_height = set_scroll_preview()
@@ -1079,7 +1110,9 @@ class TexTextGuiGTK(TexTextGuiBase):
         adv_settings_frame = Gtk.Frame()
         adv_settings_frame.set_label("SVG output")
         self._conv_stroke2path = Gtk.CheckButton(label="No strokes")
-        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) can be easily \ncolored in Inkscape (Time consuming compilation!)")
+        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) "
+                                                "can be easily \ncolored in Inkscape "
+                                                "(Time consuming compilation!)")
         self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
         adv_settings_frame.add(self._conv_stroke2path)
 
@@ -1184,11 +1217,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         vbox.show_all()
 
         # ToDo: Currently this seems to do nothing?
-        self._same_height_objects = [
-            preamble_frame,
-            texcmd_frame,
-            scale_align_hbox
-        ]
+        self._same_height_objects = [preamble_frame, texcmd_frame, scale_align_hbox]
 
         self._preview_scroll_window.hide()
 
@@ -1222,17 +1251,17 @@ class TexTextGuiGTK(TexTextGuiBase):
             action.set_active(True)
             self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
-        if self.text=="":
-            if new_node_content_value=='InlineMath':
-                self.text="$$"
+        if self.text == "":
+            if new_node_content_value == 'InlineMath':
+                self.text = "$$"
                 self._source_buffer.set_text(self.text)
-                iter = self._source_buffer.get_iter_at_offset(1)
-                self._source_buffer.place_cursor(iter)
-            if new_node_content_value=='DisplayMath':
+                sb_iter = self._source_buffer.get_iter_at_offset(1)
+                self._source_buffer.place_cursor(sb_iter)
+            if new_node_content_value == 'DisplayMath':
                 self.text = "$$$$"
                 self._source_buffer.set_text(self.text)
-                iter = self._source_buffer.get_iter_at_offset(2)
-                self._source_buffer.place_cursor(iter)
+                sb_iter = self._source_buffer.get_iter_at_offset(2)
+                self._source_buffer.place_cursor(sb_iter)
 
         # Connect event callbacks
         window.connect("key-press-event", self.cb_key_press)
@@ -1280,7 +1309,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         button.connect("clicked", lambda w, d=None: dialog.destroy())
         message_label = Gtk.Label()
         message_label.set_markup("<b>{message}</b>".format(message=message_text))
-        message_label.set_justify(Gtk.Justification.LEFT )
+        message_label.set_justify(Gtk.Justification.LEFT)
 
         raw_output_box = Gtk.VBox()
 
@@ -1307,6 +1336,7 @@ class TexTextGuiGTK(TexTextGuiBase):
 
             expander = Gtk.Expander()
 
+            # noinspection PyUnusedLocal
             def callback(event):
                 if expander.get_expanded():
                     desired_height = 20
