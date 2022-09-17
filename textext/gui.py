@@ -18,6 +18,7 @@ TexTextGuiBase class depending on the available GUI framework
 import os
 import sys
 import warnings
+from abc import ABCMeta, abstractmethod
 from contextlib import redirect_stderr
 from .errors import TexTextCommandFailed
 
@@ -86,7 +87,7 @@ except (ImportError, TypeError, ValueError) as _:
 
 
 class TexTextGuiBase(object):
-    """GUI for editing TexText objects"""
+    __metaclass__ = ABCMeta
 
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
                         "middle left", "middle center", "middle right",
@@ -135,26 +136,6 @@ class TexTextGuiBase(object):
         self._cancel_button = None
         self._window = None
 
-    def ask(self, callback, preview_callback=None):
-        """
-        Present the GUI for entering LaTeX code and setting some options
-        :param callback: A callback function (basically, what to do with the values from the GUI)
-        :param preview_callback: A callback function to run to create a preview rendering
-        """
-        raise NotImplementedError()
-
-    def show_error_dialog(self, title, message_text, exception):
-        raise NotImplementedError()
-
-    @staticmethod
-    def cb_cancel(widget=None, data=None):
-        """Callback for Cancel button"""
-        raise NotImplementedError()
-
-    def cb_ok(self, widget=None, data=None):
-        """Callback for OK / Save button"""
-        raise NotImplementedError()
-
     def scale_factor_after_loading(self):
         """
         The slider's initial scale factor:
@@ -169,6 +150,29 @@ class TexTextGuiBase(object):
         if scale_factor is None:
             scale_factor = 1.0
         return scale_factor
+
+    @abstractmethod
+    def ask(self, callback, preview_callback=None):
+        """
+        Present the GUI for entering LaTeX code and setting some options
+        :param callback: A callback function (basically, what to do with the values from the GUI)
+        :param preview_callback: A callback function to run to create a preview rendering
+        """
+        pass
+
+    @abstractmethod
+    def show_error_dialog(self, title, message_text, exception):
+        pass
+
+    @staticmethod
+    def cb_cancel(widget=None, data=None):
+        """Callback for Cancel button"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def cb_ok(self, widget=None, data=None):
+        """Callback for OK / Save button"""
+        pass
 
 
 class TexTextGuiTK(TexTextGuiBase):
