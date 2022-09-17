@@ -152,7 +152,7 @@ class TexTextGuiBase(object):
         return scale_factor
 
     @abstractmethod
-    def ask(self, callback, preview_callback=None):
+    def show(self, callback, preview_callback=None):
         """
         Present the GUI for entering LaTeX code and setting some options
         :param callback: A callback function (basically, what to do with the values from the GUI)
@@ -233,7 +233,7 @@ class TexTextGuiTK(TexTextGuiBase):
                 valid = False
         return valid
 
-    def ask(self, callback, preview_callback=None):
+    def show(self, callback, preview_callback=None):
         self.callback = callback
 
         self._root = tk.Tk()
@@ -1284,7 +1284,7 @@ class TexTextGuiGTK(TexTextGuiBase):
 
         return window
 
-    def ask(self, callback, preview_callback=None):
+    def show(self, callback, preview_callback=None):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", module="asktext")
             warnings.filterwarnings("ignore", category=DeprecationWarning)

@@ -186,7 +186,7 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = TexTextGui(__version__, text, preamble_file, global_scale_factor, current_scale,
+                tt_gui = TexTextGui(__version__, text, preamble_file, global_scale_factor, current_scale,
                                    current_alignment=alignment, current_texcmd=current_tex_command,
                                    current_convert_strokes_to_path=current_convert_strokes_to_path,
                                    gui_config=gui_config)
@@ -208,7 +208,7 @@ class TexText(inkex.EffectExtension):
                                                 )
 
                 with logger.debug("Run TexText GUI"):
-                    gui_config = asker.ask(save_callback, preview_callback)
+                    gui_config = tt_gui.show(save_callback, preview_callback)
 
                 with logger.debug("Saving global GUI settings"):
                     self.config["gui"] = gui_config
