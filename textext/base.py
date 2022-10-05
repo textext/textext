@@ -412,14 +412,14 @@ class TexText(inkex.EffectExtension):
                     # current layer
                     full_layer_transform = Transform()
                     for layer in layers:
-                        full_layer_transform *= layer.transform
+                        full_layer_transform @= layer.transform
 
                     # Place the node in the center of the view. Here we need to be aware of
                     # transforms in the layers, hence the inverse layer transformation
-                    tt_node.transform = (-full_layer_transform *               # map to view coordinate system
-                                         Transform(translate=view_center) *    # place at view center
-                                         Transform(scale=user_scale_factor) *  # scale
-                                         Transform(translate=-node_center) *   # place node at origin
+                    tt_node.transform = (-full_layer_transform @               # map to view coordinate system
+                                         Transform(translate=view_center) @    # place at view center
+                                         Transform(scale=user_scale_factor) @  # scale
+                                         Transform(translate=-node_center) @   # place node at origin
                                          tt_node.transform                     # use original node transform
                                          )
 
@@ -646,8 +646,8 @@ def _contains_document_class(preamble):
     Also, checks and considers if the command is commented out or not.
     """
     lines = preamble.split("\n")
-    document_commands = ["\documentclass{", "\documentclass[",
-                        "\documentstyle{", "\documentstyle["]
+    document_commands = ["\\documentclass{", "\\documentclass[",
+                        "\\documentstyle{", "\\documentstyle["]
     for line in lines:
         for document_command in document_commands:
             if (document_command in line
