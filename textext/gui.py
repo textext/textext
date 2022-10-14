@@ -115,7 +115,7 @@ class TexTextGuiBase(object):
             self.text = ""
 
         self.textext_version = version_str
-        self.callback = None
+        self._convert_callback = None
         self.global_scale_factor = global_scale_factor
         self.current_scale_factor = current_scale_factor
         self.current_alignment = current_alignment
@@ -234,7 +234,7 @@ class TexTextGuiTK(TexTextGuiBase):
         return valid
 
     def show(self, callback, preview_callback=None):
-        self.callback = callback
+        self._convert_callback = callback
 
         self._root = tk.Tk()
         self._root.title("TexText {0}".format(self.textext_version))
@@ -394,8 +394,9 @@ class TexTextGuiTK(TexTextGuiBase):
         self.current_convert_strokes_to_path = self._convert_strokes_to_path.get()
 
         try:
-            self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get(),
-                          self._tex_command_tk_str.get(), self.current_convert_strokes_to_path)
+            self._convert_callback(self.text, self.preamble_file, self.global_scale_factor,
+                                   self._alignment_tk_str.get(), self._tex_command_tk_str.get(),
+                                   self.current_convert_strokes_to_path)
         except Exception as error:
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
@@ -799,10 +800,10 @@ class TexTextGuiGTK(TexTextGuiBase):
         self.current_convert_strokes_to_path = self._conv_stroke2path.get_active()
 
         try:
-            self.callback(self.text, self.preamble_file, self.global_scale_factor,
-                          self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
-                          self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                          self.current_convert_strokes_to_path)
+            self._convert_callback(self.text, self.preamble_file, self.global_scale_factor,
+                                   self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
+                                   self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
+                                   self.current_convert_strokes_to_path)
         except Exception as error:
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
@@ -1288,7 +1289,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", module="asktext")
             warnings.filterwarnings("ignore", category=DeprecationWarning)
-            self.callback = callback
+            self._convert_callback = callback
             self._preview_callback = preview_callback
 
             # create first window

@@ -241,10 +241,6 @@ class TexText(inkex.EffectExtension):
         :param tex_command: Command for tex -> pdf
         :param (bool) white_bg: set background to white if True
         """
-
-        # ToDo: Ask user if not defined!
-        tex_executable = self.config.get("{0}-executable".format(tex_command))
-
         with logger.debug("TexText.preview"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
@@ -259,7 +255,7 @@ class TexText(inkex.EffectExtension):
 
             with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(latex_exe=tex_executable,
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
                     converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
@@ -281,9 +277,6 @@ class TexText(inkex.EffectExtension):
         """
         from inkex import Transform
 
-        # ToDo: Ask user what to do if not def.
-        tex_executable = self.config.get("{0}-executable".format(tex_command))
-
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
@@ -299,7 +292,7 @@ class TexText(inkex.EffectExtension):
             # Convert
             with logger.debug("Converting tex to svg"):
                 with change_to_temp_dir():
-                    converter = TexToPdfConverter(latex_exe=tex_executable,
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
                     converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_svg()
@@ -538,7 +531,7 @@ class TexToPdfConverter:
 
     def tex_to_pdf(self, latex_text, preamble_file):
         """
-        Create a PDF file from latex text
+        Create a PDF file from latex text. Raises TexTextCommandNotFound or TexTextConversionError.
         """
 
         with logger.debug("Converting .tex to .pdf"):
@@ -578,18 +571,12 @@ class TexToPdfConverter:
                 raise TexTextConversionError("{0} didn't produce output {1}".format(self._latex_exe, self.tmp('pdf')))
 
     def pdf_to_svg(self):
-        """Convert the PDF file to a SVG file"""
-        self.exec_command([
-            self._inkscape_exe,
-            "--pdf-poppler",
-            "--pdf-page=1",
-            "--export-type=svg",
-            "--export-text-to-path",
-            "--export-area-drawing",
-            "--export-filename", self.tmp('svg'),
-            self.tmp('pdf')
-        ]
-        )
+        """
+        Convert the PDF file into an SVG file. Raises TexTextCommandNotFound or TexTextConversionError.
+        """
+        self.exec_command([self._inkscape_exe, "--pdf-poppler", "--pdf-page=1", "--export-type=svg",
+                           "--export-text-to-path", "--export-area-drawing", "--export-filename",
+                           self.tmp('svg'), self.tmp('pdf')])
 
     def stroke_to_path(self):
         """
