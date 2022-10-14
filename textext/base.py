@@ -8,7 +8,6 @@ TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
 for full license details.
 """
-from __future__ import print_function
 import hashlib
 import logging
 import logging.handlers
@@ -18,75 +17,39 @@ import os
 import platform
 import sys
 import uuid
-from io import open # ToDo: For open utf8, remove when Python 2 support is skipped
-
-from .requirements_check import defaults, set_logging_levels, TexTextRequirementsChecker
-from .utility import ChangeToTemporaryDirectory, CycleBufferHandler, MyLogger, NestedLoggingGuard, Settings, Cache, \
-    exec_command, version_greater_or_equal_than
+import subprocess
+from .environment import system_env
+from .log_util_new import setup_logging
+from .settings import Settings, Cache
+from .utility import change_to_temp_dir
 from .errors import *
 
-with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
-    __version__ = version_file.readline().strip()
-__docformat__ = "restructuredtext en"
+# Open logger before accessing Inkscape modules, so we can catch properly any erros thrown by them
+logger, log_console_hanlder = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
+                                            logfile_name="textext.log", cached_console_logging=True)
+import inkex  # noqa
+from lxml import etree  # noqa
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
-
-# There are two channels `file_log_channel` and `user_log_channel`
-# `file_log_channel` dumps detailed log to a file
-# `user_log_channel` accumulates log messages to show them to user via .show_messages() function
-#
-set_logging_levels()
-logging.setLoggerClass(MyLogger)
-__logger = logging.getLogger('TexText')
-logger = NestedLoggingGuard(__logger)
-__logger.setLevel(logging.DEBUG)
-log_formatter = logging.Formatter('[%(asctime)s][%(levelname)8s]: %(message)s          //  %(filename)s:%(lineno)-5d')
-
-# First install the user logger so in case anything fails with the file logger
-# we have at least some information in the abort dialog
-# Contributed by Thermi@github.com
-user_formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-user_log_channel = CycleBufferHandler(capacity=1024)  # store up to 1024 messages
-user_log_channel.setLevel(logging.DEBUG)
-user_log_channel.setFormatter(user_formatter)
-__logger.addHandler(user_log_channel)
-
-# Now we try to install the file logger.
-LOG_LOCATION = os.path.join(defaults.textext_logfile_path)
-if not os.path.isdir(LOG_LOCATION):
-    os.makedirs(LOG_LOCATION)
-LOG_FILENAME = os.path.join(LOG_LOCATION, "textext.log") # ToDo: When not writable continue but give a message somewhere
-file_log_channel = logging.handlers.RotatingFileHandler(LOG_FILENAME,
-                                                        maxBytes=500 * 1024,  # up to 500 kB
-                                                        backupCount=2,  # up to two log files
-                                                        encoding="utf-8"
-                                                        )
-file_log_channel.setLevel(logging.NOTSET)
-file_log_channel.setFormatter(log_formatter)
-__logger.addHandler(file_log_channel)
-
-import inkex
-from lxml import etree
-
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
 SVG_NS = u"http://www.w3.org/2000/svg"
 XLINK_NS = u"http://www.w3.org/1999/xlink"
-
 ID_PREFIX = "textext-"
-
 NSS = {
     u'textext': TEXTEXT_NS,
     u'svg': SVG_NS,
     u'xlink': XLINK_NS,
 }
 
+with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
+    __version__ = version_file.readline().strip()
+
 
 # ------------------------------------------------------------------------------
 # Inkscape plugin functionality
 # ------------------------------------------------------------------------------
-
 class TexText(inkex.EffectExtension):
 
     DEFAULT_ALIGNMENT = "middle center"
@@ -94,8 +57,8 @@ class TexText(inkex.EffectExtension):
 
     def __init__(self):
 
-        self.config = Settings(directory=defaults.textext_config_path)
-        self.cache = Cache(directory=defaults.textext_config_path)
+        self.config = Settings(directory=system_env.textext_config_path)
+        self.cache = Cache(directory=system_env.textext_config_path)
         previous_exit_code = self.cache.get("previous_exit_code", None)
 
         if previous_exit_code is None:
@@ -105,47 +68,25 @@ class TexText(inkex.EffectExtension):
             logging.disable(logging.CRITICAL)
         elif previous_exit_code == EXIT_CODE_UNEXPECTED_ERROR:
             logging.disable(logging.NOTSET)
-            logger.debug("Enforcing DEBUG mode due to previous exit code `%d`" % previous_exit_code)
+            logger.debug("Enforcing DEBUG mode due to previous exit code `{0}`".format(previous_exit_code))
         else:
             logging.disable(logging.DEBUG)
 
         logger.debug("TexText initialized")
         with open(__file__, "rb") as fhl:
-            logger.debug("TexText version = %s (md5sum = %s)" %
-                         (repr(__version__), hashlib.md5(fhl.read()).hexdigest())
-                         )
-        logger.debug("platform.system() = %s" % repr(platform.system()))
-        logger.debug("platform.release() = %s" % repr(platform.release()))
-        logger.debug("platform.version() = %s" % repr(platform.version()))
+            logger.debug("TexText version = {0} (md5sum = {1})".format(repr(__version__),
+                                                                       hashlib.md5(fhl.read()).hexdigest()))
+        logger.debug("platform.system() = {0}".format(repr(platform.system())))
+        logger.debug("platform.release() = {0}".format(platform.release()))
+        logger.debug("platform.version() = {0}".format((platform.version())))
 
-        logger.debug("platform.machine() = %s" % repr(platform.machine()))
-        logger.debug("platform.uname() = %s" % repr(platform.uname()))
-        logger.debug("platform.mac_ver() = %s" % repr(platform.mac_ver()))
+        logger.debug("platform.machine() = {0}".format(platform.machine()))
+        logger.debug("platform.uname() = {0}".format(platform.uname()))
+        logger.debug("platform.mac_ver() = {0}".format(platform.mac_ver()))
 
-        logger.debug("sys.executable = %s" % repr(sys.executable))
-        logger.debug("sys.version = %s" % repr(sys.version))
-        logger.debug("os.environ = %s" % repr(os.environ))
-
-        self.requirements_checker = TexTextRequirementsChecker(logger, self.config)
-
-        if previous_exit_code == EXIT_CODE_OK and "requirements_checker" in self.cache.values:
-            self.requirements_checker.inkscape_executable = self.cache["requirements_checker"][
-                "inkscape_executable"]
-            self.requirements_checker.available_tex_to_pdf_converters = self.cache["requirements_checker"][
-                "available_tex_to_pdf_converters"]
-            self.requirements_checker.available_pdf_to_svg_converters = self.cache["requirements_checker"][
-                "available_pdf_to_svg_converters"]
-        else:
-            if self.requirements_checker.check() == False:
-                raise TexTextFatalError("TexText requirements are not met. "
-                                        "Please follow instructions "
-                                        "https://textext.github.io/textext/")
-            else:
-                self.cache["requirements_checker"] = {
-                    "inkscape_executable": self.requirements_checker.inkscape_executable,
-                    "available_tex_to_pdf_converters": self.requirements_checker.available_tex_to_pdf_converters,
-                    "available_pdf_to_svg_converters": self.requirements_checker.available_pdf_to_svg_converters,
-                }
+        logger.debug("sys.executable = {0}".format(sys.executable))
+        logger.debug("sys.version = {0}".format(sys.version))
+        logger.debug("os.environ = {0}".format(os.environ))
 
         super(TexText, self).__init__()
 
@@ -179,7 +120,7 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .asktext import AskTextDefault
+        from .gui import TexTextGui
 
         with logger.debug("TexText.effect"):
 
@@ -188,24 +129,20 @@ class TexText(inkex.EffectExtension):
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
-            preferred_tex_cmd = self.config.get("previous_tex_command", TexText.DEFAULT_TEXCMD)
-
-            if preferred_tex_cmd in self.requirements_checker.available_tex_to_pdf_converters.keys():
-                current_tex_command = preferred_tex_cmd
-            else:
-                current_tex_command = list(self.requirements_checker.available_tex_to_pdf_converters.keys())[0]
-
             if text:
-                logger.debug("Old node text = %s" % repr(text))
-                logger.debug("Old node scale = %s" % repr(current_scale))
+                logger.debug("Old node text = {0}".format(text))
+                logger.debug("Old node scale = {0}".format(current_scale))
 
-            # This is very important when re-editing nodes which have been created using TexText <= 0.7. It ensures that
-            # the scale factor which is displayed in the AskText dialog is adjusted in such a way that the size of the node
-            # is preserved when recompiling the LaTeX code. ("version" attribute introduced in 0.7.1)
+            current_tex_command = self.config.get("previous_tex_command", self.DEFAULT_TEXCMD)
+
+            # This is very important when re-editing nodes which have been created using TexText <= 0.7.
+            # It ensures that the scale factor which is displayed in the TexTextGuiBase dialog is adjusted
+            # in such a way that the size of the node is preserved when recompiling the LaTeX code.
+            # ("version" attribute introduced in 0.7.1)
             if old_svg_ele is not None:
 
                 if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
-                    logger.debug("Adjust scale factor for node created with TexText<=0.7")
+                    logger.debug("Adjust scale factor for node created with TexText <= 0.7")
                     current_scale *= self.svg.uutounit(1, "pt")
 
                 jac_sqrt = float(old_svg_ele.get_meta("jacobian_sqrt", 1.0))
@@ -216,7 +153,9 @@ class TexText(inkex.EffectExtension):
 
                 alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
 
-                current_tex_command = old_svg_ele.get_meta("texconverter", current_tex_command)
+                current_tex_command = old_svg_ele.get_meta("texconverter",
+                                                           self.config.get("previous_tex_command",
+                                                                           TexText.DEFAULT_TEXCMD))
 
             gui_config = self.config.get("gui", {})
 
@@ -225,7 +164,7 @@ class TexText(inkex.EffectExtension):
                 global_scale_factor = self.options.scale_factor
 
                 if not preamble_file:
-                    logger.debug("Using default preamble file `%s`" % self.options.preamble_file)
+                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
                     preamble_file = self.options.preamble_file
                 else:
                     logger.debug("Using node preamble file")
@@ -247,12 +186,10 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                       current_alignment=alignment, current_texcmd=current_tex_command,
-                                       current_convert_strokes_to_path=current_convert_strokes_to_path,
-                                       tex_commands=sorted(list(
-                                         self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                       gui_config=gui_config)
+                tt_gui = TexTextGui(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                   current_alignment=alignment, current_texcmd=current_tex_command,
+                                   current_convert_strokes_to_path=current_convert_strokes_to_path,
+                                   gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
@@ -271,7 +208,7 @@ class TexText(inkex.EffectExtension):
                                                 )
 
                 with logger.debug("Run TexText GUI"):
-                    gui_config = asker.ask(save_callback, preview_callback)
+                    gui_config = tt_gui.show(save_callback, preview_callback)
 
                 with logger.debug("Saving global GUI settings"):
                     self.config["gui"] = gui_config
@@ -304,13 +241,10 @@ class TexText(inkex.EffectExtension):
         :param tex_command: Command for tex -> pdf
         :param (bool) white_bg: set background to white if True
         """
-
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
-
         with logger.debug("TexText.preview"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
-                    logger.debug("%s = %s" % (k, repr(v)))
+                    logger.debug("{0} = {1}".format(k, repr(v)))
 
             if not text:
                 logger.debug("no text, return")
@@ -319,10 +253,11 @@ class TexText(inkex.EffectExtension):
             if isinstance(text, bytes):
                 text = text.decode('utf-8')
 
-            with ChangeToTemporaryDirectory():
+            with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
@@ -342,12 +277,10 @@ class TexText(inkex.EffectExtension):
         """
         from inkex import Transform
 
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
-
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
-                    logger.debug("%s = %s" % (k, repr(v)))
+                    logger.debug("{0} = {1}".format(k, repr(v)))
 
             if not text:
                 logger.debug("no text, return")
@@ -358,9 +291,10 @@ class TexText(inkex.EffectExtension):
 
             # Convert
             with logger.debug("Converting tex to svg"):
-                with ChangeToTemporaryDirectory():
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                with change_to_temp_dir():
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(text, preamble_file)
                     converter.pdf_to_svg()
 
                     if convert_stroke_to_path:
@@ -396,7 +330,7 @@ class TexText(inkex.EffectExtension):
                     # not in doc units! Hence, we need to convert the value to the document unit.
                     # so the transform is correct later.
                     if hasattr(inkex, "__version__"):
-                        if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
+                        if self.version_greater_or_equal_than(inkex.__version__, "1.2.0"):
                             view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
                             view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
@@ -479,7 +413,7 @@ class TexText(inkex.EffectExtension):
 
                 return node, text, preamble, scale, conv_stroke_to_path
 
-            except (TypeError, AttributeError) as ignored:
+            except (TypeError, AttributeError):
                 pass
 
         return None, "", "", None, False
@@ -500,26 +434,58 @@ class TexText(inkex.EffectExtension):
         # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
         return
 
+    @staticmethod
+    def version_greater_or_equal_than(version_str, other_version_str):
+        """ Checks if a version number is >= than another version number
+
+        Version numbers are passed as strings and must be of type "N.M.Rarb" where N, M, R
+        are non negative decimal numbers < 1000 and arb is an arbitrary string.
+        For example, "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev" are valid version strings.
+
+        Returns:
+            True if the version number is equal or greater then the other version number,
+            otherwise false
+
+        """
+
+        def ver_str_to_float(ver_str):
+            """ Parse version string and returns it as a floating point value
+
+            Returns The version string as floating point number for easy comparison
+            (minor version and relase number padded with zeros). E.g. "1.23.4dev" -> 1.023004.
+            If conversion fails returns NaN.
+
+            """
+            m = re.search(r"(\d+).(\d+).(\d+)[-\w]*", ver_str)
+            if m is not None:
+                ver_maj, ver_min, ver_rel = m.groups()
+                return float("{}.{:0>3}{:0>3}".format(ver_maj, ver_min, ver_rel))
+            else:
+                return float("nan")
+
+        return ver_str_to_float(version_str) >= ver_str_to_float(other_version_str)
+
 
 class TexToPdfConverter:
     """
     Base class for Latex -> SVG converters
     """
-    DEFAULT_DOCUMENT_CLASS=r"\documentclass{article}"
+    DEFAULT_DOCUMENT_CLASS = r"\documentclass{article}"
     DOCUMENT_TEMPLATE = r"""
-    %s
-    \pagestyle{empty}
-    \begin{document}
-    %s
-    \end{document}
+    {0}
+    \pagestyle{{empty}}
+    \begin{{document}}
+    {1}
+    \end{{document}}
     """
 
     LATEX_OPTIONS = ['-interaction=nonstopmode',
                      '-halt-on-error']
 
-    def __init__(self, checker):
+    def __init__(self, inkscape_exe: str, latex_exe: str):
         self.tmp_base = 'tmp'
-        self.checker = checker  # type: requirements_check.TexTextRequirementsChecker
+        self._inkscape_exe = inkscape_exe
+        self._latex_exe = latex_exe
 
     # --- Internal
     def tmp(self, suffix):
@@ -529,9 +495,43 @@ class TexToPdfConverter:
         """
         return self.tmp_base + '.' + suffix
 
-    def tex_to_pdf(self, tex_command, latex_text, preamble_file):
+    @staticmethod
+    def exec_command(cmd, ok_return_value=0):
         """
-        Create a PDF file from latex text
+        Run given command, check return value, and return
+        concatenated stdout and stderr.
+        :param cmd: Command to execute
+        :param ok_return_value: The expected return value after successful completion
+        :raises: TexTextCommandNotFound, TexTextCommandFailed
+        """
+
+        try:
+            # hides the command window for cli tools that are run (in Windows)
+            info = None
+            if platform.system() == "Windows":
+                info = subprocess.STARTUPINFO()
+                info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                info.wShowWindow = subprocess.SW_HIDE
+
+            p = subprocess.Popen(cmd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 stdin=subprocess.PIPE,
+                                 startupinfo=info)
+            out, err = p.communicate()
+        except OSError as err:
+            raise TexTextCommandNotFound("Command {0} failed: {1}".format(' '.join(cmd), err))
+
+        if ok_return_value is not None and p.returncode != ok_return_value:
+            raise TexTextCommandFailed(message="Command {0} failed (code {1})".format(' '.join(cmd), p.returncode),
+                                       return_code=p.returncode,
+                                       stdout=out,
+                                       stderr=err)
+        return out + err
+
+    def tex_to_pdf(self, latex_text, preamble_file):
+        """
+        Create a PDF file from latex text. Raises TexTextCommandNotFound or TexTextConversionError.
         """
 
         with logger.debug("Converting .tex to .pdf"):
@@ -549,7 +549,7 @@ class TexToPdfConverter:
 
             # Options pass to LaTeX-related commands
 
-            texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
+            texwrapper = self.DOCUMENT_TEMPLATE.format(preamble, latex_text)
 
             # Convert TeX to PDF
 
@@ -559,7 +559,7 @@ class TexToPdfConverter:
 
             # Exec tex_command: tex -> pdf
             try:
-                exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
+                self.exec_command([self._latex_exe, self.tmp('tex')] + self.LATEX_OPTIONS)
             except TexTextCommandFailed as error:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
@@ -568,21 +568,15 @@ class TexToPdfConverter:
                     raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
 
             if not os.path.exists(self.tmp('pdf')):
-                raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
+                raise TexTextConversionError("{0} didn't produce output {1}".format(self._latex_exe, self.tmp('pdf')))
 
     def pdf_to_svg(self):
-        """Convert the PDF file to a SVG file"""
-        exec_command([
-            self.checker.inkscape_executable,
-            "--pdf-poppler",
-            "--pdf-page=1",
-            "--export-type=svg",
-            "--export-text-to-path",
-            "--export-area-drawing",
-            "--export-filename", self.tmp('svg'),
-            self.tmp('pdf')
-        ]
-        )
+        """
+        Convert the PDF file into an SVG file. Raises TexTextCommandNotFound or TexTextConversionError.
+        """
+        self.exec_command([self._inkscape_exe, "--pdf-poppler", "--pdf-page=1", "--export-type=svg",
+                           "--export-text-to-path", "--export-area-drawing", "--export-filename",
+                           self.tmp('svg'), self.tmp('pdf')])
 
     def stroke_to_path(self):
         """
@@ -591,11 +585,12 @@ class TexToPdfConverter:
         E.g. $\\overline x$ -> the line above x is converted from stroke to path
         """
         try:
-            exec_command([
-                self.checker.inkscape_executable,
+            self.exec_command([
+                self._inkscape_exe,
                 "-g",
                 "--batch-process",
-                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg')),
+                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".
+                format(self.tmp('svg')),
                 self.tmp('svg')
             ]
             )
@@ -605,7 +600,7 @@ class TexToPdfConverter:
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
         cmd = [
-            self.checker.inkscape_executable,
+            self._inkscape_exe,
             "--pdf-poppler",
             "--pdf-page=1",
             "--export-type=png",
@@ -621,7 +616,7 @@ class TexToPdfConverter:
                 "--export-background-opacity=1.0"
             ])
 
-        exec_command(cmd)
+        self.exec_command(cmd)
 
     def parse_pdf_log(self):
         """
@@ -632,11 +627,12 @@ class TexToPdfConverter:
             from .texoutparse import LatexLogParser
             parser = LatexLogParser()
 
+            # noinspection PyBroadException
             try:
                 with open(self.tmp('log'), encoding='utf8') as f:
                     parser.process(f)
                 return parser.errors[0]
-            except Exception as ignored:
+            except Exception:
                 return "TeX compilation failed. See stdout output for more details"
 
 
@@ -646,12 +642,11 @@ def _contains_document_class(preamble):
     Also, checks and considers if the command is commented out or not.
     """
     lines = preamble.split("\n")
-    document_commands = ["\\documentclass{", "\\documentclass[",
-                        "\\documentstyle{", "\\documentstyle["]
+    document_commands = [r"\documentclass{", r"\documentclass[",
+                         r"\documentstyle{", r"\documentstyle["]
     for line in lines:
         for document_command in document_commands:
-            if (document_command in line
-                and "%" not in line.split(document_command)[0]):
+            if document_command in line and "%" not in line.split(document_command)[0]:
                 return True
     return False
 
@@ -669,7 +664,7 @@ class TexTextElement(inkex.Group):
         self._svg_to_textext_node(svg_filename, document_unit)
 
     def _svg_to_textext_node(self, svg_filename, document_unit):
-        from inkex import ShapeElement, Defs, SvgDocumentElement
+        from inkex import ShapeElement, Defs
         doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
 
         root = doc.getroot()
@@ -691,7 +686,7 @@ class TexTextElement(inkex.Group):
 
     @staticmethod
     def _expand_defs(root):
-        from inkex import Transform, ShapeElement
+        from inkex import Transform
         from copy import deepcopy
         for el in root:
             if isinstance(el, inkex.Use):
@@ -782,8 +777,6 @@ class TexTextElement(inkex.Group):
                 return default
             raise attr_error
 
-
-
     def align_to_node(self, ref_node, alignment, relative_scale):
         """
         Aligns the node represented by self to a reference node according to the settings defined by the user
@@ -792,7 +785,7 @@ class TexTextElement(inkex.Group):
         :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
         """
         from inkex import Transform
-        scale_transform = Transform("scale(%f)" % relative_scale)
+        scale_transform = Transform("scale({0})".format(relative_scale))
 
         old_transform = Transform(ref_node.transform)
 
@@ -824,7 +817,7 @@ class TexTextElement(inkex.Group):
 
     @staticmethod
     def _get_pos(x, y, w, h, alignment):
-        """ Returns the alignment point of a frame according to the required defined in alignment
+        """ Returns the alignment point of a frame according to the required alignment
 
         :param x, y, w, h: Position of top left corner, width and height of the frame
         :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
@@ -855,15 +848,12 @@ class TexTextElement(inkex.Group):
         """ Returns true if at least one element of the managed node contains a non-black fill or stroke color """
         return self.has_colorized_attribute() or self.has_colorized_style()
 
-
     def has_colorized_attribute(self):
         """ Returns true if at least one element of node contains a non-black fill or stroke attribute """
         for it_node in self.iter():
             for attrib in ["stroke", "fill"]:
-                if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in [
-                    "rgb(0%,0%,0%)",
-                    "black", "none",
-                    "#000000"]:
+                if attrib in it_node.attrib and it_node.attrib[attrib].lower().replace(" ", "") not in \
+                        ["rgb(0%,0%,0%)", "black", "none", "#000000"]:
                     return True
         return False
 
