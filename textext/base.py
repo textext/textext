@@ -19,7 +19,7 @@ import sys
 import uuid
 import subprocess
 from .environment import system_env
-from .log_util_new import setup_logging
+from .log_util import setup_logging
 from .settings import Settings, Cache
 from .utility import change_to_temp_dir
 from .errors import *

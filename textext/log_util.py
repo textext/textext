@@ -14,10 +14,7 @@ import logging
 import logging.handlers
 import os
 import sys
-
-LOGLEVEL_VERBOSE = 5
-LOGLEVEL_SUCCESS = 41
-LOGLEVEL_UNKNOWN = 42
+from typing import Tuple, Union
 
 
 class TexTextLogger(logging.Logger):
@@ -42,80 +39,11 @@ class TexTextLogger(logging.Logger):
         return rv
 
 
-class NestedLoggingGuard(object):
+class LoggingFormatter(logging.Formatter):
     """
-    Esnures correct indentation of log file messages
+    Formatter for the log messages. Color, date and time as well as
+    message source can be configured.
     """
-    message_offset = 0
-    message_indent = 2
-
-    def __init__(self, _logger, lvl=None, message=None):
-        self._logger = _logger
-        self._level = lvl
-        self._message = message
-        if lvl is not None and message is not None:
-            self._logger.log(self._level, " " * NestedLoggingGuard.message_offset + self._message)
-
-    def __enter__(self):
-        assert self._level is not None
-        assert self._message is not None
-        NestedLoggingGuard.message_offset += NestedLoggingGuard.message_indent
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        assert self._level is not None
-        assert self._message is not None
-        if exc_type is None:
-            result = "done"
-        else:
-            result = "failed"
-        NestedLoggingGuard.message_offset -= NestedLoggingGuard.message_indent
-
-        def tmp1():  # this nesting needed to even number of stack frames in __enter__ and __exit__
-            def tmp2():
-                self._logger.log(self._level, " " * NestedLoggingGuard.message_offset +
-                                 self._message.strip() + " " + result)
-            tmp2()
-        tmp1()
-
-    def debug(self, message):
-        return self.log(logging.DEBUG, message)
-
-    def info(self, message):
-        return self.log(logging.INFO, message)
-
-    def error(self, message):
-        return self.log(logging.ERROR, message)
-
-    def warning(self, message):
-        return self.log(logging.WARNING, message)
-
-    def critical(self, message):
-        return self.log(logging.CRITICAL, message)
-
-    def log(self, lvl, message):
-        return NestedLoggingGuard(self._logger, lvl, message)
-
-
-class LoggingColors(object):
-    """
-    A helper class defining the colors we are using for logging. Objects of
-    this class just return a pair level_colors, color_reset when they are called.
-
-    level_colors is a dictionary the keys of which are the names of the
-    logging level (e.g. "VERBOSE", "DEBUG", ...) and the values are two element
-    lists. The first element of the list is the code of the level as defined
-    in the Python logging module and the second element is the color associated
-    to this level.
-
-    color_reset is the string for reseting colored output in a terminal.
-
-    Colored logging can be switched on and off via the attribute enable_colors.
-
-    Example:
-         get_level_colors = LoggingColors()
-         get_level_colors()[0]["ERROR"][1]  # returns the color of an error
-    """
-    enable_colors = False
 
     COLOR_RESET = "\033[0m"
     FG_DEFAULT = "\033[39m"
@@ -156,54 +84,104 @@ class LoggingColors(object):
 
     UNDERLINED = "\033[4m"
 
-    def __call__(self):
-        levels = [
-            LOGLEVEL_VERBOSE,  # 5
-            logging.DEBUG,  # 10
-            logging.INFO,  # 20
-            logging.WARNING,  # 30
-            logging.ERROR,  # 40
-            LOGLEVEL_SUCCESS,  # 41
-            LOGLEVEL_UNKNOWN,  # 42
-            logging.CRITICAL  # 50
-        ]
-        names = [
-            "VERBOSE ",
-            "DEBUG   ",
-            "INFO    ",
-            "WARNING ",
-            "ERROR   ",
-            "SUCCESS ",
-            "UNKNOWN ",
-            "CRITICAL"
-        ]
-        colors = [
-            self.COLOR_RESET,
-            self.COLOR_RESET,
-            self.BG_DEFAULT + self.FG_LIGHT_BLUE,
-            self.BG_YELLOW + self.FG_WHITE,
-            self.BG_DEFAULT + self.FG_RED,
-            self.BG_DEFAULT + self.FG_GREEN,
-            self.BG_DEFAULT + self.FG_YELLOW,
-            self.BG_RED + self.FG_WHITE,
-        ]
-        if not LoggingColors.enable_colors:
-            colors = [""] * len(colors)
-            self.COLOR_RESET = ""
-        return {name: (level, color) for level, name, color in zip(levels, names, colors)}, self.COLOR_RESET
+    def __init__(self, colored_messages: bool, with_datetime: bool, with_source: bool):
+        """
+
+        Args:
+            colored_messages (bool): Set to True if the level of the message should be printed in color
+            with_datetime (bool): Set to True if the log message shoud start with the date and time
+            with_source (bool): Set to True of the filename and the linenumber of the source of the
+                message should be added to the end to the message.
+        """
+        super().__init__()
+
+        if colored_messages:
+            log_format = "[%(name)s][{0}%(levelname)-8s{1}]: %(message)s"
+        else:
+            log_format = "[%(name)s][%(levelname)-8s]: %(message)s"
+
+        if with_datetime:
+            log_format = "[%(asctime)s] {0}".format(log_format)
+
+        if with_source:
+            log_format += " // %(filename)s:%(lineno)d"
+
+        if colored_messages:
+            self.FORMATS = {
+                logging.DEBUG: log_format.format(self.COLOR_RESET, self.COLOR_RESET),
+                logging.INFO: log_format.format(self.BG_DEFAULT + self.FG_LIGHT_BLUE, self.COLOR_RESET),
+                logging.WARNING: log_format.format(self.BG_YELLOW + self.FG_WHITE, self.COLOR_RESET),
+                logging.ERROR: log_format.format(self.BG_DEFAULT + self.FG_RED, self.COLOR_RESET),
+                logging.CRITICAL: log_format.format(self.BG_DEFAULT + self.FG_RED, self.COLOR_RESET)
+            }
+        else:
+            self.FORMATS = {
+                logging.DEBUG: log_format,
+                logging.INFO: log_format,
+                logging.WARNING: log_format,
+                logging.ERROR: log_format,
+                logging.CRITICAL: log_format
+            }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 
-def set_logging_levels():
-    """ Sets the logging levels and colors of the central Python logging system (from logging module)
-
+class NestedLoggingGuard(object):
     """
-    level_colors, color_reset = get_level_colors()
-    for name, (level, color) in level_colors.items():
-        logging.addLevelName(level, color + name + color_reset)
+    Esnures correct indentation of log file messages depending on the context
+    the log message is written.
+    """
+    MESSAGE_OFFSET = 0
+    MESSAGE_INDENT = 2
 
+    def __init__(self, _logger, lvl=None, message=None):
+        self._logger = _logger
+        self._level = lvl
+        self._message = message
+        if lvl is not None and message is not None:
+            self._logger.log(self._level, " " * NestedLoggingGuard.MESSAGE_OFFSET + self._message)
 
-# Use this object for query logging colors
-get_level_colors = LoggingColors()
+    def __enter__(self):
+        assert self._level is not None
+        assert self._message is not None
+        NestedLoggingGuard.MESSAGE_OFFSET += NestedLoggingGuard.MESSAGE_INDENT
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert self._level is not None
+        assert self._message is not None
+        if exc_type is None:
+            result = "done"
+        else:
+            result = "failed"
+        NestedLoggingGuard.MESSAGE_OFFSET -= NestedLoggingGuard.MESSAGE_INDENT
+
+        def tmp1():  # this nesting needed to even number of stack frames in __enter__ and __exit__
+            def tmp2():
+                self._logger.log(self._level, " " * NestedLoggingGuard.MESSAGE_OFFSET +
+                                 self._message.strip() + " " + result)
+            tmp2()
+        tmp1()
+
+    def debug(self, message):
+        return self.log(logging.DEBUG, message)
+
+    def info(self, message):
+        return self.log(logging.INFO, message)
+
+    def error(self, message):
+        return self.log(logging.ERROR, message)
+
+    def warning(self, message):
+        return self.log(logging.WARNING, message)
+
+    def critical(self, message):
+        return self.log(logging.CRITICAL, message)
+
+    def log(self, lvl, message):
+        return NestedLoggingGuard(self._logger, lvl, message)
 
 
 class CycleBufferHandler(logging.handlers.BufferingHandler):
@@ -219,3 +197,56 @@ class CycleBufferHandler(logging.handlers.BufferingHandler):
     def show_messages(self):
         sys.stderr.write("\n".join([self.format(record) for record in self.buffer]))
         self.flush()
+
+
+def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: bool) -> \
+        Tuple[NestedLoggingGuard, Union[logging.StreamHandler, CycleBufferHandler]]:
+    """
+    Setup the logging system: One logger which logs onto the console (optionally cached),
+    one that logs into a file.
+
+    Args:
+        logfile_dir (str): The full path of the directory in which the logfile
+            will be created.
+        logfile_name (str): The name of the logfile.
+        cached_console_logging (bool): Set to True if you want to have the console
+            output cached. You need to empty the buffer manually later.
+
+    Returns:
+        A two element Tuple: The frist element is the TheNestedLoggingGuard logger object
+        which can be used for logging. The second element is the handler for the
+        console output. It is of type logging.StreamHandler or CycleBuferHandler depending
+        on the value of cached_console_logging. In case of cached logging use the show_messages
+        method of the CycleBufferHandler object to write the message to stderr.
+    """
+
+    # Get the root logger
+    logging.setLoggerClass(TexTextLogger)
+    basic_logger = logging.getLogger('TexText')
+    basic_logger.setLevel(logging.DEBUG)
+
+    # Add the handler for the console output
+    if cached_console_logging:
+        log_stream_handler = CycleBufferHandler(capacity=1024)
+    else:
+        log_stream_handler = logging.StreamHandler()
+    log_stream_handler.setLevel(logging.INFO)
+    log_stream_handler.setFormatter(LoggingFormatter(colored_messages=True, with_datetime=False, with_source=False))
+    basic_logger.addHandler(log_stream_handler)
+
+    # Add the handler for file output
+    try:
+        os.makedirs(logfile_dir, exist_ok=True)
+        log_file_handler = logging.handlers.RotatingFileHandler(os.path.join(logfile_dir, logfile_name),
+                                                                maxBytes=500 * 1024,  # up to 500 kB
+                                                                backupCount=2,  # up to two log files
+                                                                encoding="utf-8")
+    except OSError as error:
+        basic_logger.error("Unable to create logfile. Error message: {0}".format(error.strerror))
+    else:
+        log_file_handler.setLevel(logging.DEBUG)
+        log_file_handler.setFormatter(LoggingFormatter(colored_messages=False, with_datetime=True, with_source=True))
+        basic_logger.addHandler(log_file_handler)
+
+    # Enabble nesting of log messages
+    return NestedLoggingGuard(basic_logger), log_stream_handler

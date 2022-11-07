@@ -17,7 +17,7 @@ import tempfile
 from typing import Dict
 from textext.dependencies import DependencyCheck
 from textext.environment import system_env
-from textext.log_util_new import setup_logging
+from textext.log_util import setup_logging
 from textext.settings import Settings, Cache
 
 
