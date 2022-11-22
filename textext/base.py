@@ -127,12 +127,13 @@ class TexText(inkex.EffectExtension):
             # Find root element
             old_svg_ele, old_meta_data = self.get_old()
 
-            gui_config = self.config.get("gui", {})
-            gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
-
             # Ask for TeX code
             if self.options.text is None:
                 old_meta_data.preamble = self.check_preamble_file(old_meta_data.preamble)
+
+                gui_config = self.config.get("gui", {})
+                gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
+
                 tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
