@@ -17,7 +17,7 @@ import subprocess
 import sys
 from typing import Tuple, Union
 
-from .log_util_new import NestedLoggingGuard
+from .log_util import NestedLoggingGuard
 from .environment import system_env
 
 

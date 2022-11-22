@@ -17,7 +17,7 @@ import tempfile
 from typing import Dict
 from textext.dependencies import DependencyCheck
 from textext.environment import system_env
-from textext.log_util_new import setup_logging
+from textext.log_util import setup_logging
 from textext.settings import Settings, Cache
 
 
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     # checker-object for dependency checks
     checker = DependencyCheck(logger)
 
-    # Exract possible manually defined paths to executables and check if the really exists
+    # Exract possible manually defined paths to executables and check if they really exists
     for executable_name in ["inkscape", "lualatex", "pdflatex", "xelatex"]:
         executable_path = getattr(args, "{0}_executable".format(executable_name))
         if executable_path:
@@ -312,7 +312,7 @@ if __name__ == "__main__":
             args.inkscape_executable, args.pdflatex_executable, \
                 args.lualatex_executable, args.xelatex_executable = check_result
 
-    # Do the installation of requested
+    # Do the installation if requested
     if not args.skip_extension_install:
 
         # Set the installation directory
