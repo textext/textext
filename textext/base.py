@@ -127,54 +127,12 @@ class TexText(inkex.EffectExtension):
             # Find root element
             old_svg_ele, old_meta_data = self.get_old()
 
-            if old_meta_data.text:
-                logger.debug("Old node text = {0}".format(old_meta_data.text))
-                logger.debug("Old node scale = {0}".format(old_meta_data.scale_factor))
-
-            # This is very important when re-editing nodes which have been created using TexText <= 0.7.
-            # It ensures that the scale factor which is displayed in the TexTextGuiBase dialog is adjusted
-            # in such a way that the size of the node is preserved when recompiling the LaTeX code.
-            # ("version" attribute introduced in 0.7.1)
-            if old_svg_ele is not None:
-
-                if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
-                    logger.debug("Adjust scale factor for node created with TexText <= 0.7")
-                    old_meta_data.scale_factor *= self.svg.uutounit(1, "pt")
-
-                if old_meta_data.jacobian_sqrt != 1.0:
-                    logger.debug("Adjust scale factor to account transformations in inkscape")
-                    old_meta_data.scale_factor *= old_svg_ele.get_jacobian_sqrt() / old_meta_data.jacobian_sqrt
-
             gui_config = self.config.get("gui", {})
             gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
 
             # Ask for TeX code
             if self.options.text is None:
-
-                if not old_meta_data.preamble:
-                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
-                    old_meta_data.preamble = self.options.preamble_file
-                else:
-                    logger.debug("Using node preamble file")
-                    # Check if preamble file exists at the specified absolute path location. If not, check to find
-                    # the file in the default path. If this fails, too, fallback to the default.
-                    if not os.path.exists(old_meta_data.preamble):
-                        logger.debug("Preamble file is NOT found by absolute path")
-                        preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
-                                                           os.path.basename(old_meta_data.preamble))
-                        if not os.path.exists(preamble_file_guess):
-                            logger.debug("Preamble file is NOT found along with default preamble file")
-                            old_meta_data.preamble = self.options.preamble_file
-                        else:
-                            logger.debug("Preamble file is found along with default preamble file")
-                            old_meta_data.preamble = preamble_file_guess
-                    else:
-                        logger.debug("Preamble file found by absolute path")
-
-                if not os.path.isfile(old_meta_data.preamble):
-                    logger.debug("Preamble file is not found")
-                    old_meta_data.preamble = ""
-
+                old_meta_data.preamble = self.check_preamble_file(old_meta_data.preamble)
                 tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
@@ -379,7 +337,7 @@ class TexText(inkex.EffectExtension):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_svg_ele, latex_text, preamble_file_name, scale, conv_stroke_to_path)
+        :return: The digged out svg note and the meta data of the node
         :rtype: (TexTextElement, TexTextEleMetaData)
         """
 
@@ -403,12 +361,65 @@ class TexText(inkex.EffectExtension):
                 meta_data.jacobian_sqrt = float(node.get_meta("jacobian_sqrt", 1.0))
                 meta_data.textext_version = node.get_meta("version", '<=0.7')
 
+                logger.debug("Old node from TexText {0}".format(meta_data.textext_version))
+                logger.debug("Old node text = {0}".format(meta_data.text))
+                logger.debug("Old node scale = {0}".format(meta_data.scale_factor))
+
+                if not meta_data.preamble:
+                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
+                    meta_data.preamble = self.options.preamble_file
+                else:
+                    logger.debug("Using node preamble file `{0}`".format(meta_data.preamble))
+
+                # This is very important when re-editing nodes which have been created using
+                # TexText <= 0.7. It ensures that the scale factor which is displayed in the
+                # TexTextGuiBase dialog is adjusted in such a way that the size of the node
+                # is preserved when recompiling the LaTeX code.
+                # ("version" attribute introduced in 0.7.1)
+                if meta_data.textext_version == '<=0.7':
+                    logger.debug("Adjust scale factor for node created with TexText <= 0.7")
+                    meta_data.scale_factor *= self.svg.uutounit(1, "pt")
+
+                if meta_data.jacobian_sqrt != 1.0:
+                    logger.debug("Adjust scale factor to account transformations in inkscape")
+                    meta_data.scale_factor *= node.get_jacobian_sqrt() / meta_data.jacobian_sqrt
+
                 return node, meta_data
 
             except (TypeError, AttributeError):
                 pass
 
         return None, TexTextEleMetaData()
+
+    def check_preamble_file(self, preamble_file):
+        """
+        Check if preamble file exists at the specified absolute path location. If not, check to find
+        the file in the default path. If this fails, too, fallback to the default.
+
+        :param preamble_file: The path to the preamble file to be checked
+        :type: str
+
+        :return: A valid path to the determined preamble file. If nothing is found, an empty string.
+        :rtype: str
+        """
+        if not os.path.exists(preamble_file):
+            logger.debug("Preamble file is NOT found by absolute path")
+            preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
+                                               os.path.basename(preamble_file))
+            if not os.path.exists(preamble_file_guess):
+                logger.debug("Preamble file is NOT found along with default preamble file")
+                preamble_file = self.options.preamble_file
+            else:
+                logger.debug("Preamble file is found along with default preamble file")
+                preamble_file = preamble_file_guess
+        else:
+            logger.debug("Preamble file found by absolute path")
+
+        if not os.path.isfile(preamble_file):
+            logger.debug("Preamble file is not found")
+            preamble_file = ""
+
+        return preamble_file
 
     def replace_node(self, old_node, new_node):
         """
