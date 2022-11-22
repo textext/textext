@@ -125,15 +125,11 @@ class TexText(inkex.EffectExtension):
         with logger.debug("TexText.effect"):
 
             # Find root element
-            old_svg_ele, text, preamble_file, current_scale, current_convert_strokes_to_path = self.get_old()
+            old_svg_ele, old_meta_data = self.get_old()
 
-            alignment = TexText.DEFAULT_ALIGNMENT
-
-            if text:
-                logger.debug("Old node text = {0}".format(text))
-                logger.debug("Old node scale = {0}".format(current_scale))
-
-            current_tex_command = self.config.get("previous_tex_command", self.DEFAULT_TEXCMD)
+            if old_meta_data.text:
+                logger.debug("Old node text = {0}".format(old_meta_data.text))
+                logger.debug("Old node scale = {0}".format(old_meta_data.scale_factor))
 
             # This is very important when re-editing nodes which have been created using TexText <= 0.7.
             # It ensures that the scale factor which is displayed in the TexTextGuiBase dialog is adjusted
@@ -143,53 +139,43 @@ class TexText(inkex.EffectExtension):
 
                 if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
                     logger.debug("Adjust scale factor for node created with TexText <= 0.7")
-                    current_scale *= self.svg.uutounit(1, "pt")
+                    old_meta_data.scale_factor *= self.svg.uutounit(1, "pt")
 
-                jac_sqrt = float(old_svg_ele.get_meta("jacobian_sqrt", 1.0))
-
-                if jac_sqrt != 1.0:
+                if old_meta_data.jacobian_sqrt != 1.0:
                     logger.debug("Adjust scale factor to account transformations in inkscape")
-                    current_scale *= old_svg_ele.get_jacobian_sqrt() / jac_sqrt
-
-                alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
-
-                current_tex_command = old_svg_ele.get_meta("texconverter",
-                                                           self.config.get("previous_tex_command",
-                                                                           TexText.DEFAULT_TEXCMD))
+                    old_meta_data.scale_factor *= old_svg_ele.get_jacobian_sqrt() / old_meta_data.jacobian_sqrt
 
             gui_config = self.config.get("gui", {})
+            gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
 
             # Ask for TeX code
             if self.options.text is None:
-                global_scale_factor = self.options.scale_factor
 
-                if not preamble_file:
+                if not old_meta_data.preamble:
                     logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
-                    preamble_file = self.options.preamble_file
+                    old_meta_data.preamble = self.options.preamble_file
                 else:
                     logger.debug("Using node preamble file")
                     # Check if preamble file exists at the specified absolute path location. If not, check to find
                     # the file in the default path. If this fails, too, fallback to the default.
-                    if not os.path.exists(preamble_file):
+                    if not os.path.exists(old_meta_data.preamble):
                         logger.debug("Preamble file is NOT found by absolute path")
-                        preamble_file = os.path.join(os.path.dirname(self.options.preamble_file),
-                                                     os.path.basename(preamble_file))
-                        if not os.path.exists(preamble_file):
+                        preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
+                                                           os.path.basename(old_meta_data.preamble))
+                        if not os.path.exists(preamble_file_guess):
                             logger.debug("Preamble file is NOT found along with default preamble file")
-                            preamble_file = self.options.preamble_file
+                            old_meta_data.preamble = self.options.preamble_file
                         else:
                             logger.debug("Preamble file is found along with default preamble file")
+                            old_meta_data.preamble = preamble_file_guess
                     else:
                         logger.debug("Preamble file found by absolute path")
 
-                if not os.path.isfile(preamble_file):
+                if not os.path.isfile(old_meta_data.preamble):
                     logger.debug("Preamble file is not found")
-                    preamble_file = ""
+                    old_meta_data.preamble = ""
 
-                tt_gui = TexTextGui(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                   current_alignment=alignment, current_texcmd=current_tex_command,
-                                   current_convert_strokes_to_path=current_convert_strokes_to_path,
-                                   gui_config=gui_config)
+                tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
@@ -197,7 +183,7 @@ class TexText(inkex.EffectExtension):
                                            alignment,
                                            tex_command=tex_cmd,
                                            convert_stroke_to_path=conv_stroke_to_path,
-                                           original_scale=current_scale)
+                                           original_scale=old_meta_data.scale_factor)
 
                 def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
                     return self.preview_convert(_text,
@@ -217,8 +203,8 @@ class TexText(inkex.EffectExtension):
             else:
                 # In case TT has been called with --text="" the old node is
                 # just re-compiled if one exists
-                if self.options.text == "" and text is not None:
-                    new_text = text
+                if self.options.text == "" and old_meta_data.text is not None:
+                    new_text = old_meta_data.text
                 else:
                     new_text = self.options.text
                 self.do_convert(new_text,
@@ -228,7 +214,7 @@ class TexText(inkex.EffectExtension):
                                 self.options.alignment,
                                 self.options.tex_command,
                                 convert_stroke_to_path=False,
-                                original_scale=current_scale
+                                original_scale=old_meta_data.scale_factor
                                 )
 
     def preview_convert(self, text, preamble_file, image_setter, tex_command, white_bg):
@@ -394,7 +380,7 @@ class TexText(inkex.EffectExtension):
         TexText-generated objects.
 
         :return: (old_svg_ele, latex_text, preamble_file_name, scale, conv_stroke_to_path)
-        :rtype: (TexTextElement, str, str, float, bool)
+        :rtype: (TexTextElement, TexTextEleMetaData)
         """
 
         for node in self.svg.selected.values():
@@ -406,17 +392,23 @@ class TexText(inkex.EffectExtension):
             node.__class__ = TexTextElement
 
             try:
-                text = node.get_meta_text()
-                preamble = node.get_meta('preamble')
-                scale = float(node.get_meta('scale', 1.0))
-                conv_stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
+                meta_data = TexTextEleMetaData()
+                meta_data.text = node.get_meta_text()
+                meta_data.preamble = node.get_meta('preamble')
+                meta_data.scale_factor = float(node.get_meta('scale', self.config.get("scale", 1.0)))
+                meta_data.alignment = node.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
+                meta_data.tex_command = node.get_meta("texconverter", self.config.get("previous_tex_command",
+                                                                                      TexText.DEFAULT_TEXCMD))
+                meta_data.stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
+                meta_data.jacobian_sqrt = float(node.get_meta("jacobian_sqrt", 1.0))
+                meta_data.textext_version = node.get_meta("version", '<=0.7')
 
-                return node, text, preamble, scale, conv_stroke_to_path
+                return node, meta_data
 
             except (TypeError, AttributeError):
                 pass
 
-        return None, "", "", None, False
+        return None, TexTextEleMetaData()
 
     def replace_node(self, old_node, new_node):
         """
@@ -649,6 +641,18 @@ def _contains_document_class(preamble):
             if document_command in line and "%" not in line.split(document_command)[0]:
                 return True
     return False
+
+
+class TexTextEleMetaData(object):
+    def __init__(self):
+        self.text = ""
+        self.preamble = ""
+        self.scale_factor = 1.0
+        self.tex_command = TexText.DEFAULT_TEXCMD
+        self.alignment = TexText.DEFAULT_ALIGNMENT
+        self.stroke_to_path = False
+        self.jacobian_sqrt = 1.0
+        self.textext_version = "0.7"  # Introduced in 0.7.1
 
 
 class TexTextElement(inkex.Group):

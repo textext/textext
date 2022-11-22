@@ -106,50 +106,36 @@ class TexTextGuiBase(object):
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
-    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, gui_config):
+    def __init__(self, version_str, node_meta_data, config):
         self.TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
-        if len(text) > 0:
-            self.text = text
+
+        self._gui_config = config
+
+        if len(node_meta_data.text) > 0:
+            self.text = node_meta_data.text
         else:
             self.text = ""
 
         self.textext_version = version_str
         self._convert_callback = None
-        self.global_scale_factor = global_scale_factor
-        self.current_scale_factor = current_scale_factor
-        self.current_alignment = current_alignment
+        self.current_scale_factor = node_meta_data.scale_factor
+        self.global_scale_factor = self._gui_config["last_scale_factor"]
+        self.current_alignment = node_meta_data.alignment
 
-        if current_texcmd in self.TEX_COMMANDS:
-            self.current_texcmd = current_texcmd
+        if node_meta_data.tex_command in self.TEX_COMMANDS:
+            self.current_texcmd = node_meta_data.tex_command
         else:
             self.current_texcmd = self.TEX_COMMANDS[0]
 
-        self.current_convert_strokes_to_path = current_convert_strokes_to_path
+        self.current_convert_strokes_to_path = node_meta_data.stroke_to_path
 
-        self.preamble_file = preamble_file
+        self.preamble_file = node_meta_data.preamble
         self._preamble_widget = None
         self._scale = None
-        self._gui_config = gui_config
         self._source_buffer = None
         self._ok_button = None
         self._cancel_button = None
         self._window = None
-
-    def scale_factor_after_loading(self):
-        """
-        The slider's initial scale factor:
-         Either the previously saved value or the global scale factor or a default of 1.0 if the extension
-         runs for the first time.
-
-        :return: Initial scale factor for the slider
-        """
-        scale_factor = self.current_scale_factor
-        if scale_factor is None:
-            scale_factor = self.global_scale_factor
-        if scale_factor is None:
-            scale_factor = 1.0
-        return scale_factor
 
     @abstractmethod
     def show(self, callback, preview_callback=None):
@@ -178,12 +164,9 @@ class TexTextGuiBase(object):
 class TexTextGuiTK(TexTextGuiBase):
     """TK GUI for editing TexText objects"""
 
-    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                 current_alignment, current_texcmd, current_convert_strokes_to_path, gui_config):
+    def __init__(self, version_str, node_meta_data, config):
 
-        super(TexTextGuiTK, self).__init__(version_str, text, preamble_file, global_scale_factor,
-                                           current_scale_factor, current_alignment, current_texcmd,
-                                           current_convert_strokes_to_path, gui_config)
+        super(TexTextGuiTK, self).__init__(version_str, node_meta_data, config)
 
         # ToDo: Check which of this variables are  needed as class attributes
         self._root = None
@@ -292,7 +275,7 @@ class TexTextGuiTK(TexTextGuiBase):
                                  validatecommand=validation_command)
         self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
         self._scale.delete(0, "end")
-        self._scale.insert(0, self.scale_factor_after_loading())
+        self._scale.insert(0, self.current_scale_factor)
 
         reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
         self._reset_button = tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
@@ -474,11 +457,8 @@ class TexTextGuiTK(TexTextGuiBase):
 class TexTextGuiGTK(TexTextGuiBase):
     """GTK + Source Highlighting for editing TexText objects"""
 
-    def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, gui_config):
-        super(TexTextGuiGTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                            current_alignment, current_texcmd, current_convert_strokes_to_path,
-                                            gui_config)
+    def __init__(self, version_str, node_meta_data, config):
+        super(TexTextGuiGTK, self).__init__(version_str, node_meta_data, config)
 
         # ToDo: Check which of this variables are  needed as class attributes
         self._preview = None  # type: Gtk.Image
@@ -1057,7 +1037,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._scale = Gtk.SpinButton()
         self._scale.set_adjustment(self._scale_adj)
         self._scale.set_digits(3)
-        self._scale_adj.set_value(self.scale_factor_after_loading())
+        self._scale_adj.set_value(self.current_scale_factor)
         self._scale.set_tooltip_text("Change the scale of the LaTeX output")
 
         # We need buttons with custom labels and stock icons, so we make some
