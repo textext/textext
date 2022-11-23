@@ -131,9 +131,6 @@ class TexText(inkex.EffectExtension):
             if self.options.text is None:
                 old_meta_data.preamble = self.check_preamble_file(old_meta_data.preamble)
 
-                gui_config = self.config.get("gui", {})
-                gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
-
                 def save_callback_new(_new_node_meta_data):
                     return self.do_convert(_new_node_meta_data, old_meta_data, old_svg_ele)
 
@@ -141,11 +138,11 @@ class TexText(inkex.EffectExtension):
                     return self.preview_convert(_new_node_meta_data, _preview_callback, _white_bg)
 
                 with logger.debug("Run TexText GUI"):
-                    tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
-                    gui_config = tt_gui.show(save_callback_new, preview_callback_new)
+                    tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=self.config)
+                    self.config = tt_gui.show(save_callback_new, preview_callback_new)
 
                 with logger.debug("Saving global GUI settings"):
-                    self.config["gui"] = gui_config
+                    # self.config["gui"] = gui_config
                     self.config.save()
 
             else:
