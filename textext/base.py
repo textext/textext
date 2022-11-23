@@ -134,26 +134,15 @@ class TexText(inkex.EffectExtension):
                 gui_config = self.config.get("gui", {})
                 gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
 
-                tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
+                def save_callback_new(_new_node_meta_data):
+                    return self.do_convert(_new_node_meta_data, old_meta_data, old_svg_ele)
 
-                def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                                  tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
-                    return self.do_convert(_text, _preamble, _scale, old_svg_ele,
-                                           alignment,
-                                           tex_command=tex_cmd,
-                                           convert_stroke_to_path=conv_stroke_to_path,
-                                           original_scale=old_meta_data.scale_factor)
-
-                def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
-                    return self.preview_convert(_text,
-                                                _preamble,
-                                                _preview_callback,
-                                                _tex_command,
-                                                _white_bg
-                                                )
+                def preview_callback_new(_new_node_meta_data, _preview_callback, _white_bg):
+                    return self.preview_convert(_new_node_meta_data, _preview_callback, _white_bg)
 
                 with logger.debug("Run TexText GUI"):
-                    gui_config = tt_gui.show(save_callback, preview_callback)
+                    tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
+                    gui_config = tt_gui.show(save_callback_new, preview_callback_new)
 
                 with logger.debug("Saving global GUI settings"):
                     self.config["gui"] = gui_config
@@ -166,59 +155,25 @@ class TexText(inkex.EffectExtension):
                     new_text = old_meta_data.text
                 else:
                     new_text = self.options.text
-                self.do_convert(new_text,
-                                self.options.preamble_file,
-                                self.options.scale_factor,
-                                old_svg_ele,
-                                self.options.alignment,
-                                self.options.tex_command,
-                                convert_stroke_to_path=False,
-                                original_scale=old_meta_data.scale_factor
-                                )
+                self.do_convert(TexTextEleMetaData(new_text, self.options.preamble_file, self.options.scale_factor,
+                                                   self.options.tex_command, self.options.alignment,
+                                                   False, 1.0, __version__),
+                                old_meta_data, old_svg_ele)
 
-    def preview_convert(self, text, preamble_file, image_setter, tex_command, white_bg):
-        """
-        Generates a preview PNG of the LaTeX output using the selected converter.
-
-        :param text:
-        :param preamble_file:
-        :param image_setter: A callback to execute with the file path of the generated PNG
-        :param tex_command: Command for tex -> pdf
-        :param (bool) white_bg: set background to white if True
-        """
-        with logger.debug("TexText.preview"):
-            with logger.debug("args:"):
-                for k, v in list(locals().items()):
-                    logger.debug("{0} = {1}".format(k, repr(v)))
-
-            if not text:
-                logger.debug("no text, return")
-                return
-
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
-
-            with change_to_temp_dir():
-                with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
-                                                  inkscape_exe=self.config.get("inkscape-executable"))
-                    converter.tex_to_pdf(text, preamble_file)
-                    converter.pdf_to_png(white_bg=white_bg)
-                    image_setter(converter.tmp('png'))
-
-    def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
-                   convert_stroke_to_path, original_scale=None):
+    def do_convert(self, new_node_meta_data, old_node_meta_data, old_svg_node):
         """
         Does the conversion using the selected converter.
 
-        :param text:
-        :param preamble_file:
-        :param user_scale_factor:
-        :param old_svg_ele:
-        :param alignment:
-        :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
-        :param convert_stroke_to_path: Determines if converter.stroke_to_path() is called
-        :param original_scale Scale factor of old node
+        :param new_node_meta_data:
+        :type new_node_meta_data: TexTextEleMetaData
+
+        :param old_node_meta_data:
+        :type old_node_meta_data: TexTextEleMetaData
+
+        :param old_svg_node:
+        :type old_svg_node: TexTextElement
+
+        :return:
         """
         from inkex import Transform
 
@@ -227,35 +182,36 @@ class TexText(inkex.EffectExtension):
                 for k, v in list(locals().items()):
                     logger.debug("{0} = {1}".format(k, repr(v)))
 
-            if not text:
+            if not new_node_meta_data.text:
                 logger.debug("no text, return")
                 return
 
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
+            if isinstance(new_node_meta_data.text, bytes):
+                new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
 
             # Convert
             with logger.debug("Converting tex to svg"):
                 with change_to_temp_dir():
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
+                                                                            format(new_node_meta_data.tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
-                    converter.tex_to_pdf(text, preamble_file)
+                    converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
                     converter.pdf_to_svg()
 
-                    if convert_stroke_to_path:
+                    if new_node_meta_data.stroke_to_path:
                         converter.stroke_to_path()
 
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
 
             # -- Store textext attributes
             tt_node.set_meta("version", __version__)
-            tt_node.set_meta("texconverter", tex_command)
+            tt_node.set_meta("texconverter", new_node_meta_data.tex_command)
             tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta_text(text)
-            tt_node.set_meta("preamble", preamble_file)
-            tt_node.set_meta("scale", str(user_scale_factor))
-            tt_node.set_meta("alignment", str(alignment))
-            tt_node.set_meta("stroke-to-path", str(int(convert_stroke_to_path)))
+            tt_node.set_meta_text(new_node_meta_data.text)
+            tt_node.set_meta("preamble", new_node_meta_data.preamble)
+            tt_node.set_meta("scale", str(new_node_meta_data.scale_factor))
+            tt_node.set_meta("alignment", str(new_node_meta_data.alignment))
+            tt_node.set_meta("stroke-to-path", str(int(new_node_meta_data.stroke_to_path)))
             try:
                 inkscape_version = self.document.getroot().get('inkscape:version')
                 tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -265,7 +221,7 @@ class TexText(inkex.EffectExtension):
                 pass
 
             # Place new node in document
-            if old_svg_ele is None:
+            if old_svg_node is None:
                 with logger.debug("Adding new node to document"):
                     # Place new nodes in the view center and scale them according to user request
                     node_center = tt_node.bounding_box().center
@@ -297,7 +253,7 @@ class TexText(inkex.EffectExtension):
                     # transforms in the layers, hence the inverse layer transformation
                     tt_node.transform = (-full_layer_transform @               # map to view coordinate system
                                          Transform(translate=view_center) @    # place at view center
-                                         Transform(scale=user_scale_factor) @  # scale
+                                         Transform(scale=new_node_meta_data.scale_factor) @  # scale
                                          Transform(translate=-node_center) @   # place node at origin
                                          tt_node.transform                     # use original node transform
                                          )
@@ -310,28 +266,55 @@ class TexText(inkex.EffectExtension):
             else:
                 with logger.debug("Replacing node in document"):
                     # Rescale existing nodes according to user request
-                    relative_scale = user_scale_factor / original_scale
-                    tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
+                    relative_scale = new_node_meta_data.scale_factor / old_node_meta_data.scale_factor
+                    tt_node.align_to_node(old_svg_node, new_node_meta_data.alignment, relative_scale)
 
                     # If no non-black color has been explicitily set by TeX we copy the color information
                     # from the old node so that coloring done in Inkscape is preserved.
                     if not tt_node.is_colorized():
-                        tt_node.import_group_color_style(old_svg_ele)
+                        tt_node.import_group_color_style(old_svg_node)
 
-                    self.replace_node(old_svg_ele, tt_node)
+                    self.replace_node(old_svg_node, tt_node)
 
             with logger.debug("Saving global settings"):
                 # -- Save settings
-                if os.path.isfile(preamble_file):
-                    self.config['preamble'] = preamble_file
-                else:
-                    self.config['preamble'] = ''
-
-                self.config['scale'] = user_scale_factor
-
-                self.config["previous_tex_command"] = tex_command
-
+                self.config['preamble'] = new_node_meta_data.preamble
+                self.config['scale'] = new_node_meta_data.scale_factor
+                self.config["previous_tex_command"] = new_node_meta_data.tex_command
                 self.config.save()
+
+    def preview_convert(self, new_node_meta_data, image_set_fcn, use_white_bg):
+        """
+        Generates a preview PNG of the LaTeX output using the selected converter.
+
+        :param new_node_meta_data: The meta data of the node to be compiled
+        :type new_node_meta_data: TexTextEleMetaData
+
+        :param image_set_fcn: A callback to execute with the file path of the generated PNG
+        :type image_set_fcn: function
+
+        :param use_white_bg: set background to white if True
+        :type use_white_bg: bool
+        """
+        with logger.debug("TexText.preview"):
+            with logger.debug("args:"):
+                for k, v in list(locals().items()):
+                    logger.debug("{0} = {1}".format(k, repr(v)))
+
+            if not new_node_meta_data.text:
+                logger.debug("no text, return")
+                return
+
+            if isinstance(new_node_meta_data.text, bytes):
+                new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
+
+            with change_to_temp_dir():
+                with logger.debug("Converting tex to pdf"):
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(new_node_meta_data.tex_command)),
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
+                    converter.pdf_to_png(white_bg=use_white_bg)
+                    image_set_fcn(converter.tmp('png'))
 
     def get_old(self):
         """

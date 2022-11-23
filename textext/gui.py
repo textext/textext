@@ -20,6 +20,7 @@ import sys
 import warnings
 from abc import ABCMeta, abstractmethod
 from contextlib import redirect_stderr
+from .base import TexTextEleMetaData
 from .errors import TexTextCommandFailed
 
 
@@ -780,10 +781,14 @@ class TexTextGuiGTK(TexTextGuiBase):
         self.current_convert_strokes_to_path = self._conv_stroke2path.get_active()
 
         try:
-            self._convert_callback(self.text, self.preamble_file, self.global_scale_factor,
-                                   self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
-                                   self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                                   self.current_convert_strokes_to_path)
+            node_meta_data = TexTextEleMetaData()
+            node_meta_data.text = self.text
+            node_meta_data.preamble = self.preamble_file
+            node_meta_data.scale_factor = self.global_scale_factor
+            node_meta_data.tex_command = self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower()
+            node_meta_data.alignment = self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()]
+            node_meta_data.stroke_to_path = self.current_convert_strokes_to_path
+            self._convert_callback(node_meta_data)
         except Exception as error:
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
@@ -829,19 +834,25 @@ class TexTextGuiGTK(TexTextGuiBase):
     def update_preview(self, widget):
         """Update the preview image of the GUI using the callback it gave """
         if self._preview_callback:
-            text = self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+            node_meta_data = TexTextEleMetaData()
+
+            node_meta_data.text = self._source_buffer.get_text(self._source_buffer.get_start_iter(),
                                                 self._source_buffer.get_end_iter(), True)
 
             if isinstance(self._preamble_widget, Gtk.FileChooser):
-                preamble = self._preamble_widget.get_filename()
-                if not preamble:
-                    preamble = ""
+                node_meta_data.preamble = self._preamble_widget.get_filename()
+                if not node_meta_data.preamble:
+                    node_meta_data.preamble = ""
             else:
-                preamble = self._preamble_widget.get_text()
+                node_meta_data.preamble = self._preamble_widget.get_text()
+
+            node_meta_data.scale_factor = self.global_scale_factor
+            node_meta_data.tex_command = self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower()
+            node_meta_data.alignment = self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()]
+            node_meta_data.stroke_to_path = self.current_convert_strokes_to_path
 
             try:
-                self._preview_callback(text, preamble, self.set_preview_image_from_file,
-                                       self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
+                self._preview_callback(node_meta_data, self.set_preview_image_from_file,
                                        self._gui_config.get("white_preview_background",
                                                             self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
             except Exception as error:
