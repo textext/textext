@@ -65,6 +65,9 @@ class Settings(object):
                 TexTextFatalError("Config `%s` could not be deleted. Error message: %s" % (
                                   self.config_path, str(err)))
 
+    def has_key(self, key):
+        return key in self.values
+
     def __getitem__(self, key):
         return self.values.get(key)
 
