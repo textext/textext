@@ -76,17 +76,7 @@ class TexText(inkex.EffectExtension):
         with open(__file__, "rb") as fhl:
             logger.debug("TexText version = {0} (md5sum = {1})".format(repr(__version__),
                                                                        hashlib.md5(fhl.read()).hexdigest()))
-        logger.debug("platform.system() = {0}".format(repr(platform.system())))
-        logger.debug("platform.release() = {0}".format(platform.release()))
-        logger.debug("platform.version() = {0}".format((platform.version())))
-
-        logger.debug("platform.machine() = {0}".format(platform.machine()))
-        logger.debug("platform.uname() = {0}".format(platform.uname()))
-        logger.debug("platform.mac_ver() = {0}".format(platform.mac_ver()))
-
-        logger.debug("sys.executable = {0}".format(sys.executable))
-        logger.debug("sys.version = {0}".format(sys.version))
-        logger.debug("os.environ = {0}".format(os.environ))
+        logger.log_system_info()
 
         super(TexText, self).__init__()
 
