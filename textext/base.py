@@ -656,15 +656,17 @@ def _contains_document_class(preamble):
 
 
 class TexTextEleMetaData(object):
-    def __init__(self):
-        self.text = ""
-        self.preamble = ""
-        self.scale_factor = 1.0
-        self.tex_command = TexText.DEFAULT_TEXCMD
-        self.alignment = TexText.DEFAULT_ALIGNMENT
-        self.stroke_to_path = False
-        self.jacobian_sqrt = 1.0
-        self.textext_version = "0.7"  # Introduced in 0.7.1
+    def __init__(self, text="", preamble="", scale_factor=1.0, tex_command=TexText.DEFAULT_TEXCMD,
+                 alignment=TexText.DEFAULT_ALIGNMENT, stroke_to_path=False, jacobian_sqrt=1.0,
+                 textext_version="0.7"):
+        self.text = text
+        self.preamble = preamble
+        self.scale_factor = scale_factor
+        self.tex_command = tex_command
+        self.alignment = alignment
+        self.stroke_to_path = stroke_to_path
+        self.jacobian_sqrt = jacobian_sqrt
+        self.textext_version = textext_version  # Introduced in 0.7.1
 
 
 class TexTextElement(inkex.Group):
