@@ -772,8 +772,7 @@ class TexTextElement(inkex.Group):
 
         if node_version != '1.2.0':
             return encoded_text.encode('utf-8').decode('unicode_escape')
-        else:
-            return encoded_text
+        return encoded_text
 
     def get_meta(self, key, default=None):
         try:

@@ -65,9 +65,8 @@ class DependencyCheck:
                     gtk_available or tkinter_available):
                 self._logger.info("All requirements fulfilled!")
                 return inkscape_exe_path, pdflatex_exe_path, lualatex_exe_path, xelatex_exe_path
-            else:
-                self._logger.critical("Not all requirements are fulfilled!")
-                return None
+            self._logger.critical("Not all requirements are fulfilled!")
+            return None
 
     def detect_executable(self, prog_name: str, exe_path: str = None) -> str:
         """
@@ -91,9 +90,8 @@ class DependencyCheck:
                 if self.check_executable(prog_name, exe_path):
                     self._logger.info(f"{prog_name} is found at `{exe_path}`")
                     return exe_path
-                else:
-                    self._logger.error(f"{prog_name} is NOT found at `{exe_path}`.")
-                    return ""
+                self._logger.error(f"{prog_name} is NOT found at `{exe_path}`.")
+                return ""
         else:
             with self._logger.info(f"Trying to find {prog_name} in system path..."):
                 found_path = self.find_executable_in_path(prog_name)
@@ -119,9 +117,8 @@ class DependencyCheck:
             if os.path.isfile(exe_path) and os.access(exe_path, os.X_OK):
                 self._logger.debug(f"{prog_name} is found at `{exe_path}`")
                 return True
-            else:
-                self._logger.debug(f"Bad `{prog_name}` executable: `{exe_path}`")
-                return False
+            self._logger.debug(f"Bad `{prog_name}` executable: `{exe_path}`")
+            return False
 
     def find_executable_in_path(self, prog_name: str) -> str:
         """
@@ -162,10 +159,9 @@ class DependencyCheck:
                     if int(major) >= self.INKSCAPE_MAJOR_MIN and int(minor) >= self.INKSCAPE_MINOR_MIN:
                         self._logger.info(f"Inkscape={found_version} is found at {exe_path}")
                         return True
-                    else:
-                        self._logger.error(f"Inkscape>={self.INKSCAPE_MAJOR_MIN}.{self.INKSCAPE_MINOR_MIN} "
-                                           f"is not found (but inkscape={found_version} is found)")
-                        return False
+                    self._logger.error(f"Inkscape>={self.INKSCAPE_MAJOR_MIN}.{self.INKSCAPE_MINOR_MIN} "
+                                       f"is not found (but inkscape={found_version} is found)")
+                    return False
 
             self._logger.error("can't determinate inkscape version!")
             return False
