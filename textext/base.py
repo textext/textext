@@ -211,10 +211,8 @@ class TexText(inkex.EffectExtension):
                     # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
                     # not in doc units! Hence, we need to convert the value to the document unit.
                     # so the transform is correct later.
-                    if hasattr(inkex, "__version__"):
-                        if self.version_greater_or_equal_than(inkex.__version__, "1.2.0"):
-                            view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
-                            view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
+                    view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
+                    view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
                     # Collect all layers incl. the current layers such that the top layer
                     # is the first one in the list
