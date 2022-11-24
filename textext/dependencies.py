@@ -21,7 +21,7 @@ from .log_util import NestedLoggingGuard
 from .environment import system_env
 
 
-class DependencyCheck(object):
+class DependencyCheck:
 
     INKSCAPE_MAJOR_MIN = 1
     INKSCAPE_MINOR_MIN = 2
@@ -32,7 +32,7 @@ class DependencyCheck(object):
         Args:
             logger (NestedLoggingGuard): The _logger object receiving the log messages
         """
-        super(DependencyCheck, self).__init__()
+        super().__init__()
         self._logger = logger
 
     def detect_inkscape(self, inkscape_exe_path: str = None) -> str:
