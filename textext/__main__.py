@@ -32,7 +32,7 @@ if __name__ == "__main__":
         logger.info("TexText finished with error, please run extension again")
         logger.info("If problem persists, please file a bug "
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
-        log_console_hanlder.show_messages()
+        log_console_handler.show_messages()
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     except TexTextFatalError as e:
         logger.error(str(e))
-        log_console_hanlder.show_messages()
+        log_console_handler.show_messages()
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
@@ -61,7 +61,7 @@ if __name__ == "__main__":
                     "so we can collect additional debug information.")
         logger.info("If problem persists, please open a bug report at "
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
-        log_console_hanlder.show_messages()
+        log_console_handler.show_messages()
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR

@@ -25,7 +25,7 @@ from .utility import change_to_temp_dir
 from .errors import *
 
 # Open logger before accessing Inkscape modules, so we can catch properly any erros thrown by them
-logger, log_console_hanlder = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
+logger, log_console_handler = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
                                             logfile_name="textext.log", cached_console_logging=True)
 import inkex  # noqa
 from lxml import etree  # noqa
