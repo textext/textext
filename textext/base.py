@@ -117,7 +117,7 @@ class TexText(inkex.EffectExtension):
             # Find root element
             old_svg_ele, old_meta_data = self.get_old()
 
-            # Ask for TeX code
+            # Ask for TeX code via GUI if no text is passed via command line argument
             if self.options.text is None:
                 old_meta_data.preamble = self.check_preamble_file(old_meta_data.preamble)
 
@@ -132,9 +132,9 @@ class TexText(inkex.EffectExtension):
                     self.config = tt_gui.show(save_callback_new, preview_callback_new)
 
                 with logger.debug("Saving global GUI settings"):
-                    # self.config["gui"] = gui_config
                     self.config.save()
 
+            # when run from command line
             else:
                 # In case TT has been called with --text="" the old node is
                 # just re-compiled if one exists
@@ -173,12 +173,21 @@ class TexText(inkex.EffectExtension):
                 logger.debug("no text, return")
                 return
 
-            if isinstance(new_node_meta_data.text, bytes):
-                new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
+            try:
+                inkscape_version = self.document.getroot().get('inkscape:version')
+            except AttributeError as ignored:
+                # Unfortunately when this node comes from an Inkscape document that
+                # has never been saved no version attribute is provided :-(
+                inkscape_version = "0.0"
+            new_node_meta_data.inkscape_version = inkscape_version
+            new_node_meta_data.inkex_version = inkex.__version__
 
             # Convert
             with logger.debug("Converting tex to svg"):
                 with change_to_temp_dir():
+                    if isinstance(new_node_meta_data.text, bytes):
+                        new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
+
                     converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
                                                                             format(new_node_meta_data.tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
@@ -190,22 +199,7 @@ class TexText(inkex.EffectExtension):
 
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
 
-            # -- Store textext attributes
-            tt_node.set_meta("version", __version__)
-            tt_node.set_meta("texconverter", new_node_meta_data.tex_command)
-            tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta_text(new_node_meta_data.text)
-            tt_node.set_meta("preamble", new_node_meta_data.preamble)
-            tt_node.set_meta("scale", str(new_node_meta_data.scale_factor))
-            tt_node.set_meta("alignment", str(new_node_meta_data.alignment))
-            tt_node.set_meta("stroke-to-path", str(int(new_node_meta_data.stroke_to_path)))
-            try:
-                inkscape_version = self.document.getroot().get('inkscape:version')
-                tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
-            except AttributeError as ignored:
-                # Unfortunately when this node comes from an Inkscape document that has never been saved before
-                # no version attribute is provided by Inkscape :-(
-                pass
+            tt_node.set_meta_data(new_node_meta_data)
 
             # Place new node in document
             if old_svg_node is None:
@@ -256,7 +250,7 @@ class TexText(inkex.EffectExtension):
                     relative_scale = new_node_meta_data.scale_factor / old_node_meta_data.scale_factor
                     tt_node.align_to_node(old_svg_node, new_node_meta_data.alignment, relative_scale)
 
-                    # If no non-black color has been explicitily set by TeX we copy the color information
+                    # If no non-black color has been explicitly set by TeX we copy the color information
                     # from the old node so that coloring done in Inkscape is preserved.
                     if not tt_node.is_colorized():
                         tt_node.import_group_color_style(old_svg_node)
@@ -297,7 +291,8 @@ class TexText(inkex.EffectExtension):
 
             with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(new_node_meta_data.tex_command)),
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
+                                                                            format(new_node_meta_data.tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
                     converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
                     converter.pdf_to_png(white_bg=use_white_bg)
@@ -321,16 +316,10 @@ class TexText(inkex.EffectExtension):
             node.__class__ = TexTextElement
 
             try:
-                meta_data = TexTextEleMetaData()
-                meta_data.text = node.get_meta_text()
-                meta_data.preamble = node.get_meta('preamble')
-                meta_data.scale_factor = float(node.get_meta('scale', self.config.get("scale", 1.0)))
-                meta_data.alignment = node.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
-                meta_data.tex_command = node.get_meta("texconverter", self.config.get("previous_tex_command",
-                                                                                      TexText.DEFAULT_TEXCMD))
-                meta_data.stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
-                meta_data.jacobian_sqrt = float(node.get_meta("jacobian_sqrt", 1.0))
-                meta_data.textext_version = node.get_meta("version", '<=0.7')
+                meta_data = node.get_meta_data(default_scale=self.config.get("scale", 1.0),
+                                               default_alignment=TexText.DEFAULT_ALIGNMENT,
+                                               default_texcmd=self.config.get("previous_tex_command",
+                                                                              TexText.DEFAULT_TEXCMD))
 
                 logger.debug("Old node from TexText {0}".format(meta_data.textext_version))
                 logger.debug("Old node text = {0}".format(meta_data.text))
@@ -628,7 +617,7 @@ def _contains_document_class(preamble):
 class TexTextEleMetaData(object):
     def __init__(self, text="", preamble="", scale_factor=1.0, tex_command=TexText.DEFAULT_TEXCMD,
                  alignment=TexText.DEFAULT_ALIGNMENT, stroke_to_path=False, jacobian_sqrt=1.0,
-                 textext_version="0.7"):
+                 textext_version="0.7", inkscape_version="0.0", inkex_version="0.0"):
         self.text = text
         self.preamble = preamble
         self.scale_factor = scale_factor
@@ -637,10 +626,24 @@ class TexTextEleMetaData(object):
         self.stroke_to_path = stroke_to_path
         self.jacobian_sqrt = jacobian_sqrt
         self.textext_version = textext_version  # Introduced in 0.7.1
+        self.inkscape_version = inkscape_version
+        self.inkex_version = inkex_version
 
 
 class TexTextElement(inkex.Group):
     tag_name = "g"
+
+    KEY_VERSION = "version"
+    KEY_TEXCONVERTER = "texconverter"
+    KEY_PDFCONVERTER = "pdfconverter"
+    KEY_TEXT = "text"
+    KEY_PREAMBLE = "preamble"
+    KEY_SCALE = "scale"
+    KEY_ALIGNMENT = "alignment"
+    KEY_JACOBIAN_SQRT ="jacobian_sqrt"
+    KEY_STROKE2PATH = "stroke-to-path"
+    KEY_INKSCAPE_VERSION = "inkscapeversion"
+    KEY_INKEX_VERSION = "inkexversion"
 
     def __init__(self, svg_filename, document_unit):
         """
@@ -697,6 +700,51 @@ class TexTextElement(inkex.Group):
 
             # expand children defs
             TexTextElement._expand_defs(el)
+
+    def set_meta_data(self, meta_data):
+        """
+        Writes the meta data as attributes into the svg node
+
+        :param (TexTextEleMetaData) meta_data: The meta data set in the node
+
+        """
+        self.set_meta(self.KEY_VERSION, meta_data.textext_version)
+        self.set_meta(self.KEY_TEXCONVERTER, meta_data.tex_command)
+        self.set_meta(self.KEY_PDFCONVERTER, 'inkscape')
+        self.set_meta_text(meta_data.text)
+        self.set_meta(self.KEY_PREAMBLE, meta_data.preamble)
+        self.set_meta(self.KEY_SCALE, str(meta_data.scale_factor))
+        self.set_meta(self.KEY_ALIGNMENT, str(meta_data.alignment))
+        self.set_meta(self.KEY_STROKE2PATH, str(int(meta_data.stroke_to_path)))
+        self.set_meta(self.KEY_INKSCAPE_VERSION, str(meta_data.inkscape_version))
+        self.set_meta(self.KEY_INKEX_VERSION, str(meta_data.inkex_version))
+
+    def get_meta_data(self, default_scale=1.0, default_alignment=TexText.DEFAULT_ALIGNMENT,
+                      default_texcmd=TexText.DEFAULT_TEXCMD):
+        """
+        Reads the TexText relevant attributes from the svg node and return them as a
+        TexTextEleMetaData structure. If no text and no preamble attribute is found
+        an AttributeNotFound error is raised.
+
+        :param (float) default_scale: The default scale
+        :param (str) default_alignment: The default alignment
+        :param (str) default_texcmd: The default tex command
+
+        :return (TexTextEleMetaData): The extracted meta data
+        """
+        meta_data = TexTextEleMetaData()
+        meta_data.text = self.get_meta_text()
+        meta_data.preamble = self.get_meta(self.KEY_PREAMBLE)
+        meta_data.scale_factor = float(self.get_meta(self.KEY_SCALE, default_scale))
+        meta_data.alignment = self.get_meta(self.KEY_ALIGNMENT, default_alignment)
+        meta_data.tex_command = self.get_meta(self.KEY_TEXCONVERTER, default_texcmd)
+        meta_data.stroke_to_path = bool(int(self.get_meta(self.KEY_STROKE2PATH, 0)))
+        meta_data.jacobian_sqrt = float(self.get_meta(self.KEY_JACOBIAN_SQRT, 1.0))
+        meta_data.textext_version = self.get_meta(self.KEY_VERSION, "<=0.7")  # introduced in 0.7.1
+        meta_data.inkscape_version = self.get_meta(self.KEY_INKSCAPE_VERSION, "0.0")
+        meta_data.inkex_version = self.get_meta(self.KEY_INKEX_VERSION, "0.0")
+
+        return meta_data
 
     def make_ids_unique(self):
         """

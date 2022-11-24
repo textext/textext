@@ -791,6 +791,7 @@ class TexTextGuiGTK(TexTextGuiBase):
 
         try:
             node_meta_data = TexTextEleMetaData()
+            node_meta_data.textext_version = self.textext_version
             node_meta_data.text = self.text
             node_meta_data.preamble = self.preamble_file
             node_meta_data.scale_factor = self.global_scale_factor
