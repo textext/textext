@@ -20,6 +20,7 @@ from abc import ABCMeta, abstractmethod
 import subprocess as sp
 import sys
 import os
+import ctypes as ct
 
 
 class AbstractEnvironment(object):
@@ -151,7 +152,7 @@ class WindowsEnvironment(AbstractEnvironment):
 
     def __init__(self):
         super(WindowsEnvironment, self)
-        from .win_app_paths import get_non_syspath_dirs
+        from .win_app_paths import get_non_syspath_dirs  # pylint: disable=import-outside-toplevel
         self._tweaked_syspath = get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
 
         # Windows 10 supports colored output since anniversary update (build 14393)
@@ -159,8 +160,6 @@ class WindowsEnvironment(AbstractEnvironment):
         try:
             wininfo = sys.getwindowsversion()
             if wininfo.major >= 10 and wininfo.build >= 14393:
-
-                import ctypes as ct
                 h_kernel32 = ct.windll.kernel32
 
                 #  STD_OUTPUT_HANDLE = -11

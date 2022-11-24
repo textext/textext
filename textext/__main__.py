@@ -14,8 +14,13 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from textext.base import *
-import traceback
+# pylint: disable=wrong-import-position
+import traceback  # noqa
+from textext.base import TexText, Cache, \
+    EXIT_CODE_OK, EXIT_CODE_UNEXPECTED_ERROR, EXIT_CODE_EXPECTED_ERROR, \
+    logger, log_console_handler, system_env  # noqa
+from textext.errors import TexTextInternalError, TexTextFatalError  # noqa
+
 
 if __name__ == "__main__":
     try:

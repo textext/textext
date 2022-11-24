@@ -22,7 +22,7 @@ from abc import ABCMeta, abstractmethod
 from contextlib import redirect_stderr
 from .base import TexTextEleMetaData
 from .errors import TexTextCommandFailed
-from .settings import Settings
+from .settings import Settings  # (we need it for typing!) # pylint: disable=unused-import
 
 
 GTKSOURCEVIEW = "GTK Source View"
@@ -614,7 +614,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         :param font_size: The font size in the TextView in pt
         """
         try:
-            from gi.repository import Pango
+            from gi.repository import Pango  # pylint: disable=import-outside-toplevel
             font_desc = Pango.FontDescription(f'monospace {font_size}')
             if font_desc:
                 text_view.modify_font(font_desc)

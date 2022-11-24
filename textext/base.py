@@ -15,20 +15,21 @@ import math
 import re
 import os
 import platform
-import sys
 import uuid
 import subprocess
+from copy import deepcopy
 from .environment import system_env
 from .log_util import setup_logging
 from .settings import Settings, Cache
 from .utility import change_to_temp_dir
-from .errors import *
+from .errors import TexTextCommandNotFound, TexTextCommandFailed, TexTextConversionError
+from .texoutparse import LatexLogParser
 
-# Open logger before accessing Inkscape modules, so we can catch properly any erros thrown by them
+# Open logger before accessing Inkscape modules, so we can catch properly any errors thrown by them
 logger, log_console_handler = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
                                             logfile_name="textext.log", cached_console_logging=True)
-import inkex  # noqa
-from lxml import etree  # noqa
+import inkex  # noqa # pylint: disable=wrong-import-position,wrong-import-order
+from lxml import etree  # noqa # pylint: disable=wrong-import-position,wrong-import-order
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
@@ -110,8 +111,6 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .gui import TexTextGui
-
         with logger.debug("TexText.effect"):
 
             # Find root element
@@ -128,6 +127,7 @@ class TexText(inkex.EffectExtension):
                     return self.preview_convert(_new_node_meta_data, _preview_callback, _white_bg)
 
                 with logger.debug("Run TexText GUI"):
+                    from .gui import TexTextGui  # pylint: disable=import-outside-toplevel
                     tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=self.config)
                     self.config = tt_gui.show(save_callback_new, preview_callback_new)
 
@@ -162,8 +162,6 @@ class TexText(inkex.EffectExtension):
 
         :return:
         """
-        from inkex import Transform
-
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for key, value in list(locals().items()):
@@ -225,16 +223,16 @@ class TexText(inkex.EffectExtension):
 
                     # Compute the transform mapping the view coordinate system onto the
                     # current layer
-                    full_layer_transform = Transform()
+                    full_layer_transform = inkex.Transform()
                     for layer in layers:
                         full_layer_transform @= layer.transform
 
                     # Place the node in the center of the view. Here we need to be aware of
                     # transforms in the layers, hence the inverse layer transformation
                     tt_node.transform = (-full_layer_transform @               # map to view coordinate system
-                                         Transform(translate=view_center) @    # place at view center
-                                         Transform(scale=new_node_meta_data.scale_factor) @  # scale
-                                         Transform(translate=-node_center) @   # place node at origin
+                                         inkex.Transform(translate=view_center) @    # place at view center
+                                         inkex.Transform(scale=new_node_meta_data.scale_factor) @  # scale
+                                         inkex.Transform(translate=-node_center) @   # place node at origin
                                          tt_node.transform                     # use original node transform
                                          )
 
@@ -561,7 +559,6 @@ class TexToPdfConverter:
         :return: string containing the error message and some context lines after it
         """
         with logger.debug("Parsing LaTeX log file"):
-            from .texoutparse import LatexLogParser
             parser = LatexLogParser()
 
             # noinspection PyBroadException
@@ -629,14 +626,13 @@ class TexTextElement(inkex.Group):
         self._svg_to_textext_node(svg_filename, document_unit)
 
     def _svg_to_textext_node(self, svg_filename, document_unit):
-        from inkex import ShapeElement, Defs
         doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
 
         root = doc.getroot()
 
         TexTextElement._expand_defs(root)
 
-        shape_elements = [el for el in root if isinstance(el, (ShapeElement, Defs))]
+        shape_elements = [el for el in root if isinstance(el, (inkex.ShapeElement, inkex.Defs))]
         root.append(self)
 
         for ele in shape_elements:
@@ -651,8 +647,6 @@ class TexTextElement(inkex.Group):
 
     @staticmethod
     def _expand_defs(root):
-        from inkex import Transform
-        from copy import deepcopy
         for ele in root:
             if isinstance(ele, inkex.Use):
                 # <group> element will replace <use> node
@@ -663,7 +657,7 @@ class TexTextElement(inkex.Group):
                     group.append(deepcopy(obj))
 
                 # translate group
-                group.transform = Transform(translate=(float(ele.attrib["x"]), float(ele.attrib["y"])))
+                group.transform = inkex.Transform(translate=(float(ele.attrib["x"]), float(ele.attrib["y"])))
 
                 # replace use node with group node
                 parent = ele.getparent()
@@ -752,8 +746,7 @@ class TexTextElement(inkex.Group):
 
     def get_jacobian_sqrt(self):
         # pylint: disable=invalid-name
-        from inkex import Transform
-        (a, b, c), (d, e, f) = Transform(self.transform).matrix
+        (a, b, c), (d, e, f) = inkex.Transform(self.transform).matrix
         det = a * e - d * b
         assert det != 0
         return math.sqrt(math.fabs(det))
@@ -794,15 +787,14 @@ class TexTextElement(inkex.Group):
         :param (str) alignment: A 2-element string list defining the alignment
         :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
         """
-        from inkex import Transform
-        scale_transform = Transform(f"scale({relative_scale})")
+        scale_transform = inkex.Transform(f"scale({relative_scale})")
 
-        old_transform = Transform(ref_node.transform)
+        old_transform = inkex.Transform(ref_node.transform)
 
         # Account for vertical flipping of nodes created via pstoedit in TexText <= 0.11.x
-        revert_flip = Transform("scale(1)")
+        revert_flip = inkex.Transform("scale(1)")
         if ref_node.get_meta("pdfconverter", "pstoedit") == "pstoedit":
-            revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
+            revert_flip = inkex.Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
         composition = scale_transform * old_transform * revert_flip
 
@@ -820,7 +812,7 @@ class TexTextElement(inkex.Group):
         d_x = p_old[0] - p_new[0]
         d_y = p_old[1] - p_new[1]
 
-        composition = Transform(translate=(d_x, d_y)) * composition
+        composition = inkex.Transform(translate=(d_x, d_y)) * composition
 
         self.transform = composition
         self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))

@@ -13,7 +13,7 @@ a convinience wrapper around a json dict.
 """
 import json
 import os
-from .errors import *
+from .errors import TexTextFatalError
 
 
 class Settings(object):
