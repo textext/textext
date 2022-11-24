@@ -129,7 +129,7 @@ class TexTextGuiBase(object):
         self.textext_version = version_str
         self._convert_callback = None
         self.current_scale_factor = node_meta_data.scale_factor
-        self.global_scale_factor = self._config["scale"]
+        self.global_scale_factor = self._config.get("scale", 1.0)
         self.current_alignment = node_meta_data.alignment
 
         if node_meta_data.tex_command in self.TEX_COMMANDS:
