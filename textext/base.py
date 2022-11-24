@@ -166,8 +166,8 @@ class TexText(inkex.EffectExtension):
 
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
-                for k, v in list(locals().items()):
-                    logger.debug(f"{k} = {repr(v)}")
+                for key, value in list(locals().items()):
+                    logger.debug(f"{key} = {repr(value)}")
 
             if not new_node_meta_data.text:
                 logger.debug("no text, return")
@@ -278,8 +278,8 @@ class TexText(inkex.EffectExtension):
         """
         with logger.debug("TexText.preview"):
             with logger.debug("args:"):
-                for k, v in list(locals().items()):
-                    logger.debug(f"{k} = {repr(v)}")
+                for key, value in list(locals().items()):
+                    logger.debug(f"{key} = {repr(value)}")
 
             if not new_node_meta_data.text:
                 logger.debug("no text, return")
@@ -451,18 +451,18 @@ class TexToPdfConverter:
                 info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 info.wShowWindow = subprocess.SW_HIDE
 
-            p = subprocess.Popen(cmd,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 stdin=subprocess.PIPE,
-                                 startupinfo=info)
-            out, err = p.communicate()
+            proc = subprocess.Popen(cmd,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    stdin=subprocess.PIPE,
+                                    startupinfo=info)
+            out, err = proc.communicate()
         except OSError as err:
             raise TexTextCommandNotFound(f"Command {' '.join(cmd)} failed: {err}")
 
-        if ok_return_value is not None and p.returncode != ok_return_value:
-            raise TexTextCommandFailed(message=f"Command {' '.join(cmd)} failed (code {p.returncode})",
-                                       return_code=p.returncode,
+        if ok_return_value is not None and proc.returncode != ok_return_value:
+            raise TexTextCommandFailed(message=f"Command {' '.join(cmd)} failed (code {proc.returncode})",
+                                       return_code=proc.returncode,
                                        stdout=out,
                                        stderr=err)
         return out + err
@@ -478,8 +478,8 @@ class TexToPdfConverter:
             preamble = ""
 
             if os.path.isfile(preamble_file):
-                with open(preamble_file, 'r') as f:
-                    preamble += f.read()
+                with open(preamble_file, 'r') as f_handle:
+                    preamble += f_handle.read()
 
             # Add default document class to preamble if necessary
             if not _contains_document_class(preamble):
@@ -566,8 +566,8 @@ class TexToPdfConverter:
 
             # noinspection PyBroadException
             try:
-                with open(self.tmp('log'), encoding='utf8') as f:
-                    parser.process(f)
+                with open(self.tmp('log'), encoding='utf8') as f_handle:
+                    parser.process(f_handle)
                 return parser.errors[0]
             except Exception:
                 return "TeX compilation failed. See stdout output for more details"
@@ -639,8 +639,8 @@ class TexTextElement(inkex.Group):
         shape_elements = [el for el in root if isinstance(el, (ShapeElement, Defs))]
         root.append(self)
 
-        for el in shape_elements:
-            self.append(el)
+        for ele in shape_elements:
+            self.append(ele)
 
         self.make_ids_unique()
 
@@ -653,27 +653,27 @@ class TexTextElement(inkex.Group):
     def _expand_defs(root):
         from inkex import Transform
         from copy import deepcopy
-        for el in root:
-            if isinstance(el, inkex.Use):
+        for ele in root:
+            if isinstance(ele, inkex.Use):
                 # <group> element will replace <use> node
                 group = inkex.Group()
 
                 # add all objects from symbol node
-                for obj in el.href:
+                for obj in ele.href:
                     group.append(deepcopy(obj))
 
                 # translate group
-                group.transform = Transform(translate=(float(el.attrib["x"]), float(el.attrib["y"])))
+                group.transform = Transform(translate=(float(ele.attrib["x"]), float(ele.attrib["y"])))
 
                 # replace use node with group node
-                parent = el.getparent()
-                parent.remove(el)
+                parent = ele.getparent()
+                parent.remove(ele)
                 parent.add(group)
 
-                el = group  # required for recursive defs
+                ele = group  # required for recursive defs
 
             # expand children defs
-            TexTextElement._expand_defs(el)
+            TexTextElement._expand_defs(ele)
 
     def set_meta_data(self, meta_data):
         """
@@ -729,15 +729,15 @@ class TexTextElement(inkex.Group):
         rename_map = {}
 
         # replace all ids with unique random uuid
-        for el in self.iterfind('.//*[@id]'):
-            old_id = el.attrib["id"]
+        for ele in self.iterfind('.//*[@id]'):
+            old_id = ele.attrib["id"]
             new_id = 'id-' + str(uuid.uuid4())
-            el.attrib["id"] = new_id
+            ele.attrib["id"] = new_id
             rename_map[old_id] = new_id
 
         # find usages of old ids and replace them
-        def replace_old_id(m):
-            old_name = m.group(1)
+        def replace_old_id(match):
+            old_name = match.group(1)
             try:
                 replacement = rename_map[old_name]
             except KeyError:
@@ -745,12 +745,13 @@ class TexTextElement(inkex.Group):
             return f"url(#{replacement})"
         regex = re.compile(r"url\(#([^)(]*)\)")
 
-        for el in self.iter():
-            for name, value in el.items():
+        for ele in self.iter():
+            for name, value in ele.items():
                 new_value = regex.sub(replace_old_id, value)
-                el.attrib[name] = new_value
+                ele.attrib[name] = new_value
 
     def get_jacobian_sqrt(self):
+        # pylint: disable=invalid-name
         from inkex import Transform
         (a, b, c), (d, e, f) = Transform(self.transform).matrix
         det = a * e - d * b
@@ -809,17 +810,17 @@ class TexTextElement(inkex.Group):
         self.transform = composition
 
         ref_bb = ref_node.bounding_box()
-        x, y, w, h = ref_bb.left,  ref_bb.top, ref_bb.width, ref_bb.height
-        bb = self.bounding_box()
-        new_x, new_y, new_w, new_h = bb.left,  bb.top, bb.width, bb.height
+        old_x, old_y, old_w, old_h = ref_bb.left, ref_bb.top, ref_bb.width, ref_bb.height
+        bbox = self.bounding_box()
+        new_x, new_y, new_w, new_h = bbox.left,  bbox.top, bbox.width, bbox.height
 
-        p_old = self._get_pos(x, y, w, h, alignment)
+        p_old = self._get_pos(old_x, old_y, old_w, old_h, alignment)
         p_new = self._get_pos(new_x, new_y, new_w, new_h, alignment)
 
-        dx = p_old[0] - p_new[0]
-        dy = p_old[1] - p_new[1]
+        d_x = p_old[0] - p_new[0]
+        d_y = p_old[1] - p_new[1]
 
-        composition = Transform(translate=(dx, dy)) * composition
+        composition = Transform(translate=(d_x, d_y)) * composition
 
         self.transform = composition
         self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))
@@ -831,6 +832,7 @@ class TexTextElement(inkex.Group):
         :param x, y, w, h: Position of top left corner, width and height of the frame
         :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
         """
+        # pylint: disable=invalid-name
         v_alignment, h_alignment = alignment.split(" ")
         if v_alignment == "top":
             ypos = y
@@ -896,23 +898,23 @@ class TexTextElement(inkex.Group):
                                 key.lower() in ["fill", "stroke", "opacity", "stroke-opacity",
                                                 "fill-opacity"] and value.lower() != "none"}
 
-            for it in self.iter():
+            for ele in self.iter():
                 # Update style
-                it.style.update(color_style_dict)
+                ele.style.update(color_style_dict)
 
                 # Ensure that simple strokes are also colored if the the group has a fill color
                 # ToDo: Check if this really can be put outside of the loop
-                if "stroke" in it.style and "fill" in color_style_dict:
-                    it.style["stroke"] = color_style_dict["fill"]
+                if "stroke" in ele.style and "fill" in color_style_dict:
+                    ele.style["stroke"] = color_style_dict["fill"]
 
                 # Remove style-duplicating attributes
                 for prop in ("stroke", "fill"):
                     if prop in style:
-                        it.pop(prop)
+                        ele.pop(prop)
 
                 # Avoid unintentional bolded letters
-                if "stroke-width" not in it.style:
-                    it.style["stroke-width"] = "0"
+                if "stroke-width" not in ele.style:
+                    ele.style["stroke-width"] = "0"
 
     def set_none_strokes_to_0pt(self):
         """
@@ -923,6 +925,6 @@ class TexTextElement(inkex.Group):
         horizontal lines in fraction bars and square roots are only affected by stroke colors
         so for full colorization of a node you need to set the fill as well as the stroke color!).
         """
-        for it in self.iter():
-            if it.style.get("stroke", "").lower() == "none":
-                it.style["stroke-width"] = "0"
+        for ele in self.iter():
+            if ele.style.get("stroke", "").lower() == "none":
+                ele.style["stroke-width"] = "0"

@@ -152,10 +152,10 @@ class DependencyCheck:
                 return False
 
             for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-                m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
+                match = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
 
-                if m:
-                    found_version, major, minor = m.groups()
+                if match:
+                    found_version, major, minor = match.groups()
                     if int(major) >= self.INKSCAPE_MAJOR_MIN and int(minor) >= self.INKSCAPE_MINOR_MIN:
                         self._logger.info(f"Inkscape={found_version} is found at {exe_path}")
                         return True

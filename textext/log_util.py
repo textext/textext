@@ -24,20 +24,20 @@ class TexTextLogger(logging.Logger):
     """
     def findCaller(self, *args):
         n_frames_upper = 2
-        f = logging.currentframe()
+        cur_frame = logging.currentframe()
         for _ in range(2 + n_frames_upper):  # <-- correct frame
-            if f is not None:
-                f = f.f_back
-        rv = "(unknown file)", 0, "(unknown function)", None
-        while hasattr(f, "f_code"):
-            co = f.f_code
-            filename = os.path.normcase(co.co_filename)
+            if cur_frame is not None:
+                cur_frame = cur_frame.f_back
+        ret_val = "(unknown file)", 0, "(unknown function)", None
+        while hasattr(cur_frame, "f_code"):
+            cur_code = cur_frame.f_code
+            filename = os.path.normcase(cur_code.co_filename)
             if filename == logging._srcfile:
-                f = f.f_back
+                cur_frame = cur_frame.f_back
                 continue
-            rv = (co.co_filename, f.f_lineno, co.co_name, None)
+            ret_val = (cur_code.co_filename, cur_frame.f_lineno, cur_code.co_name, None)
             break
-        return rv
+        return ret_val
 
 
 class LoggingFormatter(logging.Formatter):
@@ -108,7 +108,7 @@ class LoggingFormatter(logging.Formatter):
             log_format += " // %(filename)s:%(lineno)d"
 
         if colored_messages:
-            self.FORMATS = {
+            self.formats = {
                 logging.DEBUG: log_format.format(self.COLOR_RESET, self.COLOR_RESET),
                 logging.INFO: log_format.format(self.BG_DEFAULT + self.FG_LIGHT_BLUE, self.COLOR_RESET),
                 logging.WARNING: log_format.format(self.BG_YELLOW + self.FG_WHITE, self.COLOR_RESET),
@@ -116,7 +116,7 @@ class LoggingFormatter(logging.Formatter):
                 logging.CRITICAL: log_format.format(self.BG_DEFAULT + self.FG_RED, self.COLOR_RESET)
             }
         else:
-            self.FORMATS = {
+            self.formats = {
                 logging.DEBUG: log_format,
                 logging.INFO: log_format,
                 logging.WARNING: log_format,
@@ -125,7 +125,7 @@ class LoggingFormatter(logging.Formatter):
             }
 
     def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
+        log_fmt = self.formats.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
@@ -196,7 +196,6 @@ class NestedLoggingGuard(object):
         self.debug(f"sys.executable = {sys.executable}")
         self.debug(f"sys.version = {sys.version}")
         self.debug(f"os.environ = {os.environ}")
-
 
 
 class CycleBufferHandler(logging.handlers.BufferingHandler):

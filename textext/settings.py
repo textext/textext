@@ -39,17 +39,17 @@ class Settings(object):
         self.config_path = os.path.join(directory, basename)
         try:
             self.load()
-        except ValueError as e:
-            raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(e)}. Please fix it and re-run TexText.")
+        except ValueError as err:
+            raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(err)}. Please fix it and re-run TexText.")
 
     def load(self):
         if os.path.isfile(self.config_path):
-            with open(self.config_path) as f:
-                self.values = json.load(f)
+            with open(self.config_path) as f_handle:
+                self.values = json.load(f_handle)
 
     def save(self):
-        with open(self.config_path, "w") as f:
-            json.dump(self.values, f, indent=2)
+        with open(self.config_path, "w") as f_handle:
+            json.dump(self.values, f_handle, indent=2)
 
     def get(self, key, default=None):
         result = self.values.get(key, default)

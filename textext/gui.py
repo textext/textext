@@ -107,6 +107,7 @@ class TexTextGuiBase(object):
     FONT_SIZE = [11, 12, 14, 16]
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
+    TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
 
     def __init__(self, version_str, node_meta_data, config):
         """
@@ -115,8 +116,6 @@ class TexTextGuiBase(object):
         :param (TexTextEleMetaData) node_meta_data: The meta data of the node being processed
         :param (Settings) config: TexText configuration
         """
-        self.TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
-
         self._config = config
         if not self._config.has_key("gui"):
             self._config["gui"] = {}
@@ -214,6 +213,7 @@ class TexTextGuiTK(TexTextGuiBase):
             invalid content. So with or without this validation method you need to delete the content of the
             box before inserting the new stuff.
         """
+        # pylint: disable=invalid-name
         if S == '' or P == '':
             # Initialization of widget (S=='') and deletion of entry (P=='')
             valid = True
@@ -1093,8 +1093,8 @@ class TexTextGuiGTK(TexTextGuiBase):
         alignment_frame.add(alignment_box)
 
         liststore = Gtk.ListStore(GdkPixbuf.Pixbuf)
-        for a in self.ALIGNMENT_LABELS:
-            vals = tuple(a.split(" "))
+        for algn in self.ALIGNMENT_LABELS:
+            vals = tuple(algn.split(" "))
             path = os.path.join(os.path.dirname(__file__), "icons", f"alignment-{vals[0]}-{vals[1]}.svg.png")
             assert os.path.exists(path)
             liststore.append([GdkPixbuf.Pixbuf.new_from_file(path)])

@@ -81,15 +81,15 @@ class _LineIterWrapper:
         return self
 
     def get_context(self):
-        rv = [self.current] if self.current else []
-        for _ in range(self.ctx_lines + 1 - len(rv)):
+        ret_val = [self.current] if self.current else []
+        for _ in range(self.ctx_lines + 1 - len(ret_val)):
             try:
                 next_val = next(self.iterable)
                 self.cache.append(next_val)
-                rv.append(next_val)
+                ret_val.append(next_val)
             except StopIteration:
                 break
-        return rv
+        return ret_val
 
 
 class LatexLogParser:
