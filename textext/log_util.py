@@ -102,7 +102,7 @@ class LoggingFormatter(logging.Formatter):
             log_format = "[%(name)s][%(levelname)-8s]: %(message)s"
 
         if with_datetime:
-            log_format = "[%(asctime)s] {0}".format(log_format)
+            log_format = f"[%(asctime)s] {log_format}"
 
         if with_source:
             log_format += " // %(filename)s:%(lineno)d"
@@ -185,17 +185,17 @@ class NestedLoggingGuard(object):
         return NestedLoggingGuard(self._logger, lvl, message)
 
     def log_system_info(self):
-        self.debug("platform.system() = {0}".format(repr(platform.system())))
-        self.debug("platform.release() = {0}".format(platform.release()))
-        self.debug("platform.version() = {0}".format((platform.version())))
+        self.debug(f"platform.system() = {repr(platform.system())}")
+        self.debug(f"platform.release() = {platform.release()}")
+        self.debug(f"platform.version() = {platform.version()}")
 
-        self.debug("platform.machine() = {0}".format(platform.machine()))
-        self.debug("platform.uname() = {0}".format(platform.uname()))
-        self.debug("platform.mac_ver() = {0}".format(platform.mac_ver()))
+        self.debug(f"platform.machine() = {platform.machine()}")
+        self.debug(f"platform.uname() = {platform.uname()}")
+        self.debug(f"platform.mac_ver() = {platform.mac_ver()}")
 
-        self.debug("sys.executable = {0}".format(sys.executable))
-        self.debug("sys.version = {0}".format(sys.version))
-        self.debug("os.environ = {0}".format(os.environ))
+        self.debug(f"sys.executable = {sys.executable}")
+        self.debug(f"sys.version = {sys.version}")
+        self.debug(f"os.environ = {os.environ}")
 
 
 
@@ -257,7 +257,7 @@ def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: b
                                                                 backupCount=2,  # up to two log files
                                                                 encoding="utf-8")
     except OSError as error:
-        basic_logger.error("Unable to create logfile. Error message: {0}".format(error.strerror))
+        basic_logger.error(f"Unable to create logfile. Error message: {error.strerror}")
     else:
         log_file_handler.setLevel(logging.DEBUG)
         log_file_handler.setFormatter(LoggingFormatter(colored_messages=False, with_datetime=True, with_source=True))

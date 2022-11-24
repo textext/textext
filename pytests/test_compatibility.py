@@ -60,17 +60,17 @@ def svg_to_png(svg, png, dpi=None, height=None, render_area="drawing"):
     assert os.path.isfile(svg)
     options = []
     if dpi:
-        options.append("--export-dpi=%d" % dpi)
+        options.append(f"--export-dpi={dpi}")
     if height:
-        options.append("--export-height=%d" % height)
+        options.append(f"--export-height={height}")
     if render_area == "drawing":
         options.append("--export-area-drawing")
     elif render_area == "document":
         pass
     else:
-        raise RuntimeError("Unknwon export option `%s`" % render_area)
+        raise RuntimeError(f"Unknwon export option `{render_area}`")
 
-    subprocess.call([INKSCAPE_EXE, "--export-type=png"] + options + ["--export-filename=%s" % png] + [svg],
+    subprocess.call([INKSCAPE_EXE, "--export-type=png"] + options + [f"--export-filename={png}"] + [svg],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     assert os.path.isfile(png)
@@ -102,23 +102,23 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
     h = min(im2.height, im1.height)
 
     if dw != 0:
-        sys.stderr.write("Images width differ by %d px\n" % dw)
+        sys.stderr.write(f"Images width differ by {dw} px\n")
 
     if dh != 0:
-        sys.stderr.write("Images height differ by %d px\n" % dh)
+        sys.stderr.write(f"Images height differ by {dh} px\n")
 
     if dw > size_abs_tol or \
             dh > size_abs_tol or \
             dw > w * size_rel_tol or \
             dh > h * size_rel_tol:
-        return False, "Images have too different sizes: %s vs %s\n" % (str(im1.size), str(im2.size))
+        return False, f"Images have too different sizes: {str(im1.size)} vs {str(im2.size)}\n"
 
     if dh != 0 or dw != 0:
         size_abs_tol //= 2
         pixel_diff_abs_tol //= 2
         w //= 2
         h //= 2
-        sys.stderr.write("Images are downsampled to (%d, %d)\n" % (w, h))
+        sys.stderr.write(f"Images are downsampled to ({w}, {h})\n")
 
     im1.resize((w, h), PIL.Image.LANCZOS).save(png1)
     im2.resize((w, h), PIL.Image.LANCZOS).save(png2)
@@ -138,17 +138,16 @@ def images_are_same(png1, png2, fuzz="0%", size_abs_tol=10, size_rel_tol=0.005, 
             return False, "Can't parse `compare` output"
 
         if diff_pixels > pixel_diff_abs_tol:
-            return False, "diff pixels (%d) > %d" % (diff_pixels, pixel_diff_abs_tol)
+            return False, f"diff pixels ({diff_pixels}) > {pixel_diff_abs_tol}"
 
         if diff_pixels > w * h * pixel_diff_rel_tol:
-            return False, "diff pixels (%d) > W*H*%f (%f)" % (
-                diff_pixels, pixel_diff_rel_tol, w * h * pixel_diff_rel_tol)
+            return False, f"diff pixels ({diff_pixels}) > W*H*{pixel_diff_rel_tol} ({w * h * pixel_diff_rel_tol})"
 
-        return True, "diff pixels (%d)" % diff_pixels
+        return True, f"diff pixels {diff_pixels}"
     else:
         if stdout: sys.stdout.write(stdout)
         if stderr: sys.stderr.write(stderr)
-        return False, "`compare` return code is %d " % proc.returncode
+        return False, f"`compare` return code is {proc.returncode} "
 
 
 def is_current_version_compatible(test_id,
@@ -225,11 +224,11 @@ def is_current_version_compatible(test_id,
         # run TexText
         tt = textext.TexText()
         tt.run([
-            r"--id=%s" % "content",  # todo: find a TexText node to avoid hard-coded ids
-            r"--text=%s" % mod_args["text"],
-            r"--scale-factor=%f" % mod_args["scale-factor"],
-            r"--preamble-file=%s" % mod_args["preamble-file"],
-            r"--alignment=%s" % mod_args["alignment"],
+            fr"--id={'content'}",  # todo: find a TexText node to avoid hard-coded ids
+            fr"--text={mod_args['text']}",
+            fr"--scale-factor={mod_args['scale-factor']}",
+            fr"--preamble-file={mod_args['preamble-file']}",
+            fr"--alignment={mod_args['alignment']}",
             svg_original], output=os.devnull)
 
         svg2 = os.path.join(tmp_dir, "svg2.svg")
@@ -251,9 +250,9 @@ def is_current_version_compatible(test_id,
 def test_compatibility(root, inkscape_version, textext_version, converter, test_case):
     if inkscape_version.startswith("_") or textext_version.startswith("_") or converter.startswith(
             "_") or test_case.startswith("_"):
-        pytest.skip("skip %s (remove underscore to enable)" % os.path.join(inkscape_version, textext_version, converter,
-                                                                           test_case))
-    test_id = "%s-%s-%s-%s" % (inkscape_version, textext_version, converter, test_case)
+        pytest.skip(f"skip {os.path.join(inkscape_version, textext_version, converter, test_case)} "
+                    f"(remove underscore to enable)")
+    test_id = f"{inkscape_version}-{textext_version}-{converter}-{test_case}"
     result, message = is_current_version_compatible(
         test_id,
         svg_original=os.path.join(root, inkscape_version, textext_version, converter, test_case, "original.svg"),

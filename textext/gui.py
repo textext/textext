@@ -230,7 +230,7 @@ class TexTextGuiTK(TexTextGuiBase):
         self._convert_callback = callback
 
         self._root = tk.Tk()
-        self._root.title("TexText {0}".format(self.textext_version))
+        self._root.title(f"TexText {self.textext_version}")
 
         self._frame = tk.Frame(self._root)
         self._frame.pack()
@@ -288,13 +288,13 @@ class TexTextGuiTK(TexTextGuiBase):
         self._scale.insert(0, self.current_scale_factor)
 
         reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-        self._reset_button = tk.Button(box, text="Reset ({0:.3f})".format(reset_scale),
+        self._reset_button = tk.Button(box, text=f"Reset ({reset_scale:.3f})",
                                        command=self.reset_scale_factor)
         self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
         if self.text == "":
             self._reset_button.config(state=tk.DISABLED)
 
-        self._global_button = tk.Button(box, text="As previous ({0:.3f})".format(self.global_scale_factor),
+        self._global_button = tk.Button(box, text=f"As previous ({self.global_scale_factor:.3f})",
                                         command=self.use_global_scale_factor)
         self._global_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
 
@@ -370,7 +370,7 @@ class TexTextGuiTK(TexTextGuiBase):
         window_height = self._root.winfo_height()
         window_xpos = (screen_width/2) - (window_width/2)
         window_ypos = (screen_height/2) - (window_height/2)
-        self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
+        self._root.geometry(f"{int(window_width)}x{int(window_height)}+{int(window_xpos)}+{int(window_ypos)}")
 
         self._root.mainloop()
         return self._config
@@ -533,7 +533,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             ('FontSize16', None, '1_6 pt', None, 'Set editor font size to 16pt', 3)
         ]
         font_size = "\n".join(
-            ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._font_size_actions])
+            [f"<menuitem action=\'{action}\'/>" for (action, _, _, _, _, _) in self._font_size_actions])
 
         self._preview_white_background_action = [
             ('WhitePreviewBackground', None, 'White preview background', None,
@@ -546,17 +546,21 @@ class TexTextGuiGTK(TexTextGuiBase):
         ]
 
         self._radio_actions = [
-            ('TabsWidth%d' % num, None, '%d' % num, None, 'Set tabulation width to %d spaces' % num, num) for num in
+            (f"TabsWidth{num}", None, f"{num}", None, f"Set tabulation width to {num} spaces", num) for num in
             range(2, 13, 2)]
 
-        gtksourceview_ui_additions = "" if TOOLKIT == GTK else """
-          <menuitem action='ShowNumbers'/>
-          <menuitem action='AutoIndent'/>
-          <menuitem action='InsertSpaces'/>
-          <menu action='TabsWidth'>
-            %s
-          </menu>
-          """ % "\n".join(['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._radio_actions])
+        if TOOLKIT == GTK:
+            gtksourceview_ui_additions = ""
+        else:
+            menu_actions = "\n".join([f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._radio_actions])
+            gtksourceview_ui_additions = f"""
+            <menuitem action='ShowNumbers'/>
+            <menuitem action='AutoIndent'/>
+            <menuitem action='InsertSpaces'/>
+            <menu action='TabsWidth'>
+            {menu_actions}
+            </menu>
+            """
 
         self._new_node_content_actions = [
             #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
@@ -565,7 +569,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             ('NewNodeContentDisplayMath', None, '_Display math', None, 'New node will be initialized with $$ $$', 2)
         ]
         new_node_content = "\n".join(
-            ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._new_node_content_actions])
+            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._new_node_content_actions])
 
         self._close_shortcut_actions = [
             ('CloseShortcutEscape', None, '_ESC', None, 'TexText window closes when pressing ESC', 0),
@@ -573,9 +577,9 @@ class TexTextGuiGTK(TexTextGuiBase):
             ('CloseShortcutNone', None, '_None', None, 'No shortcut for closing TexText window', 2)
         ]
         close_shortcut = "\n".join(
-            ['<menuitem action=\'%s\'/>' % action for (action, _, _, _, _, _) in self._close_shortcut_actions])
+            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._close_shortcut_actions])
 
-        self._view_ui_description = """
+        self._view_ui_description = f"""
         <ui>
           <menubar name='MainMenu'>
             <menu action='FileMenu'>
@@ -586,7 +590,7 @@ class TexTextGuiGTK(TexTextGuiBase):
                 {font_size}
               </menu>
               <menuitem action='WordWrap'/>
-              {additions}
+              {gtksourceview_ui_additions}
               <menuitem action='WhitePreviewBackground'/>
             </menu>
             <menu action='SettingsMenu'>
@@ -600,8 +604,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             </menu>
           </menubar>
         </ui>
-        """.format(additions=gtksourceview_ui_additions, font_size=font_size,
-                   new_node_content=new_node_content, close_shortcut=close_shortcut)
+        """
 
     @staticmethod
     def set_monospace_font(text_view, font_size):
@@ -612,7 +615,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         """
         try:
             from gi.repository import Pango
-            font_desc = Pango.FontDescription('monospace {0}'.format(font_size))
+            font_desc = Pango.FontDescription(f'monospace {font_size}')
             if font_desc:
                 text_view.modify_font(font_desc)
         except ImportError:
@@ -657,9 +660,9 @@ class TexTextGuiGTK(TexTextGuiBase):
                 else:
                     col += 1
                 start.forward_char()
-            asktext.pos_label.set_text('char: %d, line: %d, column: %d' % (nchars, row, col + 1))
+            asktext.pos_label.set_text(f'char: {nchars}, line: {row}, column: {col + 1}')
         else:
-            asktext.pos_label.set_text('char: %d, line: %d' % (nchars, row))
+            asktext.pos_label.set_text(f'char: {nchars}, line: {row}')
 
     @staticmethod
     def load_file(text_buffer, path):
@@ -674,7 +677,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             with open(path) as file_handle:
                 text = file_handle.read()
         except IOError:
-            print("Couldn't load file: %s", path)
+            print(f"Couldn't load file: {path}")
             return False
         text_buffer.set_text(text)
 
@@ -736,8 +739,7 @@ class TexTextGuiGTK(TexTextGuiBase):
     def close_shortcut_cb(self, action, previous_value, sourceview):
         self._config["gui"]["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
         self._cancel_button.set_tooltip_text(
-            "Don't save changes ({})".format(self._close_shortcut_actions[action.get_current_value()][2]).replace(
-                "_", ""))
+            f"Don't save changes ({self._close_shortcut_actions[action.get_current_value()][2]})".replace("_", ""))
 
     # noinspection PyUnusedLocal
     def confirm_close_toggled_cb(self, action, sourceview):
@@ -1004,7 +1006,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         window = Gtk.Window()
         window.type = Gtk.WindowType.TOPLEVEL
         window.set_border_width(2)
-        window.set_title('Enter LaTeX Formula - TexText {0}'.format(self.textext_version))
+        window.set_title(f'Enter LaTeX Formula - TexText {self.textext_version}')
 
         # File chooser and Scale Adjustment
         if hasattr(Gtk, 'FileChooserButton'):
@@ -1064,20 +1066,19 @@ class TexTextGuiGTK(TexTextGuiBase):
         # We need buttons with custom labels and stock icons, so we make some
         reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
         scale_reset_button = Gtk.Button.new_from_icon_name('edit-undo', Gtk.IconSize.BUTTON)
-        scale_reset_button.set_label('Reset ({0:.3f})'.format(reset_scale))
+        scale_reset_button.set_label(f'Reset ({reset_scale:.3f})')
         scale_reset_button.set_always_show_image(True)
         scale_reset_button.set_tooltip_text(
-            "Set scale factor to the value this node has been created with ({0:.3f})".format(reset_scale))
+            f"Set scale factor to the value this node has been created with ({reset_scale:.3f})")
         scale_reset_button.connect('clicked', self.reset_scale_factor)
         if self.text == "":
             scale_reset_button.set_sensitive(False)
 
         scale_global_button = Gtk.Button.new_from_icon_name('edit-copy', Gtk.IconSize.BUTTON)
-        scale_global_button.set_label('As previous ({0:.3f})'.format(self.global_scale_factor))
+        scale_global_button.set_label(f'As previous ({self.global_scale_factor:.3f})')
         scale_global_button.set_always_show_image(True)
         scale_global_button.set_tooltip_text(
-            "Set scale factor to the value of the previously edited node in Inkscape ({0:.3f})".format(
-                self.global_scale_factor))
+            f"Set scale factor to the value of the previously edited node in Inkscape ({self.global_scale_factor:.3f})")
         scale_global_button.connect('clicked', self.use_global_scale_factor)
 
         scale_box.pack_start(self._scale, True, True, 2)
@@ -1093,8 +1094,8 @@ class TexTextGuiGTK(TexTextGuiBase):
 
         liststore = Gtk.ListStore(GdkPixbuf.Pixbuf)
         for a in self.ALIGNMENT_LABELS:
-            args = tuple(a.split(" "))
-            path = os.path.join(os.path.dirname(__file__), "icons", "alignment-%s-%s.svg.png" % args)
+            vals = tuple(a.split(" "))
+            path = os.path.join(os.path.dirname(__file__), "icons", f"alignment-{vals[0]}-{vals[1]}.svg.png")
             assert os.path.exists(path)
             liststore.append([GdkPixbuf.Pixbuf.new_from_file(path)])
 
@@ -1232,15 +1233,15 @@ class TexTextGuiGTK(TexTextGuiBase):
         # retrieve the view action group at position 0 in the list
         action_group = groups[0]
         font_size_value = self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)
-        action = action_group.get_action('FontSize{}'.format(font_size_value))
+        action = action_group.get_action(f'FontSize{font_size_value}')
         action.set_active(True)
         action = action_group.get_action('WordWrap')
         action.set_active(self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
         new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
-        action = action_group.get_action('NewNodeContent{}'.format(new_node_content_value))
+        action = action_group.get_action(f'NewNodeContent{new_node_content_value}')
         action.set_active(True)
         close_shortcut_value = self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
-        action = action_group.get_action('CloseShortcut{}'.format(close_shortcut_value))
+        action = action_group.get_action(f'CloseShortcut{close_shortcut_value}')
         action.set_active(True)
         action = action_group.get_action('ConfirmClose')
         action.set_active(self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
@@ -1253,7 +1254,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             action.set_active(self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT))
             action = action_group.get_action('InsertSpaces')
             action.set_active(self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
-            action = action_group.get_action('TabsWidth%d' % self._config["gui"].get("tab_width", self.DEFAULT_TABWIDTH))
+            action = action_group.get_action(f"TabsWidth{self._config['gui'].get('tab_width', self.DEFAULT_TABWIDTH)}")
             action.set_active(True)
             self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
@@ -1279,7 +1280,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         icon_files = [os.path.join(
             os.path.dirname(__file__),
             "icons",
-            "logo-{size}x{size}.png".format(size=size))
+            f"logo-{size}x{size}.png")
             for size in icon_sizes]
         icons = [GdkPixbuf.Pixbuf.new_from_file(path) for path in icon_files if os.path.isfile(path)]
         window.set_icon_list(icons)
@@ -1314,7 +1315,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
         button.connect("clicked", lambda w, d=None: dialog.destroy())
         message_label = Gtk.Label()
-        message_label.set_markup("<b>{message}</b>".format(message=message_text))
+        message_label.set_markup(f"<b>{message_text}</b>")
         message_label.set_justify(Gtk.Justification.LEFT)
 
         raw_output_box = Gtk.VBox()

@@ -40,7 +40,7 @@ class Settings(object):
         try:
             self.load()
         except ValueError as e:
-            raise TexTextFatalError("Bad config `%s`: %s. Please fix it and re-run TexText." % (self.config_path, str(e)) )
+            raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(e)}. Please fix it and re-run TexText.")
 
     def load(self):
         if os.path.isfile(self.config_path):
@@ -62,8 +62,7 @@ class Settings(object):
             try:
                 os.remove(self.config_path)
             except OSError as err:
-                TexTextFatalError("Config `%s` could not be deleted. Error message: %s" % (
-                                  self.config_path, str(err)))
+                TexTextFatalError(f"Config `{self.config_path}` could not be deleted. Error message: {str(err)}")
 
     def has_key(self, key):
         return key in self.values

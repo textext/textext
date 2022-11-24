@@ -69,14 +69,13 @@ class TexText(inkex.EffectExtension):
             logging.disable(logging.CRITICAL)
         elif previous_exit_code == EXIT_CODE_UNEXPECTED_ERROR:
             logging.disable(logging.NOTSET)
-            logger.debug("Enforcing DEBUG mode due to previous exit code `{0}`".format(previous_exit_code))
+            logger.debug(f"Enforcing DEBUG mode due to previous exit code `{previous_exit_code}`")
         else:
             logging.disable(logging.DEBUG)
 
         logger.debug("TexText initialized")
         with open(__file__, "rb") as fhl:
-            logger.debug("TexText version = {0} (md5sum = {1})".format(repr(__version__),
-                                                                       hashlib.md5(fhl.read()).hexdigest()))
+            logger.debug(f"TexText version = {repr(__version__)} (md5sum = {hashlib.md5(fhl.read()).hexdigest()}")
         logger.log_system_info()
 
         super(TexText, self).__init__()
@@ -168,7 +167,7 @@ class TexText(inkex.EffectExtension):
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
-                    logger.debug("{0} = {1}".format(k, repr(v)))
+                    logger.debug(f"{k} = {repr(v)}")
 
             if not new_node_meta_data.text:
                 logger.debug("no text, return")
@@ -189,9 +188,10 @@ class TexText(inkex.EffectExtension):
                     if isinstance(new_node_meta_data.text, bytes):
                         new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
 
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
-                                                                            format(new_node_meta_data.tex_command)),
-                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter = TexToPdfConverter(latex_exe=self.config.
+                                                  get(f"{new_node_meta_data.tex_command}-executable"),
+                                                  inkscape_exe=self.config.
+                                                  get("inkscape-executable"))
                     converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
                     converter.pdf_to_svg()
 
@@ -279,7 +279,7 @@ class TexText(inkex.EffectExtension):
         with logger.debug("TexText.preview"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
-                    logger.debug("{0} = {1}".format(k, repr(v)))
+                    logger.debug(f"{k} = {repr(v)}")
 
             if not new_node_meta_data.text:
                 logger.debug("no text, return")
@@ -290,9 +290,10 @@ class TexText(inkex.EffectExtension):
 
             with change_to_temp_dir():
                 with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
-                                                                            format(new_node_meta_data.tex_command)),
-                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter = TexToPdfConverter(latex_exe=self.config.
+                                                  get(f"{new_node_meta_data.tex_command}-executable"),
+                                                  inkscape_exe=self.config.
+                                                  get("inkscape-executable"))
                     converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
                     converter.pdf_to_png(white_bg=use_white_bg)
                     image_set_fcn(converter.tmp('png'))
@@ -320,15 +321,15 @@ class TexText(inkex.EffectExtension):
                                                default_texcmd=self.config.get("previous_tex_command",
                                                                               TexText.DEFAULT_TEXCMD))
 
-                logger.debug("Old node from TexText {0}".format(meta_data.textext_version))
-                logger.debug("Old node text = {0}".format(meta_data.text))
-                logger.debug("Old node scale = {0}".format(meta_data.scale_factor))
+                logger.debug(f"Old node from TexText {meta_data.textext_version}")
+                logger.debug(f"Old node text = {meta_data.text}")
+                logger.debug(f"Old node scale = {meta_data.scale_factor}")
 
                 if not meta_data.preamble:
-                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
+                    logger.debug(f"Using default preamble file `{self.options.preamble_file}`")
                     meta_data.preamble = self.options.preamble_file
                 else:
-                    logger.debug("Using node preamble file `{0}`".format(meta_data.preamble))
+                    logger.debug(f"Using node preamble file `{meta_data.preamble}`")
 
                 # This is very important when re-editing nodes which have been created using
                 # TexText <= 0.7. It ensures that the scale factor which is displayed in the
@@ -457,10 +458,10 @@ class TexToPdfConverter:
                                  startupinfo=info)
             out, err = p.communicate()
         except OSError as err:
-            raise TexTextCommandNotFound("Command {0} failed: {1}".format(' '.join(cmd), err))
+            raise TexTextCommandNotFound(f"Command {' '.join(cmd)} failed: {err}")
 
         if ok_return_value is not None and p.returncode != ok_return_value:
-            raise TexTextCommandFailed(message="Command {0} failed (code {1})".format(' '.join(cmd), p.returncode),
+            raise TexTextCommandFailed(message=f"Command {' '.join(cmd)} failed (code {p.returncode})",
                                        return_code=p.returncode,
                                        stdout=out,
                                        stderr=err)
@@ -505,7 +506,7 @@ class TexToPdfConverter:
                     raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
 
             if not os.path.exists(self.tmp('pdf')):
-                raise TexTextConversionError("{0} didn't produce output {1}".format(self._latex_exe, self.tmp('pdf')))
+                raise TexTextConversionError(f"{self._latex_exe} didn't produce output {self.tmp('pdf')}")
 
     def pdf_to_svg(self):
         """
@@ -526,8 +527,7 @@ class TexToPdfConverter:
                 self._inkscape_exe,
                 "-g",
                 "--batch-process",
-                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".
-                format(self.tmp('svg')),
+                f"--actions=EditSelectAll;StrokeToPath;export-filename:{self.tmp('svg')};export-do;EditUndo;FileClose",
                 self.tmp('svg')
             ]
             )
@@ -647,7 +647,7 @@ class TexTextElement(inkex.Group):
         # Ensure that snippet is correctly scaled according to the units of the document
         # We scale it here such that its size is correct in the document units
         # (Usually pt returned from poppler to mm in the main document)
-        self.transform.add_scale(root.uutounit("1{}".format(root.unit), document_unit))
+        self.transform.add_scale(root.uutounit(f"1{root.unit}", document_unit))
 
     @staticmethod
     def _expand_defs(root):
@@ -742,7 +742,7 @@ class TexTextElement(inkex.Group):
                 replacement = rename_map[old_name]
             except KeyError:
                 replacement = old_name
-            return "url(#{})".format(replacement)
+            return f"url(#{replacement})"
         regex = re.compile(r"url\(#([^)(]*)\)")
 
         for el in self.iter():
@@ -758,7 +758,7 @@ class TexTextElement(inkex.Group):
         return math.sqrt(math.fabs(det))
 
     def set_meta(self, key, value):
-        ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
+        ns_key = f'{{{TEXTEXT_NS}}}{key}'
         self.set(ns_key, value)
         assert self.get_meta(key) == value, (self.get_meta(key), value)
 
@@ -777,10 +777,10 @@ class TexTextElement(inkex.Group):
 
     def get_meta(self, key, default=None):
         try:
-            ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
+            ns_key = f'{{{TEXTEXT_NS}}}{key}'
             value = self.get(ns_key)
             if value is None:
-                raise AttributeError('{} has no attribute `{}`'.format(self, key))
+                raise AttributeError(f'{self} has no attribute `{key}`')
             return value
         except AttributeError as attr_error:
             if default is not None:
@@ -795,7 +795,7 @@ class TexTextElement(inkex.Group):
         :param (float) relative_scale: Scaling of the new node relative to the scale of the reference node
         """
         from inkex import Transform
-        scale_transform = Transform("scale({0})".format(relative_scale))
+        scale_transform = Transform(f"scale({relative_scale})")
 
         old_transform = Transform(ref_node.transform)
 

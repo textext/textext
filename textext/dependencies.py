@@ -87,20 +87,20 @@ class DependencyCheck(object):
 
         """
         if exe_path:
-            with self._logger.info("Checking for {0} at given path `{1}`...".format(prog_name, exe_path)):
+            with self._logger.info(f"Checking for {prog_name} at given path `{exe_path}`..."):
                 if self.check_executable(prog_name, exe_path):
-                    self._logger.info("{0} is found at `{1}`".format(prog_name, exe_path))
+                    self._logger.info(f"{prog_name} is found at `{exe_path}`")
                     return exe_path
                 else:
-                    self._logger.error("{0} is NOT found at `{1}`.".format(prog_name, exe_path))
+                    self._logger.error(f"{prog_name} is NOT found at `{exe_path}`.")
                     return ""
         else:
-            with self._logger.info("Trying to find {0} in system path...".format(prog_name)):
+            with self._logger.info(f"Trying to find {prog_name} in system path..."):
                 found_path = self.find_executable_in_path(prog_name)
                 if found_path:
-                    self._logger.info("{0} is found at `{1}`".format(prog_name, found_path))
+                    self._logger.info(f"{prog_name} is found at `{found_path}`")
                 else:
-                    self._logger.error("{0} is NOT found in system path!".format(prog_name))
+                    self._logger.error(f"{prog_name} is NOT found in system path!")
                 return found_path
 
     def check_executable(self, prog_name: str, exe_path: str) -> bool:
@@ -115,12 +115,12 @@ class DependencyCheck(object):
             True if the file exists and is executable, otherwise False.
 
         """
-        with self._logger.debug("Checking `{0}-executable` = `{1}`...".format(prog_name, exe_path)):
+        with self._logger.debug(f"Checking `{prog_name}-executable` = `{exe_path}`..."):
             if os.path.isfile(exe_path) and os.access(exe_path, os.X_OK):
-                self._logger.debug("{0} is found at `{1}`".format(prog_name, exe_path))
+                self._logger.debug(f"{prog_name} is found at `{exe_path}`")
                 return True
             else:
-                self._logger.debug("Bad `{0}` executable: `{1}`".format(prog_name, exe_path))
+                self._logger.debug(f"Bad `{prog_name}` executable: `{exe_path}`")
                 return False
 
     def find_executable_in_path(self, prog_name: str) -> str:
@@ -134,16 +134,16 @@ class DependencyCheck(object):
         Returns:
             The absolute path to the executable if it has been found, otherwise an empty string.
         """
-        with self._logger.debug("Start searching {0} in system path...".format(prog_name)):
+        with self._logger.debug(f"Start searching {prog_name} in system path..."):
             for exe_name in system_env.executable_names[prog_name]:
                 for path in system_env.get_system_path():
                     full_path_guess = os.path.join(path, exe_name)
-                    with self._logger.debug("Looking for `{0}` in `{1}`".format(exe_name, path)):
+                    with self._logger.debug(f"Looking for `{exe_name}` in `{path}`"):
                         if self.check_executable(prog_name, full_path_guess):
-                            self._logger.debug("`{0}` is found at `{1}`".format(exe_name, path))
+                            self._logger.debug(f"`{exe_name}` is found at `{path}`")
                             return full_path_guess
 
-                self._logger.warning("`{0}` is NOT found in PATH".format(exe_name))
+                self._logger.warning(f"`{exe_name}` is NOT found in PATH")
             return ""
 
     def check_inkscape_version(self, exe_path: str) -> bool:
@@ -160,11 +160,11 @@ class DependencyCheck(object):
                 if m:
                     found_version, major, minor = m.groups()
                     if int(major) >= self.INKSCAPE_MAJOR_MIN and int(minor) >= self.INKSCAPE_MINOR_MIN:
-                        self._logger.info("Inkscape={0} is found at {1}".format(found_version, exe_path))
+                        self._logger.info(f"Inkscape={found_version} is found at {exe_path}")
                         return True
                     else:
-                        self._logger.error("Inkscape>={0}.{1} is not found (but inkscape={2} is found)".
-                                           format(self.INKSCAPE_MAJOR_MIN, self.INKSCAPE_MINOR_MIN, found_version))
+                        self._logger.error(f"Inkscape>={self.INKSCAPE_MAJOR_MIN}.{self.INKSCAPE_MINOR_MIN} "
+                                           f"is not found (but inkscape={found_version} is found)")
                         return False
 
             self._logger.error("can't determinate inkscape version!")
