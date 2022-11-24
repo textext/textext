@@ -25,7 +25,7 @@ from .utility import change_to_temp_dir
 from .errors import *
 
 # Open logger before accessing Inkscape modules, so we can catch properly any erros thrown by them
-logger, log_console_hanlder = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
+logger, log_console_handler = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
                                             logfile_name="textext.log", cached_console_logging=True)
 import inkex  # noqa
 from lxml import etree  # noqa
@@ -54,6 +54,7 @@ class TexText(inkex.EffectExtension):
 
     DEFAULT_ALIGNMENT = "middle center"
     DEFAULT_TEXCMD = "pdflatex"
+    DEFAULT_PREAMBLE = "default_packages.tex"
 
     def __init__(self):
 
@@ -76,17 +77,7 @@ class TexText(inkex.EffectExtension):
         with open(__file__, "rb") as fhl:
             logger.debug("TexText version = {0} (md5sum = {1})".format(repr(__version__),
                                                                        hashlib.md5(fhl.read()).hexdigest()))
-        logger.debug("platform.system() = {0}".format(repr(platform.system())))
-        logger.debug("platform.release() = {0}".format(platform.release()))
-        logger.debug("platform.version() = {0}".format((platform.version())))
-
-        logger.debug("platform.machine() = {0}".format(platform.machine()))
-        logger.debug("platform.uname() = {0}".format(platform.uname()))
-        logger.debug("platform.mac_ver() = {0}".format(platform.mac_ver()))
-
-        logger.debug("sys.executable = {0}".format(sys.executable))
-        logger.debug("sys.version = {0}".format(sys.version))
-        logger.debug("os.environ = {0}".format(os.environ))
+        logger.log_system_info()
 
         super(TexText, self).__init__()
 
@@ -98,7 +89,7 @@ class TexText(inkex.EffectExtension):
         self.arg_parser.add_argument(
             "--preamble-file",
             type=str,
-            default=self.config.get('preamble', "default_packages.tex"))
+            default=self.config.get('preamble', self.DEFAULT_PREAMBLE))
 
         self.arg_parser.add_argument(
             "--scale-factor",
@@ -127,79 +118,24 @@ class TexText(inkex.EffectExtension):
             # Find root element
             old_svg_ele, old_meta_data = self.get_old()
 
-            if old_meta_data.text:
-                logger.debug("Old node text = {0}".format(old_meta_data.text))
-                logger.debug("Old node scale = {0}".format(old_meta_data.scale_factor))
-
-            # This is very important when re-editing nodes which have been created using TexText <= 0.7.
-            # It ensures that the scale factor which is displayed in the TexTextGuiBase dialog is adjusted
-            # in such a way that the size of the node is preserved when recompiling the LaTeX code.
-            # ("version" attribute introduced in 0.7.1)
-            if old_svg_ele is not None:
-
-                if old_svg_ele.get_meta("version", '<=0.7') == '<=0.7':
-                    logger.debug("Adjust scale factor for node created with TexText <= 0.7")
-                    old_meta_data.scale_factor *= self.svg.uutounit(1, "pt")
-
-                if old_meta_data.jacobian_sqrt != 1.0:
-                    logger.debug("Adjust scale factor to account transformations in inkscape")
-                    old_meta_data.scale_factor *= old_svg_ele.get_jacobian_sqrt() / old_meta_data.jacobian_sqrt
-
-            gui_config = self.config.get("gui", {})
-            gui_config["last_scale_factor"] = self.config.get("scale", 1.0)
-
-            # Ask for TeX code
+            # Ask for TeX code via GUI if no text is passed via command line argument
             if self.options.text is None:
+                old_meta_data.preamble = self.check_preamble_file(old_meta_data.preamble)
 
-                if not old_meta_data.preamble:
-                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
-                    old_meta_data.preamble = self.options.preamble_file
-                else:
-                    logger.debug("Using node preamble file")
-                    # Check if preamble file exists at the specified absolute path location. If not, check to find
-                    # the file in the default path. If this fails, too, fallback to the default.
-                    if not os.path.exists(old_meta_data.preamble):
-                        logger.debug("Preamble file is NOT found by absolute path")
-                        preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
-                                                           os.path.basename(old_meta_data.preamble))
-                        if not os.path.exists(preamble_file_guess):
-                            logger.debug("Preamble file is NOT found along with default preamble file")
-                            old_meta_data.preamble = self.options.preamble_file
-                        else:
-                            logger.debug("Preamble file is found along with default preamble file")
-                            old_meta_data.preamble = preamble_file_guess
-                    else:
-                        logger.debug("Preamble file found by absolute path")
+                def save_callback_new(_new_node_meta_data):
+                    return self.do_convert(_new_node_meta_data, old_meta_data, old_svg_ele)
 
-                if not os.path.isfile(old_meta_data.preamble):
-                    logger.debug("Preamble file is not found")
-                    old_meta_data.preamble = ""
-
-                tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=gui_config)
-
-                def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                                  tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
-                    return self.do_convert(_text, _preamble, _scale, old_svg_ele,
-                                           alignment,
-                                           tex_command=tex_cmd,
-                                           convert_stroke_to_path=conv_stroke_to_path,
-                                           original_scale=old_meta_data.scale_factor)
-
-                def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
-                    return self.preview_convert(_text,
-                                                _preamble,
-                                                _preview_callback,
-                                                _tex_command,
-                                                _white_bg
-                                                )
+                def preview_callback_new(_new_node_meta_data, _preview_callback, _white_bg):
+                    return self.preview_convert(_new_node_meta_data, _preview_callback, _white_bg)
 
                 with logger.debug("Run TexText GUI"):
-                    gui_config = tt_gui.show(save_callback, preview_callback)
+                    tt_gui = TexTextGui(version_str=__version__, node_meta_data=old_meta_data, config=self.config)
+                    self.config = tt_gui.show(save_callback_new, preview_callback_new)
 
                 with logger.debug("Saving global GUI settings"):
-                    self.config["gui"] = gui_config
                     self.config.save()
 
+            # when run from command line
             else:
                 # In case TT has been called with --text="" the old node is
                 # just re-compiled if one exists
@@ -207,59 +143,25 @@ class TexText(inkex.EffectExtension):
                     new_text = old_meta_data.text
                 else:
                     new_text = self.options.text
-                self.do_convert(new_text,
-                                self.options.preamble_file,
-                                self.options.scale_factor,
-                                old_svg_ele,
-                                self.options.alignment,
-                                self.options.tex_command,
-                                convert_stroke_to_path=False,
-                                original_scale=old_meta_data.scale_factor
-                                )
+                self.do_convert(TexTextEleMetaData(new_text, self.options.preamble_file, self.options.scale_factor,
+                                                   self.options.tex_command, self.options.alignment,
+                                                   False, 1.0, __version__),
+                                old_meta_data, old_svg_ele)
 
-    def preview_convert(self, text, preamble_file, image_setter, tex_command, white_bg):
-        """
-        Generates a preview PNG of the LaTeX output using the selected converter.
-
-        :param text:
-        :param preamble_file:
-        :param image_setter: A callback to execute with the file path of the generated PNG
-        :param tex_command: Command for tex -> pdf
-        :param (bool) white_bg: set background to white if True
-        """
-        with logger.debug("TexText.preview"):
-            with logger.debug("args:"):
-                for k, v in list(locals().items()):
-                    logger.debug("{0} = {1}".format(k, repr(v)))
-
-            if not text:
-                logger.debug("no text, return")
-                return
-
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
-
-            with change_to_temp_dir():
-                with logger.debug("Converting tex to pdf"):
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
-                                                  inkscape_exe=self.config.get("inkscape-executable"))
-                    converter.tex_to_pdf(text, preamble_file)
-                    converter.pdf_to_png(white_bg=white_bg)
-                    image_setter(converter.tmp('png'))
-
-    def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
-                   convert_stroke_to_path, original_scale=None):
+    def do_convert(self, new_node_meta_data, old_node_meta_data, old_svg_node):
         """
         Does the conversion using the selected converter.
 
-        :param text:
-        :param preamble_file:
-        :param user_scale_factor:
-        :param old_svg_ele:
-        :param alignment:
-        :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
-        :param convert_stroke_to_path: Determines if converter.stroke_to_path() is called
-        :param original_scale Scale factor of old node
+        :param new_node_meta_data:
+        :type new_node_meta_data: TexTextEleMetaData
+
+        :param old_node_meta_data:
+        :type old_node_meta_data: TexTextEleMetaData
+
+        :param old_svg_node:
+        :type old_svg_node: TexTextElement
+
+        :return:
         """
         from inkex import Transform
 
@@ -268,45 +170,40 @@ class TexText(inkex.EffectExtension):
                 for k, v in list(locals().items()):
                     logger.debug("{0} = {1}".format(k, repr(v)))
 
-            if not text:
+            if not new_node_meta_data.text:
                 logger.debug("no text, return")
                 return
 
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
+            try:
+                inkscape_version = self.document.getroot().get('inkscape:version')
+            except AttributeError as ignored:
+                # Unfortunately when this node comes from an Inkscape document that
+                # has never been saved no version attribute is provided :-(
+                inkscape_version = "0.0"
+            new_node_meta_data.inkscape_version = inkscape_version
+            new_node_meta_data.inkex_version = inkex.__version__
 
             # Convert
             with logger.debug("Converting tex to svg"):
                 with change_to_temp_dir():
-                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".format(tex_command)),
+                    if isinstance(new_node_meta_data.text, bytes):
+                        new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
+
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
+                                                                            format(new_node_meta_data.tex_command)),
                                                   inkscape_exe=self.config.get("inkscape-executable"))
-                    converter.tex_to_pdf(text, preamble_file)
+                    converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
                     converter.pdf_to_svg()
 
-                    if convert_stroke_to_path:
+                    if new_node_meta_data.stroke_to_path:
                         converter.stroke_to_path()
 
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
 
-            # -- Store textext attributes
-            tt_node.set_meta("version", __version__)
-            tt_node.set_meta("texconverter", tex_command)
-            tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta_text(text)
-            tt_node.set_meta("preamble", preamble_file)
-            tt_node.set_meta("scale", str(user_scale_factor))
-            tt_node.set_meta("alignment", str(alignment))
-            tt_node.set_meta("stroke-to-path", str(int(convert_stroke_to_path)))
-            try:
-                inkscape_version = self.document.getroot().get('inkscape:version')
-                tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
-            except AttributeError as ignored:
-                # Unfortunately when this node comes from an Inkscape document that has never been saved before
-                # no version attribute is provided by Inkscape :-(
-                pass
+            tt_node.set_meta_data(new_node_meta_data)
 
             # Place new node in document
-            if old_svg_ele is None:
+            if old_svg_node is None:
                 with logger.debug("Adding new node to document"):
                     # Place new nodes in the view center and scale them according to user request
                     node_center = tt_node.bounding_box().center
@@ -315,10 +212,8 @@ class TexText(inkex.EffectExtension):
                     # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
                     # not in doc units! Hence, we need to convert the value to the document unit.
                     # so the transform is correct later.
-                    if hasattr(inkex, "__version__"):
-                        if self.version_greater_or_equal_than(inkex.__version__, "1.2.0"):
-                            view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
-                            view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
+                    view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
+                    view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
 
                     # Collect all layers incl. the current layers such that the top layer
                     # is the first one in the list
@@ -338,7 +233,7 @@ class TexText(inkex.EffectExtension):
                     # transforms in the layers, hence the inverse layer transformation
                     tt_node.transform = (-full_layer_transform @               # map to view coordinate system
                                          Transform(translate=view_center) @    # place at view center
-                                         Transform(scale=user_scale_factor) @  # scale
+                                         Transform(scale=new_node_meta_data.scale_factor) @  # scale
                                          Transform(translate=-node_center) @   # place node at origin
                                          tt_node.transform                     # use original node transform
                                          )
@@ -351,35 +246,63 @@ class TexText(inkex.EffectExtension):
             else:
                 with logger.debug("Replacing node in document"):
                     # Rescale existing nodes according to user request
-                    relative_scale = user_scale_factor / original_scale
-                    tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
+                    relative_scale = new_node_meta_data.scale_factor / old_node_meta_data.scale_factor
+                    tt_node.align_to_node(old_svg_node, new_node_meta_data.alignment, relative_scale)
 
-                    # If no non-black color has been explicitily set by TeX we copy the color information
+                    # If no non-black color has been explicitly set by TeX we copy the color information
                     # from the old node so that coloring done in Inkscape is preserved.
                     if not tt_node.is_colorized():
-                        tt_node.import_group_color_style(old_svg_ele)
+                        tt_node.import_group_color_style(old_svg_node)
 
-                    self.replace_node(old_svg_ele, tt_node)
+                    self.replace_node(old_svg_node, tt_node)
 
             with logger.debug("Saving global settings"):
                 # -- Save settings
-                if os.path.isfile(preamble_file):
-                    self.config['preamble'] = preamble_file
-                else:
-                    self.config['preamble'] = ''
-
-                self.config['scale'] = user_scale_factor
-
-                self.config["previous_tex_command"] = tex_command
-
+                self.config['preamble'] = new_node_meta_data.preamble
+                self.config['scale'] = new_node_meta_data.scale_factor
+                self.config["previous_tex_command"] = new_node_meta_data.tex_command
                 self.config.save()
+
+    def preview_convert(self, new_node_meta_data, image_set_fcn, use_white_bg):
+        """
+        Generates a preview PNG of the LaTeX output using the selected converter.
+
+        :param new_node_meta_data: The meta data of the node to be compiled
+        :type new_node_meta_data: TexTextEleMetaData
+
+        :param image_set_fcn: A callback to execute with the file path of the generated PNG
+        :type image_set_fcn: function
+
+        :param use_white_bg: set background to white if True
+        :type use_white_bg: bool
+        """
+        with logger.debug("TexText.preview"):
+            with logger.debug("args:"):
+                for k, v in list(locals().items()):
+                    logger.debug("{0} = {1}".format(k, repr(v)))
+
+            if not new_node_meta_data.text:
+                logger.debug("no text, return")
+                return
+
+            if isinstance(new_node_meta_data.text, bytes):
+                new_node_meta_data.text = new_node_meta_data.text.decode('utf-8')
+
+            with change_to_temp_dir():
+                with logger.debug("Converting tex to pdf"):
+                    converter = TexToPdfConverter(latex_exe=self.config.get("{0}-executable".
+                                                                            format(new_node_meta_data.tex_command)),
+                                                  inkscape_exe=self.config.get("inkscape-executable"))
+                    converter.tex_to_pdf(new_node_meta_data.text, new_node_meta_data.preamble)
+                    converter.pdf_to_png(white_bg=use_white_bg)
+                    image_set_fcn(converter.tmp('png'))
 
     def get_old(self):
         """
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_svg_ele, latex_text, preamble_file_name, scale, conv_stroke_to_path)
+        :return: The digged out svg note and the meta data of the node
         :rtype: (TexTextElement, TexTextEleMetaData)
         """
 
@@ -392,16 +315,33 @@ class TexText(inkex.EffectExtension):
             node.__class__ = TexTextElement
 
             try:
-                meta_data = TexTextEleMetaData()
-                meta_data.text = node.get_meta_text()
-                meta_data.preamble = node.get_meta('preamble')
-                meta_data.scale_factor = float(node.get_meta('scale', self.config.get("scale", 1.0)))
-                meta_data.alignment = node.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
-                meta_data.tex_command = node.get_meta("texconverter", self.config.get("previous_tex_command",
-                                                                                      TexText.DEFAULT_TEXCMD))
-                meta_data.stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
-                meta_data.jacobian_sqrt = float(node.get_meta("jacobian_sqrt", 1.0))
-                meta_data.textext_version = node.get_meta("version", '<=0.7')
+                meta_data = node.get_meta_data(default_scale=self.config.get("scale", 1.0),
+                                               default_alignment=TexText.DEFAULT_ALIGNMENT,
+                                               default_texcmd=self.config.get("previous_tex_command",
+                                                                              TexText.DEFAULT_TEXCMD))
+
+                logger.debug("Old node from TexText {0}".format(meta_data.textext_version))
+                logger.debug("Old node text = {0}".format(meta_data.text))
+                logger.debug("Old node scale = {0}".format(meta_data.scale_factor))
+
+                if not meta_data.preamble:
+                    logger.debug("Using default preamble file `{0}`".format(self.options.preamble_file))
+                    meta_data.preamble = self.options.preamble_file
+                else:
+                    logger.debug("Using node preamble file `{0}`".format(meta_data.preamble))
+
+                # This is very important when re-editing nodes which have been created using
+                # TexText <= 0.7. It ensures that the scale factor which is displayed in the
+                # TexTextGuiBase dialog is adjusted in such a way that the size of the node
+                # is preserved when recompiling the LaTeX code.
+                # ("version" attribute introduced in 0.7.1)
+                if meta_data.textext_version == '<=0.7':
+                    logger.debug("Adjust scale factor for node created with TexText <= 0.7")
+                    meta_data.scale_factor *= self.svg.uutounit(1, "pt")
+
+                if meta_data.jacobian_sqrt != 1.0:
+                    logger.debug("Adjust scale factor to account transformations in inkscape")
+                    meta_data.scale_factor *= node.get_jacobian_sqrt() / meta_data.jacobian_sqrt
 
                 return node, meta_data
 
@@ -409,6 +349,42 @@ class TexText(inkex.EffectExtension):
                 pass
 
         return None, TexTextEleMetaData()
+
+    def check_preamble_file(self, preamble_file):
+        """
+        Check if preamble file exists at the specified absolute path location. If not, check to find
+        the file in the default path. If this fails, too, fallback to the default.
+
+        :param preamble_file: The path to the preamble file to be checked
+        :type: str
+
+        :return: A valid path to the determined preamble file. If nothing is found, an empty string.
+        :rtype: str
+        """
+        if not os.path.exists(preamble_file):
+            logger.debug("Preamble file is NOT found by absolute path")
+            preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
+                                               os.path.basename(preamble_file))
+            if not os.path.exists(preamble_file_guess):
+                logger.debug("Preamble file is NOT found along with configured default preamble file")
+                preamble_file_guess = self.options.preamble_file
+                if not os.path.exists(preamble_file_guess):
+                    logger.debug("Configured default preamble file is also NOT found")
+                    preamble_file = os.path.join(os.getcwd(), self.DEFAULT_PREAMBLE)
+                else:
+                    logger.debug("Using configured preamble file")
+                    preamble_file = preamble_file_guess
+            else:
+                logger.debug("Preamble file is found along with default preamble file")
+                preamble_file = preamble_file_guess
+        else:
+            logger.debug("Preamble file found by absolute path")
+
+        if not os.path.isfile(preamble_file):
+            logger.debug("Preamble file is not found")
+            preamble_file = ""
+
+        return preamble_file
 
     def replace_node(self, old_node, new_node):
         """
@@ -425,37 +401,6 @@ class TexText(inkex.EffectExtension):
     def copy_style(old_node, new_node):
         # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
         return
-
-    @staticmethod
-    def version_greater_or_equal_than(version_str, other_version_str):
-        """ Checks if a version number is >= than another version number
-
-        Version numbers are passed as strings and must be of type "N.M.Rarb" where N, M, R
-        are non negative decimal numbers < 1000 and arb is an arbitrary string.
-        For example, "1.2.3" or "1.2.3dev" or "1.2.3-dev" or "1.2.3 dev" are valid version strings.
-
-        Returns:
-            True if the version number is equal or greater then the other version number,
-            otherwise false
-
-        """
-
-        def ver_str_to_float(ver_str):
-            """ Parse version string and returns it as a floating point value
-
-            Returns The version string as floating point number for easy comparison
-            (minor version and relase number padded with zeros). E.g. "1.23.4dev" -> 1.023004.
-            If conversion fails returns NaN.
-
-            """
-            m = re.search(r"(\d+).(\d+).(\d+)[-\w]*", ver_str)
-            if m is not None:
-                ver_maj, ver_min, ver_rel = m.groups()
-                return float("{}.{:0>3}{:0>3}".format(ver_maj, ver_min, ver_rel))
-            else:
-                return float("nan")
-
-        return ver_str_to_float(version_str) >= ver_str_to_float(other_version_str)
 
 
 class TexToPdfConverter:
@@ -644,19 +589,35 @@ def _contains_document_class(preamble):
 
 
 class TexTextEleMetaData(object):
-    def __init__(self):
-        self.text = ""
-        self.preamble = ""
-        self.scale_factor = 1.0
-        self.tex_command = TexText.DEFAULT_TEXCMD
-        self.alignment = TexText.DEFAULT_ALIGNMENT
-        self.stroke_to_path = False
-        self.jacobian_sqrt = 1.0
-        self.textext_version = "0.7"  # Introduced in 0.7.1
+    def __init__(self, text="", preamble="", scale_factor=1.0, tex_command=TexText.DEFAULT_TEXCMD,
+                 alignment=TexText.DEFAULT_ALIGNMENT, stroke_to_path=False, jacobian_sqrt=1.0,
+                 textext_version="0.7", inkscape_version="0.0", inkex_version="0.0"):
+        self.text = text
+        self.preamble = preamble
+        self.scale_factor = scale_factor
+        self.tex_command = tex_command
+        self.alignment = alignment
+        self.stroke_to_path = stroke_to_path
+        self.jacobian_sqrt = jacobian_sqrt
+        self.textext_version = textext_version  # Introduced in 0.7.1
+        self.inkscape_version = inkscape_version
+        self.inkex_version = inkex_version
 
 
 class TexTextElement(inkex.Group):
     tag_name = "g"
+
+    KEY_VERSION = "version"
+    KEY_TEXCONVERTER = "texconverter"
+    KEY_PDFCONVERTER = "pdfconverter"
+    KEY_TEXT = "text"
+    KEY_PREAMBLE = "preamble"
+    KEY_SCALE = "scale"
+    KEY_ALIGNMENT = "alignment"
+    KEY_JACOBIAN_SQRT ="jacobian_sqrt"
+    KEY_STROKE2PATH = "stroke-to-path"
+    KEY_INKSCAPE_VERSION = "inkscapeversion"
+    KEY_INKEX_VERSION = "inkexversion"
 
     def __init__(self, svg_filename, document_unit):
         """
@@ -713,6 +674,51 @@ class TexTextElement(inkex.Group):
 
             # expand children defs
             TexTextElement._expand_defs(el)
+
+    def set_meta_data(self, meta_data):
+        """
+        Writes the meta data as attributes into the svg node
+
+        :param (TexTextEleMetaData) meta_data: The meta data set in the node
+
+        """
+        self.set_meta(self.KEY_VERSION, meta_data.textext_version)
+        self.set_meta(self.KEY_TEXCONVERTER, meta_data.tex_command)
+        self.set_meta(self.KEY_PDFCONVERTER, 'inkscape')
+        self.set_meta_text(meta_data.text)
+        self.set_meta(self.KEY_PREAMBLE, meta_data.preamble)
+        self.set_meta(self.KEY_SCALE, str(meta_data.scale_factor))
+        self.set_meta(self.KEY_ALIGNMENT, str(meta_data.alignment))
+        self.set_meta(self.KEY_STROKE2PATH, str(int(meta_data.stroke_to_path)))
+        self.set_meta(self.KEY_INKSCAPE_VERSION, str(meta_data.inkscape_version))
+        self.set_meta(self.KEY_INKEX_VERSION, str(meta_data.inkex_version))
+
+    def get_meta_data(self, default_scale=1.0, default_alignment=TexText.DEFAULT_ALIGNMENT,
+                      default_texcmd=TexText.DEFAULT_TEXCMD):
+        """
+        Reads the TexText relevant attributes from the svg node and return them as a
+        TexTextEleMetaData structure. If no text and no preamble attribute is found
+        an AttributeNotFound error is raised.
+
+        :param (float) default_scale: The default scale
+        :param (str) default_alignment: The default alignment
+        :param (str) default_texcmd: The default tex command
+
+        :return (TexTextEleMetaData): The extracted meta data
+        """
+        meta_data = TexTextEleMetaData()
+        meta_data.text = self.get_meta_text()
+        meta_data.preamble = self.get_meta(self.KEY_PREAMBLE)
+        meta_data.scale_factor = float(self.get_meta(self.KEY_SCALE, default_scale))
+        meta_data.alignment = self.get_meta(self.KEY_ALIGNMENT, default_alignment)
+        meta_data.tex_command = self.get_meta(self.KEY_TEXCONVERTER, default_texcmd)
+        meta_data.stroke_to_path = bool(int(self.get_meta(self.KEY_STROKE2PATH, 0)))
+        meta_data.jacobian_sqrt = float(self.get_meta(self.KEY_JACOBIAN_SQRT, 1.0))
+        meta_data.textext_version = self.get_meta(self.KEY_VERSION, "<=0.7")  # introduced in 0.7.1
+        meta_data.inkscape_version = self.get_meta(self.KEY_INKSCAPE_VERSION, "0.0")
+        meta_data.inkex_version = self.get_meta(self.KEY_INKEX_VERSION, "0.0")
+
+        return meta_data
 
     def make_ids_unique(self):
         """

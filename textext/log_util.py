@@ -14,6 +14,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import platform
 from typing import Tuple, Union
 
 
@@ -182,6 +183,20 @@ class NestedLoggingGuard(object):
 
     def log(self, lvl, message):
         return NestedLoggingGuard(self._logger, lvl, message)
+
+    def log_system_info(self):
+        self.debug("platform.system() = {0}".format(repr(platform.system())))
+        self.debug("platform.release() = {0}".format(platform.release()))
+        self.debug("platform.version() = {0}".format((platform.version())))
+
+        self.debug("platform.machine() = {0}".format(platform.machine()))
+        self.debug("platform.uname() = {0}".format(platform.uname()))
+        self.debug("platform.mac_ver() = {0}".format(platform.mac_ver()))
+
+        self.debug("sys.executable = {0}".format(sys.executable))
+        self.debug("sys.version = {0}".format(sys.version))
+        self.debug("os.environ = {0}".format(os.environ))
+
 
 
 class CycleBufferHandler(logging.handlers.BufferingHandler):

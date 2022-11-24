@@ -20,7 +20,9 @@ import sys
 import warnings
 from abc import ABCMeta, abstractmethod
 from contextlib import redirect_stderr
+from .base import TexTextEleMetaData
 from .errors import TexTextCommandFailed
+from .settings import Settings
 
 
 GTKSOURCEVIEW = "GTK Source View"
@@ -107,9 +109,17 @@ class TexTextGuiBase(object):
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
     def __init__(self, version_str, node_meta_data, config):
+        """
+
+        :param (str) version_str: TexText version
+        :param (TexTextEleMetaData) node_meta_data: The meta data of the node being processed
+        :param (Settings) config: TexText configuration
+        """
         self.TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
 
-        self._gui_config = config
+        self._config = config
+        if not self._config.has_key("gui"):
+            self._config["gui"] = {}
 
         if len(node_meta_data.text) > 0:
             self.text = node_meta_data.text
@@ -119,7 +129,7 @@ class TexTextGuiBase(object):
         self.textext_version = version_str
         self._convert_callback = None
         self.current_scale_factor = node_meta_data.scale_factor
-        self.global_scale_factor = self._gui_config["last_scale_factor"]
+        self.global_scale_factor = self._config.get("scale", 1.0)
         self.current_alignment = node_meta_data.alignment
 
         if node_meta_data.tex_command in self.TEX_COMMANDS:
@@ -312,7 +322,7 @@ class TexTextGuiTK(TexTextGuiBase):
 
         # Word wrap status
         self._word_wrap_tkval = tk.BooleanVar()
-        self._word_wrap_tkval.set(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
+        self._word_wrap_tkval.set(self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
 
         # Frame with text input field and word wrap checkbox
         box = tk.Frame(self._frame, relief="groove", borderwidth=2)
@@ -363,7 +373,7 @@ class TexTextGuiTK(TexTextGuiBase):
         self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
 
         self._root.mainloop()
-        return self._gui_config
+        return self._config
 
     def cb_ok(self, widget=None, data=None):
         try:
@@ -392,7 +402,7 @@ class TexTextGuiTK(TexTextGuiBase):
     # noinspection PyUnusedLocal
     def cb_word_wrap(self, widget=None, data=None):
         self._text_box.configure(wrap=tk.WORD if self._word_wrap_tkval.get() else tk.NONE)
-        self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
+        self._config["gui"]["word_wrap"] = self._word_wrap_tkval.get()
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
@@ -690,48 +700,48 @@ class TexTextGuiGTK(TexTextGuiBase):
     # Callback methods for the various menu items at the top of the window
     def numbers_toggled_cb(self, action, sourceview):
         sourceview.set_show_line_numbers(action.get_active())
-        self._gui_config["line_numbers"] = action.get_active()
+        self._config["gui"]["line_numbers"] = action.get_active()
 
     def auto_indent_toggled_cb(self, action, sourceview):
         sourceview.set_auto_indent(action.get_active())
-        self._gui_config["auto_indent"] = action.get_active()
+        self._config["gui"]["auto_indent"] = action.get_active()
 
     def insert_spaces_toggled_cb(self, action, sourceview):
         sourceview.set_insert_spaces_instead_of_tabs(action.get_active())
-        self._gui_config["insert_spaces"] = action.get_active()
+        self._config["gui"]["insert_spaces"] = action.get_active()
 
     def word_wrap_toggled_cb(self, action, sourceview):
         sourceview.set_wrap_mode(Gtk.WrapMode.WORD if action.get_active() else Gtk.WrapMode.NONE)
-        self._gui_config["word_wrap"] = action.get_active()
+        self._config["gui"]["word_wrap"] = action.get_active()
 
     # noinspection PyUnusedLocal
     def on_preview_background_chagned(self, action, sourceview):
-        self._gui_config["white_preview_background"] = action.get_active()
+        self._config["gui"]["white_preview_background"] = action.get_active()
 
     # noinspection PyUnusedLocal
     def tabs_toggled_cb(self, action, previous_value, sourceview):
         sourceview.set_tab_width(action.get_current_value())
-        self._gui_config["tab_width"] = action.get_current_value()
+        self._config["gui"]["tab_width"] = action.get_current_value()
 
     # noinspection PyUnusedLocal
     def new_node_content_cb(self, action, previous_value, sourceview):
-        self._gui_config["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
+        self._config["gui"]["new_node_content"] = self.NEW_NODE_CONTENT[action.get_current_value()]
 
     # noinspection PyUnusedLocal
     def font_size_cb(self, action, previous_value, sourceview):
-        self._gui_config["font_size"] = self.FONT_SIZE[action.get_current_value()]
-        self.set_monospace_font(sourceview, self._gui_config["font_size"])
+        self._config["gui"]["font_size"] = self.FONT_SIZE[action.get_current_value()]
+        self.set_monospace_font(sourceview, self._config["gui"]["font_size"])
 
     # noinspection PyUnusedLocal
     def close_shortcut_cb(self, action, previous_value, sourceview):
-        self._gui_config["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
+        self._config["gui"]["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
         self._cancel_button.set_tooltip_text(
             "Don't save changes ({})".format(self._close_shortcut_actions[action.get_current_value()][2]).replace(
                 "_", ""))
 
     # noinspection PyUnusedLocal
     def confirm_close_toggled_cb(self, action, sourceview):
-        self._gui_config["confirm_close"] = action.get_active()
+        self._config["gui"]["confirm_close"] = action.get_active()
 
     # noinspection PyUnusedLocal
     def cb_key_press(self, widget, event, data=None):
@@ -754,7 +764,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             return True
 
         # Cancel dialog via shortcut if set by the user
-        close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
+        close_shortcut_value = self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
         if (close_shortcut_value == 'Escape' and Gdk.keyval_name(event.keyval) == 'Escape') or \
            (close_shortcut_value == 'CtrlQ' and Gdk.keyval_name(event.keyval) == 'q' and
            ctrl_is_pressed):
@@ -780,10 +790,15 @@ class TexTextGuiGTK(TexTextGuiBase):
         self.current_convert_strokes_to_path = self._conv_stroke2path.get_active()
 
         try:
-            self._convert_callback(self.text, self.preamble_file, self.global_scale_factor,
-                                   self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
-                                   self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                                   self.current_convert_strokes_to_path)
+            node_meta_data = TexTextEleMetaData()
+            node_meta_data.textext_version = self.textext_version
+            node_meta_data.text = self.text
+            node_meta_data.preamble = self.preamble_file
+            node_meta_data.scale_factor = self.global_scale_factor
+            node_meta_data.tex_command = self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower()
+            node_meta_data.alignment = self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()]
+            node_meta_data.stroke_to_path = self.current_convert_strokes_to_path
+            self._convert_callback(node_meta_data)
         except Exception as error:
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
@@ -803,7 +818,7 @@ class TexTextGuiGTK(TexTextGuiBase):
 
     # noinspection PyUnusedLocal
     def window_deleted_cb(self, widget, event, view):
-        if (self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
+        if (self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
                 and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
                                                  self._source_buffer.get_end_iter(), True) != self.text):
             dlg = Gtk.MessageDialog(self._window, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE)
@@ -829,21 +844,27 @@ class TexTextGuiGTK(TexTextGuiBase):
     def update_preview(self, widget):
         """Update the preview image of the GUI using the callback it gave """
         if self._preview_callback:
-            text = self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+            node_meta_data = TexTextEleMetaData()
+
+            node_meta_data.text = self._source_buffer.get_text(self._source_buffer.get_start_iter(),
                                                 self._source_buffer.get_end_iter(), True)
 
             if isinstance(self._preamble_widget, Gtk.FileChooser):
-                preamble = self._preamble_widget.get_filename()
-                if not preamble:
-                    preamble = ""
+                node_meta_data.preamble = self._preamble_widget.get_filename()
+                if not node_meta_data.preamble:
+                    node_meta_data.preamble = ""
             else:
-                preamble = self._preamble_widget.get_text()
+                node_meta_data.preamble = self._preamble_widget.get_text()
+
+            node_meta_data.scale_factor = self.global_scale_factor
+            node_meta_data.tex_command = self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower()
+            node_meta_data.alignment = self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()]
+            node_meta_data.stroke_to_path = self.current_convert_strokes_to_path
 
             try:
-                self._preview_callback(text, preamble, self.set_preview_image_from_file,
-                                       self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                                       self._gui_config.get("white_preview_background",
-                                                            self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
+                self._preview_callback(node_meta_data, self.set_preview_image_from_file,
+                                       self._config["gui"].get("white_preview_background",
+                                                               self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
             except Exception as error:
                 self.show_error_dialog("TexText Error",
                                        "Error occurred while generating preview:",
@@ -1210,29 +1231,29 @@ class TexTextGuiGTK(TexTextGuiBase):
         groups = ui_manager.get_action_groups()
         # retrieve the view action group at position 0 in the list
         action_group = groups[0]
-        font_size_value = self._gui_config.get("font_size", self.DEFAULT_FONTSIZE)
+        font_size_value = self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)
         action = action_group.get_action('FontSize{}'.format(font_size_value))
         action.set_active(True)
         action = action_group.get_action('WordWrap')
-        action.set_active(self._gui_config.get("word_wrap", self.DEFAULT_WORDWRAP))
-        new_node_content_value = self._gui_config.get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
+        action.set_active(self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
+        new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
         action = action_group.get_action('NewNodeContent{}'.format(new_node_content_value))
         action.set_active(True)
-        close_shortcut_value = self._gui_config.get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
+        close_shortcut_value = self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
         action = action_group.get_action('CloseShortcut{}'.format(close_shortcut_value))
         action.set_active(True)
         action = action_group.get_action('ConfirmClose')
-        action.set_active(self._gui_config.get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
+        action.set_active(self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
         action = action_group.get_action('WhitePreviewBackground')
-        action.set_active(self._gui_config.get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
+        action.set_active(self._config["gui"].get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
         if TOOLKIT == GTKSOURCEVIEW:
             action = action_group.get_action('ShowNumbers')
-            action.set_active(self._gui_config.get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
+            action.set_active(self._config["gui"].get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
             action = action_group.get_action('AutoIndent')
-            action.set_active(self._gui_config.get("auto_indent", self.DEFAULT_AUTOINDENT))
+            action.set_active(self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT))
             action = action_group.get_action('InsertSpaces')
-            action.set_active(self._gui_config.get("insert_spaces", self.DEFAULT_INSERTSPACES))
-            action = action_group.get_action('TabsWidth%d' % self._gui_config.get("tab_width", self.DEFAULT_TABWIDTH))
+            action.set_active(self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
+            action = action_group.get_action('TabsWidth%d' % self._config["gui"].get("tab_width", self.DEFAULT_TABWIDTH))
             action.set_active(True)
             self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
@@ -1284,7 +1305,7 @@ class TexTextGuiGTK(TexTextGuiBase):
 
             # main loop
             Gtk.main()
-            return self._gui_config
+            return self._config
 
     def show_error_dialog(self, title, message_text, exception):
 
