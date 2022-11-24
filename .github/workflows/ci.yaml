@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
@@ -41,3 +42,21 @@ jobs:
         export PYTHONPATH="`inkscape --system-data-directory`/extensions:$HOME/.config/inkscape/extensions/"
         python -m pytest --verbose -s pytests
         xmllint --noout --relaxng inkscape.extension.rng textext/textext.inx
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-${{ env.pythonLocation }}-pip-${{ hashFiles('**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.pythonLocation }}-pip-
+    - name: Install python dependencies
+      run: pip install lxml cssselect Pillow pylint
+    - name: Run pylint
+      run: pylint textext/ tests/ pytests/
