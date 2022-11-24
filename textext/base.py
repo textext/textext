@@ -33,14 +33,14 @@ from lxml import etree  # noqa
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
 EXIT_CODE_UNEXPECTED_ERROR = 60
-TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
-SVG_NS = u"http://www.w3.org/2000/svg"
-XLINK_NS = u"http://www.w3.org/1999/xlink"
+TEXTEXT_NS = "http://www.iki.fi/pav/software/textext/"
+SVG_NS = "http://www.w3.org/2000/svg"
+XLINK_NS = "http://www.w3.org/1999/xlink"
 ID_PREFIX = "textext-"
 NSS = {
-    u'textext': TEXTEXT_NS,
-    u'svg': SVG_NS,
-    u'xlink': XLINK_NS,
+    "textext": TEXTEXT_NS,
+    "svg": SVG_NS,
+    "xlink": XLINK_NS,
 }
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
