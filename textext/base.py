@@ -54,6 +54,7 @@ class TexText(inkex.EffectExtension):
 
     DEFAULT_ALIGNMENT = "middle center"
     DEFAULT_TEXCMD = "pdflatex"
+    DEFAULT_PREAMBLE = "default_packages.tex"
 
     def __init__(self):
 
@@ -88,7 +89,7 @@ class TexText(inkex.EffectExtension):
         self.arg_parser.add_argument(
             "--preamble-file",
             type=str,
-            default=self.config.get('preamble', "default_packages.tex"))
+            default=self.config.get('preamble', self.DEFAULT_PREAMBLE))
 
         self.arg_parser.add_argument(
             "--scale-factor",
@@ -365,8 +366,14 @@ class TexText(inkex.EffectExtension):
             preamble_file_guess = os.path.join(os.path.dirname(self.options.preamble_file),
                                                os.path.basename(preamble_file))
             if not os.path.exists(preamble_file_guess):
-                logger.debug("Preamble file is NOT found along with default preamble file")
-                preamble_file = self.options.preamble_file
+                logger.debug("Preamble file is NOT found along with configured default preamble file")
+                preamble_file_guess = self.options.preamble_file
+                if not os.path.exists(preamble_file_guess):
+                    logger.debug("Configured default preamble file is also NOT found")
+                    preamble_file = os.path.join(os.getcwd(), self.DEFAULT_PREAMBLE)
+                else:
+                    logger.debug("Using configured preamble file")
+                    preamble_file = preamble_file_guess
             else:
                 logger.debug("Preamble file is found along with default preamble file")
                 preamble_file = preamble_file_guess
