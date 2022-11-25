@@ -73,4 +73,3 @@ class TexTextUnreachableBranchError(TexTextInternalError):
 
 class BadTexInputError(TexTextNonFatalError):
     pass
-

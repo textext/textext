@@ -44,7 +44,7 @@ NSS = {
     "xlink": XLINK_NS,
 }
 
-with open(os.path.join(os.path.dirname(__file__), "VERSION")) as version_file:
+with open(os.path.join(os.path.dirname(__file__), "VERSION"), mode="r", encoding="utf-8") as version_file:
     __version__ = version_file.readline().strip()
 
 
@@ -476,7 +476,7 @@ class TexToPdfConverter:
             preamble = ""
 
             if os.path.isfile(preamble_file):
-                with open(preamble_file, 'r') as f_handle:
+                with open(preamble_file, 'r', encoding="utf-8") as f_handle:
                     preamble += f_handle.read()
 
             # Add default document class to preamble if necessary
@@ -563,7 +563,7 @@ class TexToPdfConverter:
 
             # noinspection PyBroadException
             try:
-                with open(self.tmp('log'), encoding='utf8') as f_handle:
+                with open(self.tmp('log'), mode='r', encoding='utf8') as f_handle:
                     parser.process(f_handle)
                 return parser.errors[0]
             except Exception:
@@ -572,7 +572,7 @@ class TexToPdfConverter:
 
 def _contains_document_class(preamble):
     """Return True if `preamble` contains a documentclass-like command.
-    
+
     Also, checks and considers if the command is commented out or not.
     """
     lines = preamble.split("\n")

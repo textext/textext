@@ -44,11 +44,11 @@ class Settings(object):
 
     def load(self):
         if os.path.isfile(self.config_path):
-            with open(self.config_path) as f_handle:
+            with open(self.config_path, mode="r", encoding="utf-8") as f_handle:
                 self.values = json.load(f_handle)
 
     def save(self):
-        with open(self.config_path, "w") as f_handle:
+        with open(self.config_path, mode="w", encoding="utf-8") as f_handle:
             json.dump(self.values, f_handle, indent=2)
 
     def get(self, key, default=None):

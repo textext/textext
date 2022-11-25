@@ -674,7 +674,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         """
 
         try:
-            with open(path) as file_handle:
+            with open(path, "r", encoding="utf-8") as file_handle:
                 text = file_handle.read()
         except IOError:
             print(f"Couldn't load file: {path}")
