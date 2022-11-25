@@ -53,7 +53,7 @@ class AbstractEnvironment:
             err = None
         except sp.CalledProcessError as excpt:
             path = None
-            err = "Command `%s` failed, stdout: `%s`, stderr: `%s`" % (excpt.cmd, excpt.stdout, excpt.stderr)
+            err = f"Command `{excpt.cmd}` failed, stdout: `{excpt.stdout}`, stderr: `{excpt.stderr}`"
         except UnicodeDecodeError as excpt:
             path = None
             err = excpt.reason
@@ -72,7 +72,7 @@ class AbstractEnvironment:
 
     @property
     @abstractmethod
-    def get_system_path(self):
+    def system_path(self):
         pass
 
     @staticmethod
@@ -102,7 +102,8 @@ class LinuxEnvironment(AbstractEnvironment):
     def textext_logfile_path(self):
         return os.path.expanduser("~/.cache/textext")
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
@@ -122,7 +123,8 @@ class MacEnvironment(LinuxEnvironment):
                         "xelatex": ["xelatex"]
                         }
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         path = ["/Applications/Inkscape.app/Contents/Resources"]
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
@@ -186,7 +188,8 @@ class WindowsEnvironment(AbstractEnvironment):
     def textext_logfile_path(self):
         return os.path.join(os.getenv("APPDATA"), "textext")
 
-    def get_system_path(self):
+    @property
+    def system_path(self):
         return self._tweaked_syspath
 
     @staticmethod

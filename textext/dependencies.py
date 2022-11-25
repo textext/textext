@@ -133,7 +133,7 @@ class DependencyCheck:
         """
         with self._logger.debug(f"Start searching {prog_name} in system path..."):
             for exe_name in system_env.executable_names[prog_name]:
-                for path in system_env.get_system_path():
+                for path in system_env.system_path:
                     full_path_guess = os.path.join(path, exe_name)
                     with self._logger.debug(f"Looking for `{exe_name}` in `{path}`"):
                         if self.check_executable(prog_name, full_path_guess):
