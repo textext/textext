@@ -82,10 +82,10 @@ except (ImportError, TypeError, ValueError) as _:
         from tkinter import filedialog as tk_file_dialogs
         TOOLKIT = TK
 
-    except ImportError:
+    except ImportError as err:
         raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
                            "bindings for the graphical user interface of TexText is installed! Refer to the "
-                           "installation instructions on https://textext.github.io/textext/ !")
+                           "installation instructions on https://textext.github.io/textext/ !") from err
 
 
 class TexTextGuiBase:

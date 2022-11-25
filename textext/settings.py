@@ -40,7 +40,8 @@ class Settings:
         try:
             self.load()
         except ValueError as err:
-            raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(err)}. Please fix it and re-run TexText.")
+            raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(err)}. "
+                                    f"Please fix it and re-run TexText.") from err
 
     def load(self):
         if os.path.isfile(self.config_path):

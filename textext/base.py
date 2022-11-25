@@ -457,7 +457,7 @@ class TexToPdfConverter:
                 out, err = proc.communicate()
 
         except OSError as err:
-            raise TexTextCommandNotFound(f"Command {' '.join(cmd)} failed: {err}")
+            raise TexTextCommandNotFound(f"Command {' '.join(cmd)} failed: {err}") from err
 
         if ok_return_value is not None and proc.returncode != ok_return_value:
             raise TexTextCommandFailed(message=f"Command {' '.join(cmd)} failed (code {proc.returncode})",
@@ -500,9 +500,9 @@ class TexToPdfConverter:
             except TexTextCommandFailed as error:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
-                    raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr)
+                    raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr) from error
                 else:
-                    raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
+                    raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr) from error
 
             if not os.path.exists(self.tmp('pdf')):
                 raise TexTextConversionError(f"{self._latex_exe} didn't produce output {self.tmp('pdf')}")

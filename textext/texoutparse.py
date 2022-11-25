@@ -51,8 +51,8 @@ class LogFileMessage:
     def __getitem__(self, item):
         try:
             return self.info[item]
-        except KeyError:
-            raise KeyError(f'Item {item} was not found.')
+        except KeyError as exc:
+            raise KeyError(f'Item {item} was not found.') from exc
 
     def __setitem__(self, key, value):
         self.info[key] = value
