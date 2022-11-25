@@ -107,8 +107,8 @@ class LinuxEnvironment(AbstractEnvironment):
 
     @staticmethod
     def call_command(command, return_code=0):
-        proc = sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE)
-        stdout, stderr = proc.communicate()
+        with sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE) as proc:
+            stdout, stderr = proc.communicate()
         if return_code is not None and proc.returncode != return_code:
             raise sp.CalledProcessError(proc.returncode, command)
         return stdout, stderr
@@ -205,8 +205,8 @@ class WindowsEnvironment(AbstractEnvironment):
         info = sp.STARTUPINFO()
         info.dwFlags |= sp.STARTF_USESHOWWINDOW
         info.wShowWindow = sp.SW_HIDE
-        proc = sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE, startupinfo=info)
-        stdout, stderr = proc.communicate()
+        with sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE, startupinfo=info) as proc:
+            stdout, stderr = proc.communicate()
         if return_code is not None and proc.returncode != return_code:
             raise sp.CalledProcessError(proc.returncode, command)
         return stdout, stderr

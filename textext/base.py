@@ -449,13 +449,13 @@ class TexToPdfConverter:
                 info = subprocess.STARTUPINFO()
                 info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 info.wShowWindow = subprocess.SW_HIDE
+            with subprocess.Popen(cmd,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  stdin=subprocess.PIPE,
+                                  startupinfo=info) as proc:
+                out, err = proc.communicate()
 
-            proc = subprocess.Popen(cmd,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    stdin=subprocess.PIPE,
-                                    startupinfo=info)
-            out, err = proc.communicate()
         except OSError as err:
             raise TexTextCommandNotFound(f"Command {' '.join(cmd)} failed: {err}")
 

@@ -33,8 +33,12 @@ def check_cmd_in_syspath(command_name):
         info.dwFlags |= _sp.STARTF_USESHOWWINDOW
         info.wShowWindow = _sp.SW_HIDE
 
-        proc = _sp.Popen([command_name, "--help"], stdout=_sp.PIPE, stderr=_sp.PIPE, stdin=_sp.PIPE, startupinfo=info)
-        _, _ = proc.communicate()
+        with _sp.Popen([command_name, "--help"],
+                       stdout=_sp.PIPE,
+                       stderr=_sp.PIPE,
+                       stdin=_sp.PIPE,
+                       startupinfo=info) as proc:
+            _, _ = proc.communicate()
         return True
     except WindowsError as _:
         return False
