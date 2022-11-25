@@ -1,0 +1,28 @@
+[BASIC]
+argument-rgx=[a-z_][a-z0-9_]{0,30}
+attr-rgx=[a-z_][a-z0-9_]{0,30}
+const-rgx=[a-z_][a-z0-9_]{0,30}
+variable-rgx=[a-z_][a-z0-9_]{0,30}
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=
+    arguments-differ,
+    fixme,
+    missing-class-docstring,
+    missing-final-newline,
+    missing-function-docstring,
+    missing-module-docstring,
+    no-else-return,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-boolean-expressions,
+    too-many-branches,
+    too-many-format-args,
+    too-many-instance-attributes,
+    too-many-locals,
+    too-many-nested-blocks,
+    too-many-return-statements,
+    too-many-statements,
