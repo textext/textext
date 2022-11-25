@@ -625,6 +625,7 @@ class TexTextElement(inkex.Group):
         """
         super().__init__()
         self._svg_to_textext_node(svg_filename, document_unit)
+        self.transform = inkex.Transform()
 
     def _svg_to_textext_node(self, svg_filename, document_unit):
         doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
