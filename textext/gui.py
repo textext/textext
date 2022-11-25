@@ -158,10 +158,9 @@ class TexTextGuiBase:
     def show_error_dialog(self, title, message_text, exception):
         """Displays a dialog with information about the occurred error"""
 
-    @staticmethod
-    def cb_cancel(widget=None, data=None):
+    @abstractmethod
+    def cb_cancel(self, widget=None, data=None):
         """Callback for Cancel button"""
-        raise NotImplementedError()
 
     @abstractmethod
     def cb_ok(self, widget=None, data=None):
@@ -192,8 +191,7 @@ class TexTextGuiTK(TexTextGuiBase):
         self._text_box = None
         self._cancel = None
 
-    @staticmethod
-    def cb_cancel(widget=None, data=None):
+    def cb_cancel(self, widget=None, data=None):
         """Callback for Cancel button"""
         raise SystemExit(1)
 
