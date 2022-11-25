@@ -23,6 +23,7 @@ from textext.errors import TexTextInternalError, TexTextFatalError  # noqa
 
 
 if __name__ == "__main__":
+    # ToDo: Re-think this exception ladder
     try:
         effect = TexText()
         effect.run()
@@ -38,26 +39,28 @@ if __name__ == "__main__":
         logger.info("If problem persists, please file a bug "
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
         log_console_handler.show_messages()
+        # noinspection PyBroadException
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
-        except:
+        except Exception as e:  # pylint: disable=broad-except
             pass
         exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 
     except TexTextFatalError as e:
         logger.error(str(e))
         log_console_handler.show_messages()
+        # noinspection PyBroadException
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
             cache.save()
-        except:
+        except Exception as e:  # pylint: disable=broad-except
             pass
         exit(EXIT_CODE_EXPECTED_ERROR)  # Bad setup
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         # All errors should be handled by above clause.
         # If any propagates here it's TexText logic error and should be reported.
         logger.error(str(e))
@@ -67,10 +70,11 @@ if __name__ == "__main__":
         logger.info("If problem persists, please open a bug report at "
                     "https://github.com/textext/textext/issues/new?template=bug_report.md")
         log_console_handler.show_messages()
+        # noinspection PyBroadException
         try:
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
-        except:
+        except Exception as e:  # pylint: disable=broad-except
             pass
         exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error

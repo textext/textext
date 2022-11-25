@@ -28,8 +28,9 @@ from .texoutparse import LatexLogParser
 # Open logger before accessing Inkscape modules, so we can catch properly any errors thrown by them
 logger, log_console_handler = setup_logging(logfile_dir=os.path.join(system_env.textext_logfile_path),
                                             logfile_name="textext.log", cached_console_logging=True)
-import inkex  # noqa # pylint: disable=wrong-import-position,wrong-import-order
-from lxml import etree  # noqa # pylint: disable=wrong-import-position,wrong-import-order
+# ToDo: See how pylint find this in PYTHONPATH
+import inkex  # noqa # pylint: disable=wrong-import-position,wrong-import-order,import-error
+from lxml import etree  # noqa # pylint: disable=wrong-import-position,wrong-import-order,c-extension-no-member
 
 EXIT_CODE_OK = 0
 EXIT_CODE_EXPECTED_ERROR = 1
@@ -501,8 +502,7 @@ class TexToPdfConverter:
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
                     raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr) from error
-                else:
-                    raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr) from error
+                raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr) from error
 
             if not os.path.exists(self.tmp('pdf')):
                 raise TexTextConversionError(f"{self._latex_exe} didn't produce output {self.tmp('pdf')}")
@@ -558,6 +558,7 @@ class TexToPdfConverter:
         """
         Strip down tex output to only the first error etc. and discard all the noise
         :return: string containing the error message and some context lines after it
+        ToDo: Re-think exception catching (specific exceptions?)
         """
         with logger.debug("Parsing LaTeX log file"):
             parser = LatexLogParser()
@@ -567,7 +568,7 @@ class TexToPdfConverter:
                 with open(self.tmp('log'), mode='r', encoding='utf8') as f_handle:
                     parser.process(f_handle)
                 return parser.errors[0]
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 return "TeX compilation failed. See stdout output for more details"
 
 

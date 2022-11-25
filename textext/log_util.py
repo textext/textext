@@ -33,7 +33,7 @@ class TexTextLogger(logging.Logger):
         while hasattr(cur_frame, "f_code"):
             cur_code = cur_frame.f_code
             filename = os.path.normcase(cur_code.co_filename)
-            if filename == logging._srcfile:
+            if filename == logging._srcfile:  # pylint: disable=protected-access
                 cur_frame = cur_frame.f_back
                 continue
             ret_val = (cur_code.co_filename, cur_frame.f_lineno, cur_code.co_name, None)
@@ -254,7 +254,8 @@ def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: b
                                                                 backupCount=2,  # up to two log files
                                                                 encoding="utf-8")
     except OSError as error:
-        basic_logger.error(f"Unable to create logfile. Error message: {error.strerror}")
+        msg = f"Unable to create logfile. Error message: {error.strerror}"
+        basic_logger.error(msg)
     else:
         log_file_handler.setLevel(logging.DEBUG)
         log_file_handler.setFormatter(LoggingFormatter(colored_messages=False, with_datetime=True, with_source=True))

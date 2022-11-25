@@ -225,7 +225,7 @@ class TexTextGuiTK(TexTextGuiBase):
     def show(self, callback, preview_callback=None):
         self._convert_callback = callback
 
-        self._root = tk.Tk()
+        self._root = tk.Tk()  # pylint: disable=used-before-assignment
         self._root.title(f"TexText {self.textext_version}")
 
         self._frame = tk.Frame(self._root)
@@ -375,6 +375,7 @@ class TexTextGuiTK(TexTextGuiBase):
         try:
             self.global_scale_factor = float(self._scale.get())
         except ValueError:
+            # pylint: disable=used-before-assignment
             tk_msg_boxes.showerror("Scale factor error",
                                    "Please enter a valid floating point number for the scale factor!")
             return
@@ -386,14 +387,13 @@ class TexTextGuiTK(TexTextGuiBase):
             self._convert_callback(self.text, self.preamble_file, self.global_scale_factor,
                                    self._alignment_tk_str.get(), self._tex_command_tk_str.get(),
                                    self.current_convert_strokes_to_path)
-        except Exception as error:
+        except Exception as error: # pylint: disable=broad-except
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
                                    error)
-            return False
+            return
 
         self._frame.quit()
-        return False
 
     # noinspection PyUnusedLocal
     def cb_word_wrap(self, widget=None, data=None):
@@ -409,6 +409,7 @@ class TexTextGuiTK(TexTextGuiBase):
         self._scale.insert(0, self.global_scale_factor)
 
     def select_preamble_file(self):
+        # pylint: disable=used-before-assignment
         file_name = tk_file_dialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
                                                     title="Select preamble file",
                                                     filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
@@ -548,7 +549,8 @@ class TexTextGuiGTK(TexTextGuiBase):
         if TOOLKIT == GTK:
             gtksourceview_ui_additions = ""
         else:
-            menu_actions = "\n".join([f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._radio_actions])
+            menu_actions = "\n".join(
+                [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._radio_actions])
             gtksourceview_ui_additions = f"""
             <menuitem action='ShowNumbers'/>
             <menuitem action='AutoIndent'/>
@@ -797,7 +799,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             node_meta_data.alignment = self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()]
             node_meta_data.stroke_to_path = self.current_convert_strokes_to_path
             self._convert_callback(node_meta_data)
-        except Exception as error:
+        except Exception as error:  # pylint: disable=broad-except
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
                                    error)
@@ -863,11 +865,11 @@ class TexTextGuiGTK(TexTextGuiBase):
                 self._preview_callback(node_meta_data, self.set_preview_image_from_file,
                                        self._config["gui"].get("white_preview_background",
                                                                self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
-            except Exception as error:
+            except Exception as error:  # pylint: disable=broad-except
+                # ToDo: Use more specific exceptions
                 self.show_error_dialog("TexText Error",
                                        "Error occurred while generating preview:",
                                        error)
-                return False
 
     def set_preview_image_from_file(self, path):
         """
