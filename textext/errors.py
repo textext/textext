@@ -18,15 +18,14 @@ class TexTextError(RuntimeError):
 
 class TexTextNonFatalError(TexTextError):
     """ TexText can continue execution properly """
-    pass
 
 
 class TexTextCommandError(TexTextNonFatalError):
-    pass
+    """ A system command failed during execution"""
 
 
 class TexTextCommandNotFound(TexTextCommandError):
-    pass
+    """ A system command was not found"""
 
 
 class TexTextCommandFailed(TexTextCommandError):
@@ -52,24 +51,11 @@ class TexTextFatalError(TexTextError):
 
         Example: missing *latex executable
     """
-    pass
 
 
 class TexTextInternalError(TexTextFatalError):
-    pass
-
-
-class TexTextPreconditionError(TexTextInternalError):
-    pass
-
-
-class TexTextPostconditionError(TexTextInternalError):
-    pass
-
-
-class TexTextUnreachableBranchError(TexTextInternalError):
-    pass
+    """An error not handled properly by TexText occured"""
 
 
 class BadTexInputError(TexTextNonFatalError):
-    pass
+    """LaTeX compilation failed (LaTeX code error)"""
