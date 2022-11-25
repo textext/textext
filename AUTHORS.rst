@@ -20,6 +20,7 @@ went into the development of the project.
 - jocelynetienne@github
 - Markus Wallerberger
 - Michael Struwig
+- Niko Savola
 - Noel Kuntze
 - Patrick Kappl
 - Robert Szalai
