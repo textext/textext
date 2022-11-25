@@ -79,7 +79,7 @@ class TexText(inkex.EffectExtension):
             logger.debug(f"TexText version = {repr(__version__)} (md5sum = {hashlib.md5(fhl.read()).hexdigest()}")
         logger.log_system_info()
 
-        super(TexText, self).__init__()
+        super().__init__()
 
         self.arg_parser.add_argument(
             "--text",
@@ -622,7 +622,7 @@ class TexTextElement(inkex.Group):
         :param document_unit: String specifyling the unit of the document into which the node is going
                               to be placed ("mm", "pt", ...)
         """
-        super(TexTextElement, self).__init__()
+        super().__init__()
         self._svg_to_textext_node(svg_filename, document_unit)
 
     def _svg_to_textext_node(self, svg_filename, document_unit):

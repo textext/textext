@@ -175,7 +175,7 @@ class TexTextGuiTK(TexTextGuiBase):
 
     def __init__(self, version_str, node_meta_data, config):
 
-        super(TexTextGuiTK, self).__init__(version_str, node_meta_data, config)
+        super().__init__(version_str, node_meta_data, config)
 
         # ToDo: Check which of this variables are  needed as class attributes
         self._root = None
@@ -468,7 +468,7 @@ class TexTextGuiGTK(TexTextGuiBase):
     """GTK + Source Highlighting for editing TexText objects"""
 
     def __init__(self, version_str, node_meta_data, config):
-        super(TexTextGuiGTK, self).__init__(version_str, node_meta_data, config)
+        super().__init__(version_str, node_meta_data, config)
 
         # ToDo: Check which of this variables are  needed as class attributes
         self._preview = None  # type: Gtk.Image

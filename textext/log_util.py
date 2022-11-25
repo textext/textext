@@ -132,7 +132,7 @@ class LoggingFormatter(logging.Formatter):
 
 class NestedLoggingGuard(object):
     """
-    Esnures correct indentation of log file messages depending on the context
+    Ensures correct indentation of log file messages depending on the context
     the log message is written.
     """
     MESSAGE_OFFSET = 0
@@ -199,9 +199,6 @@ class NestedLoggingGuard(object):
 
 
 class CycleBufferHandler(logging.handlers.BufferingHandler):
-
-    def __init__(self, capacity):
-        super(CycleBufferHandler, self).__init__(capacity)
 
     def emit(self, record):
         self.buffer.append(record)

@@ -32,7 +32,7 @@ class TexTextCommandNotFound(TexTextCommandError):
 class TexTextCommandFailed(TexTextCommandError):
 
     def __init__(self, message, return_code, stdout=None, stderr=None):
-        super(TexTextCommandFailed, self).__init__(message)
+        super().__init__(message)
         self.return_code = return_code
         self.stdout = stdout
         self.stderr = stderr
@@ -40,7 +40,7 @@ class TexTextCommandFailed(TexTextCommandError):
 
 class TexTextConversionError(TexTextCommandFailed):
     def __init__(self, message, return_code=None, stdout=None, stderr=None):
-        super(TexTextConversionError, self).__init__(message, return_code, stdout, stderr)
+        super().__init__(message, return_code, stdout, stderr)
 
 
 class TexTextFatalError(TexTextError):

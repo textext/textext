@@ -85,6 +85,6 @@ class Cache(Settings):
     """
     def __init__(self, basename=".cache.json", directory=None):
         try:
-            super(Cache, self).__init__(basename, directory)
+            super().__init__(basename, directory)
         except TexTextFatalError:
             pass

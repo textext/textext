@@ -151,7 +151,7 @@ class WindowsEnvironment(AbstractEnvironment):
                         }
 
     def __init__(self):
-        super(WindowsEnvironment, self)
+        super().__init__()
         from .win_app_paths import get_non_syspath_dirs  # pylint: disable=import-outside-toplevel
         self._tweaked_syspath = get_non_syspath_dirs() + os.environ["PATH"].split(os.path.pathsep)
 
