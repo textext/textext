@@ -16,7 +16,7 @@ import os
 from .errors import TexTextFatalError
 
 
-class Settings(object):
+class Settings:
     """
     Adds some convinient stuf around a json dict
     """

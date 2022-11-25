@@ -131,7 +131,7 @@ class LoggingFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-class NestedLoggingGuard(object):
+class NestedLoggingGuard:
     """
     Ensures correct indentation of log file messages depending on the context
     the log message is written.

@@ -586,7 +586,7 @@ def _contains_document_class(preamble):
     return False
 
 
-class TexTextEleMetaData(object):
+class TexTextEleMetaData:
     def __init__(self, text="", preamble="", scale_factor=1.0, tex_command=TexText.DEFAULT_TEXCMD,
                  alignment=TexText.DEFAULT_ALIGNMENT, stroke_to_path=False, jacobian_sqrt=1.0,
                  textext_version="0.7", inkscape_version="0.0", inkex_version="0.0"):

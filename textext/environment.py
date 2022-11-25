@@ -23,7 +23,7 @@ import os
 import ctypes as ct
 
 
-class AbstractEnvironment(object):
+class AbstractEnvironment:
     __metaclass__ = ABCMeta
 
     @property

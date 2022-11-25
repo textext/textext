@@ -88,7 +88,7 @@ except (ImportError, TypeError, ValueError) as _:
                            "installation instructions on https://textext.github.io/textext/ !")
 
 
-class TexTextGuiBase(object):
+class TexTextGuiBase:
     __metaclass__ = ABCMeta
 
     ALIGNMENT_LABELS = ["top left", "top center", "top right",
