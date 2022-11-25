@@ -173,7 +173,7 @@ class TexText(inkex.EffectExtension):
 
             try:
                 inkscape_version = self.document.getroot().get('inkscape:version')
-            except AttributeError as ignored:
+            except AttributeError as _:
                 # Unfortunately when this node comes from an Inkscape document that
                 # has never been saved no version attribute is provided :-(
                 inkscape_version = "0.0"
@@ -398,6 +398,7 @@ class TexText(inkex.EffectExtension):
 
     @staticmethod
     def copy_style(old_node, new_node):
+        # pylint: disable=unused-argument
         # ToDo: Implement this later depending on the choice of the user (keep Inkscape colors vs. Tex colors)
         return
 
@@ -746,7 +747,7 @@ class TexTextElement(inkex.Group):
 
     def get_jacobian_sqrt(self):
         # pylint: disable=invalid-name
-        (a, b, c), (d, e, f) = inkex.Transform(self.transform).matrix
+        (a, b, _), (d, e, _) = inkex.Transform(self.transform).matrix
         det = a * e - d * b
         assert det != 0
         return math.sqrt(math.fabs(det))

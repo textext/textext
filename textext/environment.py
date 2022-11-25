@@ -48,7 +48,7 @@ class AbstractEnvironment(object):
 
     def inkscape_system_extensions_path(self, inkscape_exe_path):
         try:
-            stdout, stderr = self.call_command([inkscape_exe_path, "--system-data-directory"])
+            stdout, _ = self.call_command([inkscape_exe_path, "--system-data-directory"])
             path = os.path.join(stdout.decode("utf-8", 'ignore').rstrip(), "extensions")
             err = None
         except sp.CalledProcessError as excpt:

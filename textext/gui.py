@@ -213,7 +213,7 @@ class TexTextGuiTK(TexTextGuiBase):
             invalid content. So with or without this validation method you need to delete the content of the
             box before inserting the new stuff.
         """
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,unused-argument
         if S == '' or P == '':
             # Initialization of widget (S=='') and deletion of entry (P=='')
             valid = True
@@ -718,7 +718,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._config["gui"]["word_wrap"] = action.get_active()
 
     # noinspection PyUnusedLocal
-    def on_preview_background_chagned(self, action, sourceview):
+    def on_preview_background_chagned(self, action, _):
         self._config["gui"]["white_preview_background"] = action.get_active()
 
     # noinspection PyUnusedLocal
@@ -843,7 +843,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         return False
 
     # noinspection PyUnusedLocal
-    def update_preview(self, widget):
+    def update_preview(self, _):
         """Update the preview image of the GUI using the callback it gave """
         if self._preview_callback:
             node_meta_data = TexTextEleMetaData()
@@ -884,7 +884,7 @@ class TexTextGuiGTK(TexTextGuiBase):
         self.update_preview_representation()
 
     # noinspection PyUnusedLocal
-    def switch_preview_representation(self, widget=None, event=None):
+    def switch_preview_representation(self, _=None, event=None):
         if event.button == 1:  # left click only
             if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:  # only double click
                 if self.preview_representation == "SCALE":
@@ -1344,7 +1344,7 @@ class TexTextGuiGTK(TexTextGuiBase):
             expander = Gtk.Expander()
 
             # noinspection PyUnusedLocal
-            def callback(event):
+            def callback(_):
                 if expander.get_expanded():
                     desired_height = 20
                 else:

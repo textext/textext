@@ -150,7 +150,7 @@ class LatexLogParser:
         # cache the line processor for speed
         process_line = self.process_line
 
-        for i, line in enumerate(lines_iterable):
+        for _, line in enumerate(lines_iterable):
             if not line:
                 continue
             err = process_line(line)

@@ -146,7 +146,7 @@ class DependencyCheck:
     def check_inkscape_version(self, exe_path: str) -> bool:
         with self._logger.info("Checking Inkscape version..."):
             try:
-                stdout, stderr = system_env.call_command([exe_path, "--version"])
+                stdout, _ = system_env.call_command([exe_path, "--version"])
             except OSError:
                 self._logger.critical("Inkscape version command failed!")
                 return False

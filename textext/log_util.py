@@ -23,6 +23,7 @@ class TexTextLogger(logging.Logger):
         Needed to produce correct line numbers
     """
     def findCaller(self, *args):
+        # pylint: disable=unused-argument
         n_frames_upper = 2
         cur_frame = logging.currentframe()
         for _ in range(2 + n_frames_upper):  # <-- correct frame
