@@ -8,7 +8,6 @@ TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
 for full license details.
 """
-
 # ToDo Remove this when Inkscape extension manager handles modules properly
 import os
 import sys
@@ -44,9 +43,9 @@ if __name__ == "__main__":
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as _:  # pylint: disable=broad-except
             pass
-        exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
+        sys.exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
 
     except TexTextFatalError as e:
         logger.error(str(e))
@@ -56,9 +55,9 @@ if __name__ == "__main__":
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_EXPECTED_ERROR
             cache.save()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as _:  # pylint: disable=broad-except
             pass
-        exit(EXIT_CODE_EXPECTED_ERROR)  # Bad setup
+        sys.exit(EXIT_CODE_EXPECTED_ERROR)  # Bad setup
 
     except Exception as e:  # pylint: disable=broad-except
         # All errors should be handled by above clause.
@@ -75,6 +74,6 @@ if __name__ == "__main__":
             cache = Cache(directory=system_env.textext_config_path)
             cache["previous_exit_code"] = EXIT_CODE_UNEXPECTED_ERROR
             cache.save()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as _:  # pylint: disable=broad-except
             pass
-        exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
+        sys.exit(EXIT_CODE_UNEXPECTED_ERROR)  # TexText internal error
