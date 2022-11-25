@@ -153,11 +153,10 @@ class TexTextGuiBase:
         :param callback: A callback function (basically, what to do with the values from the GUI)
         :param preview_callback: A callback function to run to create a preview rendering
         """
-        pass
 
     @abstractmethod
     def show_error_dialog(self, title, message_text, exception):
-        pass
+        """Displays a dialog with information about the occurred error"""
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
@@ -167,7 +166,6 @@ class TexTextGuiBase:
     @abstractmethod
     def cb_ok(self, widget=None, data=None):
         """Callback for OK / Save button"""
-        pass
 
 
 class TexTextGuiTK(TexTextGuiBase):
