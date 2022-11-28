@@ -483,7 +483,6 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._preview_button = None
         self._alignment_combobox = None
         self._conv_stroke2path = None
-        self._same_height_objects = None
 
         self.buffer_actions = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
@@ -1220,9 +1219,6 @@ class TexTextGuiGTK(TexTextGuiBase):
         vbox.pack_start(buttons_row, False, False, 0)
 
         vbox.show_all()
-
-        # ToDo: Currently this seems to do nothing?
-        self._same_height_objects = [preamble_frame, texcmd_frame, scale_align_hbox]
 
         self._preview_scroll_window.hide()
 
