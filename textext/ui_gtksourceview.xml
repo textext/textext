@@ -1,0 +1,42 @@
+<ui>
+	<menubar name='MainMenu'>
+		<menu action='FileMenu'>
+			<menuitem action='Open'/>
+		</menu>
+		<menu action='ViewMenu'>
+			<menu action='FontSize'>
+				<menuitem action='FontSize11'/>
+				<menuitem action='FontSize12'/>
+				<menuitem action='FontSize14'/>
+				<menuitem action='FontSize16'/>
+			</menu>
+			<menuitem action='WordWrap'/>
+			<menuitem action='ShowNumbers'/>
+			<menuitem action='AutoIndent'/>
+			<menuitem action='InsertSpaces'/>
+			<menu action='TabsWidth'>
+				<menuitem action='TabsWidth2'/>
+				<menuitem action='TabsWidth4'/>
+				<menuitem action='TabsWidth6'/>
+				<menuitem action='TabsWidth8'/>
+				<menuitem action='TabsWidth10'/>
+				<menuitem action='TabsWidth12'/>
+			</menu>
+			<menuitem action='WhitePreviewBackground'/>
+		</menu>
+		<menu action='SettingsMenu'>
+			<menu action='NewNodeContent'>
+				<menuitem action='NewNodeContentEmpty'/>
+				<menuitem action='NewNodeContentInlineMath'/>
+				<menuitem action='NewNodeContentDisplayMath'/>
+			</menu>
+			<menu action='CloseShortcut'>
+				<menuitem action='CloseShortcutEscape'/>
+				<menuitem action='CloseShortcutCtrlQ'/>
+				<menuitem action='CloseShortcutNone'/>
+			</menu>
+			<menuitem action='ConfirmClose'/>
+		</menu>
+	</menubar>
+</ui>
+

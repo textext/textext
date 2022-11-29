@@ -107,6 +107,7 @@ class TexTextGuiBase:
     FONT_SIZE = [11, 12, 14, 16]
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
+    CLOSE_SHORTCUT_TEXT = ["_ESC", "CTRL + _Q", "None"]
     TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
 
     def __init__(self, version_str, node_meta_data, config):
@@ -484,124 +485,125 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._alignment_combobox = None
         self._conv_stroke2path = None
 
-        self.buffer_actions = [
+    def define_actions_textbuffer(self, act_group, text_buffer):
+        act_list = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
         ]
+        act_group.add_actions(act_list, text_buffer)
 
-        if TOOLKIT == GTKSOURCEVIEW:
-            self._view_actions = [
-                ('FileMenu', None, '_File'),
-                ('ViewMenu', None, '_View'),
-                ('SettingsMenu', None, '_Settings'),
-                ('FontSize', None, 'Editor Font Si_ze'),
-                ('NewNodeContent', None, '_New Node Content'),
-                ('CloseShortcut', None, 'Close TexText _Shortcut'),
-                ('TabsWidth', None, '_Tabs Width'),
-            ]
-        else:
-            self._view_actions = [
-                ('FileMenu', None, '_File'),
-                ('ViewMenu', None, '_View'),
-                ('SettingsMenu', None, '_Settings'),
-                ('FontSize', None, 'Editor Font Si_ze'),
-                ('NewNodeContent', None, '_New Node Content'),
-                ('CloseShortcut', None, '_Close TexText Shortcut'),
-            ]
+    def define_actions_view(self, act_group, text_buffer):
+        """
+        Set-up actions shown in the "View"-Menu
 
-        self._toggle_actions = [
-            ('ShowNumbers', None, 'Show _Line Numbers', None,
-             'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb),
-            ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
-             self.auto_indent_toggled_cb),
-            ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-             'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb)
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (Gtk.TextBuffer, GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+        view_actions = [
+            ('FileMenu', None, '_File'),
+            ('ViewMenu', None, '_View'),
+            ('SettingsMenu', None, '_Settings'),
+            ('FontSize', None, 'Editor Font Si_ze'),
+            ('NewNodeContent', None, '_New Node Content'),
+            ('CloseShortcut', None, '_Close TexText Shortcut'),
         ]
+        act_group.add_actions(view_actions, text_buffer)
 
-        self._word_wrap_action = [
+        word_wrap_action = [
             ('WordWrap', None, '_Word Wrap', None,
-             'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
+             'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb,
+             self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
         ]
+        act_group.add_toggle_actions(word_wrap_action, text_buffer)
+        # action = action_group.get_action('WordWrap')
+        # action.set_active()
 
-        self._font_size_actions = [
+        font_size_actions = [
             ('FontSize11', None, '1_1 pt', None, 'Set editor font size to 11pt', 0),
             ('FontSize12', None, '1_2 pt', None, 'Set editor font size to 12pt', 1),
             ('FontSize14', None, '1_4 pt', None, 'Set editor font size to 14pt', 2),
             ('FontSize16', None, '1_6 pt', None, 'Set editor font size to 16pt', 3)
         ]
-        font_size = "\n".join(
-            [f"<menuitem action=\'{action}\'/>" for (action, _, _, _, _, _) in self._font_size_actions])
+        act_group.add_radio_actions(font_size_actions, -1, self.font_size_cb, text_buffer)
+        act_group.get_action(f'FontSize{self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)}').set_active(True)
 
-        self._preview_white_background_action = [
+        preview_white_background_action = [
             ('WhitePreviewBackground', None, 'White preview background', None,
-             'Set preview background to white', self.on_preview_background_chagned)
+             'Set preview background to white', self.on_preview_background_chagned,
+             self._config["gui"].get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
         ]
+        act_group.add_toggle_actions(preview_white_background_action, text_buffer)
 
-        self._confirm_close_action = [
-            ('ConfirmClose', None, '_Confirm Closing of Window', None,
-             'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb)
+    def define_actions_gtksourceview_additions(self, act_group, text_buffer):
+        """
+        Set-up actions only available when GtkSourceView has been imported
+
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+
+        view_actions = [
+            ('TabsWidth', None, '_Tabs Width')
         ]
+        act_group.add_actions(view_actions, text_buffer)
 
-        self._radio_actions = [
+        toggle_actions = [
+            ('ShowNumbers', None, 'Show _Line Numbers', None,
+             'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb,
+             self._config["gui"].get("line_numbers", self.DEFAULT_SHOWLINENUMBERS)),
+            ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
+             self.auto_indent_toggled_cb, self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT)),
+            ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
+             'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb,
+             self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
+        ]
+        act_group.add_toggle_actions(toggle_actions, text_buffer)
+
+        radio_actions = [
             (f"TabsWidth{num}", None, f"{num}", None, f"Set tabulation width to {num} spaces", num) for num in
             range(2, 13, 2)]
+        act_group.add_radio_actions(radio_actions, -1, self.tabs_toggled_cb, text_buffer)
+        action = act_group.get_action(f"TabsWidth{self._config['gui'].get('tab_width', self.DEFAULT_TABWIDTH)}")
+        action.set_active(True)
+        self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
-        if TOOLKIT == GTK:
-            gtksourceview_ui_additions = ""
-        else:
-            menu_actions = "\n".join(
-                [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._radio_actions])
-            gtksourceview_ui_additions = f"""
-            <menuitem action='ShowNumbers'/>
-            <menuitem action='AutoIndent'/>
-            <menuitem action='InsertSpaces'/>
-            <menu action='TabsWidth'>
-            {menu_actions}
-            </menu>
-            """
+    def define_actions_settings(self, act_group, text_buffer):
+        """
+        Set-up actions shown in the "Settings"-Menu
 
-        self._new_node_content_actions = [
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (Gtk.TextBuffer, GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+
+        confirm_close_action = [
+            ('ConfirmClose', None, '_Confirm Closing of Window', None,
+             'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb,
+             self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
+        ]
+        act_group.add_toggle_actions(confirm_close_action, text_buffer)
+
+        new_node_content_actions = [
             #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
             ('NewNodeContentEmpty', None, '_Empty', None, 'New node will be initialized with empty content', 0),
             ('NewNodeContentInlineMath', None, '_Inline math', None, 'New node will be initialized with $ $', 1),
             ('NewNodeContentDisplayMath', None, '_Display math', None, 'New node will be initialized with $$ $$', 2)
         ]
-        new_node_content = "\n".join(
-            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._new_node_content_actions])
+        act_group.add_radio_actions(new_node_content_actions, -1, self.new_node_content_cb, text_buffer)
+        act_group.get_action(
+            f'NewNodeContent{self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)}').\
+            set_active(True)
 
-        self._close_shortcut_actions = [
-            ('CloseShortcutEscape', None, '_ESC', None, 'TexText window closes when pressing ESC', 0),
-            ('CloseShortcutCtrlQ', None, 'CTRL + _Q', None, 'TexText window closes when pressing CTRL + Q', 1),
-            ('CloseShortcutNone', None, '_None', None, 'No shortcut for closing TexText window', 2)
+        close_shortcut_actions = [
+            ('CloseShortcutEscape', None, self.CLOSE_SHORTCUT_TEXT[0], None,
+             f'TexText window closes when pressing {self.CLOSE_SHORTCUT_TEXT[0]}', 0),
+            ('CloseShortcutCtrlQ', None, self.CLOSE_SHORTCUT_TEXT[1], None,
+             f'TexText window closes when pressing {self.CLOSE_SHORTCUT_TEXT[1]}', 1),
+            ('CloseShortcutNone', None, self.CLOSE_SHORTCUT_TEXT[2], None,
+             'No shortcut for closing TexText window', 2)
         ]
-        close_shortcut = "\n".join(
-            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._close_shortcut_actions])
-
-        self._view_ui_description = f"""
-        <ui>
-          <menubar name='MainMenu'>
-            <menu action='FileMenu'>
-              <menuitem action='Open'/>
-            </menu>
-            <menu action='ViewMenu'>
-              <menu action='FontSize'>
-                {font_size}
-              </menu>
-              <menuitem action='WordWrap'/>
-              {gtksourceview_ui_additions}
-              <menuitem action='WhitePreviewBackground'/>
-            </menu>
-            <menu action='SettingsMenu'>
-              <menu action='NewNodeContent'>
-                {new_node_content}
-              </menu>
-              <menu action='CloseShortcut'>
-                {close_shortcut} 
-              </menu>
-              <menuitem action='ConfirmClose'/>
-            </menu>
-          </menubar>
-        </ui>
-        """
+        act_group.add_radio_actions(close_shortcut_actions, -1, self.close_shortcut_cb, text_buffer)
+        act_group.get_action(
+            f'CloseShortcut{self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)}'). \
+            set_active(True)
 
     @staticmethod
     def set_monospace_font(text_view, font_size):
@@ -736,7 +738,7 @@ class TexTextGuiGTK(TexTextGuiBase):
     def close_shortcut_cb(self, action, previous_value, sourceview):
         self._config["gui"]["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
         self._cancel_button.set_tooltip_text(
-            f"Don't save changes ({self._close_shortcut_actions[action.get_current_value()][2]})".replace("_", ""))
+            f"Don't save changes ({self.CLOSE_SHORTCUT_TEXT[action.get_current_value()]})")
 
     # noinspection PyUnusedLocal
     def confirm_close_toggled_cb(self, action, sourceview):
@@ -957,7 +959,9 @@ class TexTextGuiGTK(TexTextGuiBase):
         button_box.set_spacing(spacing)
 
         self._cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        self._cancel_button.set_tooltip_text("Don't save changes (ESC)")
+        # ToDo Place human-readable shortcut text here
+        self._cancel_button.set_tooltip_text(
+            f"Don't save changes ({self._config['gui'].get('close_shortcut', self.DEFAULT_CLOSE_SHORTCUT)})")
         button_box.add(self._cancel_button)
 
         self._preview_button = Gtk.Button(label="Preview")
@@ -1000,10 +1004,16 @@ class TexTextGuiGTK(TexTextGuiBase):
 
         :return: the created window
         """
+
+        # The top window
         window = Gtk.Window()
         window.type = Gtk.WindowType.TOPLEVEL
         window.set_border_width(2)
         window.set_title(f'Enter LaTeX Formula - TexText {self.textext_version}')
+
+        # The vbox holding all elements
+        vbox = Gtk.VBox(False, 4)
+        window.add(vbox)
 
         # File chooser and Scale Adjustment
         if hasattr(Gtk, 'FileChooserButton'):
@@ -1155,24 +1165,21 @@ class TexTextGuiGTK(TexTextGuiBase):
         scroll_window.add(self._source_view)
         self.set_monospace_font(self._source_view, self.DEFAULT_FONTSIZE)
 
+        buttons_row = self.create_buttons()
+
         # Action group and UI manager
         ui_manager = Gtk.UIManager()
         accel_group = ui_manager.get_accel_group()
         window.add_accel_group(accel_group)
-        ui_manager.add_ui_from_string(self._view_ui_description)
-
         action_group = Gtk.ActionGroup('ViewActions')
-        action_group.add_actions(self._view_actions, source_view)
-        action_group.add_actions(self.buffer_actions, text_buffer)
-        action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
-        action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
-        action_group.add_radio_actions(self._font_size_actions, -1, self.font_size_cb, source_view)
-        action_group.add_toggle_actions(self._confirm_close_action, source_view)
-        action_group.add_toggle_actions(self._word_wrap_action, source_view)
-        action_group.add_toggle_actions(self._preview_white_background_action, source_view)
         if TOOLKIT == GTKSOURCEVIEW:
-            action_group.add_toggle_actions(self._toggle_actions, source_view)
-            action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
+            ui_manager.add_ui_from_file("ui_gtksourceview.xml")
+            self.define_actions_gtksourceview_additions(action_group, source_view)
+        else:
+            ui_manager.add_ui_from_file("ui_gtk.xml")
+        self.define_actions_textbuffer(action_group, text_buffer)
+        self.define_actions_view(action_group, source_view)
+        self.define_actions_settings(action_group, source_view)
         ui_manager.insert_action_group(action_group, 0)
 
         # Menu
@@ -1198,10 +1205,6 @@ class TexTextGuiGTK(TexTextGuiBase):
         preview_event_box.connect('button-press-event', self.switch_preview_representation)
         preview_event_box.add(self._preview_scroll_window)
 
-        # Vertical Layout
-        vbox = Gtk.VBox(False, 4)
-        window.add(vbox)
-
         vbox.pack_start(menu, False, False, 0)
 
         hbox_texcmd_preamble = Gtk.HBox(True, 0)
@@ -1215,44 +1218,14 @@ class TexTextGuiGTK(TexTextGuiBase):
         vbox.pack_start(scroll_window, True, True, 0)
         vbox.pack_start(self.pos_label, False, False, 0)
         vbox.pack_start(preview_event_box, False, False, 0)
-        buttons_row = self.create_buttons()
         vbox.pack_start(buttons_row, False, False, 0)
 
         vbox.show_all()
 
         self._preview_scroll_window.hide()
 
-        # preselect menu check items
-        groups = ui_manager.get_action_groups()
-        # retrieve the view action group at position 0 in the list
-        action_group = groups[0]
-        font_size_value = self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)
-        action = action_group.get_action(f'FontSize{font_size_value}')
-        action.set_active(True)
-        action = action_group.get_action('WordWrap')
-        action.set_active(self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
-        new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
-        action = action_group.get_action(f'NewNodeContent{new_node_content_value}')
-        action.set_active(True)
-        close_shortcut_value = self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
-        action = action_group.get_action(f'CloseShortcut{close_shortcut_value}')
-        action.set_active(True)
-        action = action_group.get_action('ConfirmClose')
-        action.set_active(self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
-        action = action_group.get_action('WhitePreviewBackground')
-        action.set_active(self._config["gui"].get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
-        if TOOLKIT == GTKSOURCEVIEW:
-            action = action_group.get_action('ShowNumbers')
-            action.set_active(self._config["gui"].get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
-            action = action_group.get_action('AutoIndent')
-            action.set_active(self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT))
-            action = action_group.get_action('InsertSpaces')
-            action.set_active(self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
-            action = action_group.get_action(f"TabsWidth{self._config['gui'].get('tab_width', self.DEFAULT_TABWIDTH)}")
-            action.set_active(True)
-            self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
-
         if self.text == "":
+            new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
             if new_node_content_value == 'InlineMath':
                 self.text = "$$"
                 self._source_buffer.set_text(self.text)
