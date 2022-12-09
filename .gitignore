@@ -1,3 +1,4 @@
+*.glade~
 *.log
 *.pyc
 *.rej
