@@ -619,7 +619,7 @@ class TexTextRequirementsChecker(object):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_inkscape_1_0(self):
+    def find_inkscape_1_3(self):
         try:
             executable = self.find_executable('inkscape')['path']
             stdout, stderr = defaults.call_command([executable, "--version"])
@@ -630,11 +630,11 @@ class TexTextRequirementsChecker(object):
 
             if m:
                 found_version, major, minor = m.groups()
-                if int(major) >= 1:
+                if int(major) >= 1 and int(minor) >= 3:
                     return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
                 else:
                     return RequirementCheckResult(False, [
-                        "inkscape>=1.0 is not found (but inkscape=%s is found)" % (found_version)])
+                        "inkscape>=1.3 is not found (but inkscape=%s is found)" % (found_version)])
         return RequirementCheckResult(None, ["Can't determinate inkscape version"])
 
     def find_executable(self, prog_name):
@@ -713,8 +713,8 @@ class TexTextRequirementsChecker(object):
             return result
 
         textext_requirements = (
-            Requirement(self.find_inkscape_1_0)
-            .prepend_message("ANY", 'Detect inkscape>=1.0')
+            Requirement(self.find_inkscape_1_3)
+            .prepend_message("ANY", 'Detect inkscape >= 1.3')
             .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & (
