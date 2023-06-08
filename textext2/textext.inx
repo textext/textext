@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>TexText</name>
+  <id>org.inkscape.effect.textext</id>
+  <effect implements-custom-gui="true">
+    <object-type>all</object-type>
+    <effects-menu>
+        <submenu name="Text"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command location="inx" interpreter="python">textext.py</command>
+  </script>
+</inkscape-extension>
