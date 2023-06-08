@@ -28,7 +28,6 @@ from .settings import Settings  # (we need it for typing!) # pylint: disable=unu
 GTKSOURCEVIEW = "GTK Source View"
 GTK = "GTK"
 TK = "TK"
-
 TOOLKIT = None
 
 
@@ -67,10 +66,8 @@ try:
     from gi.repository import Gdk, GdkPixbuf  # noqa
 
     try:
-
         gi.require_version('GtkSource', '3.0')
         from gi.repository import GtkSource  # noqa
-
         TOOLKIT = GTKSOURCEVIEW
     except (ImportError, TypeError, ValueError) as _:
         TOOLKIT = GTK
@@ -91,9 +88,6 @@ except (ImportError, TypeError, ValueError) as _:
 class TexTextGuiBase:
     __metaclass__ = ABCMeta
 
-    ALIGNMENT_LABELS = ["top left", "top center", "top right",
-                        "middle left", "middle center", "middle right",
-                        "bottom left", "bottom center", "bottom right"]
     DEFAULT_WORDWRAP = False
     DEFAULT_SHOWLINENUMBERS = True
     DEFAULT_AUTOINDENT = True
@@ -104,10 +98,15 @@ class TexTextGuiBase:
     DEFAULT_CLOSE_SHORTCUT = "Escape"
     DEFAULT_CONFIRM_CLOSE = True
     DEFAULT_PREVIEW_WHITE_BACKGROUND = False
+
+    TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
+    ALIGNMENT_LABELS = ["top left", "top center", "top right",
+                        "middle left", "middle center", "middle right",
+                        "bottom left", "bottom center", "bottom right"]
     FONT_SIZE = [11, 12, 14, 16]
     NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
-    TEX_COMMANDS = ["pdflatex", "lualatex", "xelatex"]
+    CLOSE_SHORTCUT_TEXT = ["_ESC", "CTRL + _Q", "None"]
 
     def __init__(self, version_str, node_meta_data, config):
         """
@@ -116,43 +115,39 @@ class TexTextGuiBase:
         :param (TexTextEleMetaData) node_meta_data: The meta data of the node being processed
         :param (Settings) config: TexText configuration
         """
+        self.textext_version = version_str
         self._config = config
         if not self._config.has_key("gui"):
             self._config["gui"] = {}
+
+        self.global_scale_factor = self._config.get("scale", 1.0)
+        self.node_scale_factor = node_meta_data.scale_factor
+        self.current_alignment = node_meta_data.alignment
+        self.preamble_file = node_meta_data.preamble
+        self.current_convert_strokes_to_path = node_meta_data.stroke_to_path
 
         if len(node_meta_data.text) > 0:
             self.text = node_meta_data.text
         else:
             self.text = ""
 
-        self.textext_version = version_str
-        self._convert_callback = None
-        self.current_scale_factor = node_meta_data.scale_factor
-        self.global_scale_factor = self._config.get("scale", 1.0)
-        self.current_alignment = node_meta_data.alignment
-
         if node_meta_data.tex_command in self.TEX_COMMANDS:
             self.current_texcmd = node_meta_data.tex_command
         else:
             self.current_texcmd = self.TEX_COMMANDS[0]
 
-        self.current_convert_strokes_to_path = node_meta_data.stroke_to_path
-
-        self.preamble_file = node_meta_data.preamble
-        self._preamble_widget = None
-        self._scale = None
-        self._source_buffer = None
-        self._ok_button = None
-        self._cancel_button = None
-        self._window = None
+        self.convert_callback = None
+        self.preview_callback = None
 
     @abstractmethod
-    def show(self, callback, preview_callback=None):
+    def show(self, convert_callback, preview_callback=None):
         """
         Present the GUI for entering LaTeX code and setting some options
-        :param callback: A callback function (basically, what to do with the values from the GUI)
+        :param convert_callback: A callback function (basically, what to do with the values from the GUI)
         :param preview_callback: A callback function to run to create a preview rendering
         """
+        self.convert_callback = convert_callback
+        self.preview_callback = preview_callback
 
     @abstractmethod
     def show_error_dialog(self, title, message_text, exception):
@@ -281,9 +276,9 @@ class TexTextGuiTK(TexTextGuiBase):
                                  validatecommand=validation_command)
         self._scale.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
         self._scale.delete(0, "end")
-        self._scale.insert(0, self.current_scale_factor)
+        self._scale.insert(0, self.node_scale_factor)
 
-        reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
+        reset_scale = self.node_scale_factor if self.node_scale_factor else self.global_scale_factor
         self._reset_button = tk.Button(box, text=f"Reset ({reset_scale:.3f})",
                                        command=self.reset_scale_factor)
         self._reset_button.pack(ipadx=10, ipady=4, pady=5, padx=5, side="left")
@@ -402,7 +397,7 @@ class TexTextGuiTK(TexTextGuiBase):
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
-        self._scale.insert(0, self.current_scale_factor)
+        self._scale.insert(0, self.node_scale_factor)
 
     def use_global_scale_factor(self, _=None):
         self._scale.delete(0, "end")
@@ -467,142 +462,364 @@ class TexTextGuiGTK(TexTextGuiBase):
     def __init__(self, version_str, node_meta_data, config):
         super().__init__(version_str, node_meta_data, config)
 
-        # ToDo: Check which of this variables are  needed as class attributes
-        self._preview = None  # type: Gtk.Image
-        self._pixbuf = None  # type: GdkPixbuf
-        self.preview_representation = "SCALE"  # type: str
-        self._preview_scroll_window = None  # type: Gtk.ScrolledWindow
-        self._scale_adj = None
-        self._texcmd_cbox = None
-        self._preview_callback = None
-        self._source_view = None
-        self._preview_button = None
-        self._alignment_combobox = None
-        self._conv_stroke2path = None
-        self.pos_label = None
-        self._preview_button = None
-        self._alignment_combobox = None
-        self._conv_stroke2path = None
-        self._same_height_objects = None
+        # Keep in mind: Signals carrying user_data needs to be connected manually
+        # due to glade bug
+        self.signal_handlers = {
+            "on_win_main_destroy": self.on_window_delete,
+            "on_btnExecute_clicked": self.cb_ok,
+            "on_btnPreview_clicked": self.update_preview,
+            "on_btnCancel_clicked": self.cb_cancel,
+        }
 
-        self.buffer_actions = [
+    # ---------- Create main window
+    def create_window(self):
+        """
+        Set up the window with all its widgets
+
+        :return: the created window
+        """
+        builder = Gtk.Builder.new_from_file("tt_gui_gtksource.glade")
+        builder.connect_signals(self.signal_handlers)
+
+        #all_objects = builder.get_objects()
+
+        window = builder.get_object("win_main")
+        window.set_title(f"Enter LaTeX Formula - TexText {self.textext_version}")
+
+        # Combobox for TeX command
+        widget = builder.get_object("cmb_texcmd")
+        widget.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
+
+        # Spin button for adjustment of scale
+        sbn_scale = builder.get_object("sbn_scale")
+        sbn_scale.set_value(self.node_scale_factor)
+
+        # Button "Reset scale"
+        widget = builder.get_object("btn_scalereset")
+        widget.set_label(f"Reset ({self.node_scale_factor:.3f})")
+        widget.set_tooltip_text(
+            f"Set scale factor to the value this node has been created with ({self.node_scale_factor:.3f})")
+        widget.set_sensitive(self.text != "")
+        widget.connect("clicked", self.on_btn_scalereset_clicked, sbn_scale)  # Done manually due to glade bug
+
+        # Button "Scale as previous"
+        widget = builder.get_object("btn_scaleprevious")
+        widget.set_label(f'As previous ({self.global_scale_factor:.3f})')
+        widget.set_tooltip_text(
+            f"Set scale factor to the value of the previously edited node in Inkscape ({self.global_scale_factor:.3f})")
+        widget.connect("clicked", self.on_btn_scaleprevious_clicked, sbn_scale)  # Done manually due to glade bug
+
+        # Alignment
+        widget = builder.get_object("cmb_align")
+        widget.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
+        widget.set_sensitive(self.text != "")
+
+        # Texcode
+        widget = builder.get_object("tbf_texcode")
+        widget.set_text(self.text)
+
+        widget = builder.get_object("tev_texcode")
+        self.set_monospace_font(widget, self.DEFAULT_FONTSIZE)
+
+        # Buttons
+        widget = builder.get_object("btnCancel")
+        widget.set_tooltip_text(
+            f"Don't save changes ({self._config['gui'].get('close_shortcut', self.DEFAULT_CLOSE_SHORTCUT)})")
+
+        # Menu
+        if TOOLKIT == GTK:
+            builder.get_object("mit_tabwidth").set_visible(False)
+            builder.get_object("mit_linenumbers").set_visible(False)
+            builder.get_object("mit_spaces").set_visible(False)
+            builder.get_object("mit_autoindent").set_visible(False)
+
+        return window
+
+        #
+        # # File chooser and Scale Adjustment
+        # if hasattr(Gtk, 'FileChooserButton'):
+        #     self._preamble_widget = Gtk.FileChooserButton("...")
+        #     self._preamble_widget.set_action(Gtk.FileChooserAction.OPEN)
+        # else:
+        #     self._preamble_widget = Gtk.Entry()
+        #
+        # self.set_preamble()
+        #
+        # # --- Preamble file ---
+        # preamble_delete = Gtk.Button(label="Clear")
+        # preamble_delete.connect('clicked', self.clear_preamble)
+        # preamble_delete.set_tooltip_text("Clear the preamble file setting")
+        #
+        # preamble_frame = Gtk.Frame()
+        # preamble_frame.set_label("Preamble File")
+        # preamble_box = Gtk.HBox(homogeneous=False, spacing=0)
+        # preamble_frame.add(preamble_box)
+        # preamble_box.pack_start(self._preamble_widget, True, True, 5)
+        # preamble_box.pack_start(preamble_delete, False, False, 5)
+        # preamble_box.set_border_width(3)
+        #
+    #
+        #
+        #
+        # # Advanced settings
+        # adv_settings_frame = Gtk.Frame()
+        # adv_settings_frame.set_label("SVG output")
+        # self._conv_stroke2path = Gtk.CheckButton(label="No strokes")
+        # self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) "
+        #                                         "can be easily \ncolored in Inkscape "
+        #                                         "(Time consuming compilation!)")
+        # self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
+        # adv_settings_frame.add(self._conv_stroke2path)
+        #
+        #
+        # # --- TeX code window ---
+        # # Scrolling Window with Source View inside
+        # scroll_window = Gtk.ScrolledWindow()
+        # scroll_window.set_shadow_type(Gtk.ShadowType.IN)
+        #
+        # if TOOLKIT == GTKSOURCEVIEW:
+        #     # Source code view
+        #     text_buffer = GtkSource.Buffer()
+        #
+        #     # set LaTeX as highlighting language, so that pasted text is also highlighted as such
+        #     lang_manager = GtkSource.LanguageManager()
+        #     latex_language = lang_manager.get_language("latex")
+        #     text_buffer.set_language(latex_language)
+        #
+        #     source_view = GtkSource.View.new_with_buffer(text_buffer)
+        # else:
+        #     # normal text view
+        #     text_buffer = Gtk.TextBuffer()
+        #     source_view = Gtk.TextView()
+        #     source_view.set_buffer(text_buffer)
+        #
+        #
+        # # Action group and UI manager
+        # ui_manager = Gtk.UIManager()
+        # accel_group = ui_manager.get_accel_group()
+        # window.add_accel_group(accel_group)
+        # action_group = Gtk.ActionGroup('ViewActions')
+        # if TOOLKIT == GTKSOURCEVIEW:
+        #     ui_manager.add_ui_from_file("ui_gtksourceview.xml")
+        #     self.define_actions_gtksourceview_additions(action_group, source_view)
+        # else:
+        #     ui_manager.add_ui_from_file("ui_gtk.xml")
+        # self.define_actions_textbuffer(action_group, text_buffer)
+        # self.define_actions_view(action_group, source_view)
+        # self.define_actions_settings(action_group, source_view)
+        # ui_manager.insert_action_group(action_group, 0)
+        #
+        # # Menu
+        # menu = ui_manager.get_widget('/MainMenu')
+        #
+        #
+        # # latex preview
+        # self._preview = Gtk.Image()
+        # self._preview_scroll_window = Gtk.ScrolledWindow()
+        # self._preview_scroll_window.set_shadow_type(Gtk.ShadowType.NONE)
+        # self._preview_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        # preview_viewport = Gtk.Viewport()
+        # preview_viewport.set_shadow_type(Gtk.ShadowType.NONE)
+        # preview_viewport.add(self._preview)
+        # self._preview_scroll_window.add(preview_viewport)
+        #
+        # preview_event_box = Gtk.EventBox()
+        # preview_event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        #
+        # preview_event_box.connect('button-press-event', self.switch_preview_representation)
+        # preview_event_box.add(self._preview_scroll_window)
+        #
+        # vbox.pack_start(menu, False, False, 0)
+        #
+        # hbox_texcmd_preamble = Gtk.HBox(True, 0)
+        #
+        # hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 5)
+        # hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 5)
+        #
+        # vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
+        # vbox.pack_start(scale_align_hbox, False, False, 0)
+        #
+        # vbox.pack_start(scroll_window, True, True, 0)
+        # vbox.pack_start(self.pos_label, False, False, 0)
+        # vbox.pack_start(preview_event_box, False, False, 0)
+        # vbox.pack_start(buttons_row, False, False, 0)
+        #
+        # vbox.show_all()
+        #
+        # self._preview_scroll_window.hide()
+        #
+        # if self.text == "":
+        #     new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
+        #     if new_node_content_value == 'InlineMath':
+        #         self.text = "$$"
+        #         self._source_buffer.set_text(self.text)
+        #         sb_iter = self._source_buffer.get_iter_at_offset(1)
+        #         self._source_buffer.place_cursor(sb_iter)
+        #     if new_node_content_value == 'DisplayMath':
+        #         self.text = "$$$$"
+        #         self._source_buffer.set_text(self.text)
+        #         sb_iter = self._source_buffer.get_iter_at_offset(2)
+        #         self._source_buffer.place_cursor(sb_iter)
+        #
+        # # Connect event callbacks
+        # window.connect("key-press-event", self.cb_key_press)
+        # text_buffer.connect('changed', self.update_position_label, self, source_view)
+        # window.connect('delete-event', self.window_deleted_cb, source_view)
+        # text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
+        #
+        # icon_sizes = [16, 32, 64, 128]
+        # icon_files = [os.path.join(
+        #     os.path.dirname(__file__),
+        #     "icons",
+        #     f"logo-{size}x{size}.png")
+        #     for size in icon_sizes]
+        # icons = [GdkPixbuf.Pixbuf.new_from_file(path) for path in icon_files if os.path.isfile(path)]
+        # window.set_icon_list(icons)
+        #
+        # return window
+
+    def show(self, callback, preview_callback=None):
+        super().show(callback, preview_callback)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", module="asktext")
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            self._convert_callback = callback
+            self._preview_callback = preview_callback
+
+            # create first window
+            with redirect_stderr(None):
+                window = self.create_window()
+            window.set_default_size(500, 525)
+            # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
+            # bad hide/show/hide hack, see issue #114
+            window.show()
+            #self._window = window
+            #self._window.set_focus(self._source_view)
+
+            # main loop
+            Gtk.main()
+            return self._config
+
+    def define_actions_textbuffer(self, act_group, text_buffer):
+        act_list = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
         ]
+        act_group.add_actions(act_list, text_buffer)
 
-        if TOOLKIT == GTKSOURCEVIEW:
-            self._view_actions = [
-                ('FileMenu', None, '_File'),
-                ('ViewMenu', None, '_View'),
-                ('SettingsMenu', None, '_Settings'),
-                ('FontSize', None, 'Editor Font Si_ze'),
-                ('NewNodeContent', None, '_New Node Content'),
-                ('CloseShortcut', None, 'Close TexText _Shortcut'),
-                ('TabsWidth', None, '_Tabs Width'),
-            ]
-        else:
-            self._view_actions = [
-                ('FileMenu', None, '_File'),
-                ('ViewMenu', None, '_View'),
-                ('SettingsMenu', None, '_Settings'),
-                ('FontSize', None, 'Editor Font Si_ze'),
-                ('NewNodeContent', None, '_New Node Content'),
-                ('CloseShortcut', None, '_Close TexText Shortcut'),
-            ]
+    def define_actions_view(self, act_group, text_buffer):
+        """
+        Set-up actions shown in the "View"-Menu
 
-        self._toggle_actions = [
-            ('ShowNumbers', None, 'Show _Line Numbers', None,
-             'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb),
-            ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
-             self.auto_indent_toggled_cb),
-            ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
-             'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb)
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (Gtk.TextBuffer, GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+        view_actions = [
+            ('FileMenu', None, '_File'),
+            ('ViewMenu', None, '_View'),
+            ('SettingsMenu', None, '_Settings'),
+            ('FontSize', None, 'Editor Font Si_ze'),
+            ('NewNodeContent', None, '_New Node Content'),
+            ('CloseShortcut', None, '_Close TexText Shortcut'),
         ]
+        act_group.add_actions(view_actions, text_buffer)
 
-        self._word_wrap_action = [
+        word_wrap_action = [
             ('WordWrap', None, '_Word Wrap', None,
-             'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb)
+             'Wrap long lines in editor to avoid horizontal scrolling', self.word_wrap_toggled_cb,
+             self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
         ]
+        act_group.add_toggle_actions(word_wrap_action, text_buffer)
+        # action = action_group.get_action('WordWrap')
+        # action.set_active()
 
-        self._font_size_actions = [
+        font_size_actions = [
             ('FontSize11', None, '1_1 pt', None, 'Set editor font size to 11pt', 0),
             ('FontSize12', None, '1_2 pt', None, 'Set editor font size to 12pt', 1),
             ('FontSize14', None, '1_4 pt', None, 'Set editor font size to 14pt', 2),
             ('FontSize16', None, '1_6 pt', None, 'Set editor font size to 16pt', 3)
         ]
-        font_size = "\n".join(
-            [f"<menuitem action=\'{action}\'/>" for (action, _, _, _, _, _) in self._font_size_actions])
+        act_group.add_radio_actions(font_size_actions, -1, self.font_size_cb, text_buffer)
+        act_group.get_action(f'FontSize{self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)}').set_active(True)
 
-        self._preview_white_background_action = [
+        preview_white_background_action = [
             ('WhitePreviewBackground', None, 'White preview background', None,
-             'Set preview background to white', self.on_preview_background_chagned)
+             'Set preview background to white', self.on_preview_background_chagned,
+             self._config["gui"].get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
         ]
+        act_group.add_toggle_actions(preview_white_background_action, text_buffer)
 
-        self._confirm_close_action = [
-            ('ConfirmClose', None, '_Confirm Closing of Window', None,
-             'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb)
+    def define_actions_gtksourceview_additions(self, act_group, text_buffer):
+        """
+        Set-up actions only available when GtkSourceView has been imported
+
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+
+        view_actions = [
+            ('TabsWidth', None, '_Tabs Width')
         ]
+        act_group.add_actions(view_actions, text_buffer)
 
-        self._radio_actions = [
+        toggle_actions = [
+            ('ShowNumbers', None, 'Show _Line Numbers', None,
+             'Toggle visibility of line numbers in the left margin', self.numbers_toggled_cb,
+             self._config["gui"].get("line_numbers", self.DEFAULT_SHOWLINENUMBERS)),
+            ('AutoIndent', None, 'Enable _Auto Indent', None, 'Toggle automatic auto indentation of text',
+             self.auto_indent_toggled_cb, self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT)),
+            ('InsertSpaces', None, 'Insert _Spaces Instead of Tabs', None,
+             'Whether to insert space characters when inserting tabulations', self.insert_spaces_toggled_cb,
+             self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
+        ]
+        act_group.add_toggle_actions(toggle_actions, text_buffer)
+
+        radio_actions = [
             (f"TabsWidth{num}", None, f"{num}", None, f"Set tabulation width to {num} spaces", num) for num in
             range(2, 13, 2)]
+        act_group.add_radio_actions(radio_actions, -1, self.tabs_toggled_cb, text_buffer)
+        action = act_group.get_action(f"TabsWidth{self._config['gui'].get('tab_width', self.DEFAULT_TABWIDTH)}")
+        action.set_active(True)
+        self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
 
-        if TOOLKIT == GTK:
-            gtksourceview_ui_additions = ""
-        else:
-            menu_actions = "\n".join(
-                [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._radio_actions])
-            gtksourceview_ui_additions = f"""
-            <menuitem action='ShowNumbers'/>
-            <menuitem action='AutoIndent'/>
-            <menuitem action='InsertSpaces'/>
-            <menu action='TabsWidth'>
-            {menu_actions}
-            </menu>
-            """
+    def define_actions_settings(self, act_group, text_buffer):
+        """
+        Set-up actions shown in the "Settings"-Menu
 
-        self._new_node_content_actions = [
+        :param (Gtk.ActionGroup) act_group: Action group into which the actions are inserted
+        :param (Gtk.TextBuffer, GtkSource.TextBuffer) text_buffer: The text buffer
+        """
+
+        confirm_close_action = [
+            ('ConfirmClose', None, '_Confirm Closing of Window', None,
+             'Request confirmation for closing the window when text has been changed', self.confirm_close_toggled_cb,
+             self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
+        ]
+        act_group.add_toggle_actions(confirm_close_action, text_buffer)
+
+        new_node_content_actions = [
             #     name of action ,   stock id,    label, accelerator,  tooltip, callback/value
             ('NewNodeContentEmpty', None, '_Empty', None, 'New node will be initialized with empty content', 0),
             ('NewNodeContentInlineMath', None, '_Inline math', None, 'New node will be initialized with $ $', 1),
             ('NewNodeContentDisplayMath', None, '_Display math', None, 'New node will be initialized with $$ $$', 2)
         ]
-        new_node_content = "\n".join(
-            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._new_node_content_actions])
+        act_group.add_radio_actions(new_node_content_actions, -1, self.new_node_content_cb, text_buffer)
+        act_group.get_action(
+            f'NewNodeContent{self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)}').\
+            set_active(True)
 
-        self._close_shortcut_actions = [
-            ('CloseShortcutEscape', None, '_ESC', None, 'TexText window closes when pressing ESC', 0),
-            ('CloseShortcutCtrlQ', None, 'CTRL + _Q', None, 'TexText window closes when pressing CTRL + Q', 1),
-            ('CloseShortcutNone', None, '_None', None, 'No shortcut for closing TexText window', 2)
+        close_shortcut_actions = [
+            ('CloseShortcutEscape', None, self.CLOSE_SHORTCUT_TEXT[0], None,
+             f'TexText window closes when pressing {self.CLOSE_SHORTCUT_TEXT[0]}', 0),
+            ('CloseShortcutCtrlQ', None, self.CLOSE_SHORTCUT_TEXT[1], None,
+             f'TexText window closes when pressing {self.CLOSE_SHORTCUT_TEXT[1]}', 1),
+            ('CloseShortcutNone', None, self.CLOSE_SHORTCUT_TEXT[2], None,
+             'No shortcut for closing TexText window', 2)
         ]
-        close_shortcut = "\n".join(
-            [f'<menuitem action=\'{action}\'/>' for (action, _, _, _, _, _) in self._close_shortcut_actions])
-
-        self._view_ui_description = f"""
-        <ui>
-          <menubar name='MainMenu'>
-            <menu action='FileMenu'>
-              <menuitem action='Open'/>
-            </menu>
-            <menu action='ViewMenu'>
-              <menu action='FontSize'>
-                {font_size}
-              </menu>
-              <menuitem action='WordWrap'/>
-              {gtksourceview_ui_additions}
-              <menuitem action='WhitePreviewBackground'/>
-            </menu>
-            <menu action='SettingsMenu'>
-              <menu action='NewNodeContent'>
-                {new_node_content}
-              </menu>
-              <menu action='CloseShortcut'>
-                {close_shortcut} 
-              </menu>
-              <menuitem action='ConfirmClose'/>
-            </menu>
-          </menubar>
-        </ui>
-        """
+        act_group.add_radio_actions(close_shortcut_actions, -1, self.close_shortcut_cb, text_buffer)
+        act_group.get_action(
+            f'CloseShortcut{self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)}'). \
+            set_active(True)
 
     @staticmethod
     def set_monospace_font(text_view, font_size):
@@ -737,7 +954,7 @@ class TexTextGuiGTK(TexTextGuiBase):
     def close_shortcut_cb(self, action, previous_value, sourceview):
         self._config["gui"]["close_shortcut"] = self.CLOSE_SHORTCUT[action.get_current_value()]
         self._cancel_button.set_tooltip_text(
-            f"Don't save changes ({self._close_shortcut_actions[action.get_current_value()][2]})".replace("_", ""))
+            f"Don't save changes ({self.CLOSE_SHORTCUT_TEXT[action.get_current_value()]})")
 
     # noinspection PyUnusedLocal
     def confirm_close_toggled_cb(self, action, sourceview):
@@ -817,25 +1034,25 @@ class TexTextGuiGTK(TexTextGuiBase):
         self.update_position_label(text_buffer, self, view)
 
     # noinspection PyUnusedLocal
-    def window_deleted_cb(self, widget, event, view):
-        if (self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
-                and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
-                                                 self._source_buffer.get_end_iter(), True) != self.text):
-            dlg = Gtk.MessageDialog(self._window, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE)
-            dlg.set_markup(
-                "<b>Do you want to close TexText without save?</b>\n\n"
-                "Your changes will be lost if you don't save them."
-            )
-            dlg.add_button("Continue editing", Gtk.ResponseType.CLOSE) \
-                .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_GO_BACK, Gtk.IconSize.BUTTON))
-            dlg.add_button("Close without save", Gtk.ResponseType.YES) \
-                .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.BUTTON))
-
-            dlg.set_title("Close without save?")
-            res = dlg.run()
-            dlg.destroy()
-            if res in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.DELETE_EVENT):
-                return True
+    def on_window_delete(self, widget):
+        # if (self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE)
+        #         and self._source_buffer.get_text(self._source_buffer.get_start_iter(),
+        #                                          self._source_buffer.get_end_iter(), True) != self.text):
+        #     dlg = Gtk.MessageDialog(self._window, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE)
+        #     dlg.set_markup(
+        #         "<b>Do you want to close TexText without save?</b>\n\n"
+        #         "Your changes will be lost if you don't save them."
+        #     )
+        #     dlg.add_button("Continue editing", Gtk.ResponseType.CLOSE) \
+        #         .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_GO_BACK, Gtk.IconSize.BUTTON))
+        #     dlg.add_button("Close without save", Gtk.ResponseType.YES) \
+        #         .set_image(Gtk.Image.new_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.BUTTON))
+        #
+        #     dlg.set_title("Close without save?")
+        #     res = dlg.run()
+        #     dlg.destroy()
+        #     if res in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.DELETE_EVENT):
+        #         return True
 
         Gtk.main_quit()
         return False
@@ -945,36 +1162,6 @@ class TexTextGuiGTK(TexTextGuiBase):
         self._preview_scroll_window.set_size_request(-1, min(desired_preview_area_height, max_preview_height))
         self._preview_scroll_window.show()
 
-    # ---------- create view window
-    def create_buttons(self):
-        """Creates and connects the Save, Cancel and Preview buttons"""
-
-        spacing = 0
-
-        button_box = Gtk.HButtonBox()
-
-        button_box.set_border_width(5)
-        button_box.set_layout(Gtk.ButtonBoxStyle.EDGE)
-        button_box.set_spacing(spacing)
-
-        self._cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        self._cancel_button.set_tooltip_text("Don't save changes (ESC)")
-        button_box.add(self._cancel_button)
-
-        self._preview_button = Gtk.Button(label="Preview")
-        self._preview_button.set_tooltip_text("Show/ update preview (CTRL+P)")
-        button_box.add(self._preview_button)
-
-        self._ok_button = Gtk.Button(stock=Gtk.STOCK_SAVE)
-        self._ok_button.set_tooltip_text("Update or create new LaTeX output (CTRL+RETURN)")
-        button_box.add(self._ok_button)
-
-        self._cancel_button.connect("clicked", self.cb_cancel)
-        self._ok_button.connect("clicked", self.cb_ok)
-        self._preview_button.connect('clicked', self.update_preview)
-
-        return button_box
-
     def clear_preamble(self, _=None):
         """
         Clear the preamble file setting
@@ -988,323 +1175,11 @@ class TexTextGuiGTK(TexTextGuiBase):
         else:
             self._preamble_widget.set_text(self.preamble_file)
 
-    def reset_scale_factor(self, _=None):
-        self._scale_adj.set_value(self.current_scale_factor)
+    def on_btn_scalereset_clicked(self, widget, spin_button):
+        spin_button.set_value(self.node_scale_factor)
 
-    def use_global_scale_factor(self, _=None):
-        self._scale_adj.set_value(self.global_scale_factor)
-
-    # ---------- Create main window
-    def create_window(self):
-        """
-        Set up the window with all its widgets
-
-        :return: the created window
-        """
-        window = Gtk.Window()
-        window.type = Gtk.WindowType.TOPLEVEL
-        window.set_border_width(2)
-        window.set_title(f'Enter LaTeX Formula - TexText {self.textext_version}')
-
-        # File chooser and Scale Adjustment
-        if hasattr(Gtk, 'FileChooserButton'):
-            self._preamble_widget = Gtk.FileChooserButton("...")
-            self._preamble_widget.set_action(Gtk.FileChooserAction.OPEN)
-        else:
-            self._preamble_widget = Gtk.Entry()
-
-        self.set_preamble()
-
-        # --- Preamble file ---
-        preamble_delete = Gtk.Button(label="Clear")
-        preamble_delete.connect('clicked', self.clear_preamble)
-        preamble_delete.set_tooltip_text("Clear the preamble file setting")
-
-        preamble_frame = Gtk.Frame()
-        preamble_frame.set_label("Preamble File")
-        preamble_box = Gtk.HBox(homogeneous=False, spacing=0)
-        preamble_frame.add(preamble_box)
-        preamble_box.pack_start(self._preamble_widget, True, True, 5)
-        preamble_box.pack_start(preamble_delete, False, False, 5)
-        preamble_box.set_border_width(3)
-
-        # --- Tex command ---
-        texcmd_frame = Gtk.Frame()
-        texcmd_frame.set_label("TeX command")
-        texcmd_box = Gtk.HBox(homogeneous=False, spacing=0)
-        texcmd_frame.add(texcmd_box)
-        texcmd_box.set_border_width(3)
-
-        tex_command_store = Gtk.ListStore(str)
-        for tex_command in self.TEX_COMMANDS:
-            tex_command_store.append([tex_command])
-
-        self._texcmd_cbox = Gtk.ComboBox.new_with_model(tex_command_store)
-        renderer_text = Gtk.CellRendererText()
-        self._texcmd_cbox.pack_start(renderer_text, True)
-        self._texcmd_cbox.add_attribute(renderer_text, "text", 0)
-
-        self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
-        self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
-        texcmd_box.pack_start(self._texcmd_cbox, True, True, 5)
-
-        # --- Scaling ---
-        scale_frame = Gtk.Frame()
-        scale_frame.set_label("Scale Factor")
-        scale_box = Gtk.HBox(homogeneous=False, spacing=0)
-        scale_box.set_border_width(3)
-        scale_frame.add(scale_box)
-        self._scale_adj = Gtk.Adjustment(lower=0.001, upper=180, step_incr=0.001, page_incr=1)
-        self._scale = Gtk.SpinButton()
-        self._scale.set_adjustment(self._scale_adj)
-        self._scale.set_digits(3)
-        self._scale_adj.set_value(self.current_scale_factor)
-        self._scale.set_tooltip_text("Change the scale of the LaTeX output")
-
-        # We need buttons with custom labels and stock icons, so we make some
-        reset_scale = self.current_scale_factor if self.current_scale_factor else self.global_scale_factor
-        scale_reset_button = Gtk.Button.new_from_icon_name('edit-undo', Gtk.IconSize.BUTTON)
-        scale_reset_button.set_label(f'Reset ({reset_scale:.3f})')
-        scale_reset_button.set_always_show_image(True)
-        scale_reset_button.set_tooltip_text(
-            f"Set scale factor to the value this node has been created with ({reset_scale:.3f})")
-        scale_reset_button.connect('clicked', self.reset_scale_factor)
-        if self.text == "":
-            scale_reset_button.set_sensitive(False)
-
-        scale_global_button = Gtk.Button.new_from_icon_name('edit-copy', Gtk.IconSize.BUTTON)
-        scale_global_button.set_label(f'As previous ({self.global_scale_factor:.3f})')
-        scale_global_button.set_always_show_image(True)
-        scale_global_button.set_tooltip_text(
-            f"Set scale factor to the value of the previously edited node in Inkscape ({self.global_scale_factor:.3f})")
-        scale_global_button.connect('clicked', self.use_global_scale_factor)
-
-        scale_box.pack_start(self._scale, True, True, 2)
-        scale_box.pack_start(scale_reset_button, False, False, 2)
-        scale_box.pack_start(scale_global_button, False, False, 2)
-
-        # --- Alignment box ---
-        alignment_frame = Gtk.Frame()
-        alignment_frame.set_label("Alignment")
-        alignment_box = Gtk.HBox(homogeneous=False, spacing=0)
-        alignment_box.set_border_width(3)
-        alignment_frame.add(alignment_box)
-
-        liststore = Gtk.ListStore(GdkPixbuf.Pixbuf)
-        for algn in self.ALIGNMENT_LABELS:
-            vals = tuple(algn.split(" "))
-            path = os.path.join(os.path.dirname(__file__), "icons", f"alignment-{vals[0]}-{vals[1]}.svg.png")
-            assert os.path.exists(path)
-            liststore.append([GdkPixbuf.Pixbuf.new_from_file(path)])
-
-        self._alignment_combobox = Gtk.ComboBox()
-
-        cell = Gtk.CellRendererPixbuf()
-        self._alignment_combobox.pack_start(cell, True)
-        self._alignment_combobox.add_attribute(cell, 'pixbuf', 0)
-        self._alignment_combobox.set_model(liststore)
-        self._alignment_combobox.set_wrap_width(3)
-        self._alignment_combobox.set_active(self.ALIGNMENT_LABELS.index(self.current_alignment))
-        self._alignment_combobox.set_tooltip_text("Set alignment anchor position")
-        if self.text == "":
-            self._alignment_combobox.set_sensitive(False)
-
-        alignment_box.pack_start(self._alignment_combobox, True, True, 2)
-
-        # Advanced settings
-        adv_settings_frame = Gtk.Frame()
-        adv_settings_frame.set_label("SVG output")
-        self._conv_stroke2path = Gtk.CheckButton(label="No strokes")
-        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) "
-                                                "can be easily \ncolored in Inkscape "
-                                                "(Time consuming compilation!)")
-        self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
-        adv_settings_frame.add(self._conv_stroke2path)
-
-        # --- Scale, alignment and advanced settings together in one "line"
-        scale_align_hbox = Gtk.HBox(homogeneous=False, spacing=0)
-        scale_align_hbox.pack_start(scale_frame, False, False, 5)
-        scale_align_hbox.pack_start(alignment_frame, True, True, 5)
-        scale_align_hbox.pack_start(adv_settings_frame, True, True, 5)
-
-        # --- TeX code window ---
-        # Scrolling Window with Source View inside
-        scroll_window = Gtk.ScrolledWindow()
-        scroll_window.set_shadow_type(Gtk.ShadowType.IN)
-
-        if TOOLKIT == GTKSOURCEVIEW:
-            # Source code view
-            text_buffer = GtkSource.Buffer()
-
-            # set LaTeX as highlighting language, so that pasted text is also highlighted as such
-            lang_manager = GtkSource.LanguageManager()
-            latex_language = lang_manager.get_language("latex")
-            text_buffer.set_language(latex_language)
-
-            source_view = GtkSource.View.new_with_buffer(text_buffer)
-        else:
-            # normal text view
-            text_buffer = Gtk.TextBuffer()
-            source_view = Gtk.TextView()
-            source_view.set_buffer(text_buffer)
-
-        self._source_buffer = text_buffer
-        self._source_view = source_view
-        self._source_buffer.set_text(self.text)
-        self._source_view.set_size_request(-1, 150)
-
-        scroll_window.add(self._source_view)
-        self.set_monospace_font(self._source_view, self.DEFAULT_FONTSIZE)
-
-        # Action group and UI manager
-        ui_manager = Gtk.UIManager()
-        accel_group = ui_manager.get_accel_group()
-        window.add_accel_group(accel_group)
-        ui_manager.add_ui_from_string(self._view_ui_description)
-
-        action_group = Gtk.ActionGroup('ViewActions')
-        action_group.add_actions(self._view_actions, source_view)
-        action_group.add_actions(self.buffer_actions, text_buffer)
-        action_group.add_radio_actions(self._new_node_content_actions, -1, self.new_node_content_cb, source_view)
-        action_group.add_radio_actions(self._close_shortcut_actions, -1, self.close_shortcut_cb, source_view)
-        action_group.add_radio_actions(self._font_size_actions, -1, self.font_size_cb, source_view)
-        action_group.add_toggle_actions(self._confirm_close_action, source_view)
-        action_group.add_toggle_actions(self._word_wrap_action, source_view)
-        action_group.add_toggle_actions(self._preview_white_background_action, source_view)
-        if TOOLKIT == GTKSOURCEVIEW:
-            action_group.add_toggle_actions(self._toggle_actions, source_view)
-            action_group.add_radio_actions(self._radio_actions, -1, self.tabs_toggled_cb, source_view)
-        ui_manager.insert_action_group(action_group, 0)
-
-        # Menu
-        menu = ui_manager.get_widget('/MainMenu')
-
-        # Cursor position label
-        self.pos_label = Gtk.Label()
-        self.pos_label.set_text('Position')
-
-        # latex preview
-        self._preview = Gtk.Image()
-        self._preview_scroll_window = Gtk.ScrolledWindow()
-        self._preview_scroll_window.set_shadow_type(Gtk.ShadowType.NONE)
-        self._preview_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        preview_viewport = Gtk.Viewport()
-        preview_viewport.set_shadow_type(Gtk.ShadowType.NONE)
-        preview_viewport.add(self._preview)
-        self._preview_scroll_window.add(preview_viewport)
-
-        preview_event_box = Gtk.EventBox()
-        preview_event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-
-        preview_event_box.connect('button-press-event', self.switch_preview_representation)
-        preview_event_box.add(self._preview_scroll_window)
-
-        # Vertical Layout
-        vbox = Gtk.VBox(False, 4)
-        window.add(vbox)
-
-        vbox.pack_start(menu, False, False, 0)
-
-        hbox_texcmd_preamble = Gtk.HBox(True, 0)
-
-        hbox_texcmd_preamble.pack_start(texcmd_frame, True, True, 5)
-        hbox_texcmd_preamble.pack_start(preamble_frame, True, True, 5)
-
-        vbox.pack_start(hbox_texcmd_preamble, False, False, 0)
-        vbox.pack_start(scale_align_hbox, False, False, 0)
-
-        vbox.pack_start(scroll_window, True, True, 0)
-        vbox.pack_start(self.pos_label, False, False, 0)
-        vbox.pack_start(preview_event_box, False, False, 0)
-        buttons_row = self.create_buttons()
-        vbox.pack_start(buttons_row, False, False, 0)
-
-        vbox.show_all()
-
-        # ToDo: Currently this seems to do nothing?
-        self._same_height_objects = [preamble_frame, texcmd_frame, scale_align_hbox]
-
-        self._preview_scroll_window.hide()
-
-        # preselect menu check items
-        groups = ui_manager.get_action_groups()
-        # retrieve the view action group at position 0 in the list
-        action_group = groups[0]
-        font_size_value = self._config["gui"].get("font_size", self.DEFAULT_FONTSIZE)
-        action = action_group.get_action(f'FontSize{font_size_value}')
-        action.set_active(True)
-        action = action_group.get_action('WordWrap')
-        action.set_active(self._config["gui"].get("word_wrap", self.DEFAULT_WORDWRAP))
-        new_node_content_value = self._config["gui"].get("new_node_content", self.DEFAULT_NEW_NODE_CONTENT)
-        action = action_group.get_action(f'NewNodeContent{new_node_content_value}')
-        action.set_active(True)
-        close_shortcut_value = self._config["gui"].get("close_shortcut", self.DEFAULT_CLOSE_SHORTCUT)
-        action = action_group.get_action(f'CloseShortcut{close_shortcut_value}')
-        action.set_active(True)
-        action = action_group.get_action('ConfirmClose')
-        action.set_active(self._config["gui"].get("confirm_close", self.DEFAULT_CONFIRM_CLOSE))
-        action = action_group.get_action('WhitePreviewBackground')
-        action.set_active(self._config["gui"].get("white_preview_background", self.DEFAULT_PREVIEW_WHITE_BACKGROUND))
-        if TOOLKIT == GTKSOURCEVIEW:
-            action = action_group.get_action('ShowNumbers')
-            action.set_active(self._config["gui"].get("line_numbers", self.DEFAULT_SHOWLINENUMBERS))
-            action = action_group.get_action('AutoIndent')
-            action.set_active(self._config["gui"].get("auto_indent", self.DEFAULT_AUTOINDENT))
-            action = action_group.get_action('InsertSpaces')
-            action.set_active(self._config["gui"].get("insert_spaces", self.DEFAULT_INSERTSPACES))
-            action = action_group.get_action(f"TabsWidth{self._config['gui'].get('tab_width', self.DEFAULT_TABWIDTH)}")
-            action.set_active(True)
-            self._source_view.set_tab_width(action.get_current_value())  # <- Why is this explicit call necessary ??
-
-        if self.text == "":
-            if new_node_content_value == 'InlineMath':
-                self.text = "$$"
-                self._source_buffer.set_text(self.text)
-                sb_iter = self._source_buffer.get_iter_at_offset(1)
-                self._source_buffer.place_cursor(sb_iter)
-            if new_node_content_value == 'DisplayMath':
-                self.text = "$$$$"
-                self._source_buffer.set_text(self.text)
-                sb_iter = self._source_buffer.get_iter_at_offset(2)
-                self._source_buffer.place_cursor(sb_iter)
-
-        # Connect event callbacks
-        window.connect("key-press-event", self.cb_key_press)
-        text_buffer.connect('changed', self.update_position_label, self, source_view)
-        window.connect('delete-event', self.window_deleted_cb, source_view)
-        text_buffer.connect('mark_set', self.move_cursor_cb, source_view)
-
-        icon_sizes = [16, 32, 64, 128]
-        icon_files = [os.path.join(
-            os.path.dirname(__file__),
-            "icons",
-            f"logo-{size}x{size}.png")
-            for size in icon_sizes]
-        icons = [GdkPixbuf.Pixbuf.new_from_file(path) for path in icon_files if os.path.isfile(path)]
-        window.set_icon_list(icons)
-
-        return window
-
-    def show(self, callback, preview_callback=None):
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", module="asktext")
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-            self._convert_callback = callback
-            self._preview_callback = preview_callback
-
-            # create first window
-            with redirect_stderr(None):
-                window = self.create_window()
-            window.set_default_size(500, 525)
-            # Until commit 802d295e46877fd58842b61dbea4276372a2505d we called own normalize_ui_row_heights here with
-            # bad hide/show/hide hack, see issue #114
-            window.show()
-            self._window = window
-            self._window.set_focus(self._source_view)
-
-            # main loop
-            Gtk.main()
-            return self._config
+    def on_btn_scaleprevious_clicked(self, widget, spin_button):
+        spin_button.set_value(self.global_scale_factor)
 
     def show_error_dialog(self, title, message_text, exception):
 
