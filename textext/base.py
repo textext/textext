@@ -575,7 +575,7 @@ class TexToPdfConverter:
         exec_command([
             self.checker.inkscape_executable,
             "--pdf-poppler",
-            "--pdf-page=1",
+            "--pages=1",
             "--export-type=svg",
             "--export-text-to-path",
             "--export-area-drawing",
@@ -607,7 +607,7 @@ class TexToPdfConverter:
         cmd = [
             self.checker.inkscape_executable,
             "--pdf-poppler",
-            "--pdf-page=1",
+            "--pages=1",
             "--export-type=png",
             "--export-area-drawing",
             "--export-dpi=300",
