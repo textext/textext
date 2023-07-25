@@ -68,6 +68,7 @@ file_log_channel.setFormatter(log_formatter)
 __logger.addHandler(file_log_channel)
 
 import inkex
+import inkex.command as ixc
 from lxml import etree
 
 TEXTEXT_NS = u"http://www.iki.fi/pav/software/textext/"
@@ -572,17 +573,15 @@ class TexToPdfConverter:
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
-        exec_command([
-            self.checker.inkscape_executable,
-            "--pdf-poppler",
-            "--pages=1",
-            "--export-type=svg",
-            "--export-text-to-path",
-            "--export-area-drawing",
-            "--export-filename", self.tmp('svg'),
-            self.tmp('pdf')
-        ]
-        )
+        kwargs = dict()
+        kwargs["export_filename"] = self.tmp('svg')
+        kwargs["pdf_poppler"] = True
+        kwargs["pages"] = 1
+        kwargs["export_type"] = "svg"
+        kwargs["export_text_to_path"] = True
+        kwargs["export_area_drawing"] = True
+
+        ixc.inkscape(self.tmp('pdf'), **kwargs)
 
     def stroke_to_path(self):
         """
@@ -591,37 +590,29 @@ class TexToPdfConverter:
         E.g. $\\overline x$ -> the line above x is converted from stroke to path
         """
         try:
-            exec_command([
-                self.checker.inkscape_executable,
-                "-g",
-                "--batch-process",
-                "--actions=EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg')),
-                self.tmp('svg')
-            ]
-            )
+            kwargs = dict()
+            kwargs["with_gui"] = True
+            kwargs["batch_process"] = True
+            kwargs["actions"] = "EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg'))
+            ixc.inkscape(self.tmp('svg'), **kwargs)
+
         except (TexTextCommandNotFound, TexTextCommandFailed):
             pass
 
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a SVG file"""
-        cmd = [
-            self.checker.inkscape_executable,
-            "--pdf-poppler",
-            "--pages=1",
-            "--export-type=png",
-            "--export-area-drawing",
-            "--export-dpi=300",
-            "--export-filename", self.tmp('png'),
-            self.tmp('pdf')
-        ]
-
+        kwargs = dict()
+        kwargs["export_filename"] = self.tmp('png')
+        kwargs["pdf_poppler"] = True
+        kwargs["pages"] = 1
+        kwargs["export_type"] = "png"
+        kwargs["export_dpi"] = 300
+        kwargs["export_area_drawing"] = True
         if white_bg:
-            cmd.extend([
-                "--export-background=#FFFFFF",
-                "--export-background-opacity=1.0"
-            ])
+            kwargs["export_background"] = 300
+            kwargs["export-background-opacity"] = 1.0
 
-        exec_command(cmd)
+        ixc.inkscape(self.tmp('pdf'), **kwargs)
 
     def parse_pdf_log(self):
         """
