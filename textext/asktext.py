@@ -48,14 +48,6 @@ from textext.utility import SuppressStream
 #   If unsuccessful, try TK (first for Python 3, then for Python 2)
 #   When not even TK could be imported, abort with error message
 try:
-    # Hotfix for Inkscape 1.0.1 on Windows: HarfBuzz-0.0.typelib is missing
-    # in the Inkscape installation Python subsystem, hence we ship
-    # it manually and set the search path accordingly here
-    # ToDo: Remove this hotfix when Inkscape 1.0.2 is released and mark
-    #       Inkscape 1.0.1 as incompatible with TexText
-    if os.name == 'nt':
-        os.environ['GI_TYPELIB_PATH'] = os.path.dirname(os.path.abspath(__file__))
-
     import gi
     gi.require_version("Gtk", "3.0")
 
