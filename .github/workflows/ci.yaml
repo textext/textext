@@ -35,7 +35,7 @@ jobs:
       run: |
         python test_installation_script.py 2> /dev/null
         python setup.py
-        wget https://gitlab.com/inkscape/extensions/raw/master/inkscape.extension.rng
+        wget https://gitlab.com/inkscape/extensions/-/raw/master/inkex/tester/inkscape.extension.rng
     - name: Perfom unit-tests
       run: |
         export PYTHONPATH="`inkscape --system-data-directory`/extensions:$HOME/.config/inkscape/extensions/"

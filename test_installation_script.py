@@ -78,9 +78,7 @@ good_configurations = []
 
 # Definition of working combinations of Inkscape and LaTeX
 for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
-    good_configurations.append([("inkscape", "Inkscape 1.0 (4035a4fb49, 2020-05-01)"), latex])
-    good_configurations.append([("inkscape", "Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20)"), latex])
-    good_configurations.append([("inkscape", "Inkscape 1.2-dev (1dd7bebcbd, 2021-12-20)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.3 (1:1.3+202307231459+0e150ed6c4)"), latex])
 
 # Test: Installation of working combinations must succeed
 for good_configuration in good_configurations:
