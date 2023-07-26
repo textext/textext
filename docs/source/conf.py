@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TexText'
-copyright = '2022, TexText developers'
+copyright = '2023, TexText developers'
 author = 'Alexander Blinne, Antonio Russo, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
 
 # The full version, including alpha/beta/rc tags
@@ -192,7 +192,7 @@ extlinks = {
     'bb_issue_num': ('https://bitbucket.org/pv/textext/issues/%s', 'bb%s'),
     'bb_issue': ('https://bitbucket.org/pv/textext/issues/%s', 'issue (on BitBucket) %s'),
 
-    # Links to current stable release compatible with Inkscape >= 1.0
+    # Links to current stable release compatible with Inkscape >= 1.3
     'textext_download_zip':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.zip'.format(**locals()), 'zip-file for %s'),
     'textext_download_tgz':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.tar.gz'.format(**locals()), 'tgz-file for %s'),
     'textext_download_exe':    ('https://github.com/textext/textext/releases/download/{release}/TexText-%s-{release}.exe'.format(**locals()), 'exe-installer for %s'),
