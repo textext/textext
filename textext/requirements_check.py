@@ -2,7 +2,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-Copyright (c) 2006-2022 TexText developers.
+opyright (c) 2006-2023 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
@@ -182,7 +182,8 @@ class WindowsDefaults(Defaults):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
         stdout, stderr = p.communicate()
         if return_code is not None and p.returncode != return_code:
-            raise subprocess.CalledProcessError(p.returncode, command)
+            raise subprocess.CalledProcessError(p.returncode, "{0}, stderr: {1}".format(command, stderr),
+                                                output=stdout, stderr=stderr)
         return stdout, stderr
 
 
@@ -619,23 +620,39 @@ class TexTextRequirementsChecker(object):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_inkscape_1_0(self):
+    def find_inkscape_1_3(self):
         try:
-            executable = self.find_executable('inkscape')['path']
-            stdout, stderr = defaults.call_command([executable, "--version"])
-        except (KeyError, OSError):
-            return RequirementCheckResult(False, ["inkscape is not found"])
-        for stdout_line in stdout.decode("utf-8", 'ignore').split("\n"):
-            m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
+            # When we call this from Inkscape we need this call
+            import inkex.command as iec
+            stdout_line = iec.inkscape("", version=True)
+            executable = iec.which("inkscape")
+        except ImportError:
+            try:
+                executable = self.find_executable('inkscape')['path']
+                stdout, stderr = defaults.call_command([executable, "--version"])
+                stdout_line = stdout.decode("utf-8", 'ignore')
+            except (KeyError, OSError):
+                return RequirementCheckResult(False, ["inkscape is not found"])
 
-            if m:
-                found_version, major, minor = m.groups()
-                if int(major) >= 1:
-                    return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
-                else:
-                    return RequirementCheckResult(False, [
-                        "inkscape>=1.0 is not found (but inkscape=%s is found)" % (found_version)])
+        m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
+        if m:
+            found_version, major, minor = m.groups()
+            if int(major) >= 1 and int(minor) >= 3:
+                return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
+            else:
+                return RequirementCheckResult(False, [
+                    "inkscape>=1.3 is not found (but inkscape=%s is found)" % (found_version)])
         return RequirementCheckResult(None, ["Can't determinate inkscape version"])
+        # import inkex.command as iec
+        # stdout = iec.inkscape("", version=True)
+        # m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout)
+        # if m:
+        #     found_version, major, minor = m.groups()
+        #     if int(major) >= 1 and int(minor) >= 3:
+        #         return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=self.find_executable('inkscape')['path'])
+        #     else:
+        #         return RequirementCheckResult(False, [
+        #             "inkscape>=1.3 is not found (but inkscape=%s is found)" % (found_version)])
 
     def find_executable(self, prog_name):
         # try value from config
@@ -713,8 +730,8 @@ class TexTextRequirementsChecker(object):
             return result
 
         textext_requirements = (
-            Requirement(self.find_inkscape_1_0)
-            .prepend_message("ANY", 'Detect inkscape>=1.0')
+            Requirement(self.find_inkscape_1_3)
+            .prepend_message("ANY", 'Detect inkscape >= 1.3')
             .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & (

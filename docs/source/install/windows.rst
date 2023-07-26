@@ -1,5 +1,5 @@
 .. |TexText| replace:: **TexText**
-.. |Inkscape| replace:: **Inkscape 1.2**
+.. |Inkscape| replace:: **Inkscape 1.3**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
@@ -21,7 +21,8 @@
 |TexText| on Windows
 ====================
 
-If you use Inkscape in PortableApps please go to `these special instructions <portableapps-install_>`_.
+- If you use Inkscape in PortableApps please go to `these special instructions <portableapps-install_>`_.
+- If you use Inkscape 1.2, 1.1, or 1.0 you have to use `TexText 1.8.2 <https://github.com/textext/textext/releases/tag/1.8.2>`_
 
 .. _windows-install-preparation:
 
@@ -62,7 +63,7 @@ Preparation
 .. important::
 
     Compared to previous versions |TexText| does not need any conversion utilities like ghostscript,
-    pstoedit or pdfsvg. Furthermore, the required Python bindungs for the GTK3-GUI
+    pstoedit or pdfsvg. Furthermore, the required Python bindings for the GTK3-GUI
     are already included in the windows version of |Inkscape|.
 
 .. _windows-install-textext:
@@ -76,6 +77,8 @@ Setup script (recommended)
 --------------------------
 
 1. Download the most recent package from :textext_current_release_page:`release` (direct links: :textext_download_zip:`Windows`)
+   (Download the `TexText 1.8.2 package <https://github.com/textext/textext/releases/tag/1.8.2>`_
+   in case you are still using Inkscape 1.2, 1.1, or 1.0)
 2. Extract the package and change into the created directory.
 3. Double click on the file :bash:`setup_win.bat`. The script will check if all requirements
    described :ref:`above <windows-install-preparation>` are met. If so, it will install the extension

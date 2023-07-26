@@ -19,7 +19,7 @@ Unicode True
 ; Welcome page
 !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through the installation of ${PRODUCT_NAME} \
 ${PRODUCT_VERSION}$\n$\nPlease note that this version of TexText is only compatible with Inkscape \
-1.x!$\n$\nClick Next to continue."
+1.3!$\n$\nClick Next to continue."
 !insertmacro MUI_PAGE_WELCOME
 
 ; License page

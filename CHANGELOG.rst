@@ -1,3 +1,8 @@
+Version 1.9.0 (2023-07.26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Compatibility with Inkscape 1.3. This version does not support Inkscape
+  versions 1.2 and older anymore!
+
 Version 1.8.2 (2022-08-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Each time the extension is executed an annoying warning

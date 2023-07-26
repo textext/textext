@@ -2,7 +2,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-Copyright (c) 2006-2022 TexText developers.
+opyright (c) 2006-2023 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
@@ -78,9 +78,7 @@ good_configurations = []
 
 # Definition of working combinations of Inkscape and LaTeX
 for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
-    good_configurations.append([("inkscape", "Inkscape 1.0 (4035a4fb49, 2020-05-01)"), latex])
-    good_configurations.append([("inkscape", "Inkscape 1.1.1 (3bf5ae0d25, 2021-09-20)"), latex])
-    good_configurations.append([("inkscape", "Inkscape 1.2-dev (1dd7bebcbd, 2021-12-20)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.3 (1:1.3+202307231459+0e150ed6c4)"), latex])
 
 # Test: Installation of working combinations must succeed
 for good_configuration in good_configurations:

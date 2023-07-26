@@ -1,5 +1,5 @@
 .. |TexText| replace:: **TexText**
-.. |Inkscape| replace:: **Inkscape 1.2**
+.. |Inkscape| replace:: **Inkscape 1.3**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 
@@ -39,11 +39,13 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
    `Inkscape download site <https://inkscape.org/release>`_.
 
 2. Install Inkscape. Verify that Inkscape launches and is of version
-   1.x.
+   1.3.
 
 3. Download the most recent package of |TexText| from
    :textext_current_release_page:`release`
-   (direct link: :textext_download_zip:`MacOS`)
+   (direct link: :textext_download_zip:`MacOS`). In case you are still using
+   Inkscape 1.2, 1.1, or 1.0 download
+   `TexText 1.8.2 <https://github.com/textext/textext/releases/tag/1.8.2>`_!
 
    Extract the package and change into the created directory.
 
@@ -87,11 +89,12 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
         brew install numpy
         brew install pygobject3
 
-8. Install the lxml-tools required by the Inkscape extensions:
+8. Install the lxml-tools and cssselect required by the Inkscape extensions:
 
    .. code-block:: bash
 
         $(brew --prefix)/opt/python@3.9/libexec/bin/pip install lxml
+        $(brew --prefix)/opt/python@3.9/libexec/bin/pip install cssselect
 
 
 9. Determine the path of the Homebrew python3 executable:
@@ -148,7 +151,7 @@ Preparation
 
         brew install --cask inkscape
 
-   Verify that inkscape launches and is of version >= 1.x.
+   Verify that inkscape launches and is of version >= 1.3
 
 .. _macos-install-textext:
 

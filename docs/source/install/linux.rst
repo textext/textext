@@ -1,5 +1,5 @@
 .. |TexText| replace:: **TexText**
-.. |Inkscape| replace:: **Inkscape 1.2**
+.. |Inkscape| replace:: **Inkscape 1.3**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
@@ -28,7 +28,7 @@ Preparation
 -----------
 
 1. Make sure that |Inkscape| is installed on your system via your favorite
-   package manager.
+   package manager. (You can also use older Inkscape versions, see below)
 
    On **Ubuntu 22.04** + **20.04** and its derivates the most recent version of
    |Inkscape| is not part of the default distribution. Perform the following steps
@@ -82,7 +82,9 @@ Download and install |TexText|
 1. If you are on Debian Bullseye or later refer to section :ref:`linux-textext-packages`.
    Otherwise download the most recent package from the
    :textext_current_release_page:`release`
-   (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`)
+   (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`).
+   In case you are using Inkscape 1.2, 1.1, or 1.0 download
+   `TexText 1.8.2 <https://github.com/textext/textext/releases/tag/1.8.2>`_!
 
 2. Extract the package and change into the created directory.
 

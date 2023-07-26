@@ -12,7 +12,18 @@ and *re-edit* LaTeX generated SVG elements to your drawing.
 Key features
 ------------
 
--  Compatible with Inkscape **1.x** and **0.92**
+-  Compatible with Inkscape **1.x** and **0.92**. Compatibility chart:
+
+   +---------------------+---------+
+   | Inkscape            | TexText |
+   +=====================+=========+
+   | 1.3.x               | >= 1.9.0|
+   +---------------------+---------+
+   | 1.2.x, 1.1.x, 1.0.x |    1.8.2|
+   +---------------------+---------+
+   | 0.92.x              |    0.11 |
+   +---------------------+---------+
+
 -  Windows/ Linux/ MacOS support
 -  LaTeX generated SVG elements can be re-edited later
 -  Multi-line editor with syntax highlighting
@@ -26,7 +37,9 @@ Key features
 -  Compatibility with TexText down to version 0.4.x
 
 .. note::
-    If you are using Inkscape **0.92** please use the :ref:`discontinued release 0.11 of TexText <tt0x>`
+    - If you are using Inkscape **1.2.x**, **1.1.x**, or **1.0.x** please use
+      the `discontinued release 1.8.2 of TexText <https://github.com/textext/textext/releases/tag/1.8.2>`_
+    - If you are using Inkscape **0.92** please use the :ref:`discontinued release 0.11 of TexText <tt0x>`
 
 .. _installation-toc:
 
