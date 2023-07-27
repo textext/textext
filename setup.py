@@ -3,7 +3,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-opyright (c) 2006-2023 TexText developers.
+Copyright (c) 2006-2023 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
