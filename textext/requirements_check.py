@@ -69,7 +69,8 @@ class LinuxDefaults(Defaults):
     executable_names = {"inkscape": ["inkscape"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+                        "xelatex": ["xelatex"],
+                        "typst": ["typst"]
                         }
 
     @property
@@ -101,7 +102,8 @@ class MacDefaults(LinuxDefaults):
     executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
                         "pdflatex": ["pdflatex"],
                         "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+                        "xelatex": ["xelatex"],
+                        "typst": ["typst"]
                         }
 
     def get_system_path(self):
@@ -130,6 +132,7 @@ class WindowsDefaults(Defaults):
                         "pdflatex": ["pdflatex.exe"],
                         "lualatex": ["lualatex.exe"],
                         "xelatex": ["xelatex.exe"],
+                        "typst": ["typst"]
                         }
 
     def __init__(self):
@@ -588,6 +591,7 @@ class TexTextRequirementsChecker(object):
         self.pdflatex_prog_name = "pdflatex"
         self.lualatex_prog_name = "lualatex"
         self.xelatex_prog_name = "xelatex"
+        self.typst_prog_name = "typst"
 
         self.inkscape_executable = None
 
@@ -744,6 +748,9 @@ class TexTextRequirementsChecker(object):
                     | Requirement(self.find_executable, self.xelatex_prog_name)
                     .on_success(lambda result: add_latex("xelatex", result["path"]))
                     .append_message("ERROR", help_message_with_url("preparation", "xelatex"))
+                    | Requirement(self.find_executable, self.typst_prog_name)
+                    .on_success(lambda result: add_latex("typst", result["path"]))
+                    .append_message("ERROR", help_message_with_url("preparation", "typst"))
             ).overwrite_check_message("Detect *latex")
             .append_message("ERROR", help_message_with_url("preparation"))
             & (
