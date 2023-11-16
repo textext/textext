@@ -737,7 +737,7 @@ class TexTextElement(inkex.Group):
                     group.append(deepcopy(obj))
 
                 # translate group
-                group.transform = Transform(translate=(float(el.attrib["x"]), float(el.attrib["y"])))
+                group.transform = Transform(translate=(float(el.get("x", "0")), float(el.get("y", "0"))))
 
                 # replace use node with group node
                 parent = el.getparent()
