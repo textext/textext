@@ -324,7 +324,7 @@ class TexText(inkex.EffectExtension):
                 with logger.debug("Converting tex to pdf"):
                     converter = TexToPdfConverter(self.requirements_checker)
                     if tex_command == "typst":
-                        converter.typ_to_pdf(tex_executable, text, preamble_file)
+                        converter.typ_to_any(tex_executable, text, preamble_file, 'pdf')
                     else:
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
@@ -365,10 +365,10 @@ class TexText(inkex.EffectExtension):
                 with ChangeToTemporaryDirectory():
                     converter = TexToPdfConverter(self.requirements_checker)
                     if tex_command == "typst":
-                        converter.typ_to_pdf(tex_executable, text, preamble_file)
+                        converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
                     else:
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
-                    converter.pdf_to_svg()
+                        converter.pdf_to_svg()
 
                     if convert_stroke_to_path:
                         converter.stroke_to_path()
@@ -577,12 +577,12 @@ class TexToPdfConverter:
             if not os.path.exists(self.tmp('pdf')):
                 raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
-    def typ_to_pdf(self, typst_command, typst_text, preamble_file):
+    def typ_to_any(self, typst_command, typst_text, preamble_file, file_type):
         """
         Create a PDF file from latex text
         """
 
-        with logger.debug("Converting .typ to .pdf"):
+        with logger.debug("Converting .typ to .{0}".format(file_type)):
             # # Read preamble
             # preamble_file = os.path.abspath(preamble_file)
             # preamble = ""
@@ -607,12 +607,12 @@ class TexToPdfConverter:
 
             # Exec tex_command: tex -> pdf
             try:
-                exec_command([typst_command, "compile", self.tmp('typ')])
+                exec_command([typst_command, "compile", self.tmp('typ'), self.tmp(file_type)])
             except TexTextCommandFailed as error:
                 raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
 
-            if not os.path.exists(self.tmp('pdf')):
-                raise TexTextConversionError("%s didn't produce output %s" % (typst_command, self.tmp('pdf')))
+            if not os.path.exists(self.tmp(file_type)):
+                raise TexTextConversionError("%s didn't produce output %s" % (typst_command, self.tmp(file_type)))
 
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
