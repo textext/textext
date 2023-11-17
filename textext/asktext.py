@@ -508,6 +508,7 @@ class AskTextGTKSource(AskText):
         self._texcmd_cbox = None
         self._preview_callback = None
         self._source_view = None
+        self._preamble_delete_btn = None
 
         self.buffer_actions = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
@@ -807,6 +808,12 @@ class AskTextGTKSource(AskText):
         """Callback for Cancel button"""
         self.window_deleted_cb(widget, None, None)
 
+    def cb_compiler_changed(self, combo_box):
+        using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
+        self._preview_button.set_sensitive(using_tex)
+        self._preamble_widget.set_sensitive(using_tex)
+        self._preamble_delete_btn.set_sensitive(using_tex)
+
     def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
         self.update_position_label(text_buffer, self, view)
 
@@ -957,6 +964,9 @@ class AskTextGTKSource(AskText):
         self._ok_button.connect("clicked", self.cb_ok)
         self._preview_button.connect('clicked', self.update_preview)
 
+        self._texcmd_cbox.connect("changed", self.cb_compiler_changed)
+        self.cb_compiler_changed(self._texcmd_cbox)
+
         return button_box
 
     def clear_preamble(self, _=None):
@@ -1000,16 +1010,16 @@ class AskTextGTKSource(AskText):
         self.set_preamble()
 
         # --- Preamble file ---
-        preamble_delete = Gtk.Button(label="Clear")
-        preamble_delete.connect('clicked', self.clear_preamble)
-        preamble_delete.set_tooltip_text("Clear the preamble file setting")
+        self._preamble_delete_btn = Gtk.Button(label="Clear")
+        self._preamble_delete_btn.connect('clicked', self.clear_preamble)
+        self._preamble_delete_btn.set_tooltip_text("Clear the preamble file setting")
 
         preamble_frame = Gtk.Frame()
         preamble_frame.set_label("Preamble File")
         preamble_box = Gtk.HBox(homogeneous=False, spacing=0)
         preamble_frame.add(preamble_box)
         preamble_box.pack_start(self._preamble_widget, True, True, 5)
-        preamble_box.pack_start(preamble_delete, False, False, 5)
+        preamble_box.pack_start(self._preamble_delete_btn, False, False, 5)
         preamble_box.set_border_width(3)
 
         # --- Tex command ---
