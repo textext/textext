@@ -225,6 +225,8 @@ class AskTextTK(AskText):
                                         current_alignment, current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config)
         self._frame = None
         self._scale = None
+        self._preamble = None
+        self._askfilename_button = None
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
@@ -300,7 +302,7 @@ class AskTextTK(AskText):
         label.pack(pady=2, padx=5, anchor="w")
         for tex_command in self.TEX_COMMANDS:
             Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
-                           value=tex_command).pack(side="left", expand=False, anchor="w")
+                           value=tex_command, command=self.on_texcmd_change).pack(side="left", expand=False, anchor="w")
         box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
 
 
@@ -402,6 +404,9 @@ class AskTextTK(AskText):
         window_ypos = (screen_height/2) - (window_height/2)
         self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
 
+        # Update status
+        self.on_texcmd_change()
+
         self._root.mainloop()
         return self._gui_config
 
@@ -431,6 +436,11 @@ class AskTextTK(AskText):
     def cb_word_wrap(self, widget=None, data=None):
         self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
         self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
+
+    def on_texcmd_change(self):
+        using_tex = self._tex_command_tk_str.get() != "typst"
+        self._preamble["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
+        self._askfilename_button["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
