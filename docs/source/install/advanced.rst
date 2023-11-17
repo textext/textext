@@ -35,6 +35,9 @@ options to adapt the installation process to your system configuration:
 --xelatex-executable XELATEX_EXECUTABLE
     Full path to xelatex executable.
 
+--typst-executable TYPST_EXECUTABLE
+    Full path to typst executable.
+
 --portable-apps-dir INSTALLATION_DIRECTORY_OF_PORTABLEAPPS
     Windows only: If you use Inkscape from PortableApps use this parameter
     to specifiy the directory into which PortableApps has been installed, e.g.

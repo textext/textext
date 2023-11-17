@@ -1,4 +1,9 @@
-Version 1.9.0 (2023-07.26)
+Version 1.10.0 (2023-11-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: Basic support for `typst <https://typst.app/>`__. Typst is a markup-based
+  typesetting system.
+
+Version 1.9.0 (2023-07-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Compatibility with Inkscape 1.3. This version does not support Inkscape
   versions 1.2 and older anymore!

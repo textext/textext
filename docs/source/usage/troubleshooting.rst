@@ -77,6 +77,21 @@ Terminal or Windows Command Prompt and enter one of the commands listed below:
     also available: ``--lualatex-executable`` and ``--xelatex-executable`` for the LuaLaTex and
     XeLaTeX executables, respectively.
 
+- The typst engine ist not found in the system path by the setup script -> specify the
+  path to the executables:
+
+    - |Lin|
+
+    .. code-block:: bash
+
+        python setup.py --typst-executable '/path/to/my typst/typst'
+
+    - |Win| (note the double quotes!)
+
+    .. code-block:: bash
+
+        setup_win.bat --typst-executable "C:\Program Files\My Typst\typst.exe"
+
 - Completely skip all requirement checks during installation and just copy the |TexText| files into
   the extension directory:
 
@@ -251,7 +266,7 @@ programs used in the toolchain. Here is what you have to do in such cases:
 
     .. code-block:: bash
 
-        inkscape --pdf-poppler --pdf-page=1 --export-type=svg --export-text-to-path --export-area-drawing --export-filename test.svg test.pdf
+        inkscape --pdf-poppler --pages=1 --export-type=svg --export-text-to-path --export-area-drawing --export-filename test.svg test.pdf
 
     .. note::
 

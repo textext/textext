@@ -225,6 +225,8 @@ class AskTextTK(AskText):
                                         current_alignment, current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config)
         self._frame = None
         self._scale = None
+        self._preamble = None
+        self._askfilename_button = None
 
     @staticmethod
     def cb_cancel(widget=None, data=None):
@@ -300,7 +302,7 @@ class AskTextTK(AskText):
         label.pack(pady=2, padx=5, anchor="w")
         for tex_command in self.TEX_COMMANDS:
             Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
-                           value=tex_command).pack(side="left", expand=False, anchor="w")
+                           value=tex_command, command=self.on_texcmd_change).pack(side="left", expand=False, anchor="w")
         box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
 
 
@@ -402,6 +404,9 @@ class AskTextTK(AskText):
         window_ypos = (screen_height/2) - (window_height/2)
         self._root.geometry('%dx%d+%d+%d' % (window_width, window_height, window_xpos, window_ypos))
 
+        # Update status
+        self.on_texcmd_change()
+
         self._root.mainloop()
         return self._gui_config
 
@@ -431,6 +436,11 @@ class AskTextTK(AskText):
     def cb_word_wrap(self, widget=None, data=None):
         self._text_box.configure(wrap=Tk.WORD if self._word_wrap_tkval.get() else Tk.NONE)
         self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
+
+    def on_texcmd_change(self):
+        using_tex = self._tex_command_tk_str.get() != "typst"
+        self._preamble["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
+        self._askfilename_button["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
@@ -508,6 +518,7 @@ class AskTextGTKSource(AskText):
         self._texcmd_cbox = None
         self._preview_callback = None
         self._source_view = None
+        self._preamble_delete_btn = None
 
         self.buffer_actions = [
             ('Open', Gtk.STOCK_OPEN, '_Open', '<control>O', 'Open a file', self.open_file_cb)
@@ -807,6 +818,12 @@ class AskTextGTKSource(AskText):
         """Callback for Cancel button"""
         self.window_deleted_cb(widget, None, None)
 
+    def cb_compiler_changed(self, combo_box):
+        using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
+        self._preview_button.set_sensitive(using_tex)
+        self._preamble_widget.set_sensitive(using_tex)
+        self._preamble_delete_btn.set_sensitive(using_tex)
+
     def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
         self.update_position_label(text_buffer, self, view)
 
@@ -957,6 +974,9 @@ class AskTextGTKSource(AskText):
         self._ok_button.connect("clicked", self.cb_ok)
         self._preview_button.connect('clicked', self.update_preview)
 
+        self._texcmd_cbox.connect("changed", self.cb_compiler_changed)
+        self.cb_compiler_changed(self._texcmd_cbox)
+
         return button_box
 
     def clear_preamble(self, _=None):
@@ -1000,16 +1020,16 @@ class AskTextGTKSource(AskText):
         self.set_preamble()
 
         # --- Preamble file ---
-        preamble_delete = Gtk.Button(label="Clear")
-        preamble_delete.connect('clicked', self.clear_preamble)
-        preamble_delete.set_tooltip_text("Clear the preamble file setting")
+        self._preamble_delete_btn = Gtk.Button(label="Clear")
+        self._preamble_delete_btn.connect('clicked', self.clear_preamble)
+        self._preamble_delete_btn.set_tooltip_text("Clear the preamble file setting")
 
         preamble_frame = Gtk.Frame()
         preamble_frame.set_label("Preamble File")
         preamble_box = Gtk.HBox(homogeneous=False, spacing=0)
         preamble_frame.add(preamble_box)
         preamble_box.pack_start(self._preamble_widget, True, True, 5)
-        preamble_box.pack_start(preamble_delete, False, False, 5)
+        preamble_box.pack_start(self._preamble_delete_btn, False, False, 5)
         preamble_box.set_border_width(3)
 
         # --- Tex command ---

@@ -62,9 +62,9 @@ Preparation
        cannot access you LaTeX distribution to compile your snippets! This is a conceptional
        problem of snap/ flatpack, not of |TexText|.
 
-2. Make sure that an operational LaTeX distribution is installed on your system. You can verify
-   this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
-   :bash:`lualatex --version` in a terminal.
+2. Make sure that an operational LaTeX distribution and/ or typst is installed on your system. You can verify
+   this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`,
+   :bash:`typst --version` and :bash:`lualatex --version` in a terminal.
 
 3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
    enabled in the |TexText|-Gui install GTKSourceView:
