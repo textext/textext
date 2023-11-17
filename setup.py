@@ -265,6 +265,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--typst-executable",
+        default=None,
+        type=str,
+        help="Full path to typst executable"
+    )
+
+    parser.add_argument(
         "--portable-apps-dir",
         default=None,
         type=str,
@@ -360,6 +367,7 @@ if __name__ == "__main__":
                                 "lualatex",
                                 "pdflatex",
                                 "xelatex",
+                                "typst",
                             ]:
         executable_path = getattr(args, "%s_executable" % executable_name)
         if executable_path is not None:

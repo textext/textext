@@ -37,8 +37,8 @@ Preparation
 
 
 2. Make sure that an operational LaTeX distribution is installed on your system. You can verify
-   this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`, and
-   :bash:`lualatex --version` in a command or power shell window.
+   this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`,
+   :bash:`lualatex --version`, and :bash:`typst --version` in a command or power shell window.
 
    .. warning::
 

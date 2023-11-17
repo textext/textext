@@ -323,7 +323,10 @@ class TexText(inkex.EffectExtension):
             with ChangeToTemporaryDirectory():
                 with logger.debug("Converting tex to pdf"):
                     converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    if tex_command == "typst":
+                        converter.typ_to_any(tex_executable, text, preamble_file, 'pdf')
+                    else:
+                        converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
@@ -361,8 +364,11 @@ class TexText(inkex.EffectExtension):
             with logger.debug("Converting tex to svg"):
                 with ChangeToTemporaryDirectory():
                     converter = TexToPdfConverter(self.requirements_checker)
-                    converter.tex_to_pdf(tex_executable, text, preamble_file)
-                    converter.pdf_to_svg()
+                    if tex_command == "typst":
+                        converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
+                    else:
+                        converter.tex_to_pdf(tex_executable, text, preamble_file)
+                        converter.pdf_to_svg()
 
                     if convert_stroke_to_path:
                         converter.stroke_to_path()
@@ -571,6 +577,43 @@ class TexToPdfConverter:
             if not os.path.exists(self.tmp('pdf')):
                 raise TexTextConversionError("%s didn't produce output %s" % (tex_command, self.tmp('pdf')))
 
+    def typ_to_any(self, typst_command, typst_text, preamble_file, file_type):
+        """
+        Create a PDF file from latex text
+        """
+
+        with logger.debug("Converting .typ to .{0}".format(file_type)):
+            # # Read preamble
+            # preamble_file = os.path.abspath(preamble_file)
+            # preamble = ""
+            #
+            # if os.path.isfile(preamble_file):
+            #     with open(preamble_file, 'r') as f:
+            #         preamble += f.read()
+            #
+            # # Add default document class to preamble if necessary
+            # if not _contains_document_class(preamble):
+            #     preamble = self.DEFAULT_DOCUMENT_CLASS + preamble
+            #
+            # # Options pass to LaTeX-related commands
+            #
+            # texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
+
+            # Convert Typ to PDF
+
+            # Write tex
+            with open(self.tmp('typ'), mode='w', encoding='utf-8') as f_typ:
+                f_typ.write(typst_text)
+
+            # Exec tex_command: tex -> pdf
+            try:
+                exec_command([typst_command, "compile", self.tmp('typ'), self.tmp(file_type)])
+            except TexTextCommandFailed as error:
+                raise TexTextConversionError(str(error), error.return_code, error.stdout, error.stderr)
+
+            if not os.path.exists(self.tmp(file_type)):
+                raise TexTextConversionError("%s didn't produce output %s" % (typst_command, self.tmp(file_type)))
+
     def pdf_to_svg(self):
         """Convert the PDF file to a SVG file"""
         kwargs = dict()
@@ -694,7 +737,7 @@ class TexTextElement(inkex.Group):
                     group.append(deepcopy(obj))
 
                 # translate group
-                group.transform = Transform(translate=(float(el.attrib["x"]), float(el.attrib["y"])))
+                group.transform = Transform(translate=(float(el.get("x", "0")), float(el.get("y", "0"))))
 
                 # replace use node with group node
                 parent = el.getparent()

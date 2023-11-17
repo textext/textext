@@ -146,16 +146,18 @@ from entry to result considerably, so use it! See section :ref:`usage-preview`
 
 .. _usage-tex-compilers:
 
-Available TeX compilers
------------------------
+Available compilers
+-------------------
 
-Your LaTeX code can be compiled using three different compilers:
-:bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex` (as long as the corresponding
+Your LaTeX/ typst code can be compiled using four different compilers:
+:bash:`pdflatex`, :bash:`xelatex`, :bash:`lualatex`, :bash:`typst` (as long as the corresponding
 commands are found by your system). You can select the command in the
-combobox |usage-label-1|. The last two ones are especially useful for using UTF-8
+combobox |usage-label-1|. XeLaTex and LuaLaTeX are especially useful for using UTF-8
 input or if you require Lua commands. Of course you can use UTF-8 input
 with the :bash:`pdflatex` command as well as long as you provide
 :latex:`\usepackage[utf8]{inputenc}` in your preamble file (see :ref:`usage-preamble-file`).
+`typst <https://typst.app/>`__ is a new typesetting system based on markup. Is is also
+supported by |TexText| in a bsic manner.
 
 Some things to be kept in mind:
 
@@ -170,8 +172,8 @@ Some things to be kept in mind:
 
 .. _usage-preamble-file:
 
-Preamble file
--------------
+Preamble file (LaTeX compilers only)
+------------------------------------
 Be aware of including the required packages in the *preamble file* if you
 use special commands in your code that rely on such packages. The
 preamble file can be chosen by the selector |usage-label-2|. The default preamble
@@ -197,6 +199,12 @@ Basically, your LaTeX code will be inserted into this environment:
 This will be typeset, converted to SVG and inserted into your Inkscape
 document. If no :latex:`\documentclass` or :latex:`\documentstyle` is specified
 in the preamble file, :latex:`\documentclass{article}` is used by default.
+
+.. note::
+
+    When typst is selected as compiler the preamble file widgets are disabled in the
+    GUI and the preamble file is ignored.
+
 
 .. _usage-scaling:
 
@@ -324,8 +332,8 @@ There are two ways for colorization of the output:
 
 .. _usage-preview:
 
-Preview button
---------------
+Preview button (LaTeX compilers only)
+-------------------------------------
 
 When pressing the ``Preview`` button |usage-label-7| your code will be compiled and the result
 is displayed as an image in the area below the LaTeX code input field. If the
@@ -352,7 +360,9 @@ Finally, click the ``Save`` button to insert the compiled code into your documen
 
 .. note::
 
-    This feature is not available in the Tkinter GUI!
+    This feature is not available in the Tkinter GUI! It is also not available
+    when using the typst compiler (feature will be available in upcoming |TexText|
+    2.0 release).
 
 .. _usage-default-math-environment-config:
 
