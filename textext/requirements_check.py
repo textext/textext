@@ -132,7 +132,7 @@ class WindowsDefaults(Defaults):
                         "pdflatex": ["pdflatex.exe"],
                         "lualatex": ["lualatex.exe"],
                         "xelatex": ["xelatex.exe"],
-                        "typst": ["typst"]
+                        "typst": ["typst.exe"]
                         }
 
     def __init__(self):
