@@ -5,7 +5,7 @@ TexText - A TeX extension for Inkscape
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
-and re-edit LaTeX generated SVG elements to your drawing.
+and re-edit LaTeX and `typst <https://typst.app/>`__ generated SVG elements to your drawing.
 
 .. figure:: docs/source/images/textext-with-inkscape.png
     :alt: TexText dialog with Inkscape
@@ -14,13 +14,13 @@ Key features
 ------------
 
 -  Windows/ Linux/ MacOS support
--  LaTeX generated SVG elements can be re-edited later
+-  LaTeX/ typst generated SVG elements can be re-edited later
 -  Multi-line editor with syntax highlighting (`Read more... <usage-dialog-overview_>`_)
--  Compilation with **PdfLaTeX**, **XeLaTeX** or **LuaLaTex** (`Read more... <usage-tex-compilers_>`_)
+-  Compilation with **PdfLaTeX**, **XeLaTeX**, **LuaLaTex** or **typst** (`Read more... <usage-tex-compilers_>`_)
 -  Interoperable scaling in TexText and Inkscape (`Read more...  <usage-scaling_>`_)
 -  Font size match with Inkscape text (`Read more... <usage-font_>`_)
 -  Customizable TeX preamble for e.g. additional packages, parskip, parindent, etc. (`Read more...  <usage-preamble-file_>`_)
--  Colorization via TeX commands/ Inkscape is kept after re-editing (`Read more... <usage-colorization_>`_)
+-  Colorization via TeX/ typst commands/ Inkscape is kept after re-editing (`Read more... <usage-colorization_>`_)
 -  Alignment anchor of the produced output (`Read more...  <usage-alignment_>`_)
 -  Preview images  (`Read more... <usage-preview_>`_)
 -  Compatibility with TexText down to version 0.4.x

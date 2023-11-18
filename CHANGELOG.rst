@@ -1,3 +1,7 @@
+Version 1.10.1 (2023-11-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Installation issue on Windows.
+
 Version 1.10.0 (2023-11-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: Basic support for `typst <https://typst.app/>`__. Typst is a markup-based
