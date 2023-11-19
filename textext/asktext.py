@@ -298,7 +298,7 @@ class AskTextTK(AskText):
         self._tex_command_tk_str = Tk.StringVar()
         self._tex_command_tk_str.set(self.current_texcmd)
         box = Tk.Frame(box2, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="TeX command:")
+        label = Tk.Label(box, text="Command:")
         label.pack(pady=2, padx=5, anchor="w")
         for tex_command in self.TEX_COMMANDS:
             Tk.Radiobutton(box, text=tex_command, variable=self._tex_command_tk_str,
@@ -963,7 +963,7 @@ class AskTextGTKSource(AskText):
         button_box.add(self._cancel_button)
 
         self._preview_button = Gtk.Button(label="Preview")
-        self._preview_button.set_tooltip_text("Show/ update preview (CTRL+P)")
+        self._preview_button.set_tooltip_text("LaTeX only: Show/ update preview (CTRL+P)")
         button_box.add(self._preview_button)
 
         self._ok_button = Gtk.Button(stock=Gtk.STOCK_SAVE)
@@ -1034,7 +1034,7 @@ class AskTextGTKSource(AskText):
 
         # --- Tex command ---
         texcmd_frame = Gtk.Frame()
-        texcmd_frame.set_label("TeX command")
+        texcmd_frame.set_label("Command")
         texcmd_box = Gtk.HBox(homogeneous=False, spacing=0)
         texcmd_frame.add(texcmd_box)
         texcmd_box.set_border_width(3)
@@ -1049,7 +1049,7 @@ class AskTextGTKSource(AskText):
         self._texcmd_cbox.add_attribute(renderer_text, "text", 0)
 
         self._texcmd_cbox.set_active(self.TEX_COMMANDS.index(self.current_texcmd))
-        self._texcmd_cbox.set_tooltip_text("TeX command used for compiling.")
+        self._texcmd_cbox.set_tooltip_text("Command used for compiling.")
         texcmd_box.pack_start(self._texcmd_cbox, True, True, 5)
 
         # --- Scaling ---
