@@ -588,6 +588,7 @@
                                                 <property name="can-focus">True</property>
                                                 <property name="receives-default">True</property>
                                                 <property name="image">img_as_previous</property>
+                                                <signal name="clicked" handler="on_btn_scale_previous_clicked" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -603,6 +604,7 @@
                                       <object class="GtkLabel" id="lab_scale">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
+                                        <property name="margin-start">3</property>
                                         <property name="label" translatable="yes">Scale factor</property>
                                       </object>
                                     </child>
@@ -629,20 +631,7 @@
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>
                                             <child>
-                                              <object class="GtkCheckButton" id="cbxFontSize">
-                                                <property name="label" translatable="yes">enabled</property>
-                                                <property name="visible">True</property>
-                                                <property name="can-focus">True</property>
-                                                <property name="receives-default">False</property>
-                                                <property name="halign">start</property>
-                                                <property name="hexpand">True</property>
-                                                <property name="draw-indicator">True</property>
-                                              </object>
-                                              <packing>
-                                                <property name="expand">False</property>
-                                                <property name="fill">True</property>
-                                                <property name="position">0</property>
-                                              </packing>
+                                              <placeholder/>
                                             </child>
                                             <child>
                                               <object class="GtkSpinButton" id="cmbFontSize">
@@ -675,7 +664,8 @@
                                       <object class="GtkLabel" id="labFontSize">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="label" translatable="yes">Font size in pt (KOMA-Script required)</property>
+                                        <property name="margin-start">3</property>
+                                        <property name="label" translatable="yes">Font size in pt</property>
                                       </object>
                                     </child>
                                   </object>
@@ -847,7 +837,7 @@
                             <property name="label-xalign">0</property>
                             <property name="shadow-type">none</property>
                             <child>
-                              <object class="GtkEntry">
+                              <object class="GtkEntry" id="ed_preamble_filepath">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="margin-left">2</property>
@@ -859,7 +849,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Filename</property>
+                                <property name="label" translatable="yes">Path</property>
                               </object>
                             </child>
                           </object>
@@ -883,7 +873,7 @@
                                 <property name="can-focus">True</property>
                                 <property name="shadow-type">in</property>
                                 <child>
-                                  <object class="GtkTextView" id="tevPreambleFile">
+                                  <object class="GtkTextView" id="tev_preamble_file">
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="margin-left">2</property>
@@ -914,12 +904,13 @@
                             <property name="spacing">4</property>
                             <property name="layout-style">end</property>
                             <child>
-                              <object class="GtkButton">
+                              <object class="GtkButton" id="btn_preamble_open">
                                 <property name="label">gtk-open</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="receives-default">True</property>
                                 <property name="use-stock">True</property>
+                                <signal name="clicked" handler="on_btn_preamble_open_clicked" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -928,12 +919,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton">
+                              <object class="GtkButton" id="btn_preamble_saveas">
                                 <property name="label">gtk-save-as</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="receives-default">True</property>
                                 <property name="use-stock">True</property>
+                                <signal name="clicked" handler="on_btn_preamble_saveas_clicked" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -942,12 +934,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton">
+                              <object class="GtkButton" id="btn_preamble_save">
                                 <property name="label">gtk-save</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="receives-default">True</property>
                                 <property name="use-stock">True</property>
+                                <signal name="clicked" handler="on_btn_preamble_save_clicked" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
