@@ -1,61 +1,19 @@
-__version__ = "2.0"
-__pkgname__ = "textext"
+"""
+This file is part of TexText, an extension for the vector
+illustration program Inkscape.
 
-import os
-import warnings
-warnings.filterwarnings("ignore")
+Copyright (c) 2006-2023 TexText developers.
 
-import inkex
-from inkex.gui import GtkApp, Window
-
-
-class TextextGui(Window):
-
-    name = "textext_gui"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def on_btn_preview_clicked(self, widget=None):
-        print("Hallo")
-
-    def on_btn_execute_clicked(self, widget=None):
-        pass
-
-    def on_btn_cancel_clicked(self, widget=None):
-        pass
-
-    def on_btn_scalereset_clicked(self, widget=None):
-        pass
-
-    def on_btn_scale_previous_clicked(self, widget=None):
-        pass
-
-    def on_btn_preamble_open_clicked(self, widget=None):
-        pass
-
-    def on_btn_preamble_saveas_clicked(self, widget=None):
-        pass
-
-    def on_btn_preamble_save_clicked(self, widget=None):
-        pass
-
-    def on_win_main_destroy(self, widget=None):
-        pass
-
-
-class TexTextApp(GtkApp):
-
-    glade_dir = os.path.join(os.path.dirname(__file__))
-    app_name = "textext"
-    windows = [TextextGui]
-
-
-class TexText(inkex.EffectExtension):
-
-    def effect(self):
-        TexTextApp(start_loop=True)
+TexText is released under the 3-Clause BSD license. See
+file LICENSE.txt or go to https://github.com/textext/textext
+for full license details.
+"""
+from extension import TexText  # , Cache, EXIT_CODE_UNEXPECTED_ERROR, EXIT_CODE_EXPECTED_ERROR, logger, log_console_handler, system_env  # noqa
+# from textext2.errors import TexTextInternalError, TexTextFatalError  # noqa
 
 
 if __name__ == "__main__":
-    TexText().run()
+    textext_extension = TexText()
+    textext_extension.run()
+    textext_extension.cache["previous_exit_code"] = TexText.EXIT_CODE_OK
+    textext_extension.cache.save()
