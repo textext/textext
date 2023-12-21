@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>TexText 2</name>
+  <name>TexText 2x</name>
   <id>org.inkscape.effect.textext</id>
-  <effect implements-custom-gui="true">
+  <effect implements-custom-gui="true" show-stderr-for-custom-gui="true">
     <object-type>all</object-type>
     <effects-menu>
         <submenu name="Text"/>

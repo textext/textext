@@ -91,7 +91,7 @@ class LoggingFormatter(logging.Formatter):
 
         Args:
             colored_messages (bool): Set to True if the level of the message should be printed in color
-            with_datetime (bool): Set to True if the log message shoud start with the date and time
+            with_datetime (bool): Set to True if the log message should start with the date and time
             with_source (bool): Set to True of the filename and the linenumber of the source of the
                 message should be added to the end to the message.
         """
@@ -215,19 +215,25 @@ def setup_logging(logfile_dir: str, logfile_name: str, cached_console_logging: b
         Tuple[NestedLoggingGuard, Union[logging.StreamHandler, CycleBufferHandler]]:
     """
     Setup the logging system: One logger which logs onto the console (optionally cached),
-    one that logs into a file.
+    one that logs into a file. The console logger is used
+    - to display any messages to Inkscape after the extension has finished its execution
+      (cached_console_logging = true)
+    - to display any messages to the console during setup (cached_console_logging = false)
 
     Args:
         logfile_dir (str): The full path of the directory in which the logfile
             will be created.
         logfile_name (str): The name of the logfile.
         cached_console_logging (bool): Set to True if you want to have the console
-            output cached. You need to empty the buffer manually later.
+            output cached. You need to empty the buffer manually later. This is useful
+            for messages shown in Inkscape after extension has been closed are has crahsed.
+            If set to false any output is written directly to the console. This is useful
+            for the setup.
 
     Returns:
-        A two element Tuple: The frist element is the TheNestedLoggingGuard logger object
+        A two element Tuple: The first element is the TheNestedLoggingGuard logger object
         which can be used for logging. The second element is the handler for the
-        console output. It is of type logging.StreamHandler or CycleBuferHandler depending
+        console output. It is of type logging.StreamHandler or CycleBufferHandler depending
         on the value of cached_console_logging. In case of cached logging use the show_messages
         method of the CycleBufferHandler object to write the message to stderr.
     """

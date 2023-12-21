@@ -9,7 +9,7 @@ file LICENSE.txt or go to https://github.com/textext/textext
 for full license details.
 
 Provides a class for managing the TexText settings. In fact
-a convinience wrapper around a json dict.
+a convenience wrapper around a json dict.
 """
 import json
 import os
@@ -18,7 +18,8 @@ from .errors import TexTextFatalError
 
 class Settings:
     """
-    Adds some convenient stuff around a json dict
+    Adds some convenient stuff around a dict which can saved to /loaded from
+    a json file
     """
 
     def __init__(self, basename="config.json", directory=None):
@@ -39,7 +40,7 @@ class Settings:
         self.config_path = os.path.join(directory, basename)
         try:
             self.load()
-        except ValueError as err:
+        except (ValueError, Exception) as err:
             raise TexTextFatalError(f"Bad config `{self.config_path}`: {str(err)}. "
                                     f"Please fix it and re-run TexText.") from err
 
@@ -81,11 +82,22 @@ class Settings:
 class Cache(Settings):
     """
     Same as Settings but silently discard any errors if file cannot be opened
-
-    ToDo: Check if this really does make sense...
+    or saved
     """
     def __init__(self, basename=".cache.json", directory=None):
         try:
             super().__init__(basename, directory)
-        except TexTextFatalError:
+        except TexTextFatalError as _:
+            pass
+
+    def load(self):
+        try:
+            super().load()
+        except (OSError, Exception) as _:
+            pass
+
+    def save(self):
+        try:
+            super().save()
+        except (OSError, Exception) as _:
             pass

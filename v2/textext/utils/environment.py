@@ -28,12 +28,12 @@ class AbstractEnvironment:
 
     @property
     @abstractmethod
-    def os_name(self):
+    def os_name(self) -> str:
         pass
 
     @property
     @abstractmethod
-    def console_colors(self):
+    def console_colors(self) -> str:
         pass
 
     @property
@@ -43,10 +43,10 @@ class AbstractEnvironment:
 
     @property
     @abstractmethod
-    def inkscape_user_extensions_path(self):
+    def inkscape_user_extensions_path(self) -> str:
         pass
 
-    def inkscape_system_extensions_path(self, inkscape_exe_path):
+    def inkscape_system_extensions_path(self, inkscape_exe_path) -> list[str]:
         try:
             stdout, _ = self.call_command([inkscape_exe_path, "--system-data-directory"])
             path = os.path.join(stdout.decode("utf-8", 'ignore').rstrip(), "extensions")
@@ -62,17 +62,17 @@ class AbstractEnvironment:
 
     @property
     @abstractmethod
-    def textext_config_path(self):
+    def textext_config_path(self) -> str:
         pass
 
     @property
     @abstractmethod
-    def textext_logfile_path(self):
+    def textext_logfile_path(self) -> str:
         pass
 
     @property
     @abstractmethod
-    def system_path(self):
+    def system_path(self) -> list[str]:
         pass
 
     @staticmethod
@@ -91,19 +91,19 @@ class LinuxEnvironment(AbstractEnvironment):
                         }
 
     @property
-    def inkscape_user_extensions_path(self):
+    def inkscape_user_extensions_path(self) -> str:
         return os.path.expanduser("~/.config/inkscape/extensions")
 
     @property
-    def textext_config_path(self):
+    def textext_config_path(self) -> str:
         return os.path.expanduser("~/.config/textext2")
 
     @property
-    def textext_logfile_path(self):
+    def textext_logfile_path(self) -> str:
         return os.path.expanduser("~/.cache/textext2")
 
     @property
-    def system_path(self):
+    def system_path(self) -> list[str]:
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
@@ -125,21 +125,21 @@ class MacEnvironment(LinuxEnvironment):
                         }
 
     @property
-    def system_path(self):
+    def system_path(self) -> list[str]:
         path = ["/Applications/Inkscape.app/Contents/Resources"]
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
 
     @property
-    def inkscape_user_extensions_path(self):
+    def inkscape_user_extensions_path(self) -> str:
         return os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions")
 
     @property
-    def textext_config_path(self):
+    def textext_config_path(self) -> str:
         return os.path.expanduser("~/Library/Preferences/textext2")
 
     @property
-    def textext_logfile_path(self):
+    def textext_logfile_path(self) -> str:
         return os.path.expanduser("~/Library/Preferences/textext2")
 
 
@@ -178,19 +178,19 @@ class WindowsEnvironment(AbstractEnvironment):
             pass
 
     @property
-    def inkscape_user_extensions_path(self):
+    def inkscape_user_extensions_path(self) -> str:
         return os.path.join(os.getenv("APPDATA"), "inkscape", "extensions")
 
     @property
-    def textext_config_path(self):
+    def textext_config_path(self) -> str:
         return os.path.join(os.getenv("APPDATA"), "textext2")
 
     @property
-    def textext_logfile_path(self):
+    def textext_logfile_path(self) -> str:
         return os.path.join(os.getenv("APPDATA"), "textext2")
 
     @property
-    def system_path(self):
+    def system_path(self) -> list[str]:
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
@@ -200,7 +200,7 @@ class WindowsEnvironment(AbstractEnvironment):
 
         Args:
             command (list(str)): The command as a list of tokens
-            return_code (int): The return code which is interpreted as successfull
+            return_code (int): The return code which is interpreted as successful
 
         Returns:
             A tuple of two strings, the first containing stdout, the second stderr

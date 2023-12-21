@@ -16,6 +16,9 @@ import os
 import sys
 import platform
 from typing import Tuple, Union
+from .environment import system_env
+
+# Open logger before accessing Inkscape modules, so we can catch properly any errors thrown by them
 
 
 class TexTextLogger(logging.Logger):
@@ -33,7 +36,7 @@ class TexTextLogger(logging.Logger):
         while hasattr(cur_frame, "f_code"):
             cur_code = cur_frame.f_code
             filename = os.path.normcase(cur_code.co_filename)
-            if filename == logging._srcfile:  # pylint: disable=protected-access
+            if filename == logging._srcfile:  # noqa  # pylint: disable=protected-access
                 cur_frame = cur_frame.f_back
                 continue
             ret_val = (cur_code.co_filename, cur_frame.f_lineno, cur_code.co_name, None)
@@ -240,19 +243,26 @@ def install_logger(logfile_dir: str, logfile_name: str, cached_console_logging: 
     # Add the handler for the console output
     if cached_console_logging:
         log_stream_handler = CycleBufferHandler(capacity=1024)
+        handler_colored = False
     else:
         log_stream_handler = logging.StreamHandler()
+        handler_colored = True
     log_stream_handler.setLevel(logging.INFO)
-    log_stream_handler.setFormatter(LoggingFormatter(colored_messages=True, with_datetime=False, with_source=False))
+    log_stream_handler.setFormatter(LoggingFormatter(colored_messages=handler_colored,
+                                                     with_datetime=False,
+                                                     with_source=False))
     basic_logger.addHandler(log_stream_handler)
 
     # Add the handler for file output
     try:
         os.makedirs(logfile_dir, exist_ok=True)
-        log_file_handler = logging.handlers.RotatingFileHandler(os.path.join(logfile_dir, logfile_name),
-                                                                maxBytes=500 * 1024,  # up to 500 kB
-                                                                backupCount=2,  # up to two log files
-                                                                encoding="utf-8")
+        # log_file_handler = logging.handlers.RotatingFileHandler(os.path.join(logfile_dir, logfile_name),
+        #                                                         maxBytes=500 * 1024,  # up to 500 kB
+        #                                                         backupCount=2,  # up to two log files
+        #                                                         encoding="utf-8")
+        log_file_handler = logging.FileHandler(os.path.join(logfile_dir, logfile_name),
+                                               mode="w", encoding="utf-8")
+
     except OSError as error:
         msg = f"Unable to create logfile. Error message: {error.strerror}"
         basic_logger.error(msg)
@@ -261,5 +271,10 @@ def install_logger(logfile_dir: str, logfile_name: str, cached_console_logging: 
         log_file_handler.setFormatter(LoggingFormatter(colored_messages=False, with_datetime=True, with_source=True))
         basic_logger.addHandler(log_file_handler)
 
-    # Enabbe nesting of log messages
+    # Enable nesting of log messages
     return NestedLoggingGuard(basic_logger), log_stream_handler
+
+
+logger, log_console_handler = install_logger(logfile_dir=str(os.path.join(system_env.textext_logfile_path)),
+                                             logfile_name="textext2.log",
+                                             cached_console_logging=True)
