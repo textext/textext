@@ -19,7 +19,6 @@ from utils.settings import Settings
 from elements import TexTextSvgEle, TexTextEleMetaData
 from converter import TexToPdfConverter
 import inkex
-from inkex.interfaces.IElement import ISVGDocumentElement
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION"), mode="r", encoding="utf-8") as version_file:
     __version__ = version_file.readline().strip()
@@ -193,6 +192,7 @@ class TexText(inkex.EffectExtension):
                     if meta_data_new.stroke_to_path:
                         converter.stroke_to_path()
 
+                    self.svg: inkex.SvgDocumentElement
                     tt_node = TexTextSvgEle(converter.tmp("svg"), self.svg.unit)
                     tt_node.set_meta_data(meta_data_new)
 
@@ -220,6 +220,9 @@ class TexText(inkex.EffectExtension):
         pass
 
     def _insert_new_node(self, tt_node: TexTextSvgEle, meta_data_new: TexTextEleMetaData):
+
+        self.svg: inkex.SvgDocumentElement
+
         with logger.debug("Adding new node to document"):
             # Place new nodes in the view center and scale them according to user request
             node_center = tt_node.bounding_box().center
@@ -316,6 +319,7 @@ class TexText(inkex.EffectExtension):
 
         :return (TexTextEle, TexTextEleMetaData): In case
         """
+        self.svg: inkex.SvgDocumentElement
 
         for node in self.svg.selected.values():
 
