@@ -15,10 +15,10 @@ import shutil
 import sys
 import tempfile
 from typing import Dict, List
-from textext.dependencies import DependencyCheck
-from textext.environment import system_env
-from textext.log_util import setup_logging
-from textext.settings import Settings, Cache
+from textext.utils.dependencies import DependencyCheck
+from textext.utils.environment import system_env
+from textext.utils.log_util import install_logger
+from textext.utils.settings import Settings, Cache
 
 
 def query_yes_no(question, default="yes"):
@@ -87,6 +87,10 @@ class StashFiles(object):
 
 
 def remove_previous_installation(dir_path: str):
+    """
+    Removes directory dir_path and all of its content.
+    Silently discards if anything goes wrong.
+    """
     if os.path.exists(dir_path):
         with logger.info("Removing `{0}`".format(dir_path)):
             try:
@@ -137,7 +141,8 @@ def copy_extension_files(src: str, dst: str):
             logger.critical(msg)
             raise RuntimeError(msg)
 
-        except RuntimeError:
+        except RuntimeError as err:
+            # catch exceptions from nested loops and re-raise them so we get out of this
             raise
 
 
@@ -298,7 +303,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    logger, _ = setup_logging(os.path.dirname(__file__), "textextsetup.log", cached_console_logging=False)
+    logger, _ = install_logger(os.path.dirname(__file__), "textextsetup.log", cached_console_logging=False)
     settings_dir = system_env.textext_config_path
 
     # Address some portable app specfic stuff

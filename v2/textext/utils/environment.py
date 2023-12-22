@@ -18,6 +18,7 @@ with the correct class.
 """
 from abc import ABCMeta, abstractmethod
 import subprocess as sp
+from typing import List
 import sys
 import os
 import ctypes as ct
@@ -46,7 +47,7 @@ class AbstractEnvironment:
     def inkscape_user_extensions_path(self) -> str:
         pass
 
-    def inkscape_system_extensions_path(self, inkscape_exe_path) -> list[str]:
+    def inkscape_system_extensions_path(self, inkscape_exe_path) -> List[str]:
         try:
             stdout, _ = self.call_command([inkscape_exe_path, "--system-data-directory"])
             path = os.path.join(stdout.decode("utf-8", 'ignore').rstrip(), "extensions")
@@ -72,7 +73,7 @@ class AbstractEnvironment:
 
     @property
     @abstractmethod
-    def system_path(self) -> list[str]:
+    def system_path(self) -> List[str]:
         pass
 
     @staticmethod
@@ -103,7 +104,7 @@ class LinuxEnvironment(AbstractEnvironment):
         return os.path.expanduser("~/.cache/textext2")
 
     @property
-    def system_path(self) -> list[str]:
+    def system_path(self) -> List[str]:
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
@@ -125,7 +126,7 @@ class MacEnvironment(LinuxEnvironment):
                         }
 
     @property
-    def system_path(self) -> list[str]:
+    def system_path(self) -> List[str]:
         path = ["/Applications/Inkscape.app/Contents/Resources"]
         path += os.environ["PATH"].split(os.path.pathsep)
         return path
@@ -190,7 +191,7 @@ class WindowsEnvironment(AbstractEnvironment):
         return os.path.join(os.getenv("APPDATA"), "textext2")
 
     @property
-    def system_path(self) -> list[str]:
+    def system_path(self) -> List[str]:
         return os.environ["PATH"].split(os.path.pathsep)
 
     @staticmethod
