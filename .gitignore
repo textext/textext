@@ -1,7 +1,9 @@
+*.aux
 *.glade~
 *.log
 *.pyc
 *.rej
+*.synctex.gz
 *.json
 .directory
 /assets/

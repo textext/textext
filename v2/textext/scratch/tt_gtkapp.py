@@ -17,7 +17,7 @@ class TextextGui(Window):
         super().__init__(*args, **kwargs)
 
     def on_btn_preview_clicked(self, widget=None):
-        pass
+        print("Hallo")
 
     def on_btn_execute_clicked(self, widget=None):
         pass
@@ -26,6 +26,18 @@ class TextextGui(Window):
         pass
 
     def on_btn_scalereset_clicked(self, widget=None):
+        pass
+
+    def on_btn_scale_previous_clicked(self, widget=None):
+        pass
+
+    def on_btn_preamble_open_clicked(self, widget=None):
+        pass
+
+    def on_btn_preamble_saveas_clicked(self, widget=None):
+        pass
+
+    def on_btn_preamble_save_clicked(self, widget=None):
         pass
 
     def on_win_main_destroy(self, widget=None):
