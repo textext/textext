@@ -118,27 +118,31 @@ class TexText(inkex.EffectExtension):
             svg_ele_old, meta_data_old = self.get_old()
 
             if self.options.text:  # Command line call
+                meta_data_new = TexTextEleMetaData(text="",
+                                                   preamble=self._normalize_preamble_path(self.options.preamble_file),
+                                                   scale_factor=self.options.scale_factor,
+                                                   tex_command=self.options.tex_command,
+                                                   alignment=self.options.alignment,
+                                                   stroke_to_path=False,
+                                                   jacobian_sqrt=1.0,
+                                                   textext_version=__version__,
+                                                   inkex_version=inkex.__version__,
+                                                   inkscape_version=inkscape_version)
+
                 if self.options.text == "" and meta_data_old.text is not None:
                     # Recompile node with the settings passed in options
-                    new_text = meta_data_old.text
+                    meta_data_new.text = meta_data_old.text
                 else:
                     # Create new node with the settings passed in options
-                    new_text = self.options.text
+                    meta_data_new.text = self.options.text
 
-                self._convert_to_svg(TexTextEleMetaData(text=new_text,
-                                                        preamble=self._normalize_preamble_path(
-                                                            self.options.preamble_file),
-                                                        scale_factor=self.options.scale_factor,
-                                                        tex_command=self.options.tex_command,
-                                                        alignment=self.options.alignment,
-                                                        stroke_to_path=False,
-                                                        jacobian_sqrt=1.0,
-                                                        textext_version=__version__,
-                                                        inkex_version=inkex.__version__,
-                                                        inkscape_version=inkscape_version),
-                                     meta_data_old, svg_ele_old)
+                self._convert_to_svg(meta_data_new, meta_data_old, svg_ele_old)
             else:  # GUI call
-                pass
+                from gui.gui_gtk3 import TexTextGuiGTK3
+                meta_data = meta_data_old if meta_data_old else TexTextEleMetaData()
+                gui = TexTextGuiGTK3(__version__, meta_data, self.config,
+                                     self._convert_to_svg, self._convert_to_png)
+                gui.show()
 
     @staticmethod
     def _normalize_preamble_path(preamble_file: str) -> str:
