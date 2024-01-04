@@ -23,6 +23,14 @@ import sys
 import os
 import ctypes as ct
 
+# This is the only place where we define these strings!
+CMD_PDFLATEX = "pdflatex"
+CMD_XELATEX = "xelatex"
+CMD_LUALATEX = "lualatex"
+CMD_TYPST = "typst"
+CMD_INKSCAPE = "inkscape"
+TEX_COMMANDS = [CMD_PDFLATEX, CMD_XELATEX, CMD_LUALATEX, CMD_TYPST]
+
 
 class AbstractEnvironment:
     __metaclass__ = ABCMeta
@@ -85,10 +93,11 @@ class AbstractEnvironment:
 class LinuxEnvironment(AbstractEnvironment):
     os_name = "linux"
     console_colors = "always"
-    executable_names = {"inkscape": ["inkscape"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+    executable_names = {CMD_INKSCAPE: ["inkscape"],
+                        CMD_PDFLATEX: ["pdflatex"],
+                        CMD_XELATEX: ["xelatex"],
+                        CMD_LUALATEX: ["lualatex"],
+                        CMD_TYPST: ["typst"]
                         }
 
     @property
@@ -119,10 +128,11 @@ class LinuxEnvironment(AbstractEnvironment):
 class MacEnvironment(LinuxEnvironment):
     os_name = "macos"
     console_colors = "always"
-    executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+    executable_names = {CMD_INKSCAPE: ["inkscape", "inkscape-bin"],
+                        CMD_PDFLATEX: ["pdflatex"],
+                        CMD_XELATEX: ["xelatex"],
+                        CMD_LUALATEX: ["lualatex"],
+                        CMD_TYPST: ["typst"]
                         }
 
     @property
@@ -148,10 +158,11 @@ class WindowsEnvironment(AbstractEnvironment):
 
     os_name = "windows"
     console_colors = "never"
-    executable_names = {"inkscape": ["inkscape.exe"],
-                        "pdflatex": ["pdflatex.exe"],
-                        "lualatex": ["lualatex.exe"],
-                        "xelatex": ["xelatex.exe"],
+    executable_names = {CMD_INKSCAPE: ["inkscape.exe"],
+                        CMD_PDFLATEX: ["pdflatex.exe"],
+                        CMD_XELATEX: ["xelatex.exe"],
+                        CMD_LUALATEX: ["lualatex.exe"],
+                        CMD_TYPST: ["typst.exe"]
                         }
 
     def __init__(self):

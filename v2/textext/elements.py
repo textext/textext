@@ -16,6 +16,7 @@ import math
 import re
 import uuid
 import inkex
+from utils.environment import CMD_PDFLATEX
 
 
 @dataclass
@@ -24,7 +25,7 @@ class TexTextEleMetaData:
 
     Also holds the default values for several metadata keys.
     """
-    DEFAULT_TEXCMD = "pdflatex"
+    DEFAULT_TEXCMD = CMD_PDFLATEX
     DEFAULT_PREAMBLE = "default_packages.tex"
     DEFAULT_SCALE = 1.0
     DEFAULT_FONTSIZE_PT = 10
