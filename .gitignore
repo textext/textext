@@ -5,6 +5,7 @@
 *.rej
 *.synctex.gz
 *.json
+*.ui~
 .directory
 /assets/
 /.idea/
