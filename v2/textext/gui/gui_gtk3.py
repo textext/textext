@@ -11,8 +11,8 @@ for full license details.
 from abc import ABCMeta, abstractmethod
 from typing import Union
 from textext.elements import TexTextEleMetaData
-from textext.utils.settings import Settings
-from textext.constants import *
+from textext.settings import SettingsTexText
+from textext.utils.environment import Cmds
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk  # noqa
@@ -21,41 +21,22 @@ from gi.repository import Gtk, Gdk  # noqa
 class TexTextGuiBase:
     __metaclass__ = ABCMeta
 
-    DEFAULT_WORDWRAP = False
-    DEFAULT_SHOWLINENUMBERS = True
-    DEFAULT_AUTOINDENT = True
-    DEFAULT_INSERTSPACES = True
-    DEFAULT_TABWIDTH = 4
-    DEFAULT_FONTSIZE = 11
-    DEFAULT_NEW_NODE_CONTENT = "Empty"
-    DEFAULT_CLOSE_SHORTCUT = "Escape"
-    DEFAULT_CONFIRM_CLOSE = True
-    DEFAULT_PREVIEW_WHITE_BACKGROUND = False
-
-    ALIGNMENT_LABELS = [f"{VAL_TOP} {HAL_LEFT}", f"{VAL_TOP} {HAL_CENTER}", f"{VAL_TOP} {HAL_RIGHT}",
-                        f"{VAL_MIDDLE} {HAL_LEFT}", f"{VAL_MIDDLE} {HAL_CENTER}", f"{VAL_MIDDLE} {HAL_RIGHT}",
-                        f"{VAL_BOTTOM} {HAL_LEFT}", f"{VAL_BOTTOM} {HAL_CENTER}", f"{VAL_BOTTOM} {HAL_RIGHT}"]
-    NEW_NODE_CONTENT = ["Empty", "InlineMath", "DisplayMath"]
-    CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
-    CLOSE_SHORTCUT_TEXT = ["_ESC", "CTRL + _Q", "None"]
-
-    def __init__(self, version_str: str,  node_meta_data: TexTextEleMetaData, config: Settings,
+    def __init__(self, version_str: str,  node_meta_data: TexTextEleMetaData, config: SettingsTexText,
                  svg_build_func, png_build_func):
         """
 
         :param (str) version_str: TexText version
-        :param (TexTextEleMetaData) node_meta_data: The meta data of the node being processed
+        :param (TexTextEleMetaData) node_meta_data: The metadata of the node being processed
         :param (Settings) config: TexText configuration
         """
         self.textext_version = version_str
         self.meta_data = node_meta_data
-        self._config = config
-        if not self._config.has_key("gui"):
-            self._config["gui"] = {}
-        self.global_scale_factor = self._config.get("scale", 1.0)
+        self.global_scale_factor = config.scale_factor
+        self.global_pdf_font_size = config.font_size_pt
+        self.config = config
 
-        if node_meta_data.tex_command not in TEX_COMMANDS:
-            node_meta_data.tex_command = TEX_COMMANDS[0]
+        if node_meta_data.tex_command not in Cmds.ALL_TEX_COMMANDS:
+            node_meta_data.tex_command = Cmds.ALL_TEX_COMMANDS[0]
 
         self.svg_build_func = svg_build_func
         self.png_build_func = png_build_func
@@ -98,13 +79,13 @@ class TexTextGuiGTK3(TexTextGuiBase):
 
         self.buffer_code.set_text(self.meta_data.text)
         self.load_preamble_file(self.meta_data.preamble)
-        self.set_monospace_font(self.DEFAULT_FONTSIZE)
+        self.set_monospace_font(self.config.gui_font_size)
 
         widget = self.builder.get_object("cmb_cmd")
         widget.remove_all()
-        for cmd in TEX_COMMANDS:
+        for cmd in Cmds.ALL_TEX_COMMANDS:
             widget.append_text(cmd)
-        widget.set_active(TEX_COMMANDS.index(self.meta_data.tex_command))
+        widget.set_active(Cmds.ALL_TEX_COMMANDS.index(self.meta_data.tex_command))
         self.window.show()
         Gtk.main()
 
@@ -266,4 +247,3 @@ class TexTextGuiGTK3(TexTextGuiBase):
 
     def on_btn_preamble_save_clicked(self, btn_preamble_save):
         pass
-

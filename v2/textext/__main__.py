@@ -10,14 +10,12 @@ for full license details.
 """
 import sys
 import traceback
-
 import inkex
-
-from utils.settings import Cache
+from extension import TexText
+from settings import Cache
 from utils.environment import system_env
 from utils.errors import TexTextFatalError
 from utils.log_util import logger, log_console_handler
-from extension import TexText
 
 
 if __name__ == "__main__":
