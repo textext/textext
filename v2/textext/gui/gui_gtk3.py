@@ -15,7 +15,7 @@ from textext.utils.settings import Settings
 from textext.constants import *
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # noqa
+from gi.repository import Gtk, Gdk  # noqa
 
 
 class TexTextGuiBase:
@@ -97,8 +97,8 @@ class TexTextGuiGTK3(TexTextGuiBase):
         self.buffer_preamble: Gtk.TextBuffer = self.builder.get_object("tbf_preamble")
 
         self.buffer_code.set_text(self.meta_data.text)
-        self.set_monospace_font(self.DEFAULT_FONTSIZE)
         self.load_preamble_file(self.meta_data.preamble)
+        self.set_monospace_font(self.DEFAULT_FONTSIZE)
 
         widget = self.builder.get_object("cmb_cmd")
         widget.remove_all()
@@ -190,16 +190,30 @@ class TexTextGuiGTK3(TexTextGuiBase):
     def set_monospace_font(self, font_size: int):
         """ Sets the font of the text views to monospace
 
-        :param font_size: Thedesired  font size in the text views
+        What an effort to simply set the font size. Gtk is sometimes ridiculous.
+
+        :param font_size: The desired  font size in the text views
         """
-        try:
-            from gi.repository import Pango  # pylint: disable=import-outside-toplevel
-            font_desc = Pango.FontDescription(f"monospace {font_size}")
-            if font_desc:
-                self.builder.get_object("tev_texcode").modify_font(font_desc)
-                self.builder.get_object("tev_preamble_file").modify_font(font_desc)
-        except ImportError:
-            pass
+
+        # I do not want to rely on hard coded widget names taken from glade here
+        # It is enough error-prone to hard code the ids...
+        code_view_name = self.builder.get_object("tev_texcode").get_name()
+        preamble_view_name = self.builder.get_object("tev_preamble_file").get_name()
+
+        css_style = f"""
+            #{code_view_name} {{
+                font: {font_size}pt "Monospace";
+            }}
+            #{preamble_view_name} {{
+                font: {font_size}pt "Monospace";
+            }}
+        """
+
+        css_provider: Gtk.CssProvider = Gtk.CssProvider()
+        css_provider.load_from_data(css_style.encode())
+        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
+                                                 css_provider,
+                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def load_preamble_file(self, filepath: str):
         """

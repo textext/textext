@@ -790,6 +790,7 @@
                         <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkTextView" id="tev_texcode">
+                            <property name="name">tev_texcode</property>
                             <property name="height-request">300</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
@@ -1028,6 +1029,7 @@
                             <property name="shadow-type">in</property>
                             <child>
                               <object class="GtkTextView" id="tev_preamble_file">
+                                <property name="name">tev_preamble_file</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="margin-left">2</property>
