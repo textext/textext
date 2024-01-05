@@ -790,6 +790,7 @@
                         <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkTextView" id="tev_texcode">
+                            <property name="name">tev_texcode</property>
                             <property name="height-request">300</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
@@ -935,66 +936,6 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="width-request">-1</property>
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="margin-start">3</property>
-                        <property name="ypad">10</property>
-                        <property name="label" translatable="yes">Note: If no \documentclass is specified "\documentclass[10pt]{article}" is used. If sizing by font size is selected in the code tab the \documentclass command is ignored.</property>
-                        <property name="wrap">True</property>
-                        <property name="max-width-chars">64</property>
-                        <property name="xalign">0</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkFrame" id="tevPreambleContent">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="border-width">2</property>
-                        <property name="label-xalign">0</property>
-                        <property name="shadow-type">none</property>
-                        <child>
-                          <object class="GtkScrolledWindow" id="scw_preamble">
-                            <property name="name">scw_preamble</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="shadow-type">in</property>
-                            <child>
-                              <object class="GtkTextView" id="tev_preamble_file">
-                                <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="margin-left">2</property>
-                                <property name="margin-right">2</property>
-                                <property name="buffer">tbf_preamble</property>
-                                <property name="monospace">True</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label">
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Content</property>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkButtonBox" id="bbxPreambleButtons">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
@@ -1049,6 +990,67 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="width-request">-1</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="margin-start">3</property>
+                        <property name="ypad">10</property>
+                        <property name="label" translatable="yes">Note: If no \documentclass is specified "\documentclass[10pt]{article}" is used. If sizing by font size is selected in the code tab the \documentclass command is ignored.</property>
+                        <property name="wrap">True</property>
+                        <property name="max-width-chars">64</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkFrame" id="tevPreambleContent">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="border-width">2</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">none</property>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scw_preamble">
+                            <property name="name">scw_preamble</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="shadow-type">in</property>
+                            <child>
+                              <object class="GtkTextView" id="tev_preamble_file">
+                                <property name="name">tev_preamble_file</property>
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="margin-left">2</property>
+                                <property name="margin-right">2</property>
+                                <property name="buffer">tbf_preamble</property>
+                                <property name="monospace">True</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child type="label">
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="label" translatable="yes">Content</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
                         <property name="position">3</property>
                       </packing>
                     </child>

@@ -17,11 +17,22 @@ the OS this module is executed the variable system_env is instanciated
 with the correct class.
 """
 from abc import ABCMeta, abstractmethod
-import subprocess as sp
+from dataclasses import dataclass
 from typing import List
-import sys
-import os
 import ctypes as ct
+import os
+import subprocess as sp
+import sys
+
+
+@dataclass(frozen=True)
+class Cmds:
+    INKSCAPE = "inkscape"
+    LUALATEX = "lualatex"
+    PDFLATEX = "pdflatex"
+    TYPST = "typst"
+    XELATEX = "xelatex"
+    ALL_TEX_COMMANDS = [PDFLATEX, XELATEX, LUALATEX, TYPST]
 
 
 class AbstractEnvironment:
@@ -85,10 +96,11 @@ class AbstractEnvironment:
 class LinuxEnvironment(AbstractEnvironment):
     os_name = "linux"
     console_colors = "always"
-    executable_names = {"inkscape": ["inkscape"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+    executable_names = {Cmds.INKSCAPE: ["inkscape"],
+                        Cmds.PDFLATEX: ["pdflatex"],
+                        Cmds.XELATEX: ["xelatex"],
+                        Cmds.LUALATEX: ["lualatex"],
+                        Cmds.TYPST: ["typst"]
                         }
 
     @property
@@ -119,10 +131,11 @@ class LinuxEnvironment(AbstractEnvironment):
 class MacEnvironment(LinuxEnvironment):
     os_name = "macos"
     console_colors = "always"
-    executable_names = {"inkscape": ["inkscape", "inkscape-bin"],
-                        "pdflatex": ["pdflatex"],
-                        "lualatex": ["lualatex"],
-                        "xelatex": ["xelatex"]
+    executable_names = {Cmds.INKSCAPE: ["inkscape", "inkscape-bin"],
+                        Cmds.PDFLATEX: ["pdflatex"],
+                        Cmds.XELATEX: ["xelatex"],
+                        Cmds.LUALATEX: ["lualatex"],
+                        Cmds.TYPST: ["typst"]
                         }
 
     @property
@@ -148,10 +161,11 @@ class WindowsEnvironment(AbstractEnvironment):
 
     os_name = "windows"
     console_colors = "never"
-    executable_names = {"inkscape": ["inkscape.exe"],
-                        "pdflatex": ["pdflatex.exe"],
-                        "lualatex": ["lualatex.exe"],
-                        "xelatex": ["xelatex.exe"],
+    executable_names = {Cmds.INKSCAPE: ["inkscape.exe"],
+                        Cmds.PDFLATEX: ["pdflatex.exe"],
+                        Cmds.XELATEX: ["xelatex.exe"],
+                        Cmds.LUALATEX: ["lualatex.exe"],
+                        Cmds.TYPST: ["typst.exe"]
                         }
 
     def __init__(self):

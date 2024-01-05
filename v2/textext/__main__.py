@@ -2,7 +2,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-Copyright (c) 2006-2023 TexText developers.
+Copyright (c) 2006-2024 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
@@ -10,17 +10,16 @@ for full license details.
 """
 import sys
 import traceback
-
 import inkex
-
-from utils.settings import Cache
+from extension import TexText
+from settings import Cache
 from utils.environment import system_env
 from utils.errors import TexTextFatalError
 from utils.log_util import logger, log_console_handler
-from extension import TexText
 
 
 if __name__ == "__main__":
+    sys.path.append("../textext")
     cache = Cache(directory=system_env.textext_config_path)
     previous_exit_code = cache.get("previous_exit_code", None)
 

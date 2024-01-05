@@ -13,12 +13,13 @@ import logging
 import os
 import tempfile
 from typing import Any, Callable, Tuple, Union
+import inkex
 from utils.log_util import logger
 from utils.environment import system_env
-from utils.settings import Settings
+from settings import SettingsTexText, Defaults
 from elements import TexTextSvgEle, TexTextEleMetaData
 from converter import TexToPdfConverter
-import inkex
+
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION"), mode="r", encoding="utf-8") as version_file:
     __version__ = version_file.readline().strip()
@@ -59,7 +60,7 @@ class TexText(inkex.EffectExtension):
 
         super().__init__()
 
-        self.config = Settings(directory=system_env.textext_config_path)
+        self.config = SettingsTexText(directory=system_env.textext_config_path)
 
         self.arg_parser.add_argument(
             "--text",
@@ -69,33 +70,33 @@ class TexText(inkex.EffectExtension):
         self.arg_parser.add_argument(
             "--preamble-file",
             type=str,
-            default=TexTextEleMetaData.DEFAULT_PREAMBLE
+            default=Defaults.PREAMBLE
         )
 
         # "pdflatex", "lualatex", "xelatex"
         self.arg_parser.add_argument(
             "--tex_command",
             type=str,
-            default=TexTextEleMetaData.DEFAULT_TEXCMD
+            default=Defaults.TEXCMD
         )
 
         self.arg_parser.add_argument(
             "--scale-factor",
             type=float,
-            default=1.0
+            default=Defaults.SCALE
         )
 
         self.arg_parser.add_argument(
             "--font-size-pt",
             type=int,
-            default=10
+            default=Defaults.FONTSIZE_PT
         )
 
         # "top left", "middle center", "bottom right", etc.
         self.arg_parser.add_argument(
             "--alignment",
             type=str,
-            default=TexTextEleMetaData.DEFAULT_ALIGNMENT
+            default=Defaults.ALIGNMENT
         )
 
     def effect(self) -> Any:
@@ -118,27 +119,31 @@ class TexText(inkex.EffectExtension):
             svg_ele_old, meta_data_old = self.get_old()
 
             if self.options.text:  # Command line call
+                meta_data_new = TexTextEleMetaData(text="",
+                                                   preamble=self._normalize_preamble_path(self.options.preamble_file),
+                                                   scale_factor=self.options.scale_factor,
+                                                   tex_command=self.options.tex_command,
+                                                   alignment=self.options.alignment,
+                                                   stroke_to_path=False,
+                                                   jacobian_sqrt=1.0,
+                                                   textext_version=__version__,
+                                                   inkex_version=inkex.__version__,
+                                                   inkscape_version=inkscape_version)
+
                 if self.options.text == "" and meta_data_old.text is not None:
                     # Recompile node with the settings passed in options
-                    new_text = meta_data_old.text
+                    meta_data_new.text = meta_data_old.text
                 else:
                     # Create new node with the settings passed in options
-                    new_text = self.options.text
+                    meta_data_new.text = self.options.text
 
-                self._convert_to_svg(TexTextEleMetaData(text=new_text,
-                                                        preamble=self._normalize_preamble_path(
-                                                            self.options.preamble_file),
-                                                        scale_factor=self.options.scale_factor,
-                                                        tex_command=self.options.tex_command,
-                                                        alignment=self.options.alignment,
-                                                        stroke_to_path=False,
-                                                        jacobian_sqrt=1.0,
-                                                        textext_version=__version__,
-                                                        inkex_version=inkex.__version__,
-                                                        inkscape_version=inkscape_version),
-                                     meta_data_old, svg_ele_old)
+                self._convert_to_svg(meta_data_new, meta_data_old, svg_ele_old)
             else:  # GUI call
-                pass
+                from gui.gui_gtk3 import TexTextGuiGTK3
+                meta_data = meta_data_old if meta_data_old else TexTextEleMetaData()
+                gui = TexTextGuiGTK3(__version__, meta_data, self.config,
+                                     self._convert_to_svg, self._convert_to_png)
+                gui.show()
 
     @staticmethod
     def _normalize_preamble_path(preamble_file: str) -> str:
@@ -151,7 +156,7 @@ class TexText(inkex.EffectExtension):
         """
         preamble_file_path = os.path.abspath(preamble_file)
         if not os.path.isfile(preamble_file_path):
-            preamble_file_path = os.path.join(os.path.dirname(__file__), TexTextEleMetaData.DEFAULT_PREAMBLE)
+            preamble_file_path = os.path.join(os.path.dirname(__file__), Defaults.PREAMBLE)
         return str(preamble_file_path)
 
     def _convert_to_svg(self, meta_data_new: TexTextEleMetaData,
@@ -179,13 +184,8 @@ class TexText(inkex.EffectExtension):
                     if isinstance(meta_data_new.text, bytes):
                         meta_data_new.text = meta_data_new.text.decode("utf-8")
 
-                    converter = TexToPdfConverter(latex_exe=self.config.
-                                                  get(key=f"{meta_data_new.tex_command}-executable",
-                                                      default=system_env.
-                                                      executable_names[meta_data_new.tex_command][0]),
-                                                  inkscape_exe=self.config.
-                                                  get(key="inkscape-executable",
-                                                      default=system_env.executable_names["inkscape"][0]))
+                    converter = TexToPdfConverter(latex_exe=self.config.get_executable(meta_data_new.tex_command),
+                                                  inkscape_exe=self.config.get_executable("inkscape"))
                     converter.tex_to_pdf(meta_data_new.text, meta_data_new.preamble)
                     converter.pdf_to_svg()
 
@@ -203,10 +203,10 @@ class TexText(inkex.EffectExtension):
                 self._replace_old_node(tt_node, meta_data_new, svg_ele_old, meta_data_old)
 
             with logger.debug("Saving global settings"):
-                # -- Save settings
-                self.config["preamble"] = meta_data_new.preamble
-                self.config["scale"] = meta_data_new.scale_factor
-                self.config["previous_tex_command"] = meta_data_new.tex_command
+                self.config.preamble_file = meta_data_new.preamble
+                self.config.scale_factor = meta_data_new.scale_factor
+                self.config.font_size_pt = meta_data_new.font_size_pt
+                self.config.previous_command = meta_data_new.tex_command
                 self.config.save()
 
     def _convert_to_png(self, meta_data_new: TexTextEleMetaData,
@@ -347,7 +347,7 @@ class TexText(inkex.EffectExtension):
                 # TexTextGuiBase dialog is adjusted in such a way that the size of the node
                 # is preserved when recompiling the LaTeX code.
                 # ("version" attribute introduced in 0.7.1)
-                if meta_data.textext_version == TexTextEleMetaData.DEFAULT_TEXTEXT_VERSION:
+                if meta_data.textext_version == Defaults.TEXTEXT_VERSION:
                     logger.debug("Adjust scale factor for node created with TexText <= 0.7")
                     meta_data.scale_factor *= self.svg.uutounit(1, "pt")
 

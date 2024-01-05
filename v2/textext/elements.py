@@ -16,6 +16,7 @@ import math
 import re
 import uuid
 import inkex
+from settings import Defaults, Align
 
 
 @dataclass
@@ -24,28 +25,18 @@ class TexTextEleMetaData:
 
     Also holds the default values for several metadata keys.
     """
-    DEFAULT_TEXCMD = "pdflatex"
-    DEFAULT_PREAMBLE = "default_packages.tex"
-    DEFAULT_SCALE = 1.0
-    DEFAULT_FONTSIZE_PT = 10
-    DEFAULT_ALIGNMENT = "middle center"
-    DEFAULT_STROKE_TO_PATH = False
-    DEFAULT_JACOBIAN_SQRT = 1.0
-    DEFAULT_TEXTEXT_VERSION = "<=0.7"
-    DEFAULT_INKSCAPE_VERSION = "0.0"
-    DEFAULT_INKEX_VERSION = "0.0"
 
     text: str = ""
-    tex_command: str = DEFAULT_TEXCMD
-    preamble: str = DEFAULT_PREAMBLE
-    scale_factor: float = DEFAULT_SCALE
-    font_size_pt: float = DEFAULT_FONTSIZE_PT
-    alignment: str = DEFAULT_ALIGNMENT
-    stroke_to_path: bool = DEFAULT_STROKE_TO_PATH
-    jacobian_sqrt: float = DEFAULT_JACOBIAN_SQRT
-    textext_version: str = DEFAULT_TEXTEXT_VERSION  # Introduced in 0.7.1
-    inkscape_version: str = DEFAULT_INKSCAPE_VERSION
-    inkex_version: str = DEFAULT_INKEX_VERSION  # Introduced in 2.0.0
+    tex_command: str = Defaults.TEXCMD
+    preamble: str = Defaults.PREAMBLE
+    scale_factor: float = Defaults.SCALE
+    font_size_pt: float = Defaults.FONTSIZE_PT
+    alignment: str = Defaults.ALIGNMENT
+    stroke_to_path: bool = Defaults.STROKE_TO_PATH
+    jacobian_sqrt: float = Defaults.JACOBIAN_SQRT
+    textext_version: str = Defaults.TEXTEXT_VERSION  # Introduced in 0.7.1
+    inkscape_version: str = Defaults.INKSCAPE_VERSION
+    inkex_version: str = Defaults.INKEX_VERSION  # Introduced in 2.0.0
 
 
 class TexTextSvgEle(inkex.Group):
@@ -130,31 +121,31 @@ class TexTextSvgEle(inkex.Group):
         meta_data.preamble = self.get_meta(self.KEY_PREAMBLE)
         meta_data.scale_factor = self.get_meta(self.KEY_SCALE,
                                                data_type=float,
-                                               default=TexTextEleMetaData.DEFAULT_SCALE)
+                                               default=Defaults.SCALE)
         meta_data.alignment = self.get_meta(self.KEY_ALIGNMENT,
                                             data_type=str,
-                                            default=TexTextEleMetaData.DEFAULT_ALIGNMENT)
+                                            default=Defaults.ALIGNMENT)
         meta_data.tex_command = self.get_meta(self.KEY_TEXCONVERTER,
                                               data_type=str,
-                                              default=TexTextEleMetaData.DEFAULT_TEXCMD)
+                                              default=Defaults.TEXCMD)
         meta_data.stroke_to_path = bool(self.get_meta(self.KEY_STROKE2PATH,
                                                       data_type=int,
-                                                      default=TexTextEleMetaData.DEFAULT_STROKE_TO_PATH))
+                                                      default=Defaults.STROKE_TO_PATH))
         meta_data.font_size_pt = self.get_meta(self.KEY_FONTSIZE_PT,
                                                data_type=int,
-                                               default=TexTextEleMetaData.DEFAULT_FONTSIZE_PT)
+                                               default=Defaults.FONTSIZE_PT)
         meta_data.jacobian_sqrt = self.get_meta(self.KEY_JACOBIAN_SQRT,
                                                 data_type=float,
-                                                default=TexTextEleMetaData.DEFAULT_JACOBIAN_SQRT)
+                                                default=Defaults.JACOBIAN_SQRT)
         meta_data.textext_version = self.get_meta(self.KEY_VERSION,
                                                   data_type=str,
-                                                  default=TexTextEleMetaData.DEFAULT_TEXTEXT_VERSION)
+                                                  default=Defaults.TEXTEXT_VERSION)
         meta_data.inkscape_version = self.get_meta(self.KEY_INKSCAPE_VERSION,
                                                    data_type=str,
-                                                   default=TexTextEleMetaData.DEFAULT_INKSCAPE_VERSION)
+                                                   default=Defaults.INKSCAPE_VERSION)
         meta_data.inkex_version = self.get_meta(self.KEY_INKEX_VERSION,
                                                 data_type=str,
-                                                default=TexTextEleMetaData.DEFAULT_INKEX_VERSION)
+                                                default=Defaults.INKEX_VERSION)
 
         return meta_data
 
@@ -335,7 +326,7 @@ class TexTextSvgEle(inkex.Group):
 
         It is ensured that it is properly decoded.
         """
-        node_version = self.get_meta(self.KEY_VERSION, default=TexTextEleMetaData.DEFAULT_TEXTEXT_VERSION)
+        node_version = self.get_meta(self.KEY_VERSION, default=Defaults.TEXTEXT_VERSION)
         encoded_text = self.get_meta(self.KEY_TEXT)
 
         if node_version != "1.2.0":
@@ -373,21 +364,21 @@ class TexTextSvgEle(inkex.Group):
         :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
         """
         v_alignment, h_alignment = alignment.split(" ")
-        if v_alignment == "top":
+        if v_alignment == Align.VTOP:
             ypos = y
-        elif v_alignment == "middle":
+        elif v_alignment == Align.VMIDDLE:
             ypos = y + h / 2
-        elif v_alignment == "bottom":
+        elif v_alignment == Align.VBOTTOM:
             ypos = y + h
         else:
             # fallback -> middle
             ypos = y + h / 2
 
-        if h_alignment == "left":
+        if h_alignment == Align.HLEFT:
             xpos = x
-        elif h_alignment == "center":
+        elif h_alignment == Align.HCENTER:
             xpos = x + w / 2
-        elif h_alignment == "right":
+        elif h_alignment == Align.HRIGHT:
             xpos = x + w
         else:
             # fallback -> center

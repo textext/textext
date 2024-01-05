@@ -15,10 +15,10 @@ import shutil
 import sys
 import tempfile
 from typing import Dict, List
+from textext.settings import SettingsTexText, Cache, Cmds
 from textext.utils.dependencies import DependencyCheck
 from textext.utils.environment import system_env
 from textext.utils.log_util import install_logger
-from textext.utils.settings import Settings, Cache
 
 
 def query_yes_no(question, default="yes"):
@@ -393,12 +393,12 @@ if __name__ == "__main__":
             logger.critical("Setup failed, see messages above for more details!")
             exit(EXIT_FILE_OPERATION_FAILED)
         else:
-            settings = Settings(directory=settings_dir)
-            settings["inkscape-executable"] = args.inkscape_executable
-            settings["pdflatex-executable"] = args.pdflatex_executable
-            settings["lualatex-executable"] = args.lualatex_executable
-            settings["xelatex-executable"] = args.xelatex_executable
-            settings["typst-executable"] = args.typst_executable
+            settings = SettingsTexText(directory=settings_dir)
+            settings.set_executable(Cmds.INKSCAPE, args.inkscape_executable)
+            settings.set_executable(Cmds.PDFLATEX, args.pdflatex_executable)
+            settings.set_executable(Cmds.XELATEX, args.xelatex_executable)
+            settings.set_executable(Cmds.LUALATEX, args.lualatex_executable)
+            settings.set_executable(Cmds.TYPST, args.typst_executable)
             settings.save()
 
             Cache(directory=settings_dir).delete_file()
