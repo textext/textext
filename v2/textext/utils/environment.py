@@ -22,14 +22,7 @@ from typing import List
 import sys
 import os
 import ctypes as ct
-
-# This is the only place where we define these strings!
-CMD_PDFLATEX = "pdflatex"
-CMD_XELATEX = "xelatex"
-CMD_LUALATEX = "lualatex"
-CMD_TYPST = "typst"
-CMD_INKSCAPE = "inkscape"
-TEX_COMMANDS = [CMD_PDFLATEX, CMD_XELATEX, CMD_LUALATEX, CMD_TYPST]
+from constants import CMD_PDFLATEX, CMD_XELATEX, CMD_LUALATEX, CMD_TYPST, CMD_INKSCAPE
 
 
 class AbstractEnvironment:

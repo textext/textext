@@ -16,7 +16,7 @@ import math
 import re
 import uuid
 import inkex
-from utils.environment import CMD_PDFLATEX
+from constants import *
 
 
 @dataclass
@@ -374,21 +374,21 @@ class TexTextSvgEle(inkex.Group):
         :param alignment: String describing the required alignment, e.g. "top left", "middle right", etc.
         """
         v_alignment, h_alignment = alignment.split(" ")
-        if v_alignment == "top":
+        if v_alignment == VAL_TOP:
             ypos = y
-        elif v_alignment == "middle":
+        elif v_alignment == VAL_MIDDLE:
             ypos = y + h / 2
-        elif v_alignment == "bottom":
+        elif v_alignment == VAL_BOTTOM:
             ypos = y + h
         else:
             # fallback -> middle
             ypos = y + h / 2
 
-        if h_alignment == "left":
+        if h_alignment == HAL_LEFT:
             xpos = x
-        elif h_alignment == "center":
+        elif h_alignment == HAL_CENTER:
             xpos = x + w / 2
-        elif h_alignment == "right":
+        elif h_alignment == HAL_RIGHT:
             xpos = x + w
         else:
             # fallback -> center
