@@ -626,7 +626,7 @@ class AskTextGTKSource(AskText):
                 {new_node_content}
               </menu>
               <menu action='CloseShortcut'>
-                {close_shortcut} 
+                {close_shortcut}
               </menu>
               <menuitem action='ConfirmClose'/>
             </menu>
@@ -1270,7 +1270,10 @@ class AskTextGTKSource(AskText):
                 iter = self._source_buffer.get_iter_at_offset(1)
                 self._source_buffer.place_cursor(iter)
             if new_node_content_value=='DisplayMath':
-                self.text = "$$$$"
+                if self.current_texcmd == "typst":
+                    self.text = "$  $"
+                else:
+                    self.text = "$$$$"
                 self._source_buffer.set_text(self.text)
                 iter = self._source_buffer.get_iter_at_offset(2)
                 self._source_buffer.place_cursor(iter)
