@@ -643,7 +643,7 @@ class TexToPdfConverter:
             pass
 
     def pdf_to_png(self, white_bg):
-        """Convert the PDF file to a SVG file"""
+        """Convert the PDF file to a PNG file"""
         kwargs = dict()
         kwargs["export_filename"] = self.tmp('png')
         kwargs["pdf_poppler"] = True
@@ -696,7 +696,7 @@ class TexTextElement(inkex.Group):
     def __init__(self, svg_filename, document_unit):
         """
         :param svg_filename: The name of the file containing the svg-snippet
-        :param document_unit: String specifyling the unit of the document into which the node is going
+        :param document_unit: String specifying the unit of the document into which the node is going
                               to be placed ("mm", "pt", ...)
         """
         super(TexTextElement, self).__init__()
