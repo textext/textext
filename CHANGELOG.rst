@@ -1,3 +1,8 @@
+Version 1.10.2 (2024-02-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed: Wrong environment inserted when `Display Math` option is selected 
+  in `New Node Content` menu while typst is the active compiler (:Issue:`417`)
+
 Version 1.10.1 (2023-11-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Installation issue on Windows.
