@@ -16,6 +16,7 @@ went into the development of the project.
 - Alexander Blinne
 - Antonio Russo
 - Brian Clarke
+- dongguaguaguagua@github
 - Florent Becker
 - jocelynetienne@github
 - Markus Wallerberger
@@ -25,6 +26,7 @@ went into the development of the project.
 - Robert Szalai
 - Rafal Kolanski
 - Toru Araki
+- user202729@github
 - veltsov@github
 - Vladislav Gavryusev
 - xuestrange@github

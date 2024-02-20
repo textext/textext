@@ -1,7 +1,7 @@
 |status-ci| |status-downloads|
 
-TexText - A TeX extension for Inkscape
-======================================
+TexText - A TeX / typst extension for Inkscape
+==============================================
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
