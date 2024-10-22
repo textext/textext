@@ -37,11 +37,14 @@ Explicit setting of font size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want the font size of your compiled LaTeX code to be of a
-specific size then you have to do two things:
+specific size then you have to do three things:
 
 1. Set the scale factor of the node to 1.0
 
-2. Enter your code as following if you want to have a ``14pt`` sized font
+2. Ensure that the document scale is 1.0 mm per user unit 
+   (:bash:`File - Document Properties...`). Usually, this is the case.
+
+3. Enter your code as following if you want to have a ``14pt`` sized font
    for the text `This is my Text`\:
 
 .. code-block:: latex

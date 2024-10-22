@@ -1,5 +1,5 @@
 .. |TexText| replace:: **TexText**
-.. |Inkscape| replace:: **Inkscape 1.3**
+.. |Inkscape| replace:: **Inkscape 1.4**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 
@@ -39,7 +39,7 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
    `Inkscape download site <https://inkscape.org/release>`_.
 
 2. Install Inkscape. Verify that Inkscape launches and is of version
-   1.3.
+   1.4.
 
 3. Download the most recent package of |TexText| from
    :textext_current_release_page:`release`
@@ -151,7 +151,7 @@ Preparation
 
         brew install --cask inkscape
 
-   Verify that inkscape launches and is of version >= 1.3
+   Verify that inkscape launches and is of version >= 1.4
 
 .. _macos-install-textext:
 
