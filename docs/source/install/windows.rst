@@ -1,5 +1,5 @@
 .. |TexText| replace:: **TexText**
-.. |Inkscape| replace:: **Inkscape 1.3**
+.. |Inkscape| replace:: **Inkscape 1.4**
 .. |InkscapeOld| replace:: **Inkscape 0.92.x**
 
 .. role:: bash(code)
