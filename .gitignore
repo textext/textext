@@ -1,0 +1,10 @@
+*.log
+*.pyc
+*.rej
+*.json
+.directory
+/assets/
+/.idea/
+/textext/.cache.json
+/textext/config.json
+.DS_Store
