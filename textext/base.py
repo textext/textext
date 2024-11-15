@@ -603,7 +603,7 @@ class TexToPdfConverter:
 
             # Write tex
             with open(self.tmp('typ'), mode='w', encoding='utf-8') as f_typ:
-                f_typ.write(typst_text)
+                f_typ.write(f"#set page(fill:none)\n\n{typst_text}")
 
             # Exec tex_command: tex -> pdf
             try:
