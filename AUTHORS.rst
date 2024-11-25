@@ -19,6 +19,7 @@ went into the development of the project.
 - dongguaguaguagua@github
 - Florent Becker
 - jocelynetienne@github
+- Jonas (the16thpythonist)
 - Markus Wallerberger
 - Michael Struwig
 - Noel Kuntze
