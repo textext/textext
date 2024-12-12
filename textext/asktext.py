@@ -438,9 +438,8 @@ class AskTextTK(AskText):
         self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
 
     def on_texcmd_change(self):
-        using_tex = self._tex_command_tk_str.get() != "typst"
-        self._preamble["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
-        self._askfilename_button["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
+        self._preamble["state"] = Tk.NORMAL
+        self._askfilename_button["state"] = Tk.NORMAL
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
@@ -819,10 +818,7 @@ class AskTextGTKSource(AskText):
         self.window_deleted_cb(widget, None, None)
 
     def cb_compiler_changed(self, combo_box):
-        using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
-        self._preview_button.set_sensitive(using_tex)
-        self._preamble_widget.set_sensitive(using_tex)
-        self._preamble_delete_btn.set_sensitive(using_tex)
+        pass
 
     def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
         self.update_position_label(text_buffer, self, view)
