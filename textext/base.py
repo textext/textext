@@ -599,27 +599,19 @@ class TexToPdfConverter:
         """
 
         with logger.debug("Converting .typ to .{0}".format(file_type)):
-            # # Read preamble
-            # preamble_file = os.path.abspath(preamble_file)
-            # preamble = ""
-            #
-            # if os.path.isfile(preamble_file):
-            #     with open(preamble_file, 'r') as f:
-            #         preamble += f.read()
-            #
-            # # Add default document class to preamble if necessary
-            # if not _contains_document_class(preamble):
-            #     preamble = self.DEFAULT_DOCUMENT_CLASS + preamble
-            #
-            # # Options pass to LaTeX-related commands
-            #
-            # texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
-
+            # Read preamble
+            preamble_file = os.path.abspath(preamble_file)
+            preamble = ""
+            
+            if os.path.isfile(preamble_file):
+                with open(preamble_file, 'r') as f:
+                    preamble += f.read()
+            
             # Convert Typ to PDF
 
             # Write tex
             with open(self.tmp('typ'), mode='w', encoding='utf-8') as f_typ:
-                f_typ.write(f"#set page(fill:none)\n\n{typst_text}")
+                f_typ.write(f"{preamble}\n\n#set page(fill:none)\n\n{typst_text}")
 
             # Exec tex_command: tex -> pdf
             try:
