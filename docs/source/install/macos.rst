@@ -41,7 +41,10 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
 2. Install Inkscape. Verify that Inkscape launches and is of version
    1.4.
 
-3. Download the most recent package of |TexText| from
+3. Make sure you have a functional LaTeX distribution (providing at least the
+   pdflatex binary) and/or a typst binary.
+
+4. Download the most recent package of |TexText| from
    :textext_current_release_page:`release`
    (direct link: :textext_download_zip:`MacOS`). In case you are still using
    Inkscape 1.2, 1.1, or 1.0 download
@@ -49,7 +52,7 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
 
    Extract the package and change into the created directory.
 
-4. Next we try to install and run |TexText|. If the installation or the launch
+5. Next we try to install and run |TexText|. If the installation or the launch
    of |TexText| fails a method is shown how to fix the problem.
 
    Run:
@@ -70,10 +73,10 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
    See :ref:`advanced-install` for further options provided by
    :bash:`setup.py`.
 
-5. Launch Inkscape and try to run |TexText| (Consult the :ref:`usage instructions <gui>`).
+6. Launch Inkscape and try to run |TexText| (Consult the :ref:`usage instructions <gui>`).
    If |TexText| fails to launch go to step 6. Otherwise you are done.
 
-6. The Python installation shipped together with Inkscape seems to be broken. Hence,
+7. The Python installation shipped together with Inkscape seems to be broken. Hence,
    we need to install one manually. Assuming you have Homebrew installed, install
    Python 3.9:
 
@@ -81,7 +84,7 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
 
         brew install python@3.9
 
-7. Then install the Tkinter GUI-library, NumPy and PyGObject:
+8. Then install the Tkinter GUI-library, NumPy and PyGObject:
 
    .. code-block:: bash
 
@@ -89,7 +92,7 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
         brew install numpy
         brew install pygobject3
 
-8. Install the lxml-tools and cssselect required by the Inkscape extensions:
+9. Install the lxml-tools and cssselect required by the Inkscape extensions:
 
    .. code-block:: bash
 
@@ -97,18 +100,18 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
         $(brew --prefix)/opt/python@3.9/libexec/bin/pip install cssselect
 
 
-9. Determine the path of the Homebrew python3 executable:
+10. Determine the path of the Homebrew python3 executable:
 
    .. code-block:: bash
 
         which $(brew --prefix)/opt/python@3.9/libexec/bin/python3
 
 
-10. Navigate into the directory
+11. Navigate into the directory
     :bash:`/Users/<your username>/Library/Application Support/org.inkscape.Inkscape/config/inkscape`.
     (Replace <your username> by your MacOS user name)
 
-11. Open the file :bash:`preferences.xml` and navigate to the line that says
+12. Open the file :bash:`preferences.xml` and navigate to the line that says
     :bash:`id="extensions"`. Add a line :bash:`python-interpreter="<python path>"`
     where :bash:`<python path>` has to be replaced by the path determined in step 9.
     After this operation the entry should look like this:
@@ -120,14 +123,14 @@ Method 1: Use Inkscape DMG installer (optionally together with Homebrew Python)
             python-interpreter="<python path>"
         />
 
-12. If the installation of |TexText| in step 4 failed try to install it with the
+13. If the installation of |TexText| in step 4 failed try to install it with the
     following command, otherwise go to step 13:
 
     .. code-block:: bash
 
         $(brew --prefix)/opt/python@3.9/libexec/bin/python3 setup.py --pdflatex-executable=$(which pdflatex) --skip-requirements-check
 
-13. Launch Inkscape and try to run |TexText|. In case of success you should see at least
+14. Launch Inkscape and try to run |TexText|. In case of success you should see at least
     the Tkinter GUI which is a simplified version of the GTK gui described in the
     :ref:`usage instructions <gui>`.
 
@@ -152,6 +155,8 @@ Preparation
         brew install --cask inkscape
 
    Verify that inkscape launches and is of version >= 1.4
+
+2. Make sure you have a functional LaTeX distribution and/or typst binary.
 
 .. _macos-install-textext:
 

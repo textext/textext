@@ -4,7 +4,7 @@ TexText - Re-editable LaTeX and typst graphics for Inkscape
 TexText is a Python extension for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
 and *re-edit* LaTeX and `typst <https://typst.app/>`__ generated SVG elements
-to your drawing.
+to your drawing (a LaTeX and/or typst distribution is required).
 
 .. figure:: images/textext-with-inkscape.png
    :alt: TexText dialog with Inkscape
