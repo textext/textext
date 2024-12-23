@@ -529,12 +529,15 @@ class TexToPdfConverter:
         self.checker = checker  # type: requirements_check.TexTextRequirementsChecker
         
         # If a file with the name "LATEX_OPTIONS" exists in the textext plugin directory, we interpret each line 
-        # in that file as a separate option to be passed to the latex command. This can be used to customize the 
-        # latex command line options - if needed (for example when choosing to add the -shell-escape option)
+        # in that file not starting with "#" as a separate option to be passed to the latex command.
+        # This can be used to customize the latex command line options - if needed
+        # (for example when choosing to add the -shell-escape option)
         self.latex_options_path = os.path.join(os.path.dirname(__file__), "LATEX_OPTIONS")
         if os.path.exists(self.latex_options_path):
             with open(self.latex_options_path, 'r') as f:
-                self.LATEX_OPTIONS = [s.strip() for s in f.read().splitlines()]
+                # Remove lines starting with "#" and empty lines
+                self.LATEX_OPTIONS = [option for option in
+                                      [s.strip() for s in f.read().splitlines()] if option and not option.startswith("#")]
 
     # --- Internal
     def tmp(self, suffix):
