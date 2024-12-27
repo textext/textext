@@ -160,10 +160,24 @@ class AskText(object):
             self.current_texcmd = current_texcmd
         else:
             self.current_texcmd = self.TEX_COMMANDS[0]
+        self.using_tex = self.current_texcmd != "typst"
 
         self.current_convert_strokes_to_path = current_convert_strokes_to_path
 
         self.preamble_file = preamble_file
+
+        # TexText < 1.10 did not use preamble files for typst and just stored
+        # the default_packages.tex. Hence, we have to correct this here.
+        if not self.using_tex and "default_packages.tex" in self.preamble_file:
+            self.preamble_file = "default_preamble_typst.typ"
+
+        if self.using_tex:
+            self.latex_default_preamble_file = self.preamble_file
+            self.typst_default_preamble_file = "default_preamble_typst.typ"
+        else:
+            self.latex_default_preamble_file = "default_packages.tex"
+            self.typst_default_preamble_file = self.preamble_file
+
         self._preamble_widget = None
         self._scale = None
         self._gui_config = gui_config
@@ -273,7 +287,7 @@ class AskTextTK(AskText):
         label.pack(pady=2, padx=5, anchor="w")
         self._preamble = Tk.Entry(box)
         self._preamble.pack(expand=True, fill="x", ipady=4, pady=5, padx=5, side="left", anchor="e")
-        self._preamble.insert(Tk.END, self.preamble_file)
+        self.set_default_preamble()
 
         self._askfilename_button = Tk.Button(box, text="Select...",
                                        command=self.select_preamble_file)
@@ -438,9 +452,15 @@ class AskTextTK(AskText):
         self._gui_config["word_wrap"] = self._word_wrap_tkval.get()
 
     def on_texcmd_change(self):
-        using_tex = self._tex_command_tk_str.get() != "typst"
-        self._preamble["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
-        self._askfilename_button["state"] = Tk.NORMAL if using_tex else Tk.DISABLED
+        self.using_tex = self._tex_command_tk_str.get() != "typst"
+        self.set_default_preamble()
+
+    def set_default_preamble(self):
+        self._preamble.delete(0, Tk.END)
+        if self.using_tex:
+            self._preamble.insert(Tk.END, self.latex_default_preamble_file)
+        else:
+            self._preamble.insert(Tk.END, self.typst_default_preamble_file)
 
     def reset_scale_factor(self, _=None):
         self._scale.delete(0, "end")
@@ -451,9 +471,13 @@ class AskTextTK(AskText):
         self._scale.insert(0, self.global_scale_factor)
 
     def select_preamble_file(self):
+        if self.using_tex:
+            file_types = (("LaTeX files", "*.tex"), ("all files", "*.*"))
+        else:
+            file_types = (("Typst files", "*.typ"), ("all files", "*.*"))
         file_name = TkFileDialogs.askopenfilename(initialdir=os.path.dirname(self._preamble.get()),
                                                   title="Select preamble file",
-                                                  filetypes=(("LaTeX files", "*.tex"), ("all files", "*.*")))
+                                                  filetypes=file_types)
         if file_name is not None:
             self._preamble.delete(0, Tk.END)
             self._preamble.insert(Tk.END, file_name)
@@ -819,10 +843,21 @@ class AskTextGTKSource(AskText):
         self.window_deleted_cb(widget, None, None)
 
     def cb_compiler_changed(self, combo_box):
-        using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
-        self._preview_button.set_sensitive(using_tex)
-        self._preamble_widget.set_sensitive(using_tex)
-        self._preamble_delete_btn.set_sensitive(using_tex)
+        self.using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
+        self.set_default_preamble()
+        self._preview_button.set_sensitive(self.using_tex)
+
+    def set_default_preamble(self):
+        if self.using_tex:
+            preamble_file_str = self.latex_default_preamble_file
+        else:
+            preamble_file_str = self.typst_default_preamble_file
+
+        if hasattr(Gtk, 'FileChooserButton'):
+            file_path = os.path.abspath(preamble_file_str)
+            self._preamble_widget.set_filename(file_path)
+        else:
+            self._preamble_widget.set_text(preamble_file_str)
 
     def move_cursor_cb(self, text_buffer, cursoriter, mark, view):
         self.update_position_label(text_buffer, self, view)
@@ -983,14 +1018,18 @@ class AskTextGTKSource(AskText):
         """
         Clear the preamble file setting
         """
-        self.preamble_file = "default_packages.tex"
+        if self.using_tex:
+            self.preamble_file = "default_packages.tex"
+        else:
+            self.preamble_file = "default_preamble_typst.typ"
         self.set_preamble()
 
     def set_preamble(self):
         if hasattr(Gtk, 'FileChooserButton'):
-            self._preamble_widget.set_filename(self.preamble_file)
+            file_path = os.path.abspath(self.preamble_file)
+            self._preamble_widget.set_filename(file_path)
         else:
-            self._preamble_widget.set_text(self.preamble_file)
+            self._preamble_widget.set_text(self._preamble_widget.set_filename(self.preamble_file))
 
     def reset_scale_factor(self, _=None):
         self._scale_adj.set_value(self.current_scale_factor)
