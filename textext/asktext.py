@@ -845,7 +845,6 @@ class AskTextGTKSource(AskText):
     def cb_compiler_changed(self, combo_box):
         self.using_tex = self.TEX_COMMANDS[self._texcmd_cbox.get_active()] != "typst"
         self.set_default_preamble()
-        self._preview_button.set_sensitive(self.using_tex)
 
     def set_default_preamble(self):
         if self.using_tex:
