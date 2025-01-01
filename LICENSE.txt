@@ -1,4 +1,4 @@
-Copyright (c) 2006-2024 TexText developers.
+Copyright (c) 2006-2025 TexText developers.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
