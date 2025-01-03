@@ -49,7 +49,7 @@ specific size then you have to do three things:
 
 .. code-block:: latex
 
-    \fontsize{14pt}{1em}{\selectfont This is my Text.}
+    {\fontsize{14pt}{1em}\selectfont This is my Text.}
 
 
 The resulting text should be of equal height as if has been typeset directly in Inkscape.
