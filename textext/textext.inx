@@ -1,7 +1,7 @@
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>TexText</name>
+  <name>TexText...</name>
   <id>org.inkscape.effect.textext</id>
-  <effect implements-custom-gui="true">
+  <effect implements-custom-gui="true" show-stderr="true">
     <object-type>all</object-type>
     <effects-menu>
         <submenu name="Text"/>
