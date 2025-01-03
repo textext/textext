@@ -146,6 +146,33 @@ This section is structured as follows:
 
 .. _trouble_latex:
 
+TexText does not show up at all
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the |TexText| dialog does not open after having clicked on the TexText entry in
+the extension menu try the following:
+
+- If you are using TexLive and you updated TexLive recently the path to the TexLive
+  executables may have changed. You can address this by thw following two methods:
+
+  - Delete the file (if it exists) ``~/.config/textext/.cache.json`` (Linux) or
+    ``C:\Users\[Your UserName]\AppData\Roaming\textext\.cache.json`` (Windows) or
+    ``~/Library/Preferences/textext/.cache.json`` and try to open
+    |TexText| again
+
+  - Determine the path of your pdflatex executable and install |TexText| again using
+    the ``--pdflatex-executable`` command line option:
+
+    - Linux, Mac: ``python3 setup.py --pdflatex-executable /path/to/your/pdflatex-executable``
+    - Windows:  ``setup_win.bat --pdflatex-executable /path/to/your/pdflatex-executable``
+
+- Have a look for the file ``textext.log`` in the directory
+  ``~/.cache/textext`` (Linux), ``C:\Users\[Your UserName]\AppData\Roaming\textext`` (Windows) or
+  ``~/Library/Preferences/textext`` (Mac) and see if any useful error messages are logged into that
+  file. You can use this information to further analyze the problem or to
+  open an issue on GitHub asking for help: https://github.com/textext/textext/issues/new
+
+
 LaTeX and toolchain errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
