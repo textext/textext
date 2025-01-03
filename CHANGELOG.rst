@@ -1,3 +1,13 @@
+Version 1.11.0 (2024-01-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: typst preamble and preview support
+- New: It is possible to change the command line options for the LaTeX compilers (useful e.g. to incorporate
+       the -shell-escape option). See
+       `this FAQ entry <https://textext.github.io/textext/usage/faq.html#compiling-latex-code-with-additional-command-line-options-e-g-shell-escape>`__
+       in the documentation
+- Fixed: typst snippets contain a large empty background frame
+- Fixed: TexText fails silently if unhandled errors occur.
+
 Version 1.10.2 (2024-02-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed: Wrong environment inserted when `Display Math` option is selected 
