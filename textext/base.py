@@ -850,7 +850,7 @@ class TexTextElement(inkex.Group):
         if ref_node.get_meta("pdfconverter", "pstoedit") == "pstoedit":
             revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
-        composition = scale_transform * old_transform * revert_flip
+        composition = scale_transform @ old_transform @ revert_flip
 
         # keep alignment point of drawing intact, calculate required shift
         self.transform = composition
@@ -866,7 +866,7 @@ class TexTextElement(inkex.Group):
         dx = p_old[0] - p_new[0]
         dy = p_old[1] - p_new[1]
 
-        composition = Transform(translate=(dx, dy)) * composition
+        composition = Transform(translate=(dx, dy)) @ composition
 
         self.transform = composition
         self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))
@@ -970,7 +970,7 @@ class TexTextElement(inkex.Group):
         This makes coloring in Inkscape easier later since all other elements are paths, too.
         The color can be set by selecting the fill color. Without this function one would
         need to pick horizontal lines manually and set their stroke color instead of the fill
-        color. Applies to \frac and \sqrt commands
+        color. Applies to frac and sqrt commands
         """
         for it in self.iter():
             if it.tag_name == "path":
