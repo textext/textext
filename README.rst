@@ -5,7 +5,8 @@ TexText - A TeX / typst extension for Inkscape
 
 TexText is a Python plugin for the vector graphics editor
 `Inkscape <http://www.inkscape.org/>`__ providing the possibility to add
-and re-edit LaTeX and `typst <https://typst.app/>`__ generated SVG elements to your drawing.
+and re-edit LaTeX and `typst <https://typst.app/>`__ generated SVG elements
+to your drawing (a installed LaTeX and/or typst distribution is required).
 
 .. figure:: docs/source/images/textext-with-inkscape.png
     :alt: TexText dialog with Inkscape
@@ -32,15 +33,17 @@ Download of the most recent version (and older ones): https://github.com/textext
 
 Compatibility chart:
 
-   +---------------------+-------------------------------------------------------------------+
-   | Inkscape            | TexText                                                           |
-   +=====================+===================================================================+
-   | 1.4.x, 1.3.x        | `>=1.9.0 <https://github.com/textext/textext/releases>`_          |
-   +---------------------+-------------------------------------------------------------------+
-   | 1.2.x, 1.1.x, 1.0.x | `1.8.2 <https://github.com/textext/textext/releases/tag/1.8.2>`_  |
-   +---------------------+-------------------------------------------------------------------+
-   | 0.92.x              |  `0.11 <https://github.com/textext/textext/releases/tag/0.11.0>`_ |
-   +---------------------+-------------------------------------------------------------------+
+   +---------------------+---------------------------------------------------------------------+
+   | Inkscape            | TexText                                                             |
+   +=====================+=====================================================================+
+   | 1.4.x               | `>=1.11.0 <https://github.com/textext/textext/releases>`_           |
+   +---------------------+---------------------------------------------------------------------+
+   | 1.3.x               | `1.10.2 <https://github.com/textext/textext/releases/tag/1.10.2>`_  |
+   +---------------------+---------------------------------------------------------------------+
+   | 1.2.x, 1.1.x, 1.0.x | `1.8.2 <https://github.com/textext/textext/releases/tag/1.8.2>`_    |
+   +---------------------+---------------------------------------------------------------------+
+   | 0.92.x              |  `0.11 <https://github.com/textext/textext/releases/tag/0.11.0>`_   |
+   +---------------------+---------------------------------------------------------------------+
 
 Documentation
 -------------

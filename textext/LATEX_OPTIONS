@@ -1,0 +1,11 @@
+# Options passed to the pdflatex/lualatex/xelatex compiler.
+# Do only edit this file if you know what you are doing!
+# Do only define one option per line.
+# At least the following two options need to be passed:
+# -interaction=nonstopmode
+# -halt-on-error
+# For example, you could add the option -shell-escape
+#
+
+-interaction=nonstopmode
+-halt-on-error

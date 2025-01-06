@@ -17,8 +17,10 @@ went into the development of the project.
 - Antonio Russo
 - Brian Clarke
 - dongguaguaguagua@github
+- Frank Skarman
 - Florent Becker
 - jocelynetienne@github
+- Jonas (the16thpythonist)
 - Markus Wallerberger
 - Michael Struwig
 - Noel Kuntze

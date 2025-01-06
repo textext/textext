@@ -2,7 +2,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-Copyright (c) 2006-2024 TexText developers.
+Copyright (c) 2006-2025 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
@@ -185,7 +185,7 @@ class TexText(inkex.EffectExtension):
         with logger.debug("TexText.effect"):
 
             # Find root element
-            old_svg_ele, text, preamble_file, current_scale, current_convert_strokes_to_path = self.get_old()
+            old_svg_ele, text, preamble_file, current_scale = self.get_old()
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
@@ -227,7 +227,10 @@ class TexText(inkex.EffectExtension):
 
                 if not preamble_file:
                     logger.debug("Using default preamble file `%s`" % self.options.preamble_file)
-                    preamble_file = self.options.preamble_file
+                    if current_tex_command != "typst":
+                        preamble_file = "default_packages.tex"
+                    else:
+                        preamble_file = "default_preamble_typst.typ"
                 else:
                     logger.debug("Using node preamble file")
                     # Check if preamble file exists at the specified absolute path location. If not, check to find
@@ -238,7 +241,11 @@ class TexText(inkex.EffectExtension):
                                                      os.path.basename(preamble_file))
                         if not os.path.exists(preamble_file):
                             logger.debug("Preamble file is NOT found along with default preamble file")
-                            preamble_file = self.options.preamble_file
+                            if current_tex_command != "typst":
+                                preamble_file = "default_packages.tex"
+                            else:
+                                preamble_file = "default_preamble_typst.typ"
+
                         else:
                             logger.debug("Preamble file is found along with default preamble file")
                     else:
@@ -250,17 +257,15 @@ class TexText(inkex.EffectExtension):
 
                 asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
                                        current_alignment=alignment, current_texcmd=current_tex_command,
-                                       current_convert_strokes_to_path=current_convert_strokes_to_path,
                                        tex_commands=sorted(list(
                                          self.requirements_checker.available_tex_to_pdf_converters.keys())),
                                        gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
-                                  tex_cmd=TexText.DEFAULT_TEXCMD, conv_stroke_to_path=False):
+                                  tex_cmd=TexText.DEFAULT_TEXCMD):
                     return self.do_convert(_text, _preamble, _scale, old_svg_ele,
                                            alignment,
                                            tex_command=tex_cmd,
-                                           convert_stroke_to_path=conv_stroke_to_path,
                                            original_scale=current_scale)
 
                 def preview_callback(_text, _preamble, _preview_callback, _tex_command, _white_bg):
@@ -291,7 +296,6 @@ class TexText(inkex.EffectExtension):
                                 old_svg_ele,
                                 self.options.alignment,
                                 self.options.tex_command,
-                                convert_stroke_to_path=False,
                                 original_scale=current_scale
                                 )
 
@@ -331,7 +335,7 @@ class TexText(inkex.EffectExtension):
                     image_setter(converter.tmp('png'))
 
     def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
-                   convert_stroke_to_path, original_scale=None):
+                   original_scale=None):
         """
         Does the conversion using the selected converter.
 
@@ -341,7 +345,6 @@ class TexText(inkex.EffectExtension):
         :param old_svg_ele:
         :param alignment:
         :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
-        :param convert_stroke_to_path: Determines if converter.stroke_to_path() is called
         :param original_scale Scale factor of old node
         """
         from inkex import Transform
@@ -370,9 +373,6 @@ class TexText(inkex.EffectExtension):
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                         converter.pdf_to_svg()
 
-                    if convert_stroke_to_path:
-                        converter.stroke_to_path()
-
                     tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
 
             # -- Store textext attributes
@@ -383,7 +383,6 @@ class TexText(inkex.EffectExtension):
             tt_node.set_meta("preamble", preamble_file)
             tt_node.set_meta("scale", str(user_scale_factor))
             tt_node.set_meta("alignment", str(alignment))
-            tt_node.set_meta("stroke-to-path", str(int(convert_stroke_to_path)))
             try:
                 inkscape_version = self.document.getroot().get('inkscape:version')
                 tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
@@ -466,7 +465,7 @@ class TexText(inkex.EffectExtension):
         Dig out LaTeX code and name of preamble file from old
         TexText-generated objects.
 
-        :return: (old_svg_ele, latex_text, preamble_file_name, scale, conv_stroke_to_path)
+        :return: (old_svg_ele, latex_text, preamble_file_name, scale)
         :rtype: (TexTextElement, str, str, float, bool)
         """
 
@@ -482,14 +481,13 @@ class TexText(inkex.EffectExtension):
                 text = node.get_meta_text()
                 preamble = node.get_meta('preamble')
                 scale = float(node.get_meta('scale', 1.0))
-                conv_stroke_to_path = bool(int(node.get_meta('stroke-to-path', 0)))
 
-                return node, text, preamble, scale, conv_stroke_to_path
+                return node, text, preamble, scale
 
             except (TypeError, AttributeError) as ignored:
                 pass
 
-        return None, "", "", None, False
+        return None, "", "", None
 
     def replace_node(self, old_node, new_node):
         """
@@ -527,6 +525,17 @@ class TexToPdfConverter:
     def __init__(self, checker):
         self.tmp_base = 'tmp'
         self.checker = checker  # type: requirements_check.TexTextRequirementsChecker
+        
+        # If a file with the name "LATEX_OPTIONS" exists in the textext plugin directory, we interpret each line 
+        # in that file not starting with "#" as a separate option to be passed to the latex command.
+        # This can be used to customize the latex command line options - if needed
+        # (for example when choosing to add the -shell-escape option)
+        self.latex_options_path = os.path.join(os.path.dirname(__file__), "LATEX_OPTIONS")
+        if os.path.exists(self.latex_options_path):
+            with open(self.latex_options_path, 'r') as f:
+                # Remove lines starting with "#" and empty lines
+                self.LATEX_OPTIONS = [option for option in
+                                      [s.strip() for s in f.read().splitlines()] if option and not option.startswith("#")]
 
     # --- Internal
     def tmp(self, suffix):
@@ -566,8 +575,16 @@ class TexToPdfConverter:
 
             # Exec tex_command: tex -> pdf
             try:
-                exec_command([tex_command, self.tmp('tex')] + self.LATEX_OPTIONS)
+                
+                # Previously, the LATEX_OPTIONS were appended to the end of the command. This causes issues 
+                # then the -shell-escape option is used. For some reason, it seems to only be recognized when 
+                # appearing before the input file. Therefore, there options are added in between the command 
+                # and the input file path here.
+                command = [tex_command, *self.LATEX_OPTIONS, self.tmp('tex')]
+                exec_command(command)
+                
             except TexTextCommandFailed as error:
+                
                 if os.path.exists(self.tmp('log')):
                     parsed_log = self.parse_pdf_log()
                     raise TexTextConversionError(parsed_log, error.return_code, error.stdout, error.stderr)
@@ -583,27 +600,16 @@ class TexToPdfConverter:
         """
 
         with logger.debug("Converting .typ to .{0}".format(file_type)):
-            # # Read preamble
-            # preamble_file = os.path.abspath(preamble_file)
-            # preamble = ""
-            #
-            # if os.path.isfile(preamble_file):
-            #     with open(preamble_file, 'r') as f:
-            #         preamble += f.read()
-            #
-            # # Add default document class to preamble if necessary
-            # if not _contains_document_class(preamble):
-            #     preamble = self.DEFAULT_DOCUMENT_CLASS + preamble
-            #
-            # # Options pass to LaTeX-related commands
-            #
-            # texwrapper = self.DOCUMENT_TEMPLATE % (preamble, latex_text)
+            # Read preamble
+            preamble = ""
+            preamble_file = os.path.abspath(preamble_file)
+            if os.path.isfile(preamble_file):
+                with open(preamble_file, 'r') as f:
+                    preamble += f.read()
 
-            # Convert Typ to PDF
-
-            # Write tex
+            # Write typ code
             with open(self.tmp('typ'), mode='w', encoding='utf-8') as f_typ:
-                f_typ.write(typst_text)
+                f_typ.write(f"{preamble}\n\n#set page(fill:none)\n\n{typst_text}")
 
             # Exec tex_command: tex -> pdf
             try:
@@ -625,22 +631,6 @@ class TexToPdfConverter:
         kwargs["export_area_drawing"] = True
 
         ixc.inkscape(self.tmp('pdf'), **kwargs)
-
-    def stroke_to_path(self):
-        """
-        Convert stroke elements to path elements for easier colorization and scaling in Inkscape
-
-        E.g. $\\overline x$ -> the line above x is converted from stroke to path
-        """
-        try:
-            kwargs = dict()
-            kwargs["with_gui"] = True
-            kwargs["batch_process"] = True
-            kwargs["actions"] = "EditSelectAll;StrokeToPath;export-filename:{0};export-do;EditUndo;FileClose".format(self.tmp('svg'))
-            ixc.inkscape(self.tmp('svg'), **kwargs)
-
-        except (TexTextCommandNotFound, TexTextCommandFailed):
-            pass
 
     def pdf_to_png(self, white_bg):
         """Convert the PDF file to a PNG file"""
@@ -717,6 +707,8 @@ class TexTextElement(inkex.Group):
             self.append(el)
 
         self.make_ids_unique()
+
+        self.pure_hlines_to_paths()
 
         # Ensure that snippet is correctly scaled according to the units of the document
         # We scale it here such that its size is correct in the document units
@@ -816,8 +808,6 @@ class TexTextElement(inkex.Group):
                 return default
             raise attr_error
 
-
-
     def align_to_node(self, ref_node, alignment, relative_scale):
         """
         Aligns the node represented by self to a reference node according to the settings defined by the user
@@ -835,7 +825,7 @@ class TexTextElement(inkex.Group):
         if ref_node.get_meta("pdfconverter", "pstoedit") == "pstoedit":
             revert_flip = Transform(matrix=((1, 0, 0), (0, -1, 0)))  # vertical reflection
 
-        composition = scale_transform * old_transform * revert_flip
+        composition = scale_transform @ old_transform @ revert_flip
 
         # keep alignment point of drawing intact, calculate required shift
         self.transform = composition
@@ -851,7 +841,7 @@ class TexTextElement(inkex.Group):
         dx = p_old[0] - p_new[0]
         dy = p_old[1] - p_new[1]
 
-        composition = Transform(translate=(dx, dy)) * composition
+        composition = Transform(translate=(dx, dy)) @ composition
 
         self.transform = composition
         self.set_meta("jacobian_sqrt", str(self.get_jacobian_sqrt()))
@@ -948,6 +938,38 @@ class TexTextElement(inkex.Group):
                 # Avoid unintentional bolded letters
                 if "stroke-width" not in it.style:
                     it.style["stroke-width"] = "0"
+
+    def pure_hlines_to_paths(self):
+        """ Transforms horizontal lines from strokes to paths
+
+        This makes coloring in Inkscape easier later since all other elements are paths, too.
+        The color can be set by selecting the fill color. Without this function one would
+        need to pick horizontal lines manually and set their stroke color instead of the fill
+        color. Applies to frac and sqrt commands
+        """
+        for it in self.iter():
+            if it.tag_name == "path":
+                # Horizontal lines are defined as "M 0,8.656723 H 5.6953123" or
+                # m 0,8.656723 h 5.6953123
+                match_obj = re.search(r"^([Mm])\s(\d+.?\d*),(\d+.?\d*)\s([Hh])\s(\d+.?\d*)$", it.attrib["d"])
+                if not match_obj:
+                    continue
+
+                # Take the stroke data (start position, draw line command, width and color)
+                m = match_obj.group(1)  # Move-command
+                x1 = float(match_obj.group(2))
+                y1 = float(match_obj.group(3))
+                h = match_obj.group(4)  # Draw line command
+                dh = float(match_obj.group(5))
+                sw = float(it.attrib["stroke-width"])
+                color = it.attrib["stroke"]
+
+                # Draw path, colorize it and remove all other attributes
+                it.attrib["d"] = f"{m} {x1},{y1 - 0.5 * sw} {h} {dh} v {sw} H {x1} Z"
+                it.attrib["fill"] = color
+                for key in it.attrib.keys():
+                    if key not in ["id", "d", "fill"]:
+                        del it.attrib[key]
 
     def set_none_strokes_to_0pt(self):
         """

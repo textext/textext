@@ -49,7 +49,7 @@ specific size then you have to do three things:
 
 .. code-block:: latex
 
-    \fontsize{14pt}{1em}{\selectfont This is my Text.}
+    {\fontsize{14pt}{1em}\selectfont This is my Text.}
 
 
 The resulting text should be of equal height as if has been typeset directly in Inkscape.
@@ -105,6 +105,24 @@ in your nodes you have two options:
    see :ref:`usage-preamble-file`.
 
 2. Use ``xelatex`` or ``lualatex`` as TeX command, see :ref:`usage-tex-compilers`.
+
+
+.. _faq-latex-command-options:
+
+Compiling LaTeX code with additional command line options (e.g. -shell-escape)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, your LaTeX code is compiled with the command line options
+``-interaction=nonstopmode`` and ``-halt-on-error``. If you would like
+to add addtional options like ``-shell-escape`` do the following:
+
+1. Navigate to the directory in which the TexText extension resides (Linux:
+   ``~./config/inkscape/extensions/textext``, Windows:
+   ``C:\Users\[Your Username]\AppData\Roaming\inkscape\extensions\textext``).
+
+2. Open and edit and the file ``LATEX_OPTIONS``. Add exactly one option per
+   line and make sure that the default options ``-interaction=nonstopmode``
+   and ``-halt-on-error`` are not deleted!.
 
 .. _faq-old-inkscape:
 

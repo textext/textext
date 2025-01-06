@@ -2,7 +2,7 @@
 This file is part of TexText, an extension for the vector
 illustration program Inkscape.
 
-Copyright (c) 2006-2024 TexText developers.
+Copyright (c) 2006-2025 TexText developers.
 
 TexText is released under the 3-Clause BSD license. See
 file LICENSE.txt or go to https://github.com/textext/textext
@@ -624,7 +624,7 @@ class TexTextRequirementsChecker(object):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
-    def find_inkscape_1_3(self):
+    def find_inkscape_1_4(self):
         try:
             # When we call this from Inkscape we need this call
             import inkex.command as iec
@@ -641,11 +641,11 @@ class TexTextRequirementsChecker(object):
         m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
         if m:
             found_version, major, minor = m.groups()
-            if int(major) >= 1 and int(minor) >= 3:
+            if int(major) >= 1 and int(minor) >= 4:
                 return RequirementCheckResult(True, ["inkscape=%s is found" % found_version], path=executable)
             else:
                 return RequirementCheckResult(False, [
-                    "inkscape>=1.3 is not found (but inkscape=%s is found)" % (found_version)])
+                    "inkscape>=1.4 is not found (but inkscape=%s is found)" % (found_version)])
         return RequirementCheckResult(None, ["Can't determinate inkscape version"])
         # import inkex.command as iec
         # stdout = iec.inkscape("", version=True)
@@ -734,7 +734,7 @@ class TexTextRequirementsChecker(object):
             return result
 
         textext_requirements = (
-            Requirement(self.find_inkscape_1_3)
+            Requirement(self.find_inkscape_1_4)
             .prepend_message("ANY", 'Detect inkscape >= 1.3')
             .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
