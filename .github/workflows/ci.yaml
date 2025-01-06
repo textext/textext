@@ -33,7 +33,7 @@ jobs:
         pip install lxml cssselect Pillow
     - name: Test installation script
       run: |
-        python test_installation_script.py 2> /dev/null
+        python test_installation_script.py
         python setup.py
         wget https://gitlab.com/inkscape/extensions/-/raw/master/inkex/tester/inkscape.extension.rng
     - name: Perfom unit-tests
