@@ -140,7 +140,7 @@ class AskText(object):
     CLOSE_SHORTCUT = ["Escape", "CtrlQ", "None"]
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
+                 current_texcmd, tex_commands, gui_config):
         self.TEX_COMMANDS = tex_commands
         if len(text) > 0:
             self.text = text
@@ -161,8 +161,6 @@ class AskText(object):
         else:
             self.current_texcmd = self.TEX_COMMANDS[0]
         self.using_tex = self.current_texcmd != "typst"
-
-        self.current_convert_strokes_to_path = current_convert_strokes_to_path
 
         self.preamble_file = preamble_file
 
@@ -234,9 +232,9 @@ class AskTextTK(AskText):
     """TK GUI for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
+                 current_texcmd, tex_commands, gui_config):
         super(AskTextTK, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                        current_alignment, current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config)
+                                        current_alignment, current_texcmd, tex_commands, gui_config)
         self._frame = None
         self._scale = None
         self._preamble = None
@@ -298,15 +296,6 @@ class AskTextTK(AskText):
         # Frame holding the advanced settings and the tex command
         box2 = Tk.Frame(self._frame, relief="flat")
         box2.pack(fill="x", pady=5, expand=True)
-
-        # Frame box for advanced settings
-        self._convert_strokes_to_path = Tk.BooleanVar()
-        self._convert_strokes_to_path.set(self.current_convert_strokes_to_path)
-        box = Tk.Frame(box2, relief="groove", borderwidth=2)
-        label = Tk.Label(box, text="SVG-output:")
-        label.pack(pady=2, padx=5, anchor="w")
-        Tk.Checkbutton(box, text="No strokes", variable=self._convert_strokes_to_path, onvalue=True, offvalue=False).pack(side="left", expand=False, anchor="w")
-        box.pack(side=Tk.RIGHT, fill="x", pady=5, expand=True)
 
         # Frame box for tex command
         self._tex_command_tk_str = Tk.StringVar()
@@ -433,11 +422,10 @@ class AskTextTK(AskText):
             return
         self.text = self._text_box.get(1.0, Tk.END)
         self.preamble_file = self._preamble.get()
-        self.current_convert_strokes_to_path = self._convert_strokes_to_path.get()
 
         try:
             self.callback(self.text, self.preamble_file, self.global_scale_factor, self._alignment_tk_str.get(),
-                          self._tex_command_tk_str.get(), self.current_convert_strokes_to_path)
+                          self._tex_command_tk_str.get())
         except Exception as error:
             self.show_error_dialog("TexText Error",
                               "Error occurred while converting text from Latex to SVG:",
@@ -530,10 +518,9 @@ class AskTextGTKSource(AskText):
     """GTK + Source Highlighting for editing TexText objects"""
 
     def __init__(self, version_str, text, preamble_file, global_scale_factor, current_scale_factor, current_alignment,
-                 current_texcmd, current_convert_strokes_to_path, tex_commands, gui_config):
+                 current_texcmd, tex_commands, gui_config):
         super(AskTextGTKSource, self).__init__(version_str, text, preamble_file, global_scale_factor, current_scale_factor,
-                                               current_alignment, current_texcmd, current_convert_strokes_to_path,
-                                               tex_commands, gui_config)
+                                               current_alignment, current_texcmd, tex_commands, gui_config)
         self._preview = None  # type: Gtk.Image
         self._pixbuf = None  # type: GdkPixbuf
         self.preview_representation = "SCALE"  # type: str
@@ -822,13 +809,10 @@ class AskTextGTKSource(AskText):
 
         self.global_scale_factor = self._scale_adj.get_value()
 
-        self.current_convert_strokes_to_path = self._conv_stroke2path.get_active()
-
         try:
             self.callback(self.text, self.preamble_file, self.global_scale_factor,
                           self.ALIGNMENT_LABELS[self._alignment_combobox.get_active()],
-                          self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower(),
-                          self.current_convert_strokes_to_path)
+                          self.TEX_COMMANDS[self._texcmd_cbox.get_active()].lower())
         except Exception as error:
             self.show_error_dialog("TexText Error",
                                    "Error occurred while converting text from Latex to SVG:",
@@ -1154,19 +1138,10 @@ class AskTextGTKSource(AskText):
 
         alignment_box.pack_start(self._alignment_combobox, True, True, 2)
 
-        # Advanced settings
-        adv_settings_frame = Gtk.Frame()
-        adv_settings_frame.set_label("SVG output")
-        self._conv_stroke2path = Gtk.CheckButton(label="No strokes")
-        self._conv_stroke2path.set_tooltip_text("Ensures that strokes (lines, e.g. in \\sqrt, \\frac) can be easily \ncolored in Inkscape (Time consuming compilation!)")
-        self._conv_stroke2path.set_active(self.current_convert_strokes_to_path)
-        adv_settings_frame.add(self._conv_stroke2path)
-
         # --- Scale, alignment and advanced settings together in one "line"
         scale_align_hbox = Gtk.HBox(homogeneous=False, spacing=0)
         scale_align_hbox.pack_start(scale_frame, False, False, 5)
         scale_align_hbox.pack_start(alignment_frame, True, True, 5)
-        scale_align_hbox.pack_start(adv_settings_frame, True, True, 5)
 
         # --- TeX code window ---
         # Scrolling Window with Source View inside

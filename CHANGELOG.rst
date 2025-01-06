@@ -1,5 +1,11 @@
-Version 1.11.0 (2024-01-03)
+Version 1.11.0 (2024-01-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed (the most annoying issue!):
+  Horizontal lines as they appear in \frac or \sqrt commands cannot be
+  colorized by setting the fill color. If they have been manually colored
+  by setting the stroke color the lines disappear after re-compilation.
+- New: removed the Stroke to Path option, it is not necessary anymore due to
+       the fix mentioned above.
 - New: typst preamble and preview support
 - New: It is possible to change the command line options for the LaTeX compilers (useful e.g. to incorporate
        the -shell-escape option). See
