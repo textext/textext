@@ -733,6 +733,8 @@ class TexTextElement(inkex.Group):
 
         self.make_ids_unique()
 
+        self.pure_hlines_to_paths()
+
         # Ensure that snippet is correctly scaled according to the units of the document
         # We scale it here such that its size is correct in the document units
         # (Usually pt returned from poppler to mm in the main document)
@@ -830,8 +832,6 @@ class TexTextElement(inkex.Group):
             if default is not None:
                 return default
             raise attr_error
-
-
 
     def align_to_node(self, ref_node, alignment, relative_scale):
         """
@@ -963,6 +963,38 @@ class TexTextElement(inkex.Group):
                 # Avoid unintentional bolded letters
                 if "stroke-width" not in it.style:
                     it.style["stroke-width"] = "0"
+
+    def pure_hlines_to_paths(self):
+        """ Transforms horizontal lines from strokes to paths
+
+        This makes coloring in Inkscape easier later since all other elements are paths, too.
+        The color can be set by selecting the fill color. Without this function one would
+        need to pick horizontal lines manually and set their stroke color instead of the fill
+        color. Applies to \frac and \sqrt commands
+        """
+        for it in self.iter():
+            if it.tag_name == "path":
+                # Horizontal lines are defined as "M 0,8.656723 H 5.6953123" or
+                # m 0,8.656723 h 5.6953123
+                match_obj = re.search(r"^([Mm])\s(\d+.?\d*),(\d+.?\d*)\s([Hh])\s(\d+.?\d*)$", it.attrib["d"])
+                if not match_obj:
+                    continue
+
+                # Take the stroke data (start position, draw line command, width and color)
+                m = match_obj.group(1)  # Move-command
+                x1 = float(match_obj.group(2))
+                y1 = float(match_obj.group(3))
+                h = match_obj.group(4)  # Draw line command
+                dh = float(match_obj.group(5))
+                sw = float(it.attrib["stroke-width"])
+                color = it.attrib["stroke"]
+
+                # Draw path, colorize it and remove all other attributes
+                it.attrib["d"] = f"{m} {x1},{y1 - 0.5 * sw} {h} {dh} v {sw} H {x1} Z"
+                it.attrib["fill"] = color
+                for key in it.attrib.keys():
+                    if key not in ["id", "d", "fill"]:
+                        del it.attrib[key]
 
     def set_none_strokes_to_0pt(self):
         """
