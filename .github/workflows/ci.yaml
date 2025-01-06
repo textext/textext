@@ -35,9 +35,10 @@ jobs:
       run: |
         python test_installation_script.py
         python setup.py
-        wget https://gitlab.com/inkscape/extensions/-/raw/master/inkex/tester/inkscape.extension.rng
     - name: Perfom unit-tests
       run: |
         export PYTHONPATH="`inkscape --system-data-directory`/extensions:$HOME/.config/inkscape/extensions/"
         python -m pytest --verbose -s pytests
-        xmllint --noout --relaxng inkscape.extension.rng textext/textext.inx
+        # Deactivate this test since the rng file misses the show-stderr option
+        # wget https://gitlab.com/inkscape/extensions/-/raw/master/inkex/tester/inkscape.extension.rng
+        # xmllint --noout --relaxng inkscape.extension.rng textext/textext.inx
