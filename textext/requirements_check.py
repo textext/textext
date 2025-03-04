@@ -624,19 +624,35 @@ class TexTextRequirementsChecker(object):
 
         return RequirementCheckResult(True, ["TkInter is found"])
 
+    def _find_inkscape_without_inkex(self):
+        """
+        Returns either (stdout_line, executable) or None
+        If the first is returned, stdout_line is the output of
+        inkscape --version and executable is the path to inkscape
+        """
+        try:
+            executable = self.find_executable('inkscape')['path']
+            stdout, stderr = defaults.call_command([executable, "--version"])
+            stdout_line = stdout.decode("utf-8", 'ignore')
+            return stdout_line, executable
+        except (KeyError, OSError):
+            return None
+
     def find_inkscape_1_4(self):
         try:
-            # When we call this from Inkscape we need this call
             import inkex.command as iec
-            stdout_line = iec.inkscape("", version=True)
-            executable = iec.which("inkscape")
         except ImportError:
+            result = self._find_inkscape_without_inkex()
+        else:
             try:
-                executable = self.find_executable('inkscape')['path']
-                stdout, stderr = defaults.call_command([executable, "--version"])
-                stdout_line = stdout.decode("utf-8", 'ignore')
-            except (KeyError, OSError):
-                return RequirementCheckResult(False, ["inkscape is not found"])
+                result = iec.inkscape("", version=True), iec.which("inkscape")
+            except iec.CommandNotFound:
+                result = None
+
+        if result is None:
+            return RequirementCheckResult(False, ["inkscape is not found"])
+        else:
+            stdout_line, executable = result
 
         m = re.search(r"Inkscape ((\d+)\.(\d+)[-\w]*)", stdout_line)
         if m:
