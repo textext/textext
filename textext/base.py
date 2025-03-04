@@ -334,6 +334,100 @@ class TexText(inkex.EffectExtension):
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
+    def _do_convert_one(self, text: str, preamble_file, user_scale_factor, alignment, tex_command):
+        """
+        Does the conversion using the selected converter.
+        See documentation in do_convert for more details.
+        """
+        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+
+        with logger.debug("Converting tex to svg"):
+            with ChangeToTemporaryDirectory():
+                converter = TexToPdfConverter(self.requirements_checker)
+                if tex_command == "typst":
+                    converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
+                else:
+                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    converter.pdf_to_svg()
+
+                tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
+
+        # -- Store textext attributes
+        tt_node.set_meta("version", __version__)
+        tt_node.set_meta("texconverter", tex_command)
+        tt_node.set_meta("pdfconverter", 'inkscape')
+        tt_node.set_meta_text(text)
+        tt_node.set_meta("preamble", preamble_file)
+        tt_node.set_meta("scale", str(user_scale_factor))
+        tt_node.set_meta("alignment", str(alignment))
+        try:
+            inkscape_version = self.document.getroot().get('inkscape:version')
+            tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
+        except AttributeError as ignored:
+            # Unfortunately when this node comes from an Inkscape document that has never been saved before
+            # no version attribute is provided by Inkscape :-(
+            pass
+
+        return tt_node
+
+    def _add_new_node(self, tt_node, user_scale_factor):
+        from inkex import Transform
+
+        with logger.debug("Adding new node to document"):
+            # Place new nodes in the view center and scale them according to user request
+            node_center = tt_node.bounding_box().center
+            view_center = self.svg.namedview.center
+
+            # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
+            # not in doc units! Hence, we need to convert the value to the document unit.
+            # so the transform is correct later.
+            if hasattr(inkex, "__version__"):
+                if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
+                    view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
+                    view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
+
+            # Collect all layers incl. the current layers such that the top layer
+            # is the first one in the list
+            layers = []
+            parent_layer = self.svg.get_current_layer()
+            while parent_layer is not None:
+                layers.insert(0, parent_layer)
+                parent_layer = parent_layer.getparent()
+
+            # Compute the transform mapping the view coordinate system onto the
+            # current layer
+            full_layer_transform = Transform()
+            for layer in layers:
+                full_layer_transform @= layer.transform
+
+            # Place the node in the center of the view. Here we need to be aware of
+            # transforms in the layers, hence the inverse layer transformation
+            tt_node.transform = (-full_layer_transform @               # map to view coordinate system
+                                 Transform(translate=view_center) @    # place at view center
+                                 Transform(scale=user_scale_factor) @  # scale
+                                 Transform(translate=-node_center) @   # place node at origin
+                                 tt_node.transform                     # use original node transform
+                                 )
+
+            tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
+
+            tt_node.set_none_strokes_to_0pt()
+
+            self.svg.get_current_layer().add(tt_node)
+
+    def _replace_node(self, old_svg_ele, tt_node, user_scale_factor, alignment, original_scale):
+        with logger.debug("Replacing node in document"):
+            # Rescale existing nodes according to user request
+            relative_scale = user_scale_factor / original_scale
+            tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
+
+            # If no non-black color has been explicitily set by TeX we copy the color information
+            # from the old node so that coloring done in Inkscape is preserved.
+            if not tt_node.is_colorized():
+                tt_node.import_group_color_style(old_svg_ele)
+
+            self.replace_node(old_svg_ele, tt_node)
+
     def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
                    original_scale=None):
         """
@@ -347,10 +441,6 @@ class TexText(inkex.EffectExtension):
         :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
         :param original_scale Scale factor of old node
         """
-        from inkex import Transform
-
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
-
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
@@ -363,89 +453,13 @@ class TexText(inkex.EffectExtension):
             if isinstance(text, bytes):
                 text = text.decode('utf-8')
 
-            # Convert
-            with logger.debug("Converting tex to svg"):
-                with ChangeToTemporaryDirectory():
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    if tex_command == "typst":
-                        converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
-                    else:
-                        converter.tex_to_pdf(tex_executable, text, preamble_file)
-                        converter.pdf_to_svg()
-
-                    tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
-
-            # -- Store textext attributes
-            tt_node.set_meta("version", __version__)
-            tt_node.set_meta("texconverter", tex_command)
-            tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta_text(text)
-            tt_node.set_meta("preamble", preamble_file)
-            tt_node.set_meta("scale", str(user_scale_factor))
-            tt_node.set_meta("alignment", str(alignment))
-            try:
-                inkscape_version = self.document.getroot().get('inkscape:version')
-                tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
-            except AttributeError as ignored:
-                # Unfortunately when this node comes from an Inkscape document that has never been saved before
-                # no version attribute is provided by Inkscape :-(
-                pass
+            tt_node = self._do_convert_one(text, preamble_file, user_scale_factor, alignment, tex_command)
 
             # Place new node in document
             if old_svg_ele is None:
-                with logger.debug("Adding new node to document"):
-                    # Place new nodes in the view center and scale them according to user request
-                    node_center = tt_node.bounding_box().center
-                    view_center = self.svg.namedview.center
-
-                    # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
-                    # not in doc units! Hence, we need to convert the value to the document unit.
-                    # so the transform is correct later.
-                    if hasattr(inkex, "__version__"):
-                        if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
-                            view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
-                            view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
-
-                    # Collect all layers incl. the current layers such that the top layer
-                    # is the first one in the list
-                    layers = []
-                    parent_layer = self.svg.get_current_layer()
-                    while parent_layer is not None:
-                        layers.insert(0, parent_layer)
-                        parent_layer = parent_layer.getparent()
-
-                    # Compute the transform mapping the view coordinate system onto the
-                    # current layer
-                    full_layer_transform = Transform()
-                    for layer in layers:
-                        full_layer_transform @= layer.transform
-
-                    # Place the node in the center of the view. Here we need to be aware of
-                    # transforms in the layers, hence the inverse layer transformation
-                    tt_node.transform = (-full_layer_transform @               # map to view coordinate system
-                                         Transform(translate=view_center) @    # place at view center
-                                         Transform(scale=user_scale_factor) @  # scale
-                                         Transform(translate=-node_center) @   # place node at origin
-                                         tt_node.transform                     # use original node transform
-                                         )
-
-                    tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
-
-                    tt_node.set_none_strokes_to_0pt()
-
-                    self.svg.get_current_layer().add(tt_node)
+                self._add_new_node(tt_node, user_scale_factor)
             else:
-                with logger.debug("Replacing node in document"):
-                    # Rescale existing nodes according to user request
-                    relative_scale = user_scale_factor / original_scale
-                    tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
-
-                    # If no non-black color has been explicitily set by TeX we copy the color information
-                    # from the old node so that coloring done in Inkscape is preserved.
-                    if not tt_node.is_colorized():
-                        tt_node.import_group_color_style(old_svg_ele)
-
-                    self.replace_node(old_svg_ele, tt_node)
+                self._replace_node(old_svg_ele, tt_node, user_scale_factor, alignment, original_scale)
 
             with logger.debug("Saving global settings"):
                 # -- Save settings
@@ -491,7 +505,9 @@ class TexText(inkex.EffectExtension):
 
     def replace_node(self, old_node, new_node):
         """
-        Replace an XML node old_node with new_node
+        Replace an XML node old_node with new_node.
+        This is only ever called from _replace_node. The parent is responsible
+        for positioning the node correctly.
         """
         parent = old_node.getparent()
         old_id = old_node.get_id()
