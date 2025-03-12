@@ -1,4 +1,10 @@
-Version 1.11.0 (2024-01-06)
+Version 1.x.y (2025-xx-yy)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: The error dialog additionally presents a traceback of the error
+- Fixed: Setup crashes when symbolic links are used in the user's extension
+         folder.
+
+Version 1.11.0 (2025-01-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed (the most annoying issue!):
   Horizontal lines as they appear in \frac or \sqrt commands cannot be
