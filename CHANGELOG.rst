@@ -1,8 +1,10 @@
-Version 1.x.y (2025-xx-yy)
+Version 1.11.1 (2025-03-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: The error dialog additionally presents a traceback of the error
+       (thanks to user202729)
 - Fixed: Setup crashes when symbolic links are used in the user's extension
-         folder.
+         folder (thanks to user202729).
+- Fixed: Setup crashes when Inkscape extension command subsystem fails
 
 Version 1.11.0 (2025-01-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

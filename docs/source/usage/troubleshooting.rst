@@ -209,6 +209,9 @@ information under ``stderr`` , click on the ``+`` left to this label:
 In that case follow the information given in the window (in the example given here:
 open the pdflatex.log in the AppData path).
 
+Additionally, you have the possibility to display the full Python code traceback. This
+may help to locate more tricky errors in the Python code of the extension.
+
 .. note::
 
    The ``stderr`` option is only available when errors have been piped by the
@@ -220,11 +223,17 @@ Bugs in |TexText|
 ~~~~~~~~~~~~~~~~~
 
 Of course, |TexText| may contain bugs which may crash the plugin. If this happens
-an Inkscape error dialog is opened that will show something like this:
+information about the error can be either found in the TexText error dialog
+
+.. figure:: ../images/textext-error-dialog-traceback.png
+    :scale: 50 %
+    :alt: TexText error dialog after failed execution
+
+or (hopefully) in an Inkscape error dialog that will show something like this:
 
 .. figure:: ../images/textext-error-dialog-python-error-1.png
     :scale: 50 %
-    :alt: Error dialog after failed execution
+    :alt: Inkscape error dialog after failed execution
 
 Note the advice at the end of the text view: You should run the extension again.
 Then, a logging mechanism is started which writes its result into the Inkscape
