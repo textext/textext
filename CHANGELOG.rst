@@ -1,5 +1,5 @@
 Version 1.11.1 (2025-03-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: The error dialog additionally presents a traceback of the error
        (thanks to user202729)
 - Fixed: Setup crashes when symbolic links are used in the user's extension
