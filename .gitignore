@@ -7,5 +7,5 @@ assets/
 .idea/
 textext/.cache.json
 textext/config.json
-docs/build/*
+docs/build/**
 .DS_Store
