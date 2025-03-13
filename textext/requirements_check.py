@@ -733,6 +733,8 @@ class TexTextRequirementsChecker(object):
                 ]
             return result
 
+        self.logger.info(f"Python interpreter: {sys.executable}")
+
         textext_requirements = (
             Requirement(self.find_inkscape_1_4)
             .prepend_message("ANY", 'Detect inkscape >= 1.4')
