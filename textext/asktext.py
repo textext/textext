@@ -38,6 +38,7 @@ TOOLKIT = None
 import os
 import sys
 import warnings
+import traceback
 from .errors import TexTextCommandFailed
 from textext.utility import SuppressStream
 
@@ -509,6 +510,8 @@ class AskTextTK(AskText):
 
             if exception.stderr:
                 add_textview('Stderr:', exception.stderr.decode('utf-8'))
+
+        add_textview('Traceback:', '\n'.join(traceback.format_exception(exception)))
 
         close_button = Tk.Button(err_dialog, text='OK', command=close_error_dialog)
         close_button.pack(side='top', fill='x', expand=True)
@@ -1392,6 +1395,9 @@ class AskTextGTKSource(AskText):
                 add_section("Stdout: <small><i>(click to expand)</i></small>", exception.stdout.decode('utf-8'))
             if exception.stderr:
                 add_section("Stderr: <small><i>(click to expand)</i></small>", exception.stderr.decode('utf-8'))
+
+        add_section("Traceback: <small><i>(click to expand)</i></small>", '\n'.join(traceback.format_exception(exception)))
+
         dialog.show_all()
         dialog.run()
 

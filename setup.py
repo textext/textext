@@ -210,7 +210,7 @@ def remove_previous_installation(extension_dir):
     ]
     for file_or_dir in previous_installation_files_and_folders:
         file_or_dir = os.path.abspath(os.path.join(extension_dir, file_or_dir))
-        if os.path.isfile(file_or_dir):
+        if os.path.isfile(file_or_dir) or os.path.islink(file_or_dir):
             logger.info("Removing `%s`" % file_or_dir)
             os.remove(file_or_dir)
         elif os.path.isdir(file_or_dir):
@@ -481,10 +481,13 @@ if __name__ == "__main__":
                            rel_filenames=files_to_keep,
                            tmp_dir=tmp_dir
                            ):
+            source_path = os.path.dirname(os.path.abspath(__file__))
+            if os.path.dirname(source_path) == args.inkscape_extensions_path:
+                logger.error("Can't install extension from itself")
+                exit(EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE)
             remove_previous_installation(args.inkscape_extensions_path)
-
             copy_extension_files(
-                src=os.path.join(os.path.dirname(os.path.abspath(__file__)), "textext"),
+                src=os.path.join(source_path, "textext"),
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )

@@ -630,7 +630,7 @@ class TexTextRequirementsChecker(object):
             import inkex.command as iec
             stdout_line = iec.inkscape("", version=True)
             executable = iec.which("inkscape")
-        except ImportError:
+        except (ImportError, IOError):
             try:
                 executable = self.find_executable('inkscape')['path']
                 stdout, stderr = defaults.call_command([executable, "--version"])
@@ -733,9 +733,11 @@ class TexTextRequirementsChecker(object):
                 ]
             return result
 
+        self.logger.info(f"Python interpreter: {sys.executable}")
+
         textext_requirements = (
             Requirement(self.find_inkscape_1_4)
-            .prepend_message("ANY", 'Detect inkscape >= 1.3')
+            .prepend_message("ANY", 'Detect inkscape >= 1.4')
             .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & (

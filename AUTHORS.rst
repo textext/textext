@@ -32,3 +32,4 @@ went into the development of the project.
 - veltsov@github
 - Vladislav Gavryusev
 - xuestrange@github
+- user202729@github

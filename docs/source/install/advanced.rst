@@ -52,7 +52,7 @@ options to adapt the installation process to your system configuration:
 
 --skip-requirements-check
     Bypass minimal requirements check. |TexText| will be installed even if
-    the requirements for running it are not meat.
+    the requirements for running it are not met.
 
 --skip-extension-install
     Don't install extension (just check the requirements).
