@@ -735,7 +735,7 @@ class TexTextRequirementsChecker(object):
 
         textext_requirements = (
             Requirement(self.find_inkscape_1_4)
-            .prepend_message("ANY", 'Detect inkscape >= 1.3')
+            .prepend_message("ANY", 'Detect inkscape >= 1.4')
             .append_message("ERROR", help_message_with_url("preparation","inkscape"))
             .on_success(lambda result: set_inkscape(result["path"]))
             & (
