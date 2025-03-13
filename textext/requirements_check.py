@@ -630,7 +630,7 @@ class TexTextRequirementsChecker(object):
             import inkex.command as iec
             stdout_line = iec.inkscape("", version=True)
             executable = iec.which("inkscape")
-        except ImportError:
+        except (ImportError, IOError):
             try:
                 executable = self.find_executable('inkscape')['path']
                 stdout, stderr = defaults.call_command([executable, "--version"])
