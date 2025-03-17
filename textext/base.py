@@ -744,32 +744,10 @@ class TexTextElement(inkex.Group):
     def make_ids_unique(self):
         """
         PDF->SVG converters tend to use same ids.
-        To avoid confusion between objects with same id from two or more TexText objects we replace auto-generated
-        ids with random unique values
+        To avoid confusion between objects with same id from two or more TexText objects we replace
+        auto-generated ids from the converter with random unique values
         """
-        rename_map = {}
-
-        # replace all ids with unique random uuid
-        for el in self.iterfind('.//*[@id]'):
-            old_id = el.attrib["id"]
-            new_id = 'id-' + str(uuid.uuid4())
-            el.attrib["id"] = new_id
-            rename_map[old_id] = new_id
-
-        # find usages of old ids and replace them
-        def replace_old_id(m):
-            old_name = m.group(1)
-            try:
-                replacement = rename_map[old_name]
-            except KeyError:
-                replacement = old_name
-            return "url(#{})".format(replacement)
-        regex = re.compile(r"url\(#([^)(]*)\)")
-
-        for el in self.iter():
-            for name, value in el.items():
-                new_value = regex.sub(replace_old_id, value)
-                el.attrib[name] = new_value
+        self.set_random_ids(prefix=None, levels=-1, backlinks=True)
 
     def get_jacobian_sqrt(self):
         from inkex import Transform
