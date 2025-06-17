@@ -66,6 +66,7 @@ Key features
     usage/gui
     usage/faq
     usage/troubleshooting
+    usage/command_line_usage
 
 
 .. toctree::

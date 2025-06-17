@@ -21,8 +21,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TexText'
-copyright = '2023, TexText developers'
-author = 'Alexander Blinne, Antonio Russo, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev'
+copyright = '2025, TexText developers'
+author = ('Alexander Blinne, Antonio Russo, Brian Clarke, dongguaguaguagua@github, Frank Skarman, Florent Becker, '
+           'Jan Winkler, jocelynetienne@github, Jonas (the16thpythonist), Markus Wallerberger, Michael Struwig, '
+           'Noel Kuntze, Patrick Kappl, Pit Garbe, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, '
+           'user202729@github, veltsov@github, Vladislav Gavryusev, xuestrange@github')
 
 # The full version, including alpha/beta/rc tags
 release = open("../../textext/VERSION").readline().strip()
@@ -139,8 +142,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'TexText.tex', 'TexText Documentation',
-     'Alexander Blinne, Brian Clarke, Florent Becker, Jan Winkler, Pit Garbe, Pauli Virtanen, Robert Szalai, Rafal Kolanski, Sergei Izmailov, Toru Araki, @veltsov, Vladislav Gavryusev', 'manual'),
+    (master_doc, 'TexText.tex', 'TexText Documentation', author,
+     'manual'),
 ]
 
 
