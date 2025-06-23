@@ -287,7 +287,7 @@ class TexText(inkex.EffectExtension):
                 if toolkit == "tk":
                     AskTextImpl = load_asktext_tk()
                 elif toolkit == "gtk":
-                    use_gtk_source = gui_config.get("use_gtk_source", True)
+                    use_gtk_source = gui_config.get("use_gtk_source", None)
                     AskTextImpl = load_asktext_gtk(use_gtk_source=use_gtk_source)
                 elif toolkit is None:
                     try:
