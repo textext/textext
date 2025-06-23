@@ -212,7 +212,12 @@ class TexText(inkex.EffectExtension):
                 return
 
             # Find root element
-            old_svg_ele, text, preamble_file, current_scale = self.get_old()
+            try:
+                old_svg_ele, text, preamble_file, current_scale = self.get_old()
+                error_thrown_by_get_old = None
+            except RuntimeError as e:
+                old_svg_ele, text, preamble_file, current_scale = None, "", "", None
+                error_thrown_by_get_old = e
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
@@ -288,6 +293,11 @@ class TexText(inkex.EffectExtension):
                                          self.requirements_checker.available_tex_to_pdf_converters.keys())),
                                        gui_config=gui_config)
 
+                if error_thrown_by_get_old:
+                    asker.show_error_dialog("TexText Error", "Error with user selection",
+                                            error_thrown_by_get_old)
+                    raise error_thrown_by_get_old
+
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD):
                     return self.do_convert(_text, _preamble, _scale, old_svg_ele,
@@ -313,6 +323,8 @@ class TexText(inkex.EffectExtension):
             else:
                 # In case TT has been called with --text="" the old node is
                 # just re-compiled if one exists
+                if error_thrown_by_get_old:
+                    raise error_thrown_by_get_old
                 if self.options.text == "" and text is not None:
                     new_text = text
                 else:
@@ -518,18 +530,17 @@ class TexText(inkex.EffectExtension):
         :rtype: (TexTextElement, str, str, float, bool)
         """
 
+        layer = self.svg.get_current_layer()
+        if any(TexTextElement.to_textext_node(a) for a in [layer, *layer.iterancestors()]):
+            raise RuntimeError("an internal TexText node's group is entered. Press Ctrl+Backspace (possibly multiple times) to leave group")
+
         for node in self.svg.selected.values():
-
-            # TexText node must be a group
-            if node.tag_name != 'g':
+            if not TexTextElement.to_textext_node(node):
+                if any(TexTextElement.to_textext_node(a) for a in node.iterancestors()):
+                    raise RuntimeError("an internal TexText node is selected. Press Ctrl+Backspace (possibly multiple times) to leave group")
+                node = node.getparent()
                 continue
-
-            node.__class__ = TexTextElement
-
-            try:
-                return node, *node.get_all_info()
-            except (TypeError, AttributeError) as ignored:
-                pass
+            return node, *node.get_all_info()
 
         return None, "", "", None
 
@@ -737,6 +748,26 @@ class TexTextElement(inkex.Group):
         """
         super(TexTextElement, self).__init__()
         self._svg_to_textext_node(svg_filename, document_unit)
+
+    @staticmethod
+    def to_textext_node(node):
+        """
+        Mutate node.__class__ to TexTextElement if it is detected
+        to be a TexText node.
+
+        :return: whether the node is detected as a TexText node
+        :rtype: bool
+        """
+        if node.tag_name != TexTextElement.tag_name:
+            return False
+        c = node.__class__
+        try:
+            node.__class__ = TexTextElement
+            _ = node.get_all_info()
+            return True
+        except (TypeError, AttributeError):
+            node.__class__ = c
+            return False
 
     def _svg_to_textext_node(self, svg_filename, document_unit):
         from inkex import ShapeElement, Defs, SvgDocumentElement
