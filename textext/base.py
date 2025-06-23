@@ -203,8 +203,6 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .asktext import AskTextDefault
-
         with logger.debug("TexText.effect"):
 
             if self.options.recompile_all_entries:
@@ -282,11 +280,31 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                       current_alignment=alignment, current_texcmd=current_tex_command,
-                                       tex_commands=sorted(list(
-                                         self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                       gui_config=gui_config)
+                from .asktext import load_asktext_tk, load_asktext_gtk
+                toolkit = gui_config.get("toolkit", None)
+                if toolkit == "tk":
+                    AskTextImpl = load_asktext_tk()
+                elif toolkit == "gtk":
+                    use_gtk_source = gui_config.get("use_gtk_source", True)
+                    AskTextImpl = load_asktext_gtk(use_gtk_source=use_gtk_source)
+                elif toolkit is None:
+                    try:
+                        AskTextImpl = load_asktext_gtk()
+                    except (ImportError, TypeError, ValueError):
+                        try:
+                            AskTextImpl = load_asktext_tk()
+                        except ImportError:
+                            raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
+                                               "bindings for the graphical user interface of TexText is installed! Refer to the "
+                                               "installation instructions on https://textext.github.io/textext/ !")
+                else:
+                    raise RuntimeError(f"Unknown toolkit {repr(toolkit)}. Must be one of 'tk', 'gtk' or None.")
+
+                asker = AskTextImpl(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                    current_alignment=alignment, current_texcmd=current_tex_command,
+                                    tex_commands=sorted(list(
+                                      self.requirements_checker.available_tex_to_pdf_converters.keys())),
+                                    gui_config=gui_config)
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD):
