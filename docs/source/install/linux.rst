@@ -125,16 +125,23 @@ For ArchLinux based systems with pacman as package manager
 
    .. code-block:: bash
 
-        pacman -S inkscape
+        sudo pacman -S inkscape
 
 2. Due to a packaging error (as of Oct 25th 2024, see `this issue <https://gitlab.archlinux.org/archlinux/packaging/packages/inkscape/-/issues/6>`_)
    also install the following Python package:
 
    .. code-block:: bash
 
-        pacman -S python-tinycss2
+        sudo pacman -S python-tinycss2
 
-3. Make sure you have a basic LaTeX system on your machine. At least the packages
+3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
+   enabled in the |TexText|-Gui install GTKSourceView:
+
+   .. code-block:: bash
+
+        sudo pacman -S gtksourceview3
+
+4. Make sure you have a basic LaTeX system on your machine. At least the packages
    :bash:`texlive-latex`, :bash:`texlive-latexrecommended`, :bash:`texlive-latexextra`
    are required. If not, install them:
 
@@ -142,13 +149,13 @@ For ArchLinux based systems with pacman as package manager
 
         pacman -S texlive-latex texlive-latexrecommended texlive-latexextra
 
-4. Download the most recent |TexText| package from the
+5. Download the most recent |TexText| package from the
    :textext_current_release_page:`release`
    (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`).
 
-5. Extract the package and change into the created directory.
+6. Extract the package and change into the created directory.
 
-6. Run :bash:`setup.py` from your terminal:
+7. Run :bash:`setup.py` from your terminal:
 
    .. code-block:: bash
 
