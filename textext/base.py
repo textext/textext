@@ -552,12 +552,16 @@ class TexText(inkex.EffectExtension):
 
         layer = self.svg.get_current_layer()
         if any(TexTextElement.to_textext_node(a) for a in [layer, *layer.iterancestors()]):
-            raise RuntimeError("an internal TexText node's group is entered. Press Ctrl+Backspace (possibly multiple times) to leave group")
+            raise RuntimeError("A subgroup of a TexText object is selected. Please close this message, press "
+                               "CTRL + BACKSPACE (possibly multiple times) until the complete TexText object "
+                               "is selected. Then, run TexText again.")
 
         for node in self.svg.selected.values():
             if not TexTextElement.to_textext_node(node):
                 if any(TexTextElement.to_textext_node(a) for a in node.iterancestors()):
-                    raise RuntimeError("an internal TexText node is selected. Press Ctrl+Backspace (possibly multiple times) to leave group")
+                    raise RuntimeError("A subgroup of a TexText object is selected. Please close this message, press "
+                                       "CTRL + BACKSPACE (possibly multiple times) until the complete TexText object "
+                                       "is selected. Then, run TexText again.")
                 node = node.getparent()
                 continue
             return node, *node.get_all_info()
