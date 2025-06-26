@@ -1331,7 +1331,7 @@ def load_asktext_gtk(use_gtk_source=None):
 
         def show_error_dialog(self, title, message_text, exception):
 
-            dialog = Gtk.Dialog(title, self._window)
+            dialog = Gtk.Dialog(title=title, transient_for=self._window)
             dialog.set_default_size(450, 300)
             button = dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.CLOSE)
             button.connect("clicked", lambda w, d=None: dialog.destroy())
