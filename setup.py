@@ -283,6 +283,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--use-tk",
+        default=False,
+        action='store_true',
+        help="Use the Tk Interface (tkinter) for the user interface instead of the GTK3 UI"
+    )
+
+    parser.add_argument(
         "--skip-extension-install",
         default=False,
         action='store_true',
@@ -498,6 +505,16 @@ if __name__ == "__main__":
                 dst=args.inkscape_extensions_path,
                 if_already_exists="overwrite"
             )
+
+        if args.use_tk:
+            logger.info("Force usage of Tk Interface (tkinter), setting 'gui_toolkit' to 'tk'")
+            settings["gui"]["toolkit"] = "tk"
+        else:
+            try:
+                del(settings["gui"]["toolkit"])
+            except (KeyError, TypeError) as _:
+                pass
+
         settings.save()
 
     logger.log(SUCCESS, "--> TexText has been SUCCESSFULLY installed on your system <--")
