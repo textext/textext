@@ -24,7 +24,7 @@ from textext.requirements_check import \
     set_logging_levels, \
     TexTextRequirementsChecker, \
     defaults, \
-    LoggingColors, \
+    TexTextLogFormatter, \
     SUCCESS
 
 from textext.utility import Settings, Cache
@@ -60,10 +60,7 @@ def query_yes_no(question, default="yes"):
         prompt = " [y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
-    if sys.version_info[0] > 2:
-        read_input = input
-    else:
-        read_input = raw_input
+    read_input = input
     while True:
         sys.stdout.write(question + prompt)
         choice = read_input().lower()
@@ -108,9 +105,9 @@ class StashFiles(object):
             dst = os.path.join(self.tmp_dir, old_name)
             if os.path.isfile(src):
                 if not os.path.isdir(os.path.dirname(dst)):
-                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    logger.debug("Creating directory `%s`" % os.path.dirname(dst) )
                     os.makedirs(os.path.dirname(dst))
-                logger.info("Stashing `%s`" % dst)
+                logger.debug("Stashing `%s`" % dst)
                 shutil.copy2(src, dst)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -119,9 +116,9 @@ class StashFiles(object):
             dst = os.path.join(self.unstash_to, new_name)
             if os.path.isfile(src):
                 if not os.path.isdir(os.path.dirname(dst)):
-                    logger.info("Creating directory `%s`" % os.path.dirname(dst) )
+                    logger.debug("Creating directory `%s`" % os.path.dirname(dst) )
                     os.makedirs(os.path.dirname(dst))
-                logger.info("Restoring old `%s` -> `%s`" % (old_name, dst))
+                logger.debug("Restoring old `%s` -> `%s`" % (old_name, dst))
                 shutil.copy2(src, dst)
 
 
@@ -159,7 +156,7 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
             logger.critical("Can't copy files to `%s`: it's not a directory")
             raise CopyFileOverDirectoryError("Can't copy files to `%s`: it's not a directory")
     else:
-        logger.info("Creating directory `%s`" % dst)
+        logger.debug("Creating directory `%s`" % dst)
         os.makedirs(dst)
 
     for file in glob.glob(src):
@@ -174,17 +171,17 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
                 logger.critical("Can't copy `%s`: `%s` already exists" % (file, destination))
                 raise CopyFileAlreadyExistsError("Can't copy `%s`: `%s` already exists" % (file, destination))
             elif if_already_exists == "skip":
-                logger.info("Skipping `%s`" % file)
+                logger.debug("Skipping `%s`" % file)
                 continue
             elif if_already_exists == "overwrite":
-                logger.info("Overwriting `%s`" % destination)
+                logger.debug("Overwriting `%s`" % destination)
                 pass
 
         if os.path.isfile(file):
-            logger.info("Copying `%s` to `%s`" % (file, destination))
+            logger.debug(f"Copying '{file}' to '{destination}'")
             shutil.copy(file, destination)
         else:
-            logger.info("Creating directory `%s`" % destination)
+            logger.debug("Creating directory '{destination}'")
 
             if os.path.exists(destination):
                 if not os.path.isdir(destination):
@@ -199,10 +196,10 @@ def copy_extension_files(src, dst, if_already_exists="raise"):
 
 def remove_previous_installation(extension_dir):
     previous_installation_files_and_folders = [
-        "asktext.py",
+        "textext",                  # <- Whole textext directory (more recent versions of TexText)
+        "asktext.py",               # <- Files directly in the extension directory (old versions of TexText)
         "default_packages.tex",
         "latexlogparser.py",
-        "textext",
         "textext.inx",
         "textext.py",
         "typesetter.py",
@@ -211,10 +208,10 @@ def remove_previous_installation(extension_dir):
     for file_or_dir in previous_installation_files_and_folders:
         file_or_dir = os.path.abspath(os.path.join(extension_dir, file_or_dir))
         if os.path.isfile(file_or_dir) or os.path.islink(file_or_dir):
-            logger.info("Removing `%s`" % file_or_dir)
+            logger.debug("Removing `%s`" % file_or_dir)
             os.remove(file_or_dir)
         elif os.path.isdir(file_or_dir):
-            logger.info("Removing `%s`" % file_or_dir)
+            logger.debug("Removing `%s`" % file_or_dir)
             shutil.rmtree(file_or_dir)
         else:
             logger.debug("`%s` is not found" % file_or_dir)
@@ -231,7 +228,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--inkscape-extensions-path",
-        default=defaults.inkscape_user_extensions_path,
+        default=None,
         type=str,
         help="Path to inkscape extensions directory"
     )
@@ -296,7 +293,8 @@ if __name__ == "__main__":
         "--keep-previous-installation-files",
         default=None,
         action='store_true',
-        help="Keep/discard files from previous installation, suppress prompt"
+        help="Keep files from previous installation which maybe modified by the user "
+             "(e.g. preamble files) without prompting the user"
     )
 
     parser.add_argument(
@@ -313,33 +311,50 @@ if __name__ == "__main__":
         help="Enables/disable console colors"
     )
 
+    parser.add_argument(
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="Print additional messages during setup"
+    )
+
+    # Files which maybe modified by the user and which, be default, should
+    # be kept upon user request
     files_to_keep = {  # old_name : new_name
         "default_packages.tex": "textext/default_packages.tex",  # old layout
-        "textext/default_packages.tex": "textext/default_packages.tex"
+        "textext/default_packages.tex": "textext/default_packages.tex",
+        "textext/default_preamble_typst.typ": "textext/default_preamble_typst.typ"
     }
 
     args = parser.parse_args()
 
+    if args.inkscape_extensions_path is None:
+        args.inkscape_extensions_path = defaults.inkscape_user_extensions_path
+
     if args.color == "always":
-        LoggingColors.enable_colors = True
+        TexTextLogFormatter.enable_colors = True
     elif args.color == "never":
-        LoggingColors.enable_colors = False
+        TexTextLogFormatter.enable_colors = False
 
     set_logging_levels()
     logger = logging.getLogger('TexText')
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(name)s][%(levelname)6s]: %(message)s')
-    ch.setFormatter(formatter)
+    ch.setLevel(logging.INFO if not args.verbose else logging.DEBUG)
+    ch_formatter = TexTextLogFormatter("%(message)s")
+    ch.setFormatter(ch_formatter)
     logger.addHandler(ch)
 
     # Explicit path spec since on Windows working directory must be the python.exe directory
     # which is usually read-only for standard users
-    fh = logging.FileHandler(os.path.join(os.path.dirname(__file__), "textextsetup.log"))
-    fh.setLevel(ch.level)
-    fh.setFormatter(formatter)
+    fh = logging.FileHandler(os.path.join(os.path.dirname(__file__), "textextsetup.log"), mode="w")
+    fh.setLevel(logging.DEBUG)
+    fh_formatter = logging.Formatter("[%(name)s][%(levelname)6s]: %(message)s")
+    fh.setFormatter(fh_formatter)
     logger.addHandler(fh)
+
+    logger.info("Installing TexText with the following arguments:")
+    logger.info("".join(f"{key}: {value}, " for key, value in vars(args).items())[:-2])
 
     # Address special Portable Apps directory structure
     if args.portable_apps_dir:
@@ -362,13 +377,7 @@ if __name__ == "__main__":
 
     checker = TexTextRequirementsChecker(logger, settings)
 
-    for executable_name in [
-                                "inkscape",
-                                "lualatex",
-                                "pdflatex",
-                                "xelatex",
-                                "typst",
-                            ]:
+    for executable_name in ["inkscape", "lualatex", "pdflatex", "xelatex", "typst"]:
         executable_path = getattr(args, "%s_executable" % executable_name)
         if executable_path is not None:
             if not checker.check_executable(executable_path):
@@ -382,16 +391,12 @@ if __name__ == "__main__":
     if not args.skip_requirements_check:
 
         check_result = checker.check()
-        if check_result == None:
-            logger.error("Automatic requirements check is incomplete")
-            logger.error("Please check requirements list manually and run:")
-            logger.error(" ".join(sys.argv + ["--skip-requirements-check"]))
-            exit(EXIT_REQUIREMENT_CHECK_UNKNOWN)
-
-        if check_result == False:
+        if not check_result:
             logger.error("Automatic requirements check found issue")
             logger.error("Follow instruction above and run install script again")
-            logger.error("To bypass requirement check pass `--skip-requirements-check` to setup.py")
+            logger.error("--> To bypass requirement check and force installation of TexText")
+            logger.error("--> pass the `--skip-requirements-check` option to setup.py:")
+            logger.error("--> setup.py --skip-requirements-check")
             exit(EXIT_REQUIREMENT_CHECK_FAILED)
 
     if not args.skip_extension_install:
@@ -441,6 +446,7 @@ if __name__ == "__main__":
             args.inkscape_extensions_path = os.path.expanduser(args.inkscape_extensions_path)
 
         if args.keep_previous_installation_files is None:
+            logger.debug("Checking for previous installation files which have been modified by the user")
             found_files_to_keep = {}
             for old_filename, new_filename in files_to_keep.items():
                 if not os.path.isfile(os.path.join(args.inkscape_extensions_path, old_filename)):
@@ -448,7 +454,7 @@ if __name__ == "__main__":
                 else:
                     logger.debug("%s found" % old_filename)
                     if not os.path.isfile(os.path.join("extension", new_filename)):
-                        logger.info("`%s` is not found in distribution, keep old file" % new_filename)
+                        logger.debug("`%s` is not found in distribution, keep old file" % new_filename)
                         found_files_to_keep[old_filename] = new_filename
                         continue
                     with open(os.path.join(args.inkscape_extensions_path, old_filename)) as f_old, \
@@ -465,7 +471,7 @@ if __name__ == "__main__":
                 file_s = "file" if len(found_files_to_keep) == 1 else "files"
                 for old_filename, new_filename in found_files_to_keep.items():
                     if os.path.isfile(os.path.join("extension", new_filename)):
-                        logger.warn("Existing `%s` differs from newer version in distribution" % old_filename)
+                        logger.warning("Existing `%s` differs from newer version in distribution" % old_filename)
                         if query_yes_no("Keep `%s` from previous installation?" % old_filename):
                             files_to_keep[old_filename] = new_filename
 
@@ -481,6 +487,7 @@ if __name__ == "__main__":
                            rel_filenames=files_to_keep,
                            tmp_dir=tmp_dir
                            ):
+            logger.info(f"Starting installation of TexText into {args.inkscape_extensions_path}...")
             source_path = os.path.dirname(os.path.abspath(__file__))
             if os.path.dirname(source_path) == args.inkscape_extensions_path:
                 logger.error("Can't install extension from itself")
