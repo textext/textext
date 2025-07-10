@@ -38,6 +38,13 @@ options to adapt the installation process to your system configuration:
 --typst-executable TYPST_EXECUTABLE
     Full path to typst executable.
 
+--use-tk
+    Use the Tk Interface (tkinter) for the user interface instead of the GTK3 UI.
+    This might be useful in cases where the GTK3 installation is broken, i.e.
+    when loading of the framework works but execution errors occur. In that case
+    TexText will not fall back to tkinter automatically. Hence, this switch can
+    be used to bypass the GTK3 framework.
+
 --portable-apps-dir INSTALLATION_DIRECTORY_OF_PORTABLEAPPS
     Windows only: If you use Inkscape from PortableApps use this parameter
     to specifiy the directory into which PortableApps has been installed, e.g.
@@ -58,7 +65,8 @@ options to adapt the installation process to your system configuration:
     Don't install extension (just check the requirements).
 
 --keep-previous-installation-files
-    Keep/discard files from previous installation, suppress prompt.
+    Keep files from previous installation which might have been modified
+    by the user (e.g. preamble files) without prompting the user
 
 --all-users
     Install globally for all users (sudo/ admin privileges required)
@@ -71,3 +79,6 @@ options to adapt the installation process to your system configuration:
 
 --color always, --color never
     Enables/disable console colors.
+
+--verbose
+    Print additional messages during setup
