@@ -220,7 +220,6 @@ def remove_previous_installation(extension_dir):
 if __name__ == "__main__":
 
     EXIT_SUCCESS = 0
-    EXIT_REQUIREMENT_CHECK_UNKNOWN = 64
     EXIT_REQUIREMENT_CHECK_FAILED = 65
     EXIT_BAD_COMMAND_LINE_ARGUMENT_VALUE = 2
 

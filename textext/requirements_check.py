@@ -369,6 +369,8 @@ class TexTextRequirementsChecker(object):
         if m:
             try:
                 found_version, major, minor, release = m.groups()
+                if not release:
+                    release = "9999999"
             except ValueError as _:
                 found_version, major, minor = m.groups()
                 release = "9999999"
@@ -473,9 +475,9 @@ class TexTextRequirementsChecker(object):
                 self.logger.info(f"      option: setup.py --typst-executable path/to/your/typst")
             else:
                 self.logger.error(f"   ...{self.typst_prog_name} not found, and no LaTeX compilers are available.")
-                self.logger.error(f"   At least one LaTeX compiler or typst must be available for TexText to work.")
+                self.logger.error(f"At least one LaTeX compiler or typst must be available for TexText to work.")
         else:
-            self.logger.info(f"   ...{self.typst_prog_name} is found at{compiler_exe_path}.")
+            self.logger.log(SUCCESS, f"   ...{self.typst_prog_name} is found at{compiler_exe_path}.")
             typst_compiler_found = True
             add_latex(self.typst_prog_name, compiler_exe_path)
 
