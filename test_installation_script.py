@@ -47,9 +47,8 @@ class FakeExecutablesMaker(object):
         command_name = os.path.join(self.dirname, name)
         with open(command_name, "w") as fout:
             fout.write("#!%s\n" % sys.executable)
-            fout.write("from __future__ import print_function\n")
             fout.write("import sys\n")
-            fout.write("print(%s, file=sys.%s)" % (repr(output), channel))
+            fout.write(f"print({repr(output)}, file=sys.{channel})")
         os.chmod(command_name, 0o755)
 
 
@@ -71,14 +70,17 @@ def test_configuration(fake_commands, expected_exit_code):
 
 
 REQUIREMENT_CHECK_SUCCESS = 0
-REQUIREMENT_CHECK_UNKNOWN = 64
 REQUIREMENT_CHECK_ERROR = 65
 
 good_configurations = []
 
-# Definition of working combinations of Inkscape and LaTeX
-for latex in [("pdflatex",), ("lualatex",), ("xelatex",)]:
+# Definition of working combinations of Inkscape (without release number) and LaTeX
+for latex in [("pdflatex",), ("lualatex",), ("xelatex",), ("typst",)]:
     good_configurations.append([("inkscape", "Inkscape 1.4 (1:1.4+202410161351+e7c3feb100)"), latex])
+
+# Definition of working combinations of Inkscape (with release number) and LaTeX
+for latex in [("pdflatex",), ("lualatex",), ("xelatex",), ("typst",)]:
+    good_configurations.append([("inkscape", "Inkscape 1.4.2 (1:1.4.2+202505120737+ebf0e940d0)"), latex])
 
 # Test: Installation of working combinations must succeed
 for good_configuration in good_configurations:
@@ -98,6 +100,11 @@ test_configuration([
     ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
 ], REQUIREMENT_CHECK_ERROR)
 
+# Test wrong Inkscape version and no pdflatex installed
+test_configuration([
+    ("inkscape", "Inkscape 1.3.2 (1:1.4+202410161351+e7c3feb100)"),
+], REQUIREMENT_CHECK_ERROR)
+
 # Test wrong Inkscape version and pdflatex installed
 test_configuration([
     ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
@@ -109,7 +116,7 @@ test_configuration([
 test_configuration([
     ("inkscape",),
     ("pdflatex",),
-], REQUIREMENT_CHECK_UNKNOWN)
+], REQUIREMENT_CHECK_ERROR)
 
 # Test: Nothing is installed -> Installation must fail
 test_configuration([
