@@ -1,9 +1,29 @@
+Version 1.12.0 (2025-07-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- New: setup command line option `--use-tk` to force the usage of tkinter
+  as UI. Alongside, the configuration file option `gui.toolkit` has been
+  introduced. It allows the selection of the GUI toolkit to use in order to
+  override the automatic detection. Possible values are `tk` or `gtk`.
+  Additionally, `gui.use_gtk_source` can be used to turn GTKSourceView on or
+  off, if the GTK toolkit is used.
+- New: If a subgroup of a TexText object has been selected a warning message
+  will be displayed (previously an empty dialog opened prompting for
+  new input).
+- New: Command line option `--recompile-all`: All TexText obejcts will
+  be re-compiled (useful if preamble has been changed).
+- New: Added a section for command line usage of TexText to the documentation.
+  Useful for debugging and CI tests.
+- Fixed: Re-edited TexText objects are placed in the foreground even if they
+  were in the background before re-editing them (:issue:`467`)
+- Fixed: After re-editing TexText objects only subgroups of the object are
+  selected after TexText closes (:issue:`460`)
+
 Version 1.11.1 (2025-03-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: The error dialog additionally presents a traceback of the error
-       (thanks to user202729)
+  (thanks to user202729)
 - Fixed: Setup crashes when symbolic links are used in the user's extension
-         folder (thanks to user202729).
+  folder (thanks to user202729).
 - Fixed: Setup crashes when Inkscape extension command subsystem fails
 
 Version 1.11.0 (2025-01-06)
@@ -13,12 +33,12 @@ Version 1.11.0 (2025-01-06)
   colorized by setting the fill color. If they have been manually colored
   by setting the stroke color the lines disappear after re-compilation.
 - New: removed the Stroke to Path option, it is not necessary anymore due to
-       the fix mentioned above.
+  the fix mentioned above.
 - New: typst preamble and preview support
 - New: It is possible to change the command line options for the LaTeX compilers (useful e.g. to incorporate
-       the -shell-escape option). See
-       `this FAQ entry <https://textext.github.io/textext/usage/faq.html#compiling-latex-code-with-additional-command-line-options-e-g-shell-escape>`__
-       in the documentation
+  the -shell-escape option). See
+  `this FAQ entry <https://textext.github.io/textext/usage/faq.html#compiling-latex-code-with-additional-command-line-options-e-g-shell-escape>`__
+  in the documentation
 - Fixed: typst snippets contain a large empty background frame
 - Fixed: TexText fails silently if unhandled errors occur.
 
