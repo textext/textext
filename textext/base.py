@@ -173,7 +173,7 @@ class TexText(inkex.EffectExtension):
         )
 
         self.arg_parser.add_argument(
-            "--recompile-all-entries",
+            "--recompile-all",
             action="store_true"
         )
 
@@ -183,13 +183,13 @@ class TexText(inkex.EffectExtension):
             default=self.DEFAULT_TEXCMD
         )
 
-    def _recompile_all_entries(self):
+    def _recompile_all(self):
         """
         Mutate ``self.svg`` to recompile all textext entries.
         This can be invoked from command-line as::
 
-            python3 /path/to/textext/__main__.py --recompile-all-entries        > edited.svg < original.svg
-            python3 /path/to/textext/__main__.py --recompile-all-entries --output edited.svg < original.svg
+            python3 /path/to/textext/__main__.py --recompile-all        > edited.svg < original.svg
+            python3 /path/to/textext/__main__.py --recompile-all --output edited.svg < original.svg
 
         In the first form ``edited.svg`` must not be the same as ``original.svg``,
         in the second form it is probably fine (although do make a backup).
@@ -205,8 +205,8 @@ class TexText(inkex.EffectExtension):
         """Perform the effect: create/modify TexText objects"""
         with logger.debug("TexText.effect"):
 
-            if self.options.recompile_all_entries:
-                self._recompile_all_entries()
+            if self.options.recompile_all:
+                self._recompile_all()
                 return
 
             # Find root element
