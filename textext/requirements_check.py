@@ -73,6 +73,13 @@ class Defaults(object):
     @abstractmethod
     def call_command(command, return_code=0): pass
 
+    @property
+    @abstractmethod
+    def example_path(self): pass
+
+    @property
+    @abstractmethod
+    def setup_script(self): pass
 
 class LinuxDefaults(Defaults):
     os_name = "linux"
@@ -107,6 +114,13 @@ class LinuxDefaults(Defaults):
             raise subprocess.CalledProcessError(p.returncode,command)
         return stdout, stderr
 
+    @property
+    def example_path(self):
+        return "/path/to/your/"
+
+    @property
+    def setup_script(self):
+        return "python3 setup.py"
 
 class MacDefaults(LinuxDefaults):
     os_name = "macos"
@@ -133,6 +147,14 @@ class MacDefaults(LinuxDefaults):
     @property
     def textext_logfile_path(self):
         return os.path.expanduser("~/Library/Preferences/textext")
+
+    @property
+    def example_path(self):
+        return "/path/to/your/"
+
+    @property
+    def setup_script(self):
+        return "python3 setup.py"
 
 
 class WindowsDefaults(Defaults):
@@ -199,6 +221,14 @@ class WindowsDefaults(Defaults):
             raise subprocess.CalledProcessError(p.returncode, "{0}, stderr: {1}".format(command, stderr),
                                                 output=stdout, stderr=stderr)
         return stdout, stderr
+
+    @property
+    def example_path(self):
+        return "C:\\Path\\To\\Your\\"
+
+    @property
+    def setup_script(self):
+        return "setup_win.bat"
 
 
 class TexTextLogFormatter(logging.Formatter):
@@ -361,7 +391,7 @@ class TexTextRequirementsChecker(object):
                 self.logger.error(f"   ...Inkscape (as {executable}) is not found!")
                 self.logger.info(f"      Ensure that Inkscape is in the system path or pass the path to")
                 self.logger.info(f"      the setup via the --inkscape-executable command line option:")
-                self.logger.info(f"      setup.py --inkscape-executable path/to/your/inkscape")
+                self.logger.info(f"      {defaults.setup_script} --inkscape-executable {defaults.example_path}inkscape")
 
                 return False
 
@@ -456,9 +486,9 @@ class TexTextRequirementsChecker(object):
                 self.logger.info(f"      be available. If you want to use {latex_compiler_name}: Ensure that the")
                 self.logger.info(f"      {latex_compiler_name} executable is in the system path or pass the path to")
                 self.logger.info(f"      the setup via the --{latex_compiler_name}-executable command line option:")
-                self.logger.info(f"      setup.py --{latex_compiler_name}-executable path/to/your/{latex_compiler_name}")
+                self.logger.info(f"      {defaults.setup_script} --{latex_compiler_name}-executable {defaults.example_path}{latex_compiler_name}")
             else:
-                self.logger.log(SUCCESS, f"   ...{latex_compiler_name} is found at{compiler_exe_path}.")
+                self.logger.log(SUCCESS, f"   ...{latex_compiler_name} is found at {compiler_exe_path}.")
                 latex_compilers_found = True
                 add_latex(latex_compiler_name, compiler_exe_path)
 
@@ -472,12 +502,12 @@ class TexTextRequirementsChecker(object):
                 self.logger.warning(f"   ...{self.typst_prog_name} not found, but latex compilers are available.")
                 self.logger.info(f"      If you want to use typst: Ensure that the  typst executable is in the system")
                 self.logger.info(f"      path or pass the path to the setup via the --typst-executable command line")
-                self.logger.info(f"      option: setup.py --typst-executable path/to/your/typst")
+                self.logger.info(f"      option: {defaults.setup_script} --typst-executable {defaults.example_path}typst")
             else:
                 self.logger.error(f"   ...{self.typst_prog_name} not found, and no LaTeX compilers are available.")
                 self.logger.error(f"At least one LaTeX compiler or typst must be available for TexText to work.")
         else:
-            self.logger.log(SUCCESS, f"   ...{self.typst_prog_name} is found at{compiler_exe_path}.")
+            self.logger.log(SUCCESS, f"   ...{self.typst_prog_name} is found at {compiler_exe_path}.")
             typst_compiler_found = True
             add_latex(self.typst_prog_name, compiler_exe_path)
 
