@@ -433,4 +433,5 @@ to configure the code editor:
 Further reading
 ---------------
 
-See :ref:`faq`, :ref:`troubleshooting`, and :ref:`commandlineusage`
+See :ref:`faq`, :ref:`troubleshooting`, :ref:`commandlineusage`,
+and :ref:`configuration` for more information.
