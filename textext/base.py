@@ -173,19 +173,49 @@ class TexText(inkex.EffectExtension):
         )
 
         self.arg_parser.add_argument(
+            "--recompile-all",
+            action="store_true"
+        )
+
+        self.arg_parser.add_argument(
             "--tex_command",
             type=str,
             default=self.DEFAULT_TEXCMD
         )
 
+    def _recompile_all(self):
+        """
+        Mutate ``self.svg`` to recompile all textext entries.
+        This can be invoked from command-line as::
+
+            python3 /path/to/textext/__main__.py --recompile-all        > edited.svg < original.svg
+            python3 /path/to/textext/__main__.py --recompile-all --output edited.svg < original.svg
+
+        In the first form ``edited.svg`` must not be the same as ``original.svg``,
+        in the second form it is probably fine (although do make a backup).
+        """
+        for node in self.find_all_textext_nodes(self.svg):
+            node.__class__ = TexTextElement
+            text, preamble_file, scale = node.get_all_info()
+            alignment = node.get_meta_alignment()
+            new_node = self._do_convert_one(text, preamble_file, scale, alignment, self.options.tex_command)
+            self._replace_node(node, new_node, scale, alignment, scale)
+
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
-        from .asktext import AskTextDefault
-
         with logger.debug("TexText.effect"):
 
+            if self.options.recompile_all:
+                self._recompile_all()
+                return
+
             # Find root element
-            old_svg_ele, text, preamble_file, current_scale = self.get_old()
+            try:
+                old_svg_ele, text, preamble_file, current_scale = self.get_old()
+                error_thrown_by_get_old = None
+            except RuntimeError as e:
+                old_svg_ele, text, preamble_file, current_scale = None, "", "", None
+                error_thrown_by_get_old = e
 
             alignment = TexText.DEFAULT_ALIGNMENT
 
@@ -215,7 +245,7 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Adjust scale factor to account transformations in inkscape")
                     current_scale *= old_svg_ele.get_jacobian_sqrt() / jac_sqrt
 
-                alignment = old_svg_ele.get_meta("alignment", TexText.DEFAULT_ALIGNMENT)
+                alignment = old_svg_ele.get_meta_alignment()
 
                 current_tex_command = old_svg_ele.get_meta("texconverter", current_tex_command)
 
@@ -255,11 +285,38 @@ class TexText(inkex.EffectExtension):
                     logger.debug("Preamble file is not found")
                     preamble_file = ""
 
-                asker = AskTextDefault(__version__, text, preamble_file, global_scale_factor, current_scale,
-                                       current_alignment=alignment, current_texcmd=current_tex_command,
-                                       tex_commands=sorted(list(
-                                         self.requirements_checker.available_tex_to_pdf_converters.keys())),
-                                       gui_config=gui_config)
+                from .asktext import load_asktext_tk, load_asktext_gtk
+                toolkit = gui_config.get("toolkit", None)
+                if "use_gtk_source" in gui_config and toolkit != "gtk":
+                    raise RuntimeError("invalid config, use_gtk_source cannot be specified when toolkit != gtk")
+                if toolkit == "tk":
+                    AskTextImpl = load_asktext_tk()
+                elif toolkit == "gtk":
+                    use_gtk_source = gui_config.get("use_gtk_source", None)
+                    AskTextImpl = load_asktext_gtk(use_gtk_source=use_gtk_source)
+                elif toolkit is None:
+                    try:
+                        AskTextImpl = load_asktext_gtk()
+                    except (ImportError, TypeError, ValueError):
+                        try:
+                            AskTextImpl = load_asktext_tk()
+                        except ImportError:
+                            raise RuntimeError("\nNeither GTK nor TKinter is available!\nMake sure that at least one of these "
+                                               "bindings for the graphical user interface of TexText is installed! Refer to the "
+                                               "installation instructions on https://textext.github.io/textext/ !")
+                else:
+                    raise RuntimeError(f"Unknown toolkit {repr(toolkit)}. Must be one of 'tk', 'gtk' or None.")
+
+                asker = AskTextImpl(__version__, text, preamble_file, global_scale_factor, current_scale,
+                                    current_alignment=alignment, current_texcmd=current_tex_command,
+                                    tex_commands=sorted(list(
+                                      self.requirements_checker.available_tex_to_pdf_converters.keys())),
+                                    gui_config=gui_config)
+
+                if error_thrown_by_get_old:
+                    asker.show_error_dialog("TexText Error", "Error with user selection",
+                                            error_thrown_by_get_old)
+                    raise error_thrown_by_get_old
 
                 def save_callback(_text, _preamble, _scale, alignment=TexText.DEFAULT_ALIGNMENT,
                                   tex_cmd=TexText.DEFAULT_TEXCMD):
@@ -286,6 +343,8 @@ class TexText(inkex.EffectExtension):
             else:
                 # In case TT has been called with --text="" the old node is
                 # just re-compiled if one exists
+                if error_thrown_by_get_old:
+                    raise error_thrown_by_get_old
                 if self.options.text == "" and text is not None:
                     new_text = text
                 else:
@@ -298,6 +357,14 @@ class TexText(inkex.EffectExtension):
                                 self.options.tex_command,
                                 original_scale=current_scale
                                 )
+
+    @staticmethod
+    def find_all_textext_nodes(svg):
+        # svg: has the same type as self.svg
+        return svg.xpath(
+                './/svg:g[@textext:text]',
+                namespaces={'svg': SVG_NS, 'textext': TEXTEXT_NS})
+
 
     def preview_convert(self, text, preamble_file, image_setter, tex_command, white_bg):
         """
@@ -334,6 +401,100 @@ class TexText(inkex.EffectExtension):
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
+    def _do_convert_one(self, text: str, preamble_file, user_scale_factor, alignment, tex_command):
+        """
+        Does the conversion using the selected converter.
+        See documentation in do_convert for more details.
+        """
+        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
+
+        with logger.debug("Converting tex to svg"):
+            with ChangeToTemporaryDirectory():
+                converter = TexToPdfConverter(self.requirements_checker)
+                if tex_command == "typst":
+                    converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
+                else:
+                    converter.tex_to_pdf(tex_executable, text, preamble_file)
+                    converter.pdf_to_svg()
+
+                tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
+
+        # -- Store textext attributes
+        tt_node.set_meta("version", __version__)
+        tt_node.set_meta("texconverter", tex_command)
+        tt_node.set_meta("pdfconverter", 'inkscape')
+        tt_node.set_meta_text(text)
+        tt_node.set_meta("preamble", preamble_file)
+        tt_node.set_meta("scale", str(user_scale_factor))
+        tt_node.set_meta("alignment", str(alignment))
+        try:
+            inkscape_version = self.document.getroot().get('inkscape:version')
+            tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
+        except AttributeError as ignored:
+            # Unfortunately when this node comes from an Inkscape document that has never been saved before
+            # no version attribute is provided by Inkscape :-(
+            pass
+
+        return tt_node
+
+    def _add_new_node(self, tt_node, user_scale_factor):
+        from inkex import Transform
+
+        with logger.debug("Adding new node to document"):
+            # Place new nodes in the view center and scale them according to user request
+            node_center = tt_node.bounding_box().center
+            view_center = self.svg.namedview.center
+
+            # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
+            # not in doc units! Hence, we need to convert the value to the document unit.
+            # so the transform is correct later.
+            if hasattr(inkex, "__version__"):
+                if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
+                    view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
+                    view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
+
+            # Collect all layers incl. the current layers such that the top layer
+            # is the first one in the list
+            layers = []
+            parent_layer = self.svg.get_current_layer()
+            while parent_layer is not None:
+                layers.insert(0, parent_layer)
+                parent_layer = parent_layer.getparent()
+
+            # Compute the transform mapping the view coordinate system onto the
+            # current layer
+            full_layer_transform = Transform()
+            for layer in layers:
+                full_layer_transform @= layer.transform
+
+            # Place the node in the center of the view. Here we need to be aware of
+            # transforms in the layers, hence the inverse layer transformation
+            tt_node.transform = (-full_layer_transform @               # map to view coordinate system
+                                 Transform(translate=view_center) @    # place at view center
+                                 Transform(scale=user_scale_factor) @  # scale
+                                 Transform(translate=-node_center) @   # place node at origin
+                                 tt_node.transform                     # use original node transform
+                                 )
+
+            tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
+
+            tt_node.set_none_strokes_to_0pt()
+
+            self.svg.get_current_layer().add(tt_node)
+
+    def _replace_node(self, old_svg_ele, tt_node, user_scale_factor, alignment, original_scale):
+        with logger.debug("Replacing node in document"):
+            # Rescale existing nodes according to user request
+            relative_scale = user_scale_factor / original_scale
+            tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
+
+            # If no non-black color has been explicitily set by TeX we copy the color information
+            # from the old node so that coloring done in Inkscape is preserved.
+            if not tt_node.is_colorized():
+                tt_node.import_group_color_style(old_svg_ele)
+
+            self.replace_node(old_svg_ele, tt_node)
+
     def do_convert(self, text, preamble_file, user_scale_factor, old_svg_ele, alignment, tex_command,
                    original_scale=None):
         """
@@ -347,10 +508,6 @@ class TexText(inkex.EffectExtension):
         :param tex_command: The tex command to be used for tex -> pdf ("pdflatex", "xelatex", "lualatex")
         :param original_scale Scale factor of old node
         """
-        from inkex import Transform
-
-        tex_executable = self.requirements_checker.available_tex_to_pdf_converters[tex_command]
-
         with logger.debug("TexText.do_convert"):
             with logger.debug("args:"):
                 for k, v in list(locals().items()):
@@ -363,89 +520,13 @@ class TexText(inkex.EffectExtension):
             if isinstance(text, bytes):
                 text = text.decode('utf-8')
 
-            # Convert
-            with logger.debug("Converting tex to svg"):
-                with ChangeToTemporaryDirectory():
-                    converter = TexToPdfConverter(self.requirements_checker)
-                    if tex_command == "typst":
-                        converter.typ_to_any(tex_executable, text, preamble_file, 'svg')
-                    else:
-                        converter.tex_to_pdf(tex_executable, text, preamble_file)
-                        converter.pdf_to_svg()
-
-                    tt_node = TexTextElement(converter.tmp("svg"), self.svg.unit)
-
-            # -- Store textext attributes
-            tt_node.set_meta("version", __version__)
-            tt_node.set_meta("texconverter", tex_command)
-            tt_node.set_meta("pdfconverter", 'inkscape')
-            tt_node.set_meta_text(text)
-            tt_node.set_meta("preamble", preamble_file)
-            tt_node.set_meta("scale", str(user_scale_factor))
-            tt_node.set_meta("alignment", str(alignment))
-            try:
-                inkscape_version = self.document.getroot().get('inkscape:version')
-                tt_node.set_meta("inkscapeversion", inkscape_version.split(' ')[0])
-            except AttributeError as ignored:
-                # Unfortunately when this node comes from an Inkscape document that has never been saved before
-                # no version attribute is provided by Inkscape :-(
-                pass
+            tt_node = self._do_convert_one(text, preamble_file, user_scale_factor, alignment, tex_command)
 
             # Place new node in document
             if old_svg_ele is None:
-                with logger.debug("Adding new node to document"):
-                    # Place new nodes in the view center and scale them according to user request
-                    node_center = tt_node.bounding_box().center
-                    view_center = self.svg.namedview.center
-
-                    # Since Inkscape 1.2 (= extension API version 1.2.0) view_center is in px,
-                    # not in doc units! Hence, we need to convert the value to the document unit.
-                    # so the transform is correct later.
-                    if hasattr(inkex, "__version__"):
-                        if version_greater_or_equal_than(inkex.__version__, "1.2.0"):
-                            view_center.x = self.svg.uutounit(view_center.x, self.svg.unit)
-                            view_center.y = self.svg.uutounit(view_center.y, self.svg.unit)
-
-                    # Collect all layers incl. the current layers such that the top layer
-                    # is the first one in the list
-                    layers = []
-                    parent_layer = self.svg.get_current_layer()
-                    while parent_layer is not None:
-                        layers.insert(0, parent_layer)
-                        parent_layer = parent_layer.getparent()
-
-                    # Compute the transform mapping the view coordinate system onto the
-                    # current layer
-                    full_layer_transform = Transform()
-                    for layer in layers:
-                        full_layer_transform @= layer.transform
-
-                    # Place the node in the center of the view. Here we need to be aware of
-                    # transforms in the layers, hence the inverse layer transformation
-                    tt_node.transform = (-full_layer_transform @               # map to view coordinate system
-                                         Transform(translate=view_center) @    # place at view center
-                                         Transform(scale=user_scale_factor) @  # scale
-                                         Transform(translate=-node_center) @   # place node at origin
-                                         tt_node.transform                     # use original node transform
-                                         )
-
-                    tt_node.set_meta('jacobian_sqrt', str(tt_node.get_jacobian_sqrt()))
-
-                    tt_node.set_none_strokes_to_0pt()
-
-                    self.svg.get_current_layer().add(tt_node)
+                self._add_new_node(tt_node, user_scale_factor)
             else:
-                with logger.debug("Replacing node in document"):
-                    # Rescale existing nodes according to user request
-                    relative_scale = user_scale_factor / original_scale
-                    tt_node.align_to_node(old_svg_ele, alignment, relative_scale)
-
-                    # If no non-black color has been explicitily set by TeX we copy the color information
-                    # from the old node so that coloring done in Inkscape is preserved.
-                    if not tt_node.is_colorized():
-                        tt_node.import_group_color_style(old_svg_ele)
-
-                    self.replace_node(old_svg_ele, tt_node)
+                self._replace_node(old_svg_ele, tt_node, user_scale_factor, alignment, original_scale)
 
             with logger.debug("Saving global settings"):
                 # -- Save settings
@@ -469,34 +550,34 @@ class TexText(inkex.EffectExtension):
         :rtype: (TexTextElement, str, str, float, bool)
         """
 
+        layer = self.svg.get_current_layer()
+        if any(TexTextElement.to_textext_node(a) for a in [layer, *layer.iterancestors()]):
+            raise RuntimeError("A subgroup of a TexText object is selected. Please close this message, press "
+                               "CTRL + BACKSPACE (possibly multiple times) until the complete TexText object "
+                               "is selected. Then, run TexText again.")
+
         for node in self.svg.selected.values():
-
-            # TexText node must be a group
-            if node.tag_name != 'g':
+            if not TexTextElement.to_textext_node(node):
+                if any(TexTextElement.to_textext_node(a) for a in node.iterancestors()):
+                    raise RuntimeError("A subgroup of a TexText object is selected. Please close this message, press "
+                                       "CTRL + BACKSPACE (possibly multiple times) until the complete TexText object "
+                                       "is selected. Then, run TexText again.")
+                node = node.getparent()
                 continue
-
-            node.__class__ = TexTextElement
-
-            try:
-                text = node.get_meta_text()
-                preamble = node.get_meta('preamble')
-                scale = float(node.get_meta('scale', 1.0))
-
-                return node, text, preamble, scale
-
-            except (TypeError, AttributeError) as ignored:
-                pass
+            return node, *node.get_all_info()
 
         return None, "", "", None
 
     def replace_node(self, old_node, new_node):
         """
-        Replace an XML node old_node with new_node
+        Replace an XML node old_node with new_node.
+        This is only ever called from _replace_node. The parent is responsible
+        for positioning the node correctly.
         """
         parent = old_node.getparent()
+        index = parent.index(old_node)
         old_id = old_node.get_id()
-        parent.remove(old_node)
-        parent.append(new_node)
+        parent[index] = new_node
         new_node.set_id(old_id)
         self.copy_style(old_node, new_node)
 
@@ -692,6 +773,26 @@ class TexTextElement(inkex.Group):
         super(TexTextElement, self).__init__()
         self._svg_to_textext_node(svg_filename, document_unit)
 
+    @staticmethod
+    def to_textext_node(node):
+        """
+        Mutate node.__class__ to TexTextElement if it is detected
+        to be a TexText node.
+
+        :return: whether the node is detected as a TexText node
+        :rtype: bool
+        """
+        if node.tag_name != TexTextElement.tag_name:
+            return False
+        c = node.__class__
+        try:
+            node.__class__ = TexTextElement
+            _ = node.get_all_info()
+            return True
+        except (TypeError, AttributeError):
+            node.__class__ = c
+            return False
+
     def _svg_to_textext_node(self, svg_filename, document_unit):
         from inkex import ShapeElement, Defs, SvgDocumentElement
         doc = etree.parse(svg_filename, parser=inkex.SVG_PARSER)
@@ -744,32 +845,10 @@ class TexTextElement(inkex.Group):
     def make_ids_unique(self):
         """
         PDF->SVG converters tend to use same ids.
-        To avoid confusion between objects with same id from two or more TexText objects we replace auto-generated
-        ids with random unique values
+        To avoid confusion between objects with same id from two or more TexText objects we replace
+        auto-generated ids from the converter with random unique values
         """
-        rename_map = {}
-
-        # replace all ids with unique random uuid
-        for el in self.iterfind('.//*[@id]'):
-            old_id = el.attrib["id"]
-            new_id = 'id-' + str(uuid.uuid4())
-            el.attrib["id"] = new_id
-            rename_map[old_id] = new_id
-
-        # find usages of old ids and replace them
-        def replace_old_id(m):
-            old_name = m.group(1)
-            try:
-                replacement = rename_map[old_name]
-            except KeyError:
-                replacement = old_name
-            return "url(#{})".format(replacement)
-        regex = re.compile(r"url\(#([^)(]*)\)")
-
-        for el in self.iter():
-            for name, value in el.items():
-                new_value = regex.sub(replace_old_id, value)
-                el.attrib[name] = new_value
+        self.set_random_ids(prefix=None, levels=-1, backlinks=True)
 
     def get_jacobian_sqrt(self):
         from inkex import Transform
@@ -796,6 +875,9 @@ class TexTextElement(inkex.Group):
         else:
             return encoded_text
 
+    def get_meta_alignment(self):
+        return self.get_meta('alignment', TexText.DEFAULT_ALIGNMENT)
+
     def get_meta(self, key, default=None):
         try:
             ns_key = '{{{ns}}}{key}'.format(ns=TEXTEXT_NS, key=key)
@@ -807,6 +889,12 @@ class TexTextElement(inkex.Group):
             if default is not None:
                 return default
             raise attr_error
+
+    def get_all_info(self):
+        text = self.get_meta_text()
+        preamble_file = self.get_meta('preamble')
+        scale = float(self.get_meta('scale', 1.0))
+        return text, preamble_file, scale
 
     def align_to_node(self, ref_node, alignment, relative_scale):
         """
