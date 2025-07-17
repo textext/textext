@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TexText Configuration &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+  
+        <script src="../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TexText 0.11 for Inkscape 0.92" href="../textext_0x/textext_0x.html" />
+    <link rel="prev" title="TexText Command Line Usage" href="command_line_usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">TexText Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-textext-configuration-file">The TexText configuration file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fields-and-allowed-values-toplevel">Fields and Allowed Values (toplevel)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fields-and-allowed-values-gui-object">Fields and Allowed Values (<code class="docutils literal notranslate"><span class="pre">gui</span></code> object)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#json-schema-for-the-configuration-file">JSON schema for the configuration file</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../textext_0x/textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">TexText Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/usage/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="textext-configuration">
+<span id="configuration"></span><h1>TexText Configuration<a class="headerlink" href="#textext-configuration" title="Link to this heading"></a></h1>
+<p>Usually, <strong>TexText</strong> is configured automatically during setup or via selecting
+certian options in the GUI. In case of any problems or to address certain
+issues one may directly edit the <strong>TexText</strong> configuration file.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#the-textext-configuration-file" id="id1">The TexText configuration file</a></p>
+<ul>
+<li><p><a class="reference internal" href="#fields-and-allowed-values-toplevel" id="id2">Fields and Allowed Values (toplevel)</a></p></li>
+<li><p><a class="reference internal" href="#fields-and-allowed-values-gui-object" id="id3">Fields and Allowed Values (<code class="docutils literal notranslate"><span class="pre">gui</span></code> object)</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#json-schema-for-the-configuration-file" id="id4">JSON schema for the configuration file</a></p></li>
+</ul>
+</nav>
+<section id="the-textext-configuration-file">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">The TexText configuration file</a><a class="headerlink" href="#the-textext-configuration-file" title="Link to this heading"></a></h2>
+<p>The configuration file <code class="docutils literal notranslate"><span class="pre">config.json</span></code> can be found at the following locations:</p>
+<ul class="simple">
+<li><p>Linux: <code class="docutils literal notranslate"><span class="pre">~/.config/textext/config.json</span></code></p></li>
+<li><p>Winbdows: <code class="docutils literal notranslate"><span class="pre">C:\Users\AppData\Roaming\TexText\config.json</span></code></p></li>
+<li><p>MacOS: <code class="docutils literal notranslate"><span class="pre">~/Library/Preferences/textext</span></code></p></li>
+</ul>
+<p>The top level structure is:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;preamble&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;scale&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;previous_tex_command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;gui&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;toolkit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;use_gtk_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;confirm_close&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;line_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;auto_indent&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;insert_spaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tab_width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;new_node_content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;close_shortcut&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="fields-and-allowed-values-toplevel">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Fields and Allowed Values (toplevel)</a><a class="headerlink" href="#fields-and-allowed-values-toplevel" title="Link to this heading"></a></h3>
+<dl>
+<dt>preamble (string, optional)</dt><dd><p>Path to a LaTeX preamble file (.tex) or typst preamble file (.typst)
+is included in the document. If this is not set the default files
+(<code class="docutils literal notranslate"><span class="pre">default_packages.tex</span></code> or <code class="docutils literal notranslate"><span class="pre">default_preamble_typst.typ</span></code>) from the
+<strong>TexText</strong> installation directory is used.</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;preamble&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;C:\\Users\\...\\default_packages.tex&quot;</span>
+</pre></div>
+</div>
+</dd>
+<dt>scale (number, optional)</dt><dd><p>Scaling factor for the rendered LaTeX object.</p>
+<p>Default: 1.0</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;scale&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.8</span>
+</pre></div>
+</div>
+</dd>
+<dt>previous_tex_command (string, optional)</dt><dd><p>Last used LaTeX engine. Determines which engine is preselected in the next
+session.</p>
+<p>Allowed values: <code class="docutils literal notranslate"><span class="pre">&quot;pdflatex&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;lualatex&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;xelatex&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;typst&quot;</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="fields-and-allowed-values-gui-object">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Fields and Allowed Values (<code class="docutils literal notranslate"><span class="pre">gui</span></code> object)</a><a class="headerlink" href="#fields-and-allowed-values-gui-object" title="Link to this heading"></a></h3>
+<dl>
+<dt>toolkit (string, optional)</dt><dd><p>Specifies the GUI toolkit to be used.</p>
+<p>Allowed values: <code class="docutils literal notranslate"><span class="pre">&quot;gtk&quot;</span></code> (recommended), <code class="docutils literal notranslate"><span class="pre">&quot;tk&quot;</span></code></p>
+</dd>
+<dt>use_gtk_source (boolean, optional)</dt><dd><p>Enable GtkSourceView for syntax highlighting (only valid, if
+<code class="docutils literal notranslate"><span class="pre">toolkit=&quot;gtk&quot;</span></code>.</p>
+<p>Values: <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+</dd>
+<dt>confirm_close (boolean, optional)</dt><dd><p>Whether to show a confirmation prompt when closing the editor.</p>
+<p>Values: <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+</dd>
+<dt>line_numbers (boolean, optional)</dt><dd><p>Display line numbers in the editor.</p>
+<p>Values: <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+</dd>
+<dt>auto_indent (boolean, optional)</dt><dd><p>Enable automatic indentation of LaTeX code.</p>
+<p>Values: <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+</dd>
+<dt>insert_spaces (boolean, optional)</dt><dd><p>Insert spaces instead of tab characters when pressing Tab.</p>
+<p>Values: <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code></p>
+</dd>
+<dt>tab_width (integer, optional)</dt><dd><p>Number of spaces per tab.</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;tab_width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+</dd>
+<dt>new_node_content (string, optional)</dt><dd><p>Initial content used for new LaTeX nodes.</p>
+<p>Allowed values: <code class="docutils literal notranslate"><span class="pre">&quot;Empty&quot;</span></code> (no content), <code class="docutils literal notranslate"><span class="pre">&quot;InlineMath&quot;</span></code> (e.g. $$) -
+default, <code class="docutils literal notranslate"><span class="pre">&quot;DisplayMath&quot;</span></code> (e.g. \[\])</p>
+</dd>
+<dt>close_shortcut (string, optional)</dt><dd><p>Keyboard shortcut to close the editor.</p>
+<p>Allowed values: <code class="docutils literal notranslate"><span class="pre">&quot;Escape&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;CtrlQ&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;None&quot;</span></code> (no shortcut)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="json-schema-for-the-configuration-file">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">JSON schema for the configuration file</a><a class="headerlink" href="#json-schema-for-the-configuration-file" title="Link to this heading"></a></h2>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;$schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://json-schema.org/draft-07/schema#&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TeXText Configuration Schema&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;preamble&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Path to a LaTeX preamble file (.tex)&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;scale&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Scale factor for the rendered LaTeX content&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;previous_tex_command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Previously used LaTeX engine&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pdflatex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;lualatex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;xelatex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;typst&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;gui&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Graphical user interface configuration&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;toolkit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;gtk&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;tk&quot;</span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GUI toolkit to be used&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;use_gtk_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable GtkSourceView (for syntax highlighting)&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;confirm_close&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ask for confirmation when closing the editor&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;line_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Display line numbers in the code editor&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;auto_indent&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable automatic indentation&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;insert_spaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Insert spaces instead of tab characters&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;tab_width&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Number of spaces per tab&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;new_node_content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Empty&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;InlineMath&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DisplayMath&quot;</span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default content for new LaTeX nodes&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;close_shortcut&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Escape&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;CtrlQ&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Keyboard shortcut for closing the editor&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="command_line_usage.html" class="btn btn-neutral float-left" title="TexText Command Line Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../textext_0x/textext_0x.html" class="btn btn-neutral float-right" title="TexText 0.11 for Inkscape 0.92" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

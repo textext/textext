@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced installation options &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+  
+        <script src="../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The TexText GUI" href="../usage/gui.html" />
+    <link rel="prev" title="TexText on MacOS" href="macos.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../textext_0x/textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced installation options</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/install/advanced.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-installation-options">
+<span id="advanced-install"></span><h1>Advanced installation options<a class="headerlink" href="#advanced-installation-options" title="Link to this heading"></a></h1>
+<p>The <code class="code highlight bash docutils literal highlight-bash">setup.py</code> / <code class="code highlight bash docutils literal highlight-bash">setup_win.bat</code> installation script offers several
+options to adapt the installation process to your system configuration:</p>
+<dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>Show help message and exit.</p>
+</dd>
+<dt><kbd><span class="option">--inkscape-extensions-path <var>INKSCAPE_EXTENSIONS_PATH</var></span></kbd></dt>
+<dd><p>Path to inkscape extensions directory. Use this if the user
+extensions are installed in an unusual place.</p>
+</dd>
+<dt><kbd><span class="option">--inkscape-executable <var>INKSCAPE_EXECUTABLE</var></span></kbd></dt>
+<dd><p>Full path to inkscape executable.  Use this if <strong>Inkscape 1.x</strong> is not found
+automatically by the setup script (Test- or Beta-installations).</p>
+</dd>
+<dt><kbd><span class="option">--pdflatex-executable <var>PDFLATEX_EXECUTABLE</var></span></kbd></dt>
+<dd><p>Full path to pdflatex executable.</p>
+</dd>
+<dt><kbd><span class="option">--lualatex-executable <var>LUALATEX_EXECUTABLE</var></span></kbd></dt>
+<dd><p>Full path to lualatex executable.</p>
+</dd>
+<dt><kbd><span class="option">--xelatex-executable <var>XELATEX_EXECUTABLE</var></span></kbd></dt>
+<dd><p>Full path to xelatex executable.</p>
+</dd>
+<dt><kbd><span class="option">--typst-executable <var>TYPST_EXECUTABLE</var></span></kbd></dt>
+<dd><p>Full path to typst executable.</p>
+</dd>
+<dt><kbd><span class="option">--use-tk</span></kbd></dt>
+<dd><p>Use the Tk Interface (tkinter) for the user interface instead of the GTK3 UI.
+This might be useful in cases where the GTK3 installation is broken, i.e.
+when loading of the framework works but execution errors occur. In that case
+TexText will not fall back to tkinter automatically. Hence, this switch can
+be used to bypass the GTK3 framework.</p>
+</dd>
+<dt><kbd><span class="option">--portable-apps-dir <var>INSTALLATION_DIRECTORY_OF_PORTABLEAPPS</var></span></kbd></dt>
+<dd><p>Windows only: If you use Inkscape from PortableApps use this parameter
+to specifiy the directory into which PortableApps has been installed, e.g.
+<code class="docutils literal notranslate"><span class="pre">C:\Users\YourUserName\PortableApps</span></code>. It ensures that <strong>TexText for Inkscape 1.x</strong> is
+installed correctly into the PortableApps structure.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>If you also have your LaTeX distribution installed in PortableApps
+you need to specify the paths to the latex executables by
+using the <code class="docutils literal notranslate"><span class="pre">--pdflatex-executable</span></code> and/or <code class="docutils literal notranslate"><span class="pre">--lualatex-executable</span></code>
+and/or <code class="docutils literal notranslate"><span class="pre">--xelatex-executable</span></code> arguments.</p>
+</div>
+</dd>
+<dt><kbd><span class="option">--skip-requirements-check</span></kbd></dt>
+<dd><p>Bypass minimal requirements check. <strong>TexText for Inkscape 1.x</strong> will be installed even if
+the requirements for running it are not met.</p>
+</dd>
+<dt><kbd><span class="option">--skip-extension-install</span></kbd></dt>
+<dd><p>Don’t install extension (just check the requirements).</p>
+</dd>
+<dt><kbd><span class="option">--keep-previous-installation-files</span></kbd></dt>
+<dd><p>Keep files from previous installation which might have been modified
+by the user (e.g. preamble files) without prompting the user</p>
+</dd>
+<dt><kbd><span class="option">--all-users</span></kbd></dt>
+<dd><p>Install globally for all users (sudo/ admin privileges required)</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Usually, this works well. However, you should keep in mind that the
+<strong>TexText for Inkscape 1.x</strong> files are copied into Inkscape’s global extension folder,
+hence cluttering your Inkscape installation. You may need to remove these
+files manually when you uninstall Inkscape.</p>
+</div>
+</dd>
+<dt><kbd><span class="option">--color <var>always</var></span>, <span class="option">--color <var>never</var></span></kbd></dt>
+<dd><p>Enables/disable console colors.</p>
+</dd>
+<dt><kbd><span class="option">--verbose</span></kbd></dt>
+<dd><p>Print additional messages during setup</p>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="macos.html" class="btn btn-neutral float-left" title="TexText on MacOS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../usage/gui.html" class="btn btn-neutral float-right" title="The TexText GUI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TexText on Linux &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+  
+        <script src="../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TexText on Windows" href="windows.html" />
+    <link rel="prev" title="TexText - Re-editable LaTeX and typst graphics for Inkscape" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><strong>TexText</strong> on Linux</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#for-ubuntu-based-systems-with-apt-get-package-manager">For Ubuntu based systems with apt-get package manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparation">Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#download-and-install-textext">Download and install <strong>TexText</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#for-archlinux-based-systems-with-pacman-as-package-manager">For ArchLinux based systems with pacman as package manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#for-systems-using-an-appimage-of-inkscape">For systems using an AppImage of Inkscape</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Download and install <strong>TexText</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#manual-installation-of-the-gui-library-bindings">Manual installation of the GUI library bindings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-python-gtk3-bindings-recommended">Install Python GTK3 bindings (recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-tkinter-not-recommended">Install Tkinter (not recommended)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../textext_0x/textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><strong>TexText</strong> on Linux</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/install/linux.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="textext-on-linux">
+<span id="linux-install"></span><h1><strong>TexText</strong> on Linux<a class="headerlink" href="#textext-on-linux" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#for-ubuntu-based-systems-with-apt-get-package-manager" id="id3">For Ubuntu based systems with apt-get package manager</a></p></li>
+<li><p><a class="reference internal" href="#for-archlinux-based-systems-with-pacman-as-package-manager" id="id4">For ArchLinux based systems with pacman as package manager</a></p></li>
+<li><p><a class="reference internal" href="#for-systems-using-an-appimage-of-inkscape" id="id5">For systems using an AppImage of Inkscape</a></p></li>
+<li><p><a class="reference internal" href="#manual-installation-of-the-gui-library-bindings" id="id6">Manual installation of the GUI library bindings</a></p></li>
+</ul>
+</nav>
+<section id="for-ubuntu-based-systems-with-apt-get-package-manager">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">For Ubuntu based systems with apt-get package manager</a><a class="headerlink" href="#for-ubuntu-based-systems-with-apt-get-package-manager" title="Link to this heading"></a></h2>
+<section id="preparation">
+<span id="linux-install-preparation"></span><h3>Preparation<a class="headerlink" href="#preparation" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Make sure that <strong>Inkscape 1.4</strong> is installed on your system .
+(You can also use older Inkscape versions, see below)</p>
+<p>On <strong>Ubuntu (24.04, 22.04, etc.)</strong> and its derivates the most recent version of
+<strong>Inkscape 1.4</strong> is not part of the default distribution. Perform the following steps
+to install it:</p>
+<ul>
+<li><p>Remove any old version of Inkscape</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>remove<span class="w"> </span>inkscape
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Add the Inkscape repository to your apt package manager:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>add-apt-repository<span class="w"> </span>ppa:inkscape.dev/stable
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Install <strong>Inkscape 1.4</strong></p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>inkscape
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>Check if it is able to launch. You can verify this by invoking <code class="code highlight bash docutils literal highlight-bash">inkscape<span class="w"> </span>--version</code> from
+a terminal. It should output a version number greater or equal then 1.2.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>TexText</strong> will not function if you installed <strong>Inkscape 1.4</strong> via <strong>SNAP</strong> or <strong>FLATPACK</strong>.
+The reason is that <strong>Inkscape 1.4</strong> will run in sandboxed mode in these environments and, hence,
+cannot access you LaTeX distribution to compile your snippets! This is a conceptional
+problem of snap/ flatpack, not of <strong>TexText</strong>.</p>
+</div>
+</li>
+<li><p>Make sure that an operational LaTeX distribution and/ or typst is installed on your system. You can verify
+this by invoking at least one of <code class="code highlight bash docutils literal highlight-bash">pdflatex<span class="w"> </span>--version</code>, <code class="code highlight bash docutils literal highlight-bash">xelatex<span class="w"> </span>--version</code>,
+<code class="code highlight bash docutils literal highlight-bash">typst<span class="w"> </span>--version</code> and <code class="code highlight bash docutils literal highlight-bash">lualatex<span class="w"> </span>--version</code> in a terminal.</p></li>
+<li><p>Optional: If you wish to have syntax highlighting and some other <a class="reference internal" href="../usage/gui.html#usage-gui-config"><span class="std std-ref">nice features</span></a>
+enabled in the <strong>TexText</strong>-Gui install GTKSourceView:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>gir1.2-gtksource-3.0
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="download-and-install-textext">
+<span id="linux-install-textext"></span><h3>Download and install <strong>TexText</strong><a class="headerlink" href="#download-and-install-textext" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Download the most recent package from the
+<a class="reference external" href="https://github.com/textext/textext/releases/tag/1.12.0#release">Github release page</a>
+(direct links: <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.zip">zip-file for Linux</a>, <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.tar.gz">tgz-file for Linux</a>).
+In case you are using Inkscape 1.2, 1.1, or 1.0 download
+<a class="reference external" href="https://github.com/textext/textext/releases/tag/1.8.2">TexText 1.8.2</a>!</p></li>
+<li><p>Extract the package and change into the created directory.</p></li>
+<li><p>Run <code class="code highlight bash docutils literal highlight-bash">setup.py</code> from your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>setup.py
+</pre></div>
+</div>
+<p>It will copy the required files into the user’s Inkscape
+configuration directory (usually this is <code class="docutils literal notranslate"><span class="pre">~/.config/inkscape/extensions</span></code>)</p>
+<p>Setup will inform you if some of the prerequisites needed by <strong>TexText</strong> are missing.
+Install them. If setup complains about missing GTK or Tkinter bindings please go to
+<a class="reference internal" href="#linux-install-gui"><span class="std std-ref">Manual installation of the GUI library bindings</span></a>.</p>
+<p>See <a class="reference internal" href="advanced.html#advanced-install"><span class="std std-ref">Advanced installation options</span></a> for further options provided by
+<code class="code highlight bash docutils literal highlight-bash">setup.py</code>.</p>
+</li>
+<li><p>Due to a packaging error (as of Oct 25th 2024, see <a class="reference external" href="https://gitlab.com/inkscape/inkscape/-/issues/5070">this issue on GitLab</a>)
+also install the following Python package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-tinycss2
+</pre></div>
+</div>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In case of installation problems refer to the <a class="reference internal" href="../usage/troubleshooting.html#trouble-installation"><span class="std std-ref">Installation problems</span></a> in the <a class="reference internal" href="../usage/troubleshooting.html#troubleshooting"><span class="std std-ref">Troubleshooting</span></a> section!</p>
+</div>
+<p>You are done. Now you can consult the <a class="reference internal" href="../usage/gui.html#gui"><span class="std std-ref">usage instructions</span></a>.</p>
+</section>
+</section>
+<section id="for-archlinux-based-systems-with-pacman-as-package-manager">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">For ArchLinux based systems with pacman as package manager</a><a class="headerlink" href="#for-archlinux-based-systems-with-pacman-as-package-manager" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>Make sure that <strong>Inkscape 1.4</strong> is installed on your system. If not, install it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>inkscape
+</pre></div>
+</div>
+</li>
+<li><p>Due to a packaging error (as of Oct 25th 2024, see <a class="reference external" href="https://gitlab.archlinux.org/archlinux/packaging/packages/inkscape/-/issues/6">this issue</a>)
+also install the following Python package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>python-tinycss2
+</pre></div>
+</div>
+</li>
+<li><p>Optional: If you wish to have syntax highlighting and some other <a class="reference internal" href="../usage/gui.html#usage-gui-config"><span class="std std-ref">nice features</span></a>
+enabled in the <strong>TexText</strong>-Gui install GTKSourceView:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>gtksourceview3
+</pre></div>
+</div>
+</li>
+<li><p>Make sure you have a basic LaTeX system on your machine. At least the packages
+<code class="code highlight bash docutils literal highlight-bash">texlive-latex</code>, <code class="code highlight bash docutils literal highlight-bash">texlive-latexrecommended</code>, <code class="code highlight bash docutils literal highlight-bash">texlive-latexextra</code>
+are required. If not, install them:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pacman<span class="w"> </span>-S<span class="w"> </span>texlive-latex<span class="w"> </span>texlive-latexrecommended<span class="w"> </span>texlive-latexextra
+</pre></div>
+</div>
+</li>
+<li><p>Download the most recent <strong>TexText</strong> package from the
+<a class="reference external" href="https://github.com/textext/textext/releases/tag/1.12.0#release">Github release page</a>
+(direct links: <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.zip">zip-file for Linux</a>, <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.tar.gz">tgz-file for Linux</a>).</p></li>
+<li><p>Extract the package and change into the created directory.</p></li>
+<li><p>Run <code class="code highlight bash docutils literal highlight-bash">setup.py</code> from your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py
+</pre></div>
+</div>
+<p>It will copy the required files into the user’s Inkscape
+configuration directory (usually this is <code class="docutils literal notranslate"><span class="pre">~/.config/inkscape/extensions</span></code>)</p>
+<p>Setup will inform you if some of the prerequisites needed by <strong>TexText</strong> are missing.
+Install them. If setup complains about missing GTK or Tkinter bindings please go to
+<a class="reference internal" href="#linux-install-gui"><span class="std std-ref">Manual installation of the GUI library bindings</span></a>.</p>
+<p>See <a class="reference internal" href="advanced.html#advanced-install"><span class="std std-ref">Advanced installation options</span></a> for further options provided by
+<code class="code highlight bash docutils literal highlight-bash">setup.py</code>.</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In case of installation problems refer to the <a class="reference internal" href="../usage/troubleshooting.html#trouble-installation"><span class="std std-ref">Installation problems</span></a> in the <a class="reference internal" href="../usage/troubleshooting.html#troubleshooting"><span class="std std-ref">Troubleshooting</span></a> section!</p>
+</div>
+<p>You are done. Now you can consult the <a class="reference internal" href="../usage/gui.html#gui"><span class="std std-ref">usage instructions</span></a>.</p>
+</section>
+<section id="for-systems-using-an-appimage-of-inkscape">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">For systems using an AppImage of Inkscape</a><a class="headerlink" href="#for-systems-using-an-appimage-of-inkscape" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>Preparation<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Download the AppImage from the Inkscape homepage</p></li>
+<li><p>Make it executable</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chmod<span class="w"> </span>+x<span class="w"> </span>Inkscape-dc2aeda-x86_64.AppImage
+</pre></div>
+</div>
+</li>
+<li><p>Test it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./Inkscape-dc2aeda-x86_64.AppImage
+</pre></div>
+</div>
+<p>(Replace Inkscape-dc2aeda-x86_64.AppImage by the correct file name.)</p>
+</li>
+</ol>
+</section>
+<section id="id2">
+<h3>Download and install <strong>TexText</strong><a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Download the most recent package from the
+<a class="reference external" href="https://github.com/textext/textext/releases/tag/1.12.0#release">Github release page</a>
+(direct links: <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.zip">zip-file for Linux</a>, <a class="reference external" href="https://github.com/textext/textext/releases/download/1.12.0/TexText-Linux-1.12.0.tar.gz">tgz-file for Linux</a>)</p></li>
+<li><p>Extract the package and change into the created directory.</p></li>
+<li><p>Install TexText via the the command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>setup.py<span class="w"> </span>--skip-requirements-check<span class="w"> </span>--inkscape-executable<span class="w"> </span>/path/to/your/appimage/Inkscape-dc2aeda-x86_64.AppImage
+</pre></div>
+</div>
+<p>(Replace Inkscape-dc2aeda-x86_64.AppImage by the correct file name.)
+It will copy the required files into the user’s Inkscape
+configuration directory (usually this is <code class="docutils literal notranslate"><span class="pre">~/.config/inkscape/extensions</span></code>)</p>
+</li>
+<li><p>Install the GTK-GUI bindings as explained here: <a class="reference internal" href="#linux-install-gui"><span class="std std-ref">Manual installation of the GUI library bindings</span></a></p></li>
+</ol>
+<p>You are done. Now you can consult the <a class="reference internal" href="../usage/gui.html#gui"><span class="std std-ref">usage instructions</span></a>.</p>
+</section>
+</section>
+<section id="manual-installation-of-the-gui-library-bindings">
+<span id="linux-install-gui"></span><h2><a class="toc-backref" href="#id6" role="doc-backlink">Manual installation of the GUI library bindings</a><a class="headerlink" href="#manual-installation-of-the-gui-library-bindings" title="Link to this heading"></a></h2>
+<p>In the case that <strong>Inkscape 1.4</strong> has not been automatically installed together with the necessary
+Python GUI bindings or if you are using an Inkscape AppImage you need to install them manually.
+You have two options: <code class="docutils literal notranslate"><span class="pre">GTK3</span></code> (recommended) or <code class="docutils literal notranslate"><span class="pre">Tkinter</span></code>.</p>
+<section id="install-python-gtk3-bindings-recommended">
+<span id="linux-install-gtk3"></span><h3>Install Python GTK3 bindings (recommended)<a class="headerlink" href="#install-python-gtk3-bindings-recommended" title="Link to this heading"></a></h3>
+<p>You need to install the Python 3.x bindings for gobject-introspection libraries (<code class="docutils literal notranslate"><span class="pre">python3-gi</span></code>),
+the GTK+ graphical user interface library (<code class="docutils literal notranslate"><span class="pre">gir1.2-gtk-3.0</span></code>) and the gir files for the GTK+
+syntax highlighting widget (<code class="docutils literal notranslate"><span class="pre">gir1.2-gtksource-3.0</span></code>):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3-gi<span class="w"> </span>gir1.2-gtk-3.0<span class="w"> </span>gir1.2-gtksource-3.0
+</pre></div>
+</div>
+</section>
+<section id="install-tkinter-not-recommended">
+<span id="linux-install-tkinter"></span><h3>Install Tkinter (not recommended)<a class="headerlink" href="#install-tkinter-not-recommended" title="Link to this heading"></a></h3>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Tkinter support is deprecated and will be removed in future versions of <strong>TexText</strong>.
+If you really need this interface please leave a comment in <a class="reference external" href="https://github.com/textext/textext/issues/209">this issue on github</a>.</p>
+</div>
+<p>Tkinter is functioning but has a limited interface compared to GTK version, so it’s not
+recommended. To use <code class="docutils literal notranslate"><span class="pre">Tkinter</span></code> install the  Python <code class="docutils literal notranslate"><span class="pre">tk</span></code> package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3-tk
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="TexText - Re-editable LaTeX and typst graphics for Inkscape" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="windows.html" class="btn btn-neutral float-right" title="TexText on Windows" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

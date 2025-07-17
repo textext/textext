@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting (TexText 0.11) &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../../_static/logo.ico"/>
+  
+        <script src="../../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="History" href="../../history.html" />
+    <link rel="prev" title="Frequently Asked Questions (FAQ, TexText 0.11)" href="faq.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../install/linux.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/macos.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on MacOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/windows.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html">The GUI (TexText 0.11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ, TexText 0.11)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Troubleshooting (TexText 0.11)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#latex-and-toolchain-errors">LaTeX and toolchain errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bugs-in-textext">Bugs in <strong>TexText 0.11</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-use-of-the-toolchain">Manual use of the toolchain</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+      <li class="breadcrumb-item active">Troubleshooting (TexText 0.11)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/textext_0x/usage/troubleshooting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="troubleshooting-textext-0-11">
+<span id="tt0x-troubleshooting"></span><h1>Troubleshooting (TexText 0.11)<a class="headerlink" href="#troubleshooting-textext-0-11" title="Link to this heading"></a></h1>
+<p>There are three main reasons why something may went wrong:</p>
+<ol class="arabic simple">
+<li><p>Your LaTeX code contains invalid commands or syntax errors.</p></li>
+<li><p>The installed toolchain for the conversion of your code to a valid SVG element
+is for some reason broken.</p></li>
+<li><p><strong>TexText 0.11</strong> contains a bug and you are the person who discovers it!</p></li>
+</ol>
+<p><strong>TexText 0.11</strong> helps you to resolve such issues by offering detailed error and logging information.</p>
+<p>This section is structured as follows:</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#latex-and-toolchain-errors" id="id1">LaTeX and toolchain errors</a></p></li>
+<li><p><a class="reference internal" href="#bugs-in-textext" id="id2">Bugs in <strong>TexText 0.11</strong></a></p></li>
+<li><p><a class="reference internal" href="#manual-use-of-the-toolchain" id="id3">Manual use of the toolchain</a></p></li>
+</ul>
+</nav>
+<section id="latex-and-toolchain-errors">
+<span id="tt0x-trouble-latex"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">LaTeX and toolchain errors</a><a class="headerlink" href="#latex-and-toolchain-errors" title="Link to this heading"></a></h2>
+<p>If compilation of your LaTeX code fails <strong>TexText 0.11</strong> opens a dialog displaying the
+cause of the failure. In most cases a syntax error in your code will be the reason.
+<strong>TexText 0.11</strong> filters the relevant information from the compiler output and displays
+it:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-simple.png"><img alt="Simple error dialog" src="../../_images/textext-error-dialog-simple.png" style="width: 376.0px; height: 315.5px;" /></a>
+</figure>
+<p>If you would like to see the full output of the LaTeX processor, click on the <code class="docutils literal notranslate"><span class="pre">+</span></code>
+left to the <code class="docutils literal notranslate"><span class="pre">stdout</span></code> label:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-stdout.png"><img alt="Error dialog with stdout" src="../../_images/textext-error-dialog-stdout.png" style="width: 370.5px; height: 308.0px;" /></a>
+</figure>
+<p>Sometimes nothing meaningful can be stripped from the LaTeX processor output, or
+nothing has been produced by LaTeX which can be parsed by <strong>TexText 0.11</strong>:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-empty.png"><img alt="empty error dialog" src="../../_images/textext-error-dialog-empty.png" style="width: 301.0px; height: 249.0px;" /></a>
+</figure>
+<p>Most likely something serious failed during compilation and you may find additional
+information under <code class="docutils literal notranslate"><span class="pre">stderr</span></code> , click on the <code class="docutils literal notranslate"><span class="pre">+</span></code> left to this label:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-stderr.png"><img alt="Error dialog with stderr" src="../../_images/textext-error-dialog-stderr.png" style="width: 301.0px; height: 267.5px;" /></a>
+</figure>
+<p>In that case follow the information given in the window (in the example given here:
+open the pdflatex.log in the AppData path).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">stderr</span></code> option is only available when errors have been piped by the
+failed command.</p>
+</div>
+</section>
+<section id="bugs-in-textext">
+<span id="tt0x-trouble-bugs"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Bugs in <strong>TexText 0.11</strong></a><a class="headerlink" href="#bugs-in-textext" title="Link to this heading"></a></h2>
+<p>Of course, <strong>TexText 0.11</strong> may contain bugs which may crash the plugin. If this happens
+an Inkscape error dialog is opened that will show something like this:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-python-error-1.png"><img alt="Error dialog after failed execution" src="../../_images/textext-error-dialog-python-error-1.png" style="width: 374.5px; height: 275.0px;" /></a>
+</figure>
+<p>Note the advice at the end of the text view: You should run the extension again.
+Then, a logging mechanism is started which writes its result into the Inkscape
+error dialog:</p>
+<figure class="align-default">
+<a class="reference internal image-reference" href="../../_images/textext-error-dialog-python-error-2.png"><img alt="Error dialog after failed execution, second run" src="../../_images/textext-error-dialog-python-error-2.png" style="width: 372.0px; height: 301.5px;" /></a>
+</figure>
+<p>You can use this information to further analyze the problem or to
+open an issue on GitHub asking for help: <a class="reference external" href="https://github.com/textext/textext/issues/new">https://github.com/textext/textext/issues/new</a></p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Please carefully read the instructions in the issue template on GitHub so you
+pass all the required information to the developer team.</p>
+</div>
+</section>
+<section id="manual-use-of-the-toolchain">
+<span id="tt0x-trouble-manual-compile"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Manual use of the toolchain</a><a class="headerlink" href="#manual-use-of-the-toolchain" title="Link to this heading"></a></h2>
+<p>For debugging purposes it may be required to manually process the steps usually done automatically
+by <strong>TexText 0.11</strong>. This procedure is also helpful if the result generated by <strong>TexText 0.11</strong> does not match
+your expectations at all and you are unsure if this is an error of <strong>TexText 0.11</strong> itself or of the
+programs used in the toolchain. Here is what you have to do in such cases:</p>
+<ol class="arabic">
+<li><p>Create a LaTeX document <code class="docutils literal notranslate"><span class="pre">test.tex</span></code> with the following content:</p>
+<blockquote>
+<div><div class="highlight-latex notranslate"><div class="highlight"><pre><span></span><span class="k">\documentclass</span><span class="nb">{</span>article<span class="nb">}</span>
+<span class="k">\usepackage</span><span class="nb">{</span>amsmath,amsthm,amssymb,amsfonts<span class="nb">}</span>
+<span class="k">\usepackage</span><span class="nb">{</span>color<span class="nb">}</span>
+<span class="k">\pagestyle</span><span class="nb">{</span>empty<span class="nb">}</span>
+<span class="k">\begin</span><span class="nb">{</span>document<span class="nb">}</span>
+<span class="c">% ***Your code***</span>
+<span class="k">\end</span><span class="nb">{</span>document<span class="nb">}</span>
+</pre></div>
+</div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">%</span> <span class="pre">***Your</span> <span class="pre">code***</span></code> by the LaTeX code you want to compile and save the file to disk.</p>
+</div></blockquote>
+</li>
+<li><p>Open a Terminal (Linux, MacOS) or Command Window (Windows)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>On Linux: Open a file manager (e.g. Nautilus, Dolphin), navigate to
+directory of <code class="docutils literal notranslate"><span class="pre">test.tex</span></code>. Right click and select <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">in</span> <span class="pre">Terminal</span></code> (Nautilus)
+or simply press <code class="docutils literal notranslate"><span class="pre">F4</span></code> (Dolphin).</p></li>
+<li><p>On Windows: Open the explorer, navigate to the directory of <code class="docutils literal notranslate"><span class="pre">test.tex</span></code> and press
+<code class="docutils literal notranslate"><span class="pre">SHIFT</span> <span class="pre">+</span> <span class="pre">F10</span></code>, then select <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Command</span> <span class="pre">Window</span> <span class="pre">Here</span></code> from the context menu.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Compile this file using the command</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pdflatex<span class="w"> </span>test.tex<span class="w"> </span>-interaction<span class="o">=</span>nonstopmode<span class="w"> </span>-halt-on-error
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows it may be required to put the name of the directory in which <code class="docutils literal notranslate"><span class="pre">pdflatex.exe</span></code>
+resides in front of <code class="docutils literal notranslate"><span class="pre">pdflatex</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">c:\Program</span> <span class="pre">Files\MiKTeX</span> <span class="pre">2.9\miktex\bin\x64\</span></code>.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>If compilation succeeds open the generated file <code class="docutils literal notranslate"><span class="pre">test.pdf</span></code> with a pdf viewer and
+check its content. If it is as expected proceed with the next step.</p></li>
+<li><p>Check if the conversion from <code class="docutils literal notranslate"><span class="pre">pdf</span></code> to <code class="docutils literal notranslate"><span class="pre">svg</span></code> succeeds:</p>
+<blockquote>
+<div><ul>
+<li><p>If you use <code class="docutils literal notranslate"><span class="pre">pstoedit</span> <span class="pre">+</span> <span class="pre">ghostscript</span></code> enter the command</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pstoedit<span class="w"> </span>-f<span class="w"> </span>plot-svg<span class="w"> </span>test.pdf<span class="w"> </span>test.svg<span class="w"> </span>-dt<span class="w"> </span>-ssp<span class="w"> </span>-psarg<span class="w"> </span>-r9600x9600<span class="w"> </span>-pta
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows it may be required to put the name of the directory in which <code class="docutils literal notranslate"><span class="pre">pstoedit.exe</span></code>
+resides in front of <code class="docutils literal notranslate"><span class="pre">pstoedit</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">c:\Program</span> <span class="pre">Files\pstoedit\</span></code>.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>If you use <code class="docutils literal notranslate"><span class="pre">pdf2svg</span></code> enter the command</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pdf2svg<span class="w"> </span>test.pdf<span class="w"> </span>test.svg
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows it may be required to put the name of the directory in which <code class="docutils literal notranslate"><span class="pre">pdf2svg.exe</span></code>
+resides in front of <code class="docutils literal notranslate"><span class="pre">pdf2svg</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">c:\Program</span> <span class="pre">Files\pdf2svg\</span></code>.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>Open the generated file <code class="docutils literal notranslate"><span class="pre">test.svg</span></code> with Inkscape.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Check the generation from <code class="docutils literal notranslate"><span class="pre">svg</span></code> to <code class="docutils literal notranslate"><span class="pre">png</span></code> for the preview image succeeds</p>
+<blockquote>
+<div><ul>
+<li><p>Enter the command</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>inkscape<span class="w"> </span>-f<span class="w"> </span>test.svg<span class="w"> </span>--export-png<span class="w"> </span>test.png<span class="w">  </span>--export-id<span class="w"> </span>content<span class="w"> </span>--export-id-only<span class="w"> </span>--export-dpi<span class="o">=</span><span class="m">200</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows it may be required to put the name of the directory in which <code class="docutils literal notranslate"><span class="pre">inkscape.exe</span></code>
+resides in front of <code class="docutils literal notranslate"><span class="pre">inkscape</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">c:\Program</span> <span class="pre">Files\Inkscape\</span></code>.</p>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="faq.html" class="btn btn-neutral float-left" title="Frequently Asked Questions (FAQ, TexText 0.11)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../history.html" class="btn btn-neutral float-right" title="History" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

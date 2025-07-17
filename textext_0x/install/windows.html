@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TexText 0.11 for Inkscape 0.92 on Windows &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../../_static/logo.ico"/>
+  
+        <script src="../../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="The GUI (TexText 0.11)" href="../usage/gui.html" />
+    <link rel="prev" title="TexText 0.11 for Inkscape 0.92 on MacOS" href="macos.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="linux.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macos.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on MacOS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><strong>TexText 0.11 for Inkscape 0.92</strong> on Windows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-dependencies">Install dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#install-inkscape">Install inkscape</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-gui-library">Install GUI library</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-a-pdf-svg-converter">Install a pdf-&gt;svg converter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-pdflatex-lualatex-xelatex">Install pdflatex/lualatex/xelatex</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#install-textext">Install TexText</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setup-script-recommended">Setup script (recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installer">Installer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/gui.html">The GUI (TexText 0.11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/faq.html">Frequently Asked Questions (FAQ, TexText 0.11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/troubleshooting.html">Troubleshooting (TexText 0.11)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+      <li class="breadcrumb-item active"><strong>TexText 0.11 for Inkscape 0.92</strong> on Windows</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/textext_0x/install/windows.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="textext-on-windows">
+<span id="tt0x-windows-install"></span><h1><strong>TexText 0.11 for Inkscape 0.92</strong> on Windows<a class="headerlink" href="#textext-on-windows" title="Link to this heading"></a></h1>
+<p>To install <strong>TexText 0.11 for Inkscape 0.92</strong> on Windows do the following steps:</p>
+<ol class="arabic">
+<li><p><a class="reference internal" href="#tt0x-windows-install-dependencies">Install dependencies</a> of <strong>TexText 0.11 for Inkscape 0.92</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#tt0x-windows-install-inkscape">Install inkscape</a></p></li>
+<li><p><a class="reference internal" href="#tt0x-windows-install-gui-library">Install GUI library (PyGTK2 or TkInter)</a></p></li>
+<li><p><a class="reference internal" href="#tt0x-windows-install-latex">Install pdflatex/lualatex/xelatex</a></p></li>
+<li><p><a class="reference internal" href="#tt0x-windows-install-pdf-to-svg-converter">Install pdf-&gt;svg converter (pdf2svg or pstoedit)</a></p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><a class="reference internal" href="#tt0x-windows-install-textext">Install TexText</a></p></li>
+</ol>
+<section id="install-dependencies">
+<span id="tt0x-windows-install-dependencies"></span><h2>Install dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading"></a></h2>
+<section id="install-inkscape">
+<span id="tt0x-windows-install-inkscape"></span><h3>Install inkscape<a class="headerlink" href="#install-inkscape" title="Link to this heading"></a></h3>
+<p>Download and install Inkscape 0.92.x from <a class="reference external" href="https://inkscape.org/release/">https://inkscape.org/release/</a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Please ensure that the Python 2.7 interpreter has been selected during the installation of Inkscape (by default this is the case).</p>
+</div>
+</section>
+<section id="install-gui-library">
+<span id="tt0x-windows-install-gui-library"></span><h3>Install GUI library<a class="headerlink" href="#install-gui-library" title="Link to this heading"></a></h3>
+<p>Install the Python bindings for the graphical user interface of
+<strong>TexText 0.11 for Inkscape 0.92</strong>. You have two options: <code class="docutils literal notranslate"><span class="pre">PyGTK2</span></code> (recommended) or <code class="docutils literal notranslate"><span class="pre">Tkinter</span></code>:</p>
+<section id="install-pygtk2-recommended">
+<span id="tt0x-windows-install-pygtk2"></span><h4>Install PyGTK2 (recommended)<a class="headerlink" href="#install-pygtk2-recommended" title="Link to this heading"></a></h4>
+<p>Install the package that matches your Inkscape version:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Inkscape 0.92.4 <strong>and</strong> 0.92.5 (<a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-32bit.exe">32-bit</a> , <a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.4/Install-PyGTK-2.24-Inkscape-0.92.4-64bit.exe">64-bit</a>)</p></li>
+<li><p>Inkscape 0.92.3 (<a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.3/Install-PyGTK-2.24-Inkscape-0.92.3-32bit.exe">32-bit</a> , <a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.3/Install-PyGTK-2.24-Inkscape-0.92.3-64bit.exe">64-bit</a>)</p></li>
+<li><p>Inkscape 0.92.2 (<a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.2/Install-PyGTK-2.24-Inkscape-0.92.2-32bit.exe">32-bit</a> , <a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.2/Install-PyGTK-2.24-Inkscape-0.92.2-64bit.exe">64-bit</a>)</p></li>
+<li><p>Inkscape 0.92.0 - 0.92.1 (<a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.92.0%2B0.92.1/Install-PyGTK-2.24-Inkscape-0.92.exe">32-bit and 64-bit</a>)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="install-tkinter-not-recommended">
+<span id="tt0x-windows-install-tkinter"></span><h4>Install Tkinter (not recommended)<a class="headerlink" href="#install-tkinter-not-recommended" title="Link to this heading"></a></h4>
+<p>Tkinter is already included in the Python installation shipped with Inkscape.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Tk support is broken in Inkscape 0.92.2, fixed since 0.92.3</p>
+</div>
+</section>
+</section>
+<section id="install-a-pdf-svg-converter">
+<span id="tt0x-windows-install-pdf-to-svg-converter"></span><h3>Install a pdf-&gt;svg converter<a class="headerlink" href="#install-a-pdf-svg-converter" title="Link to this heading"></a></h3>
+<p>Again you have two options: <code class="docutils literal notranslate"><span class="pre">pdf2svg</span></code> or <code class="docutils literal notranslate"><span class="pre">pstoedit</span> <span class="pre">+</span> <span class="pre">ghostscript</span></code> (recommended):</p>
+<section id="install-pdf2svg-recommended">
+<span id="tt0x-windows-install-pdf2svg"></span><h4>Install pdf2svg (recommended)<a class="headerlink" href="#install-pdf2svg-recommended" title="Link to this heading"></a></h4>
+<p>Download and install the <code class="docutils literal notranslate"><span class="pre">pdf2svg</span></code> package from <a class="reference external" href="https://github.com/textext/pdf2svg/releases">https://github.com/textext/pdf2svg/releases</a> (<a class="reference external" href="https://github.com/textext/pdf2svg/releases/download/v0.2.3/Install-pdf2svg-0.2.3-32bit.exe">32-bit</a>, <a class="reference external" href="https://github.com/textext/pdf2svg/releases/download/v0.2.3/Install-pdf2svg-0.2.3-64bit.exe">64-bit</a>)</p>
+</section>
+<section id="install-pstoedit-not-recommended">
+<span id="tt0x-windows-install-pstoedit"></span><h4>Install pstoedit (not recommended)<a class="headerlink" href="#install-pstoedit-not-recommended" title="Link to this heading"></a></h4>
+<ol class="arabic simple">
+<li><p>Download and install <code class="docutils literal notranslate"><span class="pre">pstoedit</span></code> version <strong>3.73</strong> (<a class="reference external" href="https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_win32.exe">32-bit</a>, <a class="reference external" href="https://sourceforge.net/projects/pstoedit/files/pstoedit/3.73/pstoeditsetup_x64.exe">64-bit</a>)</p></li>
+<li><p>Download and install <code class="docutils literal notranslate"><span class="pre">ghostscript</span></code> version <strong>9.26</strong>  (<a class="reference external" href="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw32.exe">32-bit</a>, <a class="reference external" href="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs926/gs926aw64.exe">64-bit</a>)</p></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The most recent versions of ghostscript (9.50) and pstoedit (3.74) are NOT
+compatible with <strong>TexText 0.11 for Inkscape 0.92</strong>. They do not work at all or produce false results.
+This is an error between both packages and cannot be handled by <strong>TexText 0.11 for Inkscape 0.92</strong>,
+see issue <a class="reference external" href="https://github.com/textext/textext/issues/126">126</a>.</p>
+</div>
+</section>
+</section>
+<section id="install-pdflatex-lualatex-xelatex">
+<span id="tt0x-windows-install-latex"></span><h3>Install pdflatex/lualatex/xelatex<a class="headerlink" href="#install-pdflatex-lualatex-xelatex" title="Link to this heading"></a></h3>
+<p>Download and install MiKTeX distribution <a class="reference external" href="https://miktex.org/download">https://miktex.org/download</a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Make sure that automatic package installation is either set to
+<code class="docutils literal notranslate"><span class="pre">Never</span> <span class="pre">install</span> <span class="pre">missing</span> <span class="pre">packages</span> <span class="pre">on-the-fly</span></code> or set to
+<code class="docutils literal notranslate"><span class="pre">Always</span> <span class="pre">install</span> <span class="pre">missing</span> <span class="pre">packages</span> <span class="pre">on-the-fly</span></code>. You can configure this
+feature during installation of MiKTeX or later in the <a class="reference external" href="https://miktex.org/howto/miktex-console">MiKTeX console</a>.</p>
+</div>
+</section>
+</section>
+<section id="install-textext">
+<span id="tt0x-windows-install-textext"></span><h2>Install TexText<a class="headerlink" href="#install-textext" title="Link to this heading"></a></h2>
+<p>You have two options: A setup script or a GUI based installer.</p>
+<section id="setup-script-recommended">
+<h3>Setup script (recommended)<a class="headerlink" href="#setup-script-recommended" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Download the most recent package from <a class="reference external" href="https://github.com/textext/textext/releases/tag/0.11.1#release">GitHub release page</a> (direct links: <a class="reference external" href="https://github.com/textext/textext/releases/download/0.11.1/TexText-Windows-0.11.1.zip">.zip</a>)</p></li>
+<li><p>Extract the package and change into the created directory.</p></li>
+<li><p>Double click on the file <code class="code highlight bash docutils literal highlight-bash">setup_win.bat</code>. The script will check if all requirements
+described in <a class="reference internal" href="#tt0x-windows-install-dependencies"><span class="std std-ref">Install dependencies</span></a> are met. If so, it will install the extension
+files into the user’s Inkscape configuration directory (usually this is
+<code class="docutils literal notranslate"><span class="pre">%USERPROFILE%\AppData\Roaming\Inkscape</span></code>). If not, instructions are given helping to
+fix the problem. Unfortunately, the output of the script will not be colored on
+Windows versions &lt; 10 18.03.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you would like to skip the requirement checks during installation call the script
+from the command line as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>setup_win.bat<span class="w"> </span>/p:<span class="s2">&quot;--skip-requirements-check&quot;</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="installer">
+<h3>Installer<a class="headerlink" href="#installer" title="Link to this heading"></a></h3>
+<p>If you have trouble with the setup script you can use a GUI based installer:</p>
+<ol class="arabic simple">
+<li><p>Download the most recent installer from <a class="reference external" href="https://github.com/textext/textext/releases/tag/0.11.1#release">GitHub release page</a> (direct links: <a class="reference external" href="https://github.com/textext/textext/releases/download/0.11.1/TexText-Windows-0.11.1.exe">.exe</a>)</p></li>
+<li><p>Use the installer and follow the instructions. It will copy the required files into the user’s Inkscape
+configuration directory (usually this is <code class="docutils literal notranslate"><span class="pre">%USERPROFILE%\AppData\Roaming\Inkscape</span></code>).</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The installer does not perform any requirement checks. This means that the extension might
+fail to run if you did not install the programs mentioned in
+<a class="reference internal" href="#tt0x-windows-install-dependencies"><span class="std std-ref">Install dependencies</span></a> correctly.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="macos.html" class="btn btn-neutral float-left" title="TexText 0.11 for Inkscape 0.92 on MacOS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../usage/gui.html" class="btn btn-neutral float-right" title="The GUI (TexText 0.11)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

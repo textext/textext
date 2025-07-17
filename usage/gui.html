@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The TexText GUI &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+  
+        <script src="../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Frequently Asked Questions (FAQ)" href="faq.html" />
+    <link rel="prev" title="Advanced installation options" href="../install/advanced.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The <strong>TexText</strong> GUI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#invoking-textext-extension">Invoking <strong>TexText</strong> extension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dialog-overview">Dialog overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#available-compilers">Available compilers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preamble-file-latex-compilers-only">Preamble file (LaTeX compilers only)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scaling-of-the-output">Scaling of the output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alignment-of-the-output">Alignment of the output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colorization-of-the-output">Colorization of the output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preview-button-latex-compilers-only">Preview button (LaTeX compilers only)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-of-the-default-tex-math-environment">Configuration of the default TeX math-environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-the-shortcut-for-closing-the-textext-window">Selecting the shortcut for closing the <strong>TexText</strong> window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-of-the-code-editor">Configuration of the code editor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../textext_0x/textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The <strong>TexText</strong> GUI</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/usage/gui.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-textext-gui">
+<span id="gui"></span><h1>The <strong>TexText</strong> GUI<a class="headerlink" href="#the-textext-gui" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#invoking-textext-extension" id="id1">Invoking <strong>TexText</strong> extension</a></p></li>
+<li><p><a class="reference internal" href="#dialog-overview" id="id2">Dialog overview</a></p></li>
+<li><p><a class="reference internal" href="#available-compilers" id="id3">Available compilers</a></p></li>
+<li><p><a class="reference internal" href="#preamble-file-latex-compilers-only" id="id4">Preamble file (LaTeX compilers only)</a></p></li>
+<li><p><a class="reference internal" href="#scaling-of-the-output" id="id5">Scaling of the output</a></p></li>
+<li><p><a class="reference internal" href="#alignment-of-the-output" id="id6">Alignment of the output</a></p></li>
+<li><p><a class="reference internal" href="#colorization-of-the-output" id="id7">Colorization of the output</a></p></li>
+<li><p><a class="reference internal" href="#preview-button-latex-compilers-only" id="id8">Preview button (LaTeX compilers only)</a></p></li>
+<li><p><a class="reference internal" href="#configuration-of-the-default-tex-math-environment" id="id9">Configuration of the default TeX math-environment</a></p></li>
+<li><p><a class="reference internal" href="#selecting-the-shortcut-for-closing-the-textext-window" id="id10">Selecting the shortcut for closing the <strong>TexText</strong> window</a></p></li>
+<li><p><a class="reference internal" href="#configuration-of-the-code-editor" id="id11">Configuration of the code editor</a></p></li>
+<li><p><a class="reference internal" href="#further-reading" id="id12">Further reading</a></p></li>
+</ul>
+</nav>
+<section id="invoking-textext-extension">
+<span id="usage-extension-entry"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Invoking <strong>TexText</strong> extension</a><a class="headerlink" href="#invoking-textext-extension" title="Link to this heading"></a></h2>
+<p>After installation <strong>TexText</strong> will appear under <span class="menuselection">Extensions ‣ Text ‣ Tex Text</span>:</p>
+<figure class="align-default">
+<img alt="Extension entry" src="../_images/inkscape-extension1.png" />
+</figure>
+<p>When you select it, a dialog will appear that lets you enter any LaTeX
+code you want (presumably your formula).</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Once you have opened <strong>TexText</strong> via the menu entry in an Inkscape session
+you can subsequently open it using the keyboard shortcut <code class="code highlight bash docutils literal highlight-bash">ALT</code> + <code class="code highlight bash docutils literal highlight-bash">Q</code>
+(“Previous extension”).</p>
+<p>Alternatively, you can specify your own keyboard shortcut, see <a class="reference internal" href="faq.html#define-keyboard-shortcut"><span class="std std-ref">Defining keyboard shortcut for opening TexText dialog</span></a>
+in the FAQ.</p>
+</div>
+</section>
+<section id="dialog-overview">
+<span id="usage-dialog-overview"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Dialog overview</a><a class="headerlink" href="#dialog-overview" title="Link to this heading"></a></h2>
+<figure class="align-default">
+<img alt="Annotated TexText dialog" src="../_images/textext-dialog-annotated1.png" />
+</figure>
+<p>You enter your LaTeX code into the edit box <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-5" src="../_images/annotation_label_51.png" style="width: 1em; height: 1em;" /></a>. In the case the
+the GTK GUI bindings are available it will show you line and column numbers. If you
+additionally installed GTKSourceView it will also highlight the syntax
+with colors. You can add any valid and also multi-line LaTeX code.
+There are additional settings which can be adjusted to your needs:</p>
+<ul class="simple">
+<li><p>The TeX command to be used for compiling your code (group box <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-1" src="../_images/annotation_label_11.png" style="width: 1em; height: 1em;" /></a>).
+Possible options are: <code class="code highlight bash docutils literal highlight-bash">pdflatex</code>, <code class="code highlight bash docutils literal highlight-bash">xelatex</code>, <code class="code highlight bash docutils literal highlight-bash">lualatex</code>. See
+section <a class="reference internal" href="#usage-tex-compilers"><span class="std std-ref">Available compilers</span></a> for more details.</p></li>
+<li><p>Custom <a class="reference internal" href="#usage-preamble-file"><span class="std std-ref">Preamble file (LaTeX compilers only)</span></a> (group box <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-2" src="../_images/annotation_label_21.png" style="width: 1em; height: 1em;" /></a>)</p></li>
+<li><p>The scale factor (group box <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-3" src="../_images/annotation_label_31.png" style="width: 1em; height: 1em;" /></a>). See section <a class="reference internal" href="#usage-scaling"><span class="std std-ref">Scaling of the output</span></a>.</p></li>
+<li><p>The alignment relative to the previous version of your code (group
+box <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-4" src="../_images/annotation_label_41.png" style="width: 1em; height: 1em;" /></a>, only available when re-editing your code). See section <a class="reference internal" href="#usage-alignment"><span class="std std-ref">Alignment of the output</span></a>.</p></li>
+<li><p>The coloring of the output using TeX commands or Inkscape settings.
+See section <a class="reference internal" href="#usage-colorization"><span class="std std-ref">Colorization of the output</span></a>.</p></li>
+<li><p>The default math environment in new nodes (menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-7" src="../_images/annotation_label_71.png" style="width: 1em; height: 1em;" /></a>), see section <a class="reference internal" href="#usage-default-math-environment-config"><span class="std std-ref">Configuration of the default TeX math-environment</span></a>.</p></li>
+<li><p>The appearance of the editor (menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-8" src="../_images/annotation_label_81.png" style="width: 1em; height: 1em;" /></a>), see section <a class="reference internal" href="#usage-gui-config"><span class="std std-ref">Configuration of the code editor</span></a>.</p></li>
+</ul>
+<p>Your LaTeX code and the accompanying settings will be stored within the
+new SVG node in the document. This allows you to edit the LaTeX node
+later by selecting it and running the <em>Tex Text</em> extension (which will
+then show the dialog containing the saved values).</p>
+<p>There is a preview button <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-6" src="../_images/annotation_label_61.png" style="width: 1em; height: 1em;" /></a> as well, which shortens the feedback cycle
+from entry to result considerably, so use it! See section <a class="reference internal" href="#usage-preview"><span class="std std-ref">Preview button (LaTeX compilers only)</span></a></p>
+</section>
+<section id="available-compilers">
+<span id="usage-tex-compilers"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Available compilers</a><a class="headerlink" href="#available-compilers" title="Link to this heading"></a></h2>
+<p>Your LaTeX/ typst code can be compiled using four different compilers:
+<code class="code highlight bash docutils literal highlight-bash">pdflatex</code>, <code class="code highlight bash docutils literal highlight-bash">xelatex</code>, <code class="code highlight bash docutils literal highlight-bash">lualatex</code>, <code class="code highlight bash docutils literal highlight-bash">typst</code> (as long as the corresponding
+commands are found by your system). You can select the command in the
+combobox <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-1" src="../_images/annotation_label_11.png" style="width: 1em; height: 1em;" /></a>. XeLaTex and LuaLaTeX are especially useful for using UTF-8
+input or if you require Lua commands. Of course you can use UTF-8 input
+with the <code class="code highlight bash docutils literal highlight-bash">pdflatex</code> command as well as long as you provide
+<code class="code highlight latex docutils literal highlight-latex">usepackage[utf8]<span class="nb">{</span>inputenc<span class="nb">}</span></code> in your preamble file (see <a class="reference internal" href="#usage-preamble-file"><span class="std std-ref">Preamble file (LaTeX compilers only)</span></a>).
+<a class="reference external" href="https://typst.app/">typst</a> is a new typesetting system based on markup. Is is also
+supported by <strong>TexText</strong> in a bsic manner.</p>
+<p>Some things to be kept in mind:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Place the required lua packages in your <a class="reference internal" href="#usage-preamble-file">preamble file</a> if you want to
+compile your code with <code class="code highlight bash docutils literal highlight-bash">lualatex</code>.</p></li>
+<li><p>If you use <code class="code highlight bash docutils literal highlight-bash">lualatex</code>/ <code class="code highlight bash docutils literal highlight-bash">xelatex</code> for the very first time on your
+system it may take some time until the fonts are setup properly.
+During that time <strong>TexText</strong> might be unresponsive.</p></li>
+<li><p>Windows: <code class="code highlight bash docutils literal highlight-bash">xelatex</code> tends to be very slow on Windows machines, see
+this post on
+<a class="reference external" href="https://tex.stackexchange.com/questions/357098/compiling-tex-files-with-xelatex-is-insanely-slow-on-my-windows-machine/357100">Stackexchange</a>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="preamble-file-latex-compilers-only">
+<span id="usage-preamble-file"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">Preamble file (LaTeX compilers only)</a><a class="headerlink" href="#preamble-file-latex-compilers-only" title="Link to this heading"></a></h2>
+<p>Be aware of including the required packages in the <em>preamble file</em> if you
+use special commands in your code that rely on such packages. The
+preamble file can be chosen by the selector <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-2" src="../_images/annotation_label_21.png" style="width: 1em; height: 1em;" /></a>. The default preamble
+file shipped with <strong>TexText</strong> includes the following:</p>
+<div class="highlight-latex notranslate"><div class="highlight"><pre><span></span><span class="k">\documentclass</span><span class="nb">{</span>article<span class="nb">}</span>
+
+<span class="k">\usepackage</span><span class="nb">{</span>amsmath,amsthm,amssymb,amsfonts<span class="nb">}</span>
+<span class="k">\usepackage</span><span class="nb">{</span>color<span class="nb">}</span>
+</pre></div>
+</div>
+<p>Basically, your LaTeX code will be inserted into this environment:</p>
+<div class="highlight-latex notranslate"><div class="highlight"><pre><span></span><span class="c">% ***preamble file content***</span>
+<span class="k">\pagestyle</span><span class="nb">{</span>empty<span class="nb">}</span>
+<span class="k">\begin</span><span class="nb">{</span>document<span class="nb">}</span>
+<span class="c">% ***Your code***</span>
+<span class="k">\end</span><span class="nb">{</span>document<span class="nb">}</span>
+</pre></div>
+</div>
+<p>This will be typeset, converted to SVG and inserted into your Inkscape
+document. If no <code class="code highlight latex docutils literal highlight-latex">documentclass</code> or <code class="code highlight latex docutils literal highlight-latex">documentstyle</code> is specified
+in the preamble file, <code class="code highlight latex docutils literal highlight-latex">documentclass<span class="nb">{</span>article<span class="nb">}</span></code> is used by default.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When typst is selected as compiler the preamble file widgets are disabled in the
+GUI and the preamble file is ignored.</p>
+</div>
+</section>
+<section id="scaling-of-the-output">
+<span id="usage-scaling"></span><h2><a class="toc-backref" href="#id5" role="doc-backlink">Scaling of the output</a><a class="headerlink" href="#scaling-of-the-output" title="Link to this heading"></a></h2>
+<p>In most of the cases you will need to adjust the size of the produced
+SVG output to match the conditions of your drawing. This can be done by
+two methods:</p>
+<ol class="arabic">
+<li><p>After compilation adjust the size of the SVG output using the mouse
+in Inkscape. You should lock the width and height to keep the
+proportion. Be careful to not break the group!</p>
+<blockquote>
+<div><figure class="align-default">
+<img alt="Locked scaling in Inkscape" src="../_images/inkscape-scaling-locked.png" />
+</figure>
+</div></blockquote>
+</li>
+<li><p>Before compilation you specify a scale factor in the spinbox of the
+groupbox <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-3" src="../_images/annotation_label_31.png" style="width: 1em; height: 1em;" /></a>.</p>
+<blockquote>
+<div><figure class="align-default">
+<img alt="TexText scale factor" src="../_images/textext-scale-factor.png" />
+</figure>
+</div></blockquote>
+</li>
+</ol>
+<p>Both methods are fully compatible. If you scale your SVG output in
+Inkscape the numerical value of the spinbox will be adjusted
+appropriately when you open <strong>TexText</strong> on that node later. In both cases
+the scale factor is preserved when you re-edit your code.</p>
+<p>A scale factor of 1 means that the output is sized as it would appear in
+a regular LaTeX document, i.e., a font size of <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">pt</span></code> in LaTex matches
+that of <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">pt</span></code> in Inkscape:</p>
+<figure class="align-default">
+<img alt="Font size example" src="../_images/texttext-fontsize-example1.png" />
+</figure>
+<p>There are two additional buttons in the groupbox <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-3" src="../_images/annotation_label_31.png" style="width: 1em; height: 1em;" /></a>:</p>
+<ul class="simple">
+<li><p><em>Reset</em>: This button is only available when re-editing existing
+<strong>TexText</strong> nodes. It resets the scale factor to the value the code has
+been compiled with the last time. This is useful when playing around
+with the scale factor and decide to not change the scale factor.</p></li>
+<li><p><em>As previous</em>: This button sets the scale factor of the currently
+edited node to the value of the node which has been edited
+previously. This is useful when you found a scale factor to be
+suitable and want to apply this scale factor also to any new or
+existing nodes you open for editing.</p></li>
+</ul>
+<p>If you have re-sized the SVG output in Inkscape <em>without</em> keeping the
+proportions the re-compiled output will be placed with correct
+proportions according to the <a class="reference internal" href="#usage-alignment">alignment</a>.</p>
+</section>
+<section id="alignment-of-the-output">
+<span id="usage-alignment"></span><h2><a class="toc-backref" href="#id6" role="doc-backlink">Alignment of the output</a><a class="headerlink" href="#alignment-of-the-output" title="Link to this heading"></a></h2>
+<p>When you edit existing nodes it is likely that the size of the produced
+output will change, for example if you modify the input <code class="code highlight latex docutils literal highlight-latex"><span class="s">$</span><span class="nb">sin</span><span class="o">(</span><span class="nb">x</span><span class="o">)</span><span class="s">$</span></code> to
+<code class="code highlight latex docutils literal highlight-latex"><span class="s">$</span><span class="nb">intsin</span><span class="o">(</span><span class="nb">x</span><span class="o">)</span><span class="nb">text{d}x</span><span class="s">$</span></code>. The entries of the spinbox <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-4" src="../_images/annotation_label_41.png" style="width: 1em; height: 1em;" /></a> determine how
+the new node is aligned relatively to the old node. The default
+behaviour is <code class="docutils literal notranslate"><span class="pre">middle</span> <span class="pre">center</span></code>, i.e. the middle of the new node is placed
+on the middle of the old node. Available options are:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#usage-alignment"><img alt="tl" src="../_images/alignment-top-left.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">top</span> <span class="pre">left</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="tc" src="../_images/alignment-top-center.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">top</span> <span class="pre">center</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="tr" src="../_images/alignment-top-right.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">top</span> <span class="pre">right</span></code></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#usage-alignment"><img alt="ml" src="../_images/alignment-middle-left.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">middle</span> <span class="pre">left</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="mc" src="../_images/alignment-middle-center.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">middle</span> <span class="pre">center</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="mr" src="../_images/alignment-middle-right.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">middle</span> <span class="pre">right</span></code></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#usage-alignment"><img alt="bl" src="../_images/alignment-bottom-left.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">left</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="bc" src="../_images/alignment-bottom-center.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">center</span></code></p>
+</td>
+<td><p><a class="reference internal" href="#usage-alignment"><img alt="br" src="../_images/alignment-bottom-right.svg1.png" /></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">right</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+<figure class="align-default">
+<img alt="Alignment example" src="../_images/textext-alignment-example1.png" />
+</figure>
+<p>Of course, the content of the groupbox <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-4" src="../_images/annotation_label_41.png" style="width: 1em; height: 1em;" /></a> is only available when
+editing existing nodes.</p>
+</section>
+<section id="colorization-of-the-output">
+<span id="usage-colorization"></span><h2><a class="toc-backref" href="#id7" role="doc-backlink">Colorization of the output</a><a class="headerlink" href="#colorization-of-the-output" title="Link to this heading"></a></h2>
+<p>There are two ways for colorization of the output:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>The most natural way is to select the produced SVG output in Inkscape and set the fill
+color to the same value according to your needs. When you re-compile your node this color
+will be persevered as long as you do not use any color specifications in your LaTeX code.</p>
+<p>You can also colorize characters individually be selecting them with the mouse
+after having pressed <kbd class="kbd docutils literal notranslate">F2</kbd>. Be careful not to break the group.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Individual colorization of <em>single characters</em> done in Inkscape <em>will not</em> be
+kept after re-compilation.</p>
+</div>
+</li>
+<li><p>Alternatively, you can use LaTeX commands like
+<code class="code highlight latex docutils literal highlight-latex">textcolor</code> in your code to colorize the node according to your
+needs. The required color package is already included in the <code class="docutils literal notranslate"><span class="pre">default_packages.tex</span></code>
+preamble file shipped with <strong>TexText</strong>. If you use such commands any colorization done
+by Inkscape will be lost after re-compilation. This method is the recommended one if you
+would like a character wise colorization of your output.</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="preview-button-latex-compilers-only">
+<span id="usage-preview"></span><h2><a class="toc-backref" href="#id8" role="doc-backlink">Preview button (LaTeX compilers only)</a><a class="headerlink" href="#preview-button-latex-compilers-only" title="Link to this heading"></a></h2>
+<p>When pressing the <code class="docutils literal notranslate"><span class="pre">Preview</span></code> button <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-6" src="../_images/annotation_label_61.png" style="width: 1em; height: 1em;" /></a> your code will be compiled and the result
+is displayed as an image in the area below the LaTeX code input field. If the
+output extends a certain size it is displayed scaled so it fits into the available
+area. You can double click into the preview image to obtain the result in original
+size. Then, you can use the horizontal and vertical scroll bars to navigate along
+your result. Double clicking again will bring you back to the scaled version of the
+output.</p>
+<figure class="align-default">
+<img alt="Annotated TexText dialog" src="../_images/textext-dialog-preview1.png" />
+</figure>
+<p>If you are using a darkmode theme you can select the option <code class="docutils literal notranslate"><span class="pre">White</span> <span class="pre">preview</span> <span class="pre">background</span></code>
+option from the <code class="docutils literal notranslate"><span class="pre">View</span></code> menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-7" src="../_images/annotation_label_71.png" style="width: 1em; height: 1em;" /></a>:</p>
+<a class="reference internal image-reference" href="../_images/textext-dialog-preview-standardmode.png"><img alt="Selection of white preview background" src="../_images/textext-dialog-preview-standardmode.png" style="width: 45%;" /></a>
+<a class="reference internal image-reference" href="../_images/textext-dialog-preview-darkmode.png"><img alt="Selection of white preview background" src="../_images/textext-dialog-preview-darkmode.png" style="width: 45%;" /></a>
+<p>Finally, click the <code class="docutils literal notranslate"><span class="pre">Save</span></code> button to insert the compiled code into your document.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature is not available in the Tkinter GUI! It is also not available
+when using the typst compiler (feature will be available in upcoming <strong>TexText</strong>
+2.0 release).</p>
+</div>
+</section>
+<section id="configuration-of-the-default-tex-math-environment">
+<span id="usage-default-math-environment-config"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink">Configuration of the default TeX math-environment</a><a class="headerlink" href="#configuration-of-the-default-tex-math-environment" title="Link to this heading"></a></h2>
+<p>You can open the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-8" src="../_images/annotation_label_81.png" style="width: 1em; height: 1em;" /></a> and then <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Node</span> <span class="pre">Content</span></code>
+to define which environment should be selected by default when creating new nodes.</p>
+<figure class="align-default">
+<img alt="TexText settings menu (new node content)" src="../_images/textext-dialog-with-settings-menus-new-node1.png" />
+</figure>
+<p>You have the following options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Empty</span></code>: The code editor is empty.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Inline</span> <span class="pre">math</span></code>: The code editor is filled with <code class="docutils literal notranslate"><span class="pre">$$</span></code> for typesetting an inline math expression.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Display</span> <span class="pre">math</span></code>: The code editor is filled with <code class="docutils literal notranslate"><span class="pre">$$$$</span></code> for typesetting a display math expression.</p></li>
+</ul>
+<p>(<a class="reference external" href="https://en.wikibooks.org/wiki/LaTeX/Mathematics#Mathematics_environments">Reminder on the difference between inline and display math</a>)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature is not available in the Tkinter GUI!</p>
+</div>
+</section>
+<section id="selecting-the-shortcut-for-closing-the-textext-window">
+<span id="usage-close-shortcut-config"></span><h2><a class="toc-backref" href="#id10" role="doc-backlink">Selecting the shortcut for closing the <strong>TexText</strong> window</a><a class="headerlink" href="#selecting-the-shortcut-for-closing-the-textext-window" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.11.0.</span></p>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-8" src="../_images/annotation_label_81.png" style="width: 1em; height: 1em;" /></a> you can configure by <code class="docutils literal notranslate"><span class="pre">Confirm</span> <span class="pre">Closing</span> <span class="pre">Window</span></code> if <strong>TexText</strong> should ask for
+confirmation to close the window in case you made changes to your text. Furthermore, under <code class="docutils literal notranslate"><span class="pre">Close</span> <span class="pre">TexText</span> <span class="pre">Shortcut</span></code>
+you can select a shortcut for closing the <strong>TexText</strong> window.</p>
+<figure class="align-default">
+<img alt="TexText settings menu (close shortcut)" src="../_images/textext-dialog-with-settings-menus-close-shortcut1.png" />
+</figure>
+<p>You have the following options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Escape</span></code> (default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">Q</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: No shortcut active. Depending on your operating system a standard shortcut maybe
+available (e.g. <code class="docutils literal notranslate"><span class="pre">ALT</span></code> + <code class="docutils literal notranslate"><span class="pre">F4</span></code> on Windows).</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature is not available in the Tkinter GUI!</p>
+</div>
+</section>
+<section id="configuration-of-the-code-editor">
+<span id="usage-gui-config"></span><h2><a class="toc-backref" href="#id11" role="doc-backlink">Configuration of the code editor</a><a class="headerlink" href="#configuration-of-the-code-editor" title="Link to this heading"></a></h2>
+<p>You can open the <code class="docutils literal notranslate"><span class="pre">View</span></code> menu <a class="reference internal" href="#usage-dialog-overview"><img alt="usage-label-7" src="../_images/annotation_label_71.png" style="width: 1em; height: 1em;" /></a> which offers some possibilities
+to configure the code editor:</p>
+<figure class="align-default">
+<img alt="TexText view menu" src="../_images/textext-dialog-with-view-menus1.png" />
+</figure>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Font</span> <span class="pre">Size</span></code>: Here you can set the font size used in the code editor (since version 1.7.0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Word</span> <span class="pre">Wrap</span></code>: If this option is checked long lines are wrapped automatically to window width.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Show</span> <span class="pre">line</span> <span class="pre">numbers</span></code>: If this option is checked line numbers are printed on the left hand side of the editor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Enabled</span> <span class="pre">auto</span> <span class="pre">indent</span></code>: If this option is checked current indentation is preserved when breaking a new line (this is not an intelligent code dependent indentation feature).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Insert</span> <span class="pre">spaces</span> <span class="pre">instead</span> <span class="pre">of</span> <span class="pre">Tabs</span></code> If this option is checked each time you press the <code class="docutils literal notranslate"><span class="pre">Tab</span></code> key a number of spaces as defined in <code class="docutils literal notranslate"><span class="pre">Tabs</span> <span class="pre">Width</span></code> is inserted instead of a tabulator character.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The last three options are only available if you have <code class="docutils literal notranslate"><span class="pre">GTKSourceView</span></code> installed
+together with <code class="docutils literal notranslate"><span class="pre">GTK</span></code> (see installation instructions <a class="reference internal" href="../install/linux.html#linux-install"><span class="std std-ref">TexText on Linux</span></a>,
+<a class="reference internal" href="../install/windows.html#windows-install"><span class="std std-ref">TexText on Windows</span></a>, <a class="reference internal" href="../install/macos.html#macos-install"><span class="std std-ref">TexText on MacOS</span></a>)</p>
+</div>
+</section>
+<section id="further-reading">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Further reading</a><a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<p>See <a class="reference internal" href="faq.html#faq"><span class="std std-ref">Frequently Asked Questions (FAQ)</span></a>, <a class="reference internal" href="troubleshooting.html#troubleshooting"><span class="std std-ref">Troubleshooting</span></a>, <a class="reference internal" href="command_line_usage.html#commandlineusage"><span class="std std-ref">TexText Command Line Usage</span></a>,
+and <a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">TexText Configuration</span></a> for more information.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../install/advanced.html" class="btn btn-neutral float-left" title="Advanced installation options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions (FAQ)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

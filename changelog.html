@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Change log &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/logo.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Authors" href="authors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="textext_0x/textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Change log</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-12-0-2025-07-17">Version 1.12.0 (2025-07-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-11-1-2025-03-13">Version 1.11.1 (2025-03-13)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-11-0-2025-01-06">Version 1.11.0 (2025-01-06)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-10-2-2024-02-20">Version 1.10.2 (2024-02-20)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-10-1-2023-11-18">Version 1.10.1 (2023-11-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-10-0-2023-11-17">Version 1.10.0 (2023-11-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-9-0-2023-07-26">Version 1.9.0 (2023-07-26)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-8-2-2022-08-27">Version 1.8.2 (2022-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-8-1-2022-02-23">Version 1.8.1 (2022-02-23)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-8-0-2022-02-03">Version 1.8.0 (2022-02-03)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-7-1-2022-01-04">Version 1.7.1 (2022-01-04)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-7-0-2021-12-27">Version 1.7.0 (2021-12-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-6-1-2021-11-16">Version 1.6.1 (2021-11-16)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-6-0-2021-10-07">Version 1.6.0 (2021-10-07)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-5-0-2021-08-19">Version 1.5.0 (2021-08-19)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-4-0-2021-05-31">Version 1.4.0 (2021-05-31)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-3-1-2021-02-26">Version 1.3.1 (2021-02-26)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-3-0-2020-11-27">Version 1.3.0 (2020-11-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-2-0-2020-10-22">Version 1.2.0 (2020-10-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-1-0-2020-07-17">Version 1.1.0 (2020-07-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-1-2020-05-12">Version 1.0.1 (2020-05-12)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0-2020-05-04">Version 1.0.0 (2020-05-04)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-11-1-2020-05-04">Version 0.11.1 (2020-05-04)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0-dev-4-2020-04-15">Version 1.0.0-dev.4 (2020-04-15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0-dev-3-2020-04-10">Version 1.0.0-dev.3 (2020-04-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0-dev-2-2020-02-10">Version 1.0.0-dev.2 (2020-02-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-1-0-0-dev-1-2019-12-17">Version 1.0.0-dev.1 (2019-12-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-11-0-2019-06-22">Version 0.11.0 (2019-06-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-10-2-2019-05-07">Version 0.10.2 (2019-05-07)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-10-1-2019-04-17">Version 0.10.1 (2019-04-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-10-0-2019-04-05">Version 0.10.0 (2019-04-05)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-9-1-2018-12-27">Version 0.9.1 (2018-12-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-9-0-2018-12-20">Version 0.9.0 (2018-12-20)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-8-2-2018-12-12">Version 0.8.2 (2018-12-12)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-8-1-2018-08-23">Version 0.8.1 (2018-08-23)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-8-0-2018-08-21">Version 0.8.0 (2018-08-21)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7-3-2018-05-17">Version 0.7.3 (2018-05-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7-2-2018-04-06">Version 0.7.2 (2018-04-06)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7-1-2018-02-06">Version 0.7.1 (2018-02-06)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7-2017-12-15">Version 0.7 (2017-12-15)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-6-1-2017-02-13">Version 0.6.1 (2017-02-13)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-6-2017-02-01">Version 0.6 (2017-02-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-5-2-2017-01-06">Version 0.5.2 (2017-01-06)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-5-1-2016-10-10">Version 0.5.1 (2016-10-10)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Change log</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changelog.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="change-log">
+<h1>Change log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h1>
+<section id="version-1-12-0-2025-07-17">
+<h2>Version 1.12.0 (2025-07-17)<a class="headerlink" href="#version-1-12-0-2025-07-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: setup command line option <cite>–use-tk</cite> to force the usage of tkinter
+as UI. Alongside, the configuration file option <cite>gui.toolkit</cite> has been
+introduced. It allows the selection of the GUI toolkit to use in order to
+override the automatic detection. Possible values are <cite>tk</cite> or <cite>gtk</cite>.
+Additionally, <cite>gui.use_gtk_source</cite> can be used to turn GTKSourceView on or
+off, if the GTK toolkit is used.</p></li>
+<li><p>New: If a subgroup of a TexText object has been selected a warning message
+will be displayed (previously an empty dialog opened prompting for
+new input).</p></li>
+<li><p>New: Command line option <cite>–recompile-all</cite>: All TexText obejcts will
+be re-compiled (useful if preamble has been changed).</p></li>
+<li><p>New: Added a section for command line usage of TexText to the documentation.
+Useful for debugging and CI tests.</p></li>
+<li><p>Fixed: Re-edited TexText objects are placed in the foreground even if they
+were in the background before re-editing them (<a class="reference external" href="https://github.com/textext/textext/issues/467">issue 467</a>)</p></li>
+<li><p>Fixed: After re-editing TexText objects only subgroups of the object are
+selected after TexText closes (<a class="reference external" href="https://github.com/textext/textext/issues/460">issue 460</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-11-1-2025-03-13">
+<h2>Version 1.11.1 (2025-03-13)<a class="headerlink" href="#version-1-11-1-2025-03-13" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: The error dialog additionally presents a traceback of the error
+(thanks to user202729)</p></li>
+<li><p>Fixed: Setup crashes when symbolic links are used in the user’s extension
+folder (thanks to user202729).</p></li>
+<li><p>Fixed: Setup crashes when Inkscape extension command subsystem fails</p></li>
+</ul>
+</section>
+<section id="version-1-11-0-2025-01-06">
+<h2>Version 1.11.0 (2025-01-06)<a class="headerlink" href="#version-1-11-0-2025-01-06" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed (the most annoying issue!):
+Horizontal lines as they appear in frac or sqrt commands cannot be
+colorized by setting the fill color. If they have been manually colored
+by setting the stroke color the lines disappear after re-compilation.</p></li>
+<li><p>New: removed the Stroke to Path option, it is not necessary anymore due to
+the fix mentioned above.</p></li>
+<li><p>New: typst preamble and preview support</p></li>
+<li><p>New: It is possible to change the command line options for the LaTeX compilers (useful e.g. to incorporate
+the -shell-escape option). See
+<a class="reference external" href="https://textext.github.io/textext/usage/faq.html#compiling-latex-code-with-additional-command-line-options-e-g-shell-escape">this FAQ entry</a>
+in the documentation</p></li>
+<li><p>Fixed: typst snippets contain a large empty background frame</p></li>
+<li><p>Fixed: TexText fails silently if unhandled errors occur.</p></li>
+</ul>
+</section>
+<section id="version-1-10-2-2024-02-20">
+<h2>Version 1.10.2 (2024-02-20)<a class="headerlink" href="#version-1-10-2-2024-02-20" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Wrong environment inserted when <cite>Display Math</cite> option is selected
+in <cite>New Node Content</cite> menu while typst is the active compiler (<a class="reference external" href="https://github.com/textext/textext/issues/417">issue 417</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-10-1-2023-11-18">
+<h2>Version 1.10.1 (2023-11-18)<a class="headerlink" href="#version-1-10-1-2023-11-18" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Installation issue on Windows.</p></li>
+</ul>
+</section>
+<section id="version-1-10-0-2023-11-17">
+<h2>Version 1.10.0 (2023-11-17)<a class="headerlink" href="#version-1-10-0-2023-11-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Basic support for <a class="reference external" href="https://typst.app/">typst</a>. Typst is a markup-based
+typesetting system.</p></li>
+</ul>
+</section>
+<section id="version-1-9-0-2023-07-26">
+<h2>Version 1.9.0 (2023-07-26)<a class="headerlink" href="#version-1-9-0-2023-07-26" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Compatibility with Inkscape 1.3. This version does not support Inkscape
+versions 1.2 and older anymore!</p></li>
+</ul>
+</section>
+<section id="version-1-8-2-2022-08-27">
+<h2>Version 1.8.2 (2022-08-27)<a class="headerlink" href="#version-1-8-2-2022-08-27" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Each time the extension is executed an annoying warning
+<code class="docutils literal notranslate"><span class="pre">&lt;frozen</span> <span class="pre">importlib._bootstrap&gt;:671:</span> <span class="pre">ImportWarning:</span> <span class="pre">DynamicImporter.exec_module()</span> <span class="pre">not</span> <span class="pre">found;</span> <span class="pre">falling</span> <span class="pre">back</span> <span class="pre">to</span> <span class="pre">load_module()</span></code>
+is shown (actually, this is the problem of the underlying GTK-framework, not
+of TexText) (<a class="reference external" href="https://github.com/textext/textext/issues/350">issue 350</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-8-1-2022-02-23">
+<h2>Version 1.8.1 (2022-02-23)<a class="headerlink" href="#version-1-8-1-2022-02-23" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: When re-installing TexText with diffent paths to latex excutables
+compared to the original setup these new paths are not recognized when
+invoking TexText from Inkscape (<a class="reference external" href="https://github.com/textext/textext/issues/345">issue 345</a>).</p></li>
+</ul>
+</section>
+<section id="version-1-8-0-2022-02-03">
+<h2>Version 1.8.0 (2022-02-03)<a class="headerlink" href="#version-1-8-0-2022-02-03" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: It is now possible to use the <code class="docutils literal notranslate"><span class="pre">\documentclass</span></code> statement in the
+preamble file. This makes it easier to adjust the fontsize. Old preamble
+files without the <code class="docutils literal notranslate"><span class="pre">\documentclass</span></code> statement can still be used.</p></li>
+<li><p>Changed: Instructions for installation of TexText for Inkscape in
+Windows PortableApps (fixes <a class="reference external" href="https://github.com/textext/textext/issues/288">issue 288</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-7-1-2022-01-04">
+<h2>Version 1.7.1 (2022-01-04)<a class="headerlink" href="#version-1-7-1-2022-01-04" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
+(<a class="reference external" href="https://github.com/textext/textext/issues/338">issue 338</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-7-0-2021-12-27">
+<h2>Version 1.7.0 (2021-12-27)<a class="headerlink" href="#version-1-7-0-2021-12-27" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Adjustable font size in LaTeX code editor (GTK GUI only)</p></li>
+<li><p>Fixed: distutils deprecation warning when running under Python 3.10</p></li>
+<li><p>Open: In Inkscape 1.2-dev new nodes are not placed in the center of the view.
+(<a class="reference external" href="https://github.com/textext/textext/issues/338">issue 338</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-6-1-2021-11-16">
+<h2>Version 1.6.1 (2021-11-16)<a class="headerlink" href="#version-1-6-1-2021-11-16" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: When LaTeX-code is imported via the <cite>File</cite> - <cite>Open</cite> dialog
+the error message <cite>ResourceWarning: unclosed file &lt;_io.TextIOWrapper name’…’</cite>
+is shown. (<a class="reference external" href="https://github.com/textext/textext/issues/322">issue 322</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-6-0-2021-10-07">
+<h2>Version 1.6.0 (2021-10-07)<a class="headerlink" href="#version-1-6-0-2021-10-07" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Generated svg objects appear sometimes flipped or far away from
+the view center (<a class="reference external" href="https://github.com/textext/textext/issues/283">issue 283</a>, <a class="reference external" href="https://github.com/textext/textext/issues/313">issue 313</a>)</p></li>
+<li><p>New: It is now possible to install TexText system wide for all users
+(setup script only, see
+<a class="reference external" href="https://textext.github.io/textext/install/advanced.html">setup documentation</a>,
+<a class="reference external" href="https://github.com/textext/textext/issues/247">issue 247</a>, <a class="reference external" href="https://github.com/textext/textext/issues/314">issue 314</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-5-0-2021-08-19">
+<h2>Version 1.5.0 (2021-08-19)<a class="headerlink" href="#version-1-5-0-2021-08-19" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Changed: The feature enabling easy colorization of TexText svg nodes
+containing <cite>sqrt</cite>, <cite>frac</cite>, and other commands introducing strokes
+(lines) in Inkscape is now optional, see
+<a class="reference external" href="https://textext.github.io/textext/usage/gui.html#colorization-of-the-output">documentation</a>.
+Reason for this is the increased compilation time (cf. <a class="reference external" href="https://github.com/textext/textext/issues/304">issue 304</a>).</p></li>
+<li><p>New (experimental): Support of Inkscape extension manager
+(manual install of file downloaded from
+<a class="reference external" href="https://inkscape.org/~jcwinkler/%E2%98%85textext">Inkscape extension site</a>)</p></li>
+<li><p>New (Inkscape on MS Windows): User defined locations of Inkscape
+installed via the msi-Installer are correctly identified by the
+setup-script.</p></li>
+</ul>
+</section>
+<section id="version-1-4-0-2021-05-31">
+<h2>Version 1.4.0 (2021-05-31)<a class="headerlink" href="#version-1-4-0-2021-05-31" title="Link to this heading"></a></h2>
+<ul>
+<li><p>New: TexText svg nodes can be colorized now by a single click even
+if they contain strokes (as, for example, in fractions,
+square-roots or overlines). Just select the node in Inkscape and
+click on the fill color in the color bar as you do it with normal
+Inkscape text (<a class="reference external" href="https://github.com/textext/textext/issues/291">issue 291</a>).</p>
+<p><em>Note</em>: Due to this, execution time per node compilation is longer
+compared to previous versions of TexText. However, you do not need to
+colorize strokes manually in Inkscape anymore. On Windows, also
+a slight flickering on the screen might appear while the TeX code
+is compiled.</p>
+</li>
+<li><p>Documentation improvements</p></li>
+</ul>
+</section>
+<section id="version-1-3-1-2021-02-26">
+<h2>Version 1.3.1 (2021-02-26)<a class="headerlink" href="#version-1-3-1-2021-02-26" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Setup script fails on Windows if Inkscape has been installed
+via the .msi installer (<a class="reference external" href="https://github.com/textext/textext/issues/280">issue 280</a>)</p></li>
+<li><p>Fixed: Imprecise instructions regarding location of Inkscape
+executable in Windows setup script (<a class="reference external" href="https://github.com/textext/textext/issues/280">issue 280</a>)</p></li>
+<li><p>Added: Detailed explanation of setup script options (Linux, MacOS,
+Windows)</p></li>
+</ul>
+</section>
+<section id="version-1-3-0-2020-11-27">
+<h2>Version 1.3.0 (2020-11-27)<a class="headerlink" href="#version-1-3-0-2020-11-27" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Fixed: Double backslashes and missing line breaks occur when using
+TexText 1.2.0 on nodes created with TexText &lt;= 1.1 (<a class="reference external" href="https://github.com/textext/textext/issues/265">issue 265</a>)</p>
+<p><strong>Note: A one-time manual insertion of line breaks will be necessary
+when opening such nodes. When having saved them again the line breaks
+are kept in the future. Double backslashes are replaced by single ones
+automatically.</strong></p>
+</li>
+<li><p>Fixed: Opening TexText is slow (<a class="reference external" href="https://github.com/textext/textext/issues/263">issue 263</a>)</p></li>
+<li><p>Fixed: Windows installation script complains about missing
+Python GTK3 bindings (<a class="reference external" href="https://github.com/textext/textext/issues/262">issue 262</a>)</p></li>
+<li><p>New: Added explanation to the FAQ/ documentation how to
+define a shortcut for opening TexText (<a class="reference external" href="https://github.com/textext/textext/issues/259">issue 259</a>). Refer to
+<a class="reference external" href="https://textext.github.io/textext/usage/faq.html#defining-keyboard-shortcut-for-opening-textext-dialog">https://textext.github.io/textext/usage/faq.html#defining-keyboard-shortcut-for-opening-textext-dialog</a></p></li>
+</ul>
+</section>
+<section id="version-1-2-0-2020-10-22">
+<h2>Version 1.2.0 (2020-10-22)<a class="headerlink" href="#version-1-2-0-2020-10-22" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: On Windows and Inkscape 1.0.1 TK interface is shown only
+(<a class="reference external" href="https://github.com/textext/textext/issues/253">issue 253</a>)</p></li>
+<li><p>Fixed: Color of TexText nodes set in Inkscape not kept after
+recompilation (<a class="reference external" href="https://github.com/textext/textext/issues/245">issue 245</a>)</p></li>
+<li><p>Fixed: <cite>temp.tex</cite> file not encoded in UTF-8 (<a class="reference external" href="https://github.com/textext/textext/issues/241">issue 241</a>)</p></li>
+<li><p>Fixed: Installation on Windows via batch file fails if path to
+batch file contains spaces (<a class="reference external" href="https://github.com/textext/textext/issues/232">issue 232</a>)</p></li>
+<li><p>New: TexText group ID is kept after recompilation (<a class="reference external" href="https://github.com/textext/textext/issues/256">issue 256</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-1-0-2020-07-17">
+<h2>Version 1.1.0 (2020-07-17)<a class="headerlink" href="#version-1-1-0-2020-07-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Possibility to set a white background for preview images (favourably
+for dark mode themes)</p></li>
+<li><p>New: Added instructions how to install Inkscape 1.0 on Ubuntu 18.04/ 20.04
+since it is not shipped by default with these distributions</p></li>
+</ul>
+</section>
+<section id="version-1-0-1-2020-05-12">
+<h2>Version 1.0.1 (2020-05-12)<a class="headerlink" href="#version-1-0-1-2020-05-12" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: List index out of range if latex compilation fails
+(<a class="reference external" href="https://github.com/textext/textext/issues/219">issue 219</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-0-0-2020-05-04">
+<h2>Version 1.0.0 (2020-05-04)<a class="headerlink" href="#version-1-0-0-2020-05-04" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Important</strong>: This version is only compatible with Inkscape 1.0. Please
+use TexText 0.11.1 if you use Inkscape 0.92.x</p></li>
+<li><dl class="simple">
+<dt><strong>Major changes</strong></dt><dd><ul>
+<li><p>TexText can now be found in Inkscape menu entry <em>“Extensions -&gt; Text -&gt; Tex Text”</em>
+(All extensions are required to be in some submenu)</p></li>
+<li><p>Added shortcut CTRL+P for displaying the preview image</p></li>
+<li><p>TexText does not need <em>pstoedit</em>, <em>ghostscript</em> and <em>pdf2svg</em> as external
+dependencies anymore</p></li>
+<li><p>TexText uses GTK3 user interface now, as Inkscape 1.0 does</p></li>
+<li><p>Full Python 3 compatibility</p></li>
+<li><p>Windows only: setup_win.bat now supports Python like arguments</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Important Fixes</strong></dt><dd><ul>
+<li><p>Lost color after re-compilation of node (<a class="reference external" href="https://github.com/textext/textext/issues/206">issue 206</a>)</p></li>
+<li><p>Operand type error (<a class="reference external" href="https://github.com/textext/textext/issues/186">issue 186</a>)</p></li>
+<li><p>Gradient fills not properly rendered (e.g. in color bars)
+(<a class="reference external" href="https://github.com/textext/textext/issues/148">issue 148</a>)</p></li>
+<li><p>Proper parsing and display of LaTeX compiler errors</p></li>
+<li><p>Fixed: Double ESC-hit closes TexText window without confirmation</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="version-0-11-1-2020-05-04">
+<h2>Version 0.11.1 (2020-05-04)<a class="headerlink" href="#version-0-11-1-2020-05-04" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Important</strong>: This version is only compatible with Inkscape 0.92.x Please
+use TexText 1.0 if you use Inkscape 1.0</p></li>
+<li><p>Modified URLs for help on dependency installation in setup routine</p></li>
+</ul>
+</section>
+<section id="version-1-0-0-dev-4-2020-04-15">
+<h2>Version 1.0.0-dev.4 (2020-04-15)<a class="headerlink" href="#version-1-0-0-dev-4-2020-04-15" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Vertical flipping after re-compilation of nodes created with TexText &lt; 1.0
+(<a class="reference external" href="https://github.com/textext/textext/issues/205">issue 205</a>)</p></li>
+<li><p>Fixed: Lost color after re-compilation of node (<a class="reference external" href="https://github.com/textext/textext/issues/206">issue 206</a>)</p></li>
+</ul>
+</section>
+<section id="version-1-0-0-dev-3-2020-04-10">
+<h2>Version 1.0.0-dev.3 (2020-04-10)<a class="headerlink" href="#version-1-0-0-dev-3-2020-04-10" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Compatibility with Inkscape 1.0 Release Candidate 1 modified extension API
+(<a class="reference external" href="https://github.com/textext/textext/issues/188">issue 188</a>, <a class="reference external" href="https://github.com/textext/textext/issues/193">issue 193</a>, <a class="reference external" href="https://github.com/textext/textext/issues/194">issue 194</a>, <a class="reference external" href="https://github.com/textext/textext/issues/196">issue 196</a>, <a class="reference external" href="https://github.com/textext/textext/issues/202">issue 202</a>, <a class="reference external" href="https://github.com/textext/textext/issues/203">issue 203</a>)</p></li>
+<li><p>Fixed operand type error (<a class="reference external" href="https://github.com/textext/textext/issues/186">issue 186</a>)</p></li>
+<li><p>Windows only: setup_win.bat now supports Python like arguments</p></li>
+</ul>
+</section>
+<section id="version-1-0-0-dev-2-2020-02-10">
+<h2>Version 1.0.0-dev.2 (2020-02-10)<a class="headerlink" href="#version-1-0-0-dev-2-2020-02-10" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Enabled TkInter GUI under Python 3</p></li>
+<li><p>New: Proper parsing and display of LaTeX compiler errors</p></li>
+<li><p>Fixed: New nodes were not being placed in the center of the document</p></li>
+<li><p>Fixed: Scale factor is ignored in new nodes</p></li>
+<li><p>Fixed: Inkscape version never stored in TexText node</p></li>
+<li><p>Fixed: Ctrl+P and Ctrl+Q shortcut not working properly under ALL Python interpreters
+required by Inkscape</p></li>
+<li><p>Fixed: Setup error URLs do not point to correct issue template</p></li>
+<li><p>Several minor/ internal improvements/ fixes. See commit history of develop branch</p></li>
+</ul>
+</section>
+<section id="version-1-0-0-dev-1-2019-12-17">
+<h2>Version 1.0.0-dev.1 (2019-12-17)<a class="headerlink" href="#version-1-0-0-dev-1-2019-12-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: TexText does not need pstoedit, ghostscript and pdf2svg as external
+dependencies anymore</p></li>
+<li><p>New: Added shortcut CTRL+P for displaying the preview image</p></li>
+<li><p>Fixed: Gradient fills not properly rendered (e.g. in color bars)
+(<a class="reference external" href="https://github.com/textext/textext/issues/148">issue 148</a>)</p></li>
+<li><p>Fixed: Double ESC-hit closes TexText window without confirmation</p></li>
+<li><p>Internal: Improved exception handling</p></li>
+<li><p>Open: On Windows source code syntax highlighting is currently not available</p></li>
+</ul>
+</section>
+<section id="version-0-11-0-2019-06-22">
+<h2>Version 0.11.0 (2019-06-22)<a class="headerlink" href="#version-0-11-0-2019-06-22" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New (GTK-version only): Possibility to select a shortcut for closing the
+TexText window. You can select between <cite>Escape</cite> (default), <cite>CTRL + Q</cite> and
+<cite>None</cite>.</p></li>
+<li><p>New (GTK-version only): TexText asks for confirmation to close the window
+in case you made changes to your text (<a class="reference external" href="https://github.com/textext/textext/issues/127">issue 127</a>).</p></li>
+<li><p>New: The annoying “Extension is working” window is not shown anymore.</p></li>
+<li><p>New: Improved dependency check on incompatible pstoedit and ghostscript
+versions</p></li>
+</ul>
+<p><strong>Note</strong>: This is the last feature update for TexText on Inkscape 0.92.x. Any new
+features will be included in TexText for Inkscape 1.0.</p>
+</section>
+<section id="version-0-10-2-2019-05-07">
+<h2>Version 0.10.2 (2019-05-07)<a class="headerlink" href="#version-0-10-2-2019-05-07" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Disallowed pstoedit 3.73 + ghostscript 9.27 combination during
+installation (<a class="reference external" href="https://github.com/textext/textext/issues/126">issue 126</a>)</p></li>
+</ul>
+</section>
+<section id="version-0-10-1-2019-04-17">
+<h2>Version 0.10.1 (2019-04-17)<a class="headerlink" href="#version-0-10-1-2019-04-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Inkscape binary not found during installation on some MacOS
+installations (<a class="reference external" href="https://github.com/textext/textext/issues/120">issue 120</a>)</p></li>
+</ul>
+</section>
+<section id="version-0-10-0-2019-04-05">
+<h2>Version 0.10.0 (2019-04-05)<a class="headerlink" href="#version-0-10-0-2019-04-05" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Possibility to define default math environment when creating new nodes
+(empty, inline math, display math)</p></li>
+<li><p>Fixed: Two grey windows appear with no text inside. Inkscape freezes and
+becomes unusable (<a class="reference external" href="https://github.com/textext/textext/issues/114">issue 114</a>)</p></li>
+<li><p>Fixed: Log file cannot be written in system wide installations of TexText
+(<a class="reference external" href="https://github.com/textext/textext/issues/111">issue 111</a>)</p></li>
+<li><p>Internal: Automatic CI deployment and documentation upload (thanks to
+Sergei Izmailov)</p></li>
+</ul>
+</section>
+<section id="version-0-9-1-2018-12-27">
+<h2>Version 0.9.1 (2018-12-27)<a class="headerlink" href="#version-0-9-1-2018-12-27" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: UnicodeDecodeError in setup.py / setup_win.bat
+(<a class="reference external" href="https://github.com/textext/textext/issues/101">issue 101</a>)</p></li>
+</ul>
+</section>
+<section id="version-0-9-0-2018-12-20">
+<h2>Version 0.9.0 (2018-12-20)<a class="headerlink" href="#version-0-9-0-2018-12-20" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New: Scripted setup procedure with automatic check of the
+dependencies (<a class="reference external" href="https://github.com/textext/textext/issues/54">issue 54</a>, <a class="reference external" href="https://github.com/textext/textext/issues/66">issue 66</a>)</p></li>
+<li><p>New: Added possibility to wrap long lines (<a class="reference external" href="https://github.com/textext/textext/issues/47">issue 47</a>)</p></li>
+<li><p>New: GUI settings saved to disk and reloaded at next call
+(word wrap, auto-indent, spaces instead of tab, showing line numbers,
+tab-width)</p></li>
+<li><p>New: Large preview images do not destroy the editor view anymore. They
+are displayed scaled to the available window size. It is also possible
+to display the preview image in original size with vertical and
+horizontal scrolling enabled.</p></li>
+<li><p>New: Improved error dialog</p></li>
+<li><p>New: Imagemagick is not necessary anymore (<a class="reference external" href="https://github.com/textext/textext/issues/60">issue 60</a>)</p></li>
+<li><p>New: Automatic dependency checks during installation (<a class="reference external" href="https://github.com/textext/textext/issues/54">issue 54</a>)</p></li>
+<li><p>New: More detailed and informative logging (<a class="reference external" href="https://github.com/textext/textext/issues/35">issue 35</a>)</p></li>
+<li><p>Fixed: TeX compile error messages reappear (<a class="reference external" href="https://github.com/textext/textext/issues/17">issue 17</a>)</p></li>
+<li><p>Internal: Change extension repository layout (<a class="reference external" href="https://github.com/textext/textext/issues/28">issue 28</a>)</p></li>
+<li><p>Internal: Store TexText config in extension folder (<a class="reference external" href="https://github.com/textext/textext/issues/69">issue 69</a>)</p></li>
+<li><p>Internal: Add CI to monitor backward compatibility (<a class="reference external" href="https://github.com/textext/textext/issues/57">issue 57</a>)</p></li>
+<li><p>Abandoned: Support for Inkscape &lt;= 0.91.x (see <a class="reference internal" href="usage/faq.html#faq-old-inkscape"><span class="std std-ref">Using TexText with Inkscape 0.92.x</span></a> for your options)</p></li>
+</ul>
+<p>Very big thanks go to Sergei Izmailov who again contributed a huge bunch of
+great improvements for this release of the extension.</p>
+</section>
+<section id="version-0-8-2-2018-12-12">
+<h2>Version 0.8.2 (2018-12-12)<a class="headerlink" href="#version-0-8-2-2018-12-12" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt>v0.8.2:</dt><dd><ul class="simple">
+<li><p>Fixed: pstoedit/pdf2svg interoperability on distorted nodes <a class="reference external" href="https://github.com/textext/textext/issues/56">issue 56</a></p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="version-0-8-1-2018-08-23">
+<h2>Version 0.8.1 (2018-08-23)<a class="headerlink" href="#version-0-8-1-2018-08-23" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Loss of user defined preamble file path when re-editing
+nodes (<a class="reference external" href="https://github.com/textext/textext/issues/40">issue 40</a>, thanks to <a class="reference external" href="mailto:veltsov&#37;&#52;&#48;github">veltsov<span>&#64;</span>github</a>).</p></li>
+<li><p>Added file chooser button for selection of preamble file in Tk
+interface</p></li>
+</ul>
+</section>
+<section id="version-0-8-0-2018-08-21">
+<h2>Version 0.8.0 (2018-08-21)<a class="headerlink" href="#version-0-8-0-2018-08-21" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed bad positioning, improved alignment capabilities
+(Thanks to Sergei Izmailov for implementing this)</p></li>
+<li><p>pdf2svg as backend</p></li>
+<li><p>xelatex and lualatex support</p></li>
+<li><p>Keep colors explicitly set in TeX or set by Inkscape</p></li>
+<li><p>Temp directory is safely removed even if it contains additional files
+generated during compilation</p></li>
+</ul>
+</section>
+<section id="version-0-7-3-2018-05-17">
+<h2>Version 0.7.3 (2018-05-17)<a class="headerlink" href="#version-0-7-3-2018-05-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Failure when trying to re-edit nodes created with very old versions of
+TexText. (<a class="reference external" href="https://github.com/textext/textext/issues/15">issue 15</a>: “Recompiling of nodes created with TexText &lt; 0.5 fails”)</p></li>
+<li><p>Fixed: <a class="reference external" href="https://github.com/textext/textext/issues/19">issue 19</a>: Missing width and height attributes in svg document
+lead to crash</p></li>
+</ul>
+</section>
+<section id="version-0-7-2-2018-04-06">
+<h2>Version 0.7.2 (2018-04-06)<a class="headerlink" href="#version-0-7-2-2018-04-06" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed: Failure on missing Inkscape version key (<a class="reference external" href="https://github.com/textext/textext/issues/10">issue 10</a>: “Error occurred while
+converting text from LaTeX to SVG”)</p></li>
+</ul>
+</section>
+<section id="version-0-7-1-2018-02-06">
+<h2>Version 0.7.1 (2018-02-06)<a class="headerlink" href="#version-0-7-1-2018-02-06" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed:
+Wrong scaling so that text with explicitly defined font size does not match
+size of text with equal font size in Inkscape 0.92.x (<a class="reference external" href="https://github.com/textext/textext/issues/1">issue 1</a>)</p></li>
+<li><p>Fixed:
+“Zero length field name in format” error in Inkcape &lt;= 0.91 (<a class="reference external" href="https://github.com/textext/textext/issues/6">issue 6</a>)</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note: All issue references for version 0.7 and prior refer to <a class="reference external" href="https://bitbucket.org/pitgarbe/textext">https://bitbucket.org/pitgarbe/textext</a></p>
+</div>
+</section>
+<section id="version-0-7-2017-12-15">
+<h2>Version 0.7 (2017-12-15)<a class="headerlink" href="#version-0-7-2017-12-15" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed:
+Plugin does not run with Inkscape 0.92.2 under Windows</p></li>
+<li><p>New:
+Global and local scale factor. This feature enables the user to set the scale
+factor of a node to the value used while editing the previous node (Button
+“Global”). Hence, it is easier to change several nodes to the same scale
+factor. It is always possible to reset the scale factor to the value used for
+creating the node (Button “Reset”).</p></li>
+<li><p>New:
+Added compatibility to ImageMagick 7 (version 6 is still supported) (<a class="reference external" href="https://bitbucket.org/pv/textext/issues/32">bb32</a>, <a class="reference external" href="https://bitbucket.org/pv/textext/issues/39">bb39</a>)</p></li>
+<li><p>Workaround:
+A message is displayed if pstoedit failed to produce svg output and ghostscript
+&lt; 9.21 is installed on the system (issues <a class="reference external" href="https://bitbucket.org/pv/textext/issues/44">bb44</a>, <a class="reference external" href="https://bitbucket.org/pv/textext/issues/48">bb48</a>, <a class="reference external" href="https://bitbucket.org/pv/textext/issues/50">bb50</a>).</p></li>
+</ul>
+</section>
+<section id="version-0-6-1-2017-02-13">
+<h2>Version 0.6.1 (2017-02-13)<a class="headerlink" href="#version-0-6-1-2017-02-13" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed:
+“global name ‘WindowsError’ is not defined” - on Linux when using Preview</p></li>
+<li><p>Fixed:
+Typos “lates_messaga” in textext.py</p></li>
+<li><p>Improved:
+Readme can be shown after installation of TexText under Windows</p></li>
+<li><p>Improved:
+License packaged</p></li>
+</ul>
+</section>
+<section id="version-0-6-2017-02-01">
+<h2>Version 0.6 (2017-02-01)<a class="headerlink" href="#version-0-6-2017-02-01" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed:
+“too many values to unpack”-error in Inkscape 0.92</p></li>
+<li><p>Fixed:
+TexText does not work with 64-bit versions of Inkscape under MS Windows</p></li>
+<li><p>Improved:
+TexText does not care anymore if 32-bit or 64-bit versions of pstoedit,
+ImageMagick and ghostscript are installed</p></li>
+<li><p>Improved:
+Installation of PyGTK simplified</p></li>
+</ul>
+</section>
+<section id="version-0-5-2-2017-01-06">
+<h2>Version 0.5.2 (2017-01-06)<a class="headerlink" href="#version-0-5-2-2017-01-06" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed:
+If working with Inkscape files stored with older versions of Inkscape or TexText
+it could happen that - after editing of a LaTeX node - the rendered object becomes
+invisible (in fact: transparent) because the fill attribute was not properly set.</p></li>
+<li><p>Fixed:
+Installation under MS Windows as non admin user ends up with the plugin installed
+into the wrong directory.</p></li>
+<li><p>Fixed:
+Column numbers do not change during editing of the LaTeX-code under Linux and TK.
+The Column-number is nor removed from the dialog if the TK interface is used.</p></li>
+<li><p>Fixed:
+setup.py for the Linux installation does not run under Python 3.</p></li>
+<li><p>Improved:
+More detailled error information is passed to the user during setup of the
+Linux package.</p></li>
+<li><p>Updated:
+The readme-files have been updated to the new version number. Furthermore, links
+for download of the additional software have been added as well as a comment
+that the plugin will only work usign 32bit versions of Inkscape. Furthermore,
+there is only one readme now for both, Linux and Windows.</p></li>
+</ul>
+</section>
+<section id="version-0-5-1-2016-10-10">
+<h2>Version 0.5.1 (2016-10-10)<a class="headerlink" href="#version-0-5-1-2016-10-10" title="Link to this heading"></a></h2>
+<ul>
+<li><p>Fixed:
+TexText does not work with Inkscape 0.9.1</p>
+<p>It is ensured now that Inkscape works under both, Inkscape 0.48 and Inkscape 0.91.</p>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="authors.html" class="btn btn-neutral float-left" title="Authors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

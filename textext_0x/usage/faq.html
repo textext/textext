@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frequently Asked Questions (FAQ, TexText 0.11) &mdash; TexText 1.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="../../_static/logo.ico"/>
+  
+        <script src="../../_static/jquery.js?v=8dae8fb0"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=fe8e256b"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Troubleshooting (TexText 0.11)" href="troubleshooting.html" />
+    <link rel="prev" title="The GUI (TexText 0.11)" href="gui.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TexText
+          </a>
+              <div class="version">
+                1.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/linux.html"><strong>TexText</strong> on Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/windows.html"><strong>TexText</strong> on Windows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/macos.html"><strong>TexText</strong> on MacOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install/advanced.html">Advanced installation options</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/gui.html">The <strong>TexText</strong> GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/command_line_usage.html">TexText Command Line Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/configuration.html">TexText Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deprecated versions</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../install/linux.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/macos.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on MacOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/windows.html"><strong>TexText 0.11 for Inkscape 0.92</strong> on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html">The GUI (TexText 0.11)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Frequently Asked Questions (FAQ, TexText 0.11)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#explicit-setting-of-font-size">Explicit setting of font size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selection-of-special-fonts">Selection of special fonts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-special-characters-like-german-umlaute-auo-etc">Using special characters like German Umlaute (äüö) etc.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-textext-with-older-inkscape-versions">Using TexText with older Inkscape versions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extension-not-shown-in-the-inkscape-extension-menu">Extension not shown in the Inkscape Extension menu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#windows-with-miktex-compilation-fails-with-empty-error-dialog">Windows with MiKTeX: Compilation fails with empty error dialog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-inkscape-python-interpreter-to-python2">Set Inkscape python interpreter to Python2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html">Troubleshooting (TexText 0.11)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Authors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Changelog</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Change log</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TexText</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../textext_0x.html">TexText 0.11 for Inkscape 0.92</a></li>
+      <li class="breadcrumb-item active">Frequently Asked Questions (FAQ, TexText 0.11)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/textext_0x/usage/faq.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="frequently-asked-questions-faq-textext-0-11">
+<span id="tt0x-faq"></span><h1>Frequently Asked Questions (FAQ, TexText 0.11)<a class="headerlink" href="#frequently-asked-questions-faq-textext-0-11" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#explicit-setting-of-font-size" id="id1">Explicit setting of font size</a></p></li>
+<li><p><a class="reference internal" href="#selection-of-special-fonts" id="id2">Selection of special fonts</a></p></li>
+<li><p><a class="reference internal" href="#using-special-characters-like-german-umlaute-auo-etc" id="id3">Using special characters like German Umlaute (äüö) etc.</a></p></li>
+<li><p><a class="reference internal" href="#using-textext-with-older-inkscape-versions" id="id4">Using TexText with older Inkscape versions</a></p></li>
+<li><p><a class="reference internal" href="#extension-not-shown-in-the-inkscape-extension-menu" id="id5">Extension not shown in the Inkscape Extension menu</a></p></li>
+<li><p><a class="reference internal" href="#windows-with-miktex-compilation-fails-with-empty-error-dialog" id="id6">Windows with MiKTeX: Compilation fails with empty error dialog</a></p></li>
+<li><p><a class="reference internal" href="#set-inkscape-python-interpreter-to-python2" id="id7">Set Inkscape python interpreter to Python2</a></p></li>
+</ul>
+</nav>
+<section id="explicit-setting-of-font-size">
+<span id="tt0x-faq-font-size"></span><h2><a class="toc-backref" href="#id1" role="doc-backlink">Explicit setting of font size</a><a class="headerlink" href="#explicit-setting-of-font-size" title="Link to this heading"></a></h2>
+<p>If you want the font size of your compiled LaTeX code to be of a
+specific size then you have to do two things:</p>
+<ol class="arabic simple">
+<li><p>Set the scale factor of the node to 1.0</p></li>
+<li><p>Enter your code as following if you want to have a <code class="docutils literal notranslate"><span class="pre">14pt</span></code> sized font
+for the text <cite>This is my Text</cite>:</p></li>
+</ol>
+<div class="highlight-latex notranslate"><div class="highlight"><pre><span></span><span class="k">\fontsize</span><span class="nb">{</span>14pt<span class="nb">}{</span>1em<span class="nb">}{</span><span class="k">\selectfont</span> This is my Text.<span class="nb">}</span>
+</pre></div>
+</div>
+<p>The resulting text should be of equal height as if has been typeset directly in Inkscape.</p>
+<figure class="align-default">
+<img alt="Font size example" src="../../_images/texttext-fontsize-example.png" />
+</figure>
+</section>
+<section id="selection-of-special-fonts">
+<span id="tt0x-faq-font-custom-font"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Selection of special fonts</a><a class="headerlink" href="#selection-of-special-fonts" title="Link to this heading"></a></h2>
+<p>Usually your code is typeset in the LaTeX standard fonts. As usual, you
+can use commands like <code class="code highlight latex docutils literal highlight-latex">textbf<span class="nb">{}</span></code>, <code class="code highlight latex docutils literal highlight-latex">textsf<span class="nb">{}</span></code> etc. in your code. If
+you want to select a special font, e.g. the beloved <em>Times New Roman</em>
+from MS Word, then proceed as follows:</p>
+<ol class="arabic simple">
+<li><p>Open the file <code class="docutils literal notranslate"><span class="pre">default_packages.tex</span></code> which resides in the extension
+subdirectory (<code class="docutils literal notranslate"><span class="pre">%USERPROFILE%\AppData\Roaming\Inkscape\extensions\textext</span></code> on Windows,
+<code class="docutils literal notranslate"><span class="pre">~/.config/inkscape/extensions/textext</span></code> on Linux) and enter the following
+two lines:</p></li>
+</ol>
+<div class="highlight-latex notranslate"><div class="highlight"><pre><span></span><span class="k">\usepackage</span><span class="nb">{</span>fontspec<span class="nb">}</span>
+<span class="k">\setmainfont</span><span class="nb">{</span>Times New Roman<span class="nb">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Save the file and recompile your node. You can also define different
+preamble files and load them dependent on your node, see <a class="reference internal" href="gui.html#tt0x-usage-dialog-overview"><span class="std std-ref">Dialog overview</span></a>.</p></li>
+</ol>
+</section>
+<section id="using-special-characters-like-german-umlaute-auo-etc">
+<span id="tt0x-faq-utf8"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Using special characters like German Umlaute (äüö) etc.</a><a class="headerlink" href="#using-special-characters-like-german-umlaute-auo-etc" title="Link to this heading"></a></h2>
+<p>If you want to use special characters which are not understood by plain LaTeX
+in your nodes you have two options:</p>
+<ol class="arabic simple">
+<li><p>Include the directive <code class="docutils literal notranslate"><span class="pre">\usepackage[utf-8]{inputenc}</span></code> in the preamble file,
+see <a class="reference internal" href="gui.html#tt0x-usage-preamble-file"><span class="std std-ref">Preamble file</span></a>.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">xelatex</span></code> or <code class="docutils literal notranslate"><span class="pre">lualatex</span></code> as TeX command, see <a class="reference internal" href="gui.html#tt0x-usage-tex-compilers"><span class="std std-ref">Available TeX compilers</span></a>.</p></li>
+</ol>
+</section>
+<section id="using-textext-with-older-inkscape-versions">
+<span id="tt0x-faq-old-inkscape"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink">Using TexText with older Inkscape versions</a><a class="headerlink" href="#using-textext-with-older-inkscape-versions" title="Link to this heading"></a></h2>
+<p>Unfortunately the current <strong>TexText 0.11</strong> release does not work with Inkscape versions 0.91.x
+and 0.48.x, at least under Windows. The reason is the underlying Python interpreter
+which must be of version 2.7. If you need to work with an older Inkscape version you are
+encouraged to use <strong>TexText 0.11</strong> 0.8.x. You can download it from here
+<a class="reference external" href="https://github.com/textext/textext/releases">https://github.com/textext/textext/releases</a> .</p>
+<p>These are the required PyGTK-Packages (Windows):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Inkscape 0.48.x - 0.91.x (<a class="reference external" href="https://github.com/textext/pygtk-for-inkscape-windows/releases/download/0.48%2B0.91/Install-PyGTK-2.24-Inkscape-0.48+0.91.exe">32-bit and 64-bit</a>)</p></li>
+</ul>
+</div></blockquote>
+<p>Installation instructions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/textext/textext/wiki/Installation-instructions">https://github.com/textext/textext/wiki/Installation-instructions</a></p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you manage to run Inkscape &lt; 0.92 with Python 2.7 you can use the most recent
+version of <strong>TexText 0.11</strong>.</p>
+</div>
+</section>
+<section id="extension-not-shown-in-the-inkscape-extension-menu">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Extension not shown in the Inkscape Extension menu</a><a class="headerlink" href="#extension-not-shown-in-the-inkscape-extension-menu" title="Link to this heading"></a></h2>
+<p>If the the <strong>TexText 0.11</strong> entry is not shown in the <code class="docutils literal notranslate"><span class="pre">Extension</span></code> menu of Inkscape proceed with
+the following checks:</p>
+<ol class="arabic">
+<li><p>Make sure that the setup procedure completed successfully. Double check its final output.</p></li>
+<li><p>Launch Inkscape, open the <code class="docutils literal notranslate"><span class="pre">Edit</span></code> menu, select <code class="docutils literal notranslate"><span class="pre">Preferences</span></code>, then select <code class="docutils literal notranslate"><span class="pre">System</span></code> in
+the tree-view to the left and check the entry <code class="docutils literal notranslate"><span class="pre">User</span> <span class="pre">exentsions</span></code> in the right part of
+the window. Its entry should be</p>
+<ul class="simple">
+<li><p>on Linux/ MacOS: <code class="docutils literal notranslate"><span class="pre">/home/[your</span> <span class="pre">user</span> <span class="pre">name]/.config/inkscape/extensions</span></code></p></li>
+<li><p>on Windows: <code class="docutils literal notranslate"><span class="pre">C:\Users\[Your</span> <span class="pre">user</span> <span class="pre">name]\AppData\Roaming\inkscape\extensions</span></code></p></li>
+</ul>
+<p>If you use different locations you must run the setup script with the
+<code class="docutils literal notranslate"><span class="pre">--inkscape-extensions-path</span></code> option.</p>
+<p>Linux/ MacOS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py<span class="w"> </span>--inkscape-extensions-path<span class="w"> </span>/path/to/your/extensions
+</pre></div>
+</div>
+<p>Windows</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>setup_win.bat<span class="w"> </span>/p:<span class="s2">&quot;--inkscape-extensions-path &#39;C:\Path\to your extensions&#39;&quot;</span>
+</pre></div>
+</div>
+<p>Alternatively you can select the correct directory in the GUI installer.</p>
+</li>
+</ol>
+</section>
+<section id="windows-with-miktex-compilation-fails-with-empty-error-dialog">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Windows with MiKTeX: Compilation fails with empty error dialog</a><a class="headerlink" href="#windows-with-miktex-compilation-fails-with-empty-error-dialog" title="Link to this heading"></a></h2>
+<p>If the compilation of your LaTeX code fails with an empty error dialog and the expanded
+view of <code class="docutils literal notranslate"><span class="pre">stderr</span></code> (see <a class="reference internal" href="troubleshooting.html#tt0x-trouble-latex"><span class="std std-ref">LaTeX and toolchain errors</span></a>) shows an entry like</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Sorry,<span class="w"> </span>but<span class="w"> </span>pdflatex.exe<span class="w"> </span>did<span class="w"> </span>not<span class="w"> </span>succeed.
+
+The<span class="w"> </span>log<span class="w"> </span>file<span class="w"> </span>hopefully<span class="w"> </span>contains<span class="w"> </span>the<span class="w"> </span>information<span class="w"> </span>to<span class="w"> </span>get<span class="w"> </span>MiKTeX<span class="w"> </span>going<span class="w"> </span>again:
+</pre></div>
+</div>
+<p>the most likely reason is that MiKTeX tries to install a package on the fly and fails to
+do so. Manually compile your code as described in <a class="reference internal" href="troubleshooting.html#tt0x-trouble-manual-compile"><span class="std std-ref">Manual use of the toolchain</span></a>. Then
+you will see what goes wrong so you can fix it. See also the warning in <a class="reference internal" href="../install/windows.html#tt0x-windows-install-latex"><span class="std std-ref">Install pdflatex/lualatex/xelatex</span></a>.</p>
+</section>
+<section id="set-inkscape-python-interpreter-to-python2">
+<span id="tt0x-faq-set-inskscape-python-interpreter-to-python2"></span><h2><a class="toc-backref" href="#id7" role="doc-backlink">Set Inkscape python interpreter to Python2</a><a class="headerlink" href="#set-inkscape-python-interpreter-to-python2" title="Link to this heading"></a></h2>
+<p>Inkscape by default uses <code class="docutils literal notranslate"><span class="pre">python</span></code> executable to run python extension. On recent systems <code class="docutils literal notranslate"><span class="pre">python</span></code> defaults to be <code class="docutils literal notranslate"><span class="pre">python3</span></code>.
+To run <strong>TexText 0.11</strong> you need to change inkscape <cite>python-interpreter</cite> to <code class="docutils literal notranslate"><span class="pre">python2</span></code>:</p>
+<ol class="arabic">
+<li><p>Quit all running Inkscape processes</p></li>
+<li><p>Open your <code class="docutils literal notranslate"><span class="pre">perferences.xml</span></code> file with a text editor (usually <code class="docutils literal notranslate"><span class="pre">~/.config/inkscape/preferences.xml</span></code>)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Find the exact location of preference file by going to <kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Edit|Preferences|System|User</kbd> <kbd class="kbd docutils literal notranslate">Preferences</kbd></kbd></p>
+</div>
+</li>
+<li><p>Search the group which holds settings for the extension system itself and options of various extensions:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;group</span>
+<span class="w">   </span><span class="na">id=</span><span class="s">&quot;extensions&quot;</span>
+
+<span class="w">   </span><span class="na">org.ekips.filter.gears.teeth=</span><span class="s">&quot;24&quot;</span>
+<span class="w">   </span><span class="na">org.ekips.filter.gears.pitch=</span><span class="s">&quot;20&quot;</span>
+<span class="w">   </span><span class="na">org.ekips.filter.gears.angle=</span><span class="s">&quot;20&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Insert a key for the interpreter, for example <code class="docutils literal notranslate"><span class="pre">python-interpreter</span></code> for setting the program that should be used to
+run python extensions, and set the string to the absolute path to the python binary which is compatible with Inkscape’s
+current extension scripts (in the example below, the path is <code class="docutils literal notranslate"><span class="pre">/usr/bin/python2.7</span></code>, you can determine it in a
+terminal via the command <code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">python2.7</span></code> or <code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">python2</span></code>):</p>
+<blockquote>
+<div><div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;group</span>
+<span class="w">   </span><span class="na">id=</span><span class="s">&quot;extensions&quot;</span>
+<span class="w">   </span><span class="na">python-interpreter=</span><span class="s">&quot;/usr/bin/python2.7&quot;</span>
+
+<span class="w">   </span><span class="na">org.ekips.filter.gears.teeth=</span><span class="s">&quot;24&quot;</span>
+<span class="w">   </span><span class="na">org.ekips.filter.gears.pitch=</span><span class="s">&quot;20&quot;</span>
+<span class="w">   </span><span class="na">org.ekips.filter.gears.angle=</span><span class="s">&quot;20&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gui.html" class="btn btn-neutral float-left" title="The GUI (TexText 0.11)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting (TexText 0.11)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, TexText developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
