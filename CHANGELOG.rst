@@ -1,4 +1,4 @@
-Version 1.12.0 (2025-07-16)
+Version 1.12.0 (2025-07-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: setup command line option `--use-tk` to force the usage of tkinter
   as UI. Alongside, the configuration file option `gui.toolkit` has been
