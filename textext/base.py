@@ -832,6 +832,11 @@ class TexTextElement(inkex.Group):
                 # translate group
                 group.transform = Transform(translate=(float(el.get("x", "0")), float(el.get("y", "0"))))
 
+                # Add text color if it is defined in the "use" elements
+                for attr_name in ["fill", "fill-rule"]:
+                    if attr_name in el.attrib.keys():
+                        group.set(attr_name, el.get(attr_name))
+
                 # replace use node with group node
                 parent = el.getparent()
                 parent.remove(el)
