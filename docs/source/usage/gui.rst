@@ -117,8 +117,8 @@ Dialog overview
 
 
 You enter your LaTeX code into the edit box |usage-label-5|. In the case the
-the GTK GUI bindings are available it will show you line and column numbers. If you
-additionally installed GTKSourceView it will also highlight the syntax
+the GTK GUI bindings are available it will show you line and column numbers. If
+GTKSourceView 4 is available on your system it will also highlight the syntax
 with colors. You can add any valid and also multi-line LaTeX code.
 There are additional settings which can be adjusted to your needs:
 
@@ -425,9 +425,8 @@ to configure the code editor:
 
 .. note::
 
-   The last three options are only available if you have ``GTKSourceView`` installed
-   together with ``GTK`` (see installation instructions :ref:`linux-install`,
-   :ref:`windows-install`, :ref:`macos-install`)
+   The last three options are only available if ``GTKSourceView 4`` is available on your system
+   together with ``GTK`` (see troubleshooting :ref:`gtksourceview_missing` to fix this).
 
 
 Further reading

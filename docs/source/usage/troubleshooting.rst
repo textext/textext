@@ -166,12 +166,43 @@ the extension menu try the following:
     - Linux, Mac: ``python3 setup.py --pdflatex-executable /path/to/your/pdflatex-executable``
     - Windows:  ``setup_win.bat --pdflatex-executable /path/to/your/pdflatex-executable``
 
+- If you updated from Inkscape <= 1.42 to Inkscape >= 1.43 on Windows (see issue
+  https://github.com/textext/textext/issues/483 ):
+
+  - Completely uninstall ``Inkscape`` and ``GTK SourceView for Inkscape``. Make sure
+    that the installation directory (usually ``C:\Program Files\Inkscape``) is removed.
+
+  - Re-install ``Inkscape`` >= 1.43, but NOT ``GTK SourceView for Inkscape`` (as it was necessary
+    for Inkscape <= 1.42).
+
 - Have a look for the file ``textext.log`` in the directory
   ``~/.cache/textext`` (Linux), ``C:\Users\[Your UserName]\AppData\Roaming\textext`` (Windows) or
   ``~/Library/Preferences/textext`` (Mac) and see if any useful error messages are logged into that
   file. You can use this information to further analyze the problem or to
   open an issue on GitHub asking for help: https://github.com/textext/textext/issues/new
 
+
+.. _gtksourceview_missing:
+
+The GTK Source View additions are not available
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Linux**: Make sure that GtkSourceView 4 is installed on your system. By default
+  Inkscape installs it automatically as it is a dependency. You can manually install it
+  as follows:
+
+  - Ubuntu etc.:
+      .. code-block:: bash
+
+        sudo apt install gir1.2-gtksource-4
+
+  - ArchLinux:
+      .. code-block:: bash
+
+        sudo pacman -S gtksourceview4
+
+- **Windows**: This would be a serious packaging problem of Inkscape. Please open an issue
+  on GitHub: https://github.com/textext/textext/issues/new
 
 LaTeX and toolchain errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
