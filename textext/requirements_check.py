@@ -325,7 +325,7 @@ def set_logging_levels():
 
 
 class TexTextRequirementsChecker(object):
-    MINIMUM_REQUIRED_INKSCAPE_VERSION = "1.4.0"
+    MINIMUM_REQUIRED_INKSCAPE_VERSION = "1.4.3"
 
     def __init__(self, logger, config):
         self.logger = logger

@@ -494,7 +494,7 @@ def load_asktext_gtk(use_gtk_source=None):
     GtkSource = None
     if use_gtk_source in (True, None):
         try:
-            gi.require_version('GtkSource', '3.0')
+            gi.require_version('GtkSource', '4')
             from gi.repository import GtkSource
         except (ImportError, TypeError, ValueError) as _:
             if use_gtk_source:

@@ -66,13 +66,6 @@ Preparation
    this by invoking at least one of :bash:`pdflatex --version`, :bash:`xelatex --version`,
    :bash:`typst --version` and :bash:`lualatex --version` in a terminal.
 
-3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
-   enabled in the |TexText|-Gui install GTKSourceView:
-
-   .. code-block:: bash
-
-        sudo apt install gir1.2-gtksource-3.0
-
 
 .. _linux-install-textext:
 
@@ -134,14 +127,7 @@ For ArchLinux based systems with pacman as package manager
 
         sudo pacman -S python-tinycss2
 
-3. Optional: If you wish to have syntax highlighting and some other :ref:`nice features <usage-gui-config>`
-   enabled in the |TexText|-Gui install GTKSourceView:
-
-   .. code-block:: bash
-
-        sudo pacman -S gtksourceview3
-
-4. Make sure you have a basic LaTeX system on your machine. At least the packages
+3. Make sure you have a basic LaTeX system on your machine. At least the packages
    :bash:`texlive-latex`, :bash:`texlive-latexrecommended`, :bash:`texlive-latexextra`
    are required. If not, install them:
 
@@ -149,13 +135,13 @@ For ArchLinux based systems with pacman as package manager
 
         pacman -S texlive-latex texlive-latexrecommended texlive-latexextra
 
-5. Download the most recent |TexText| package from the
+4. Download the most recent |TexText| package from the
    :textext_current_release_page:`release`
    (direct links: :textext_download_zip:`Linux`, :textext_download_tgz:`Linux`).
 
-6. Extract the package and change into the created directory.
+5. Extract the package and change into the created directory.
 
-7. Run :bash:`setup.py` from your terminal:
+6. Run :bash:`setup.py` from your terminal:
 
    .. code-block:: bash
 
