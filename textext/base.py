@@ -1038,13 +1038,18 @@ class TexTextElement(inkex.Group):
         This makes coloring in Inkscape easier later since all other elements are paths, too.
         The color can be set by selecting the fill color. Without this function one would
         need to pick horizontal lines manually and set their stroke color instead of the fill
-        color. Applies to frac and sqrt commands
+        color. Applies to frac and sqrt commands.
         """
+
         for it in self.iter():
             if it.tag_name == "path":
-                # Horizontal lines are defined as "M 0,8.656723 H 5.6953123" or
-                # m 0,8.656723 h 5.6953123
-                match_obj = re.search(r"^([Mm])\s(\d+.?\d*),(\d+.?\d*)\s([Hh])\s(\d+.?\d*)$", it.attrib["d"])
+                # Horizontal lines are defined as
+                # "M 0,8.656723 H 5.6953123" or
+                # "m 0,8.656723 h 5.6953123" or
+                # "M 0 0 L 4.9896 0 " or
+                # "M 0,0 L 4.9896,0 "
+                # etc.
+                match_obj = re.search(r"^([Mm])\s*(\d+.?\d*)\s*[,\s]\s*(\d+.?\d*)\s*([HhLl])\s*(\d+.?\d*)(?:\s*[,\s]\s*)?(\d+.?\d*)?\s*$", it.attrib["d"])
                 if not match_obj:
                     continue
 
@@ -1056,6 +1061,15 @@ class TexTextElement(inkex.Group):
                 dh = float(match_obj.group(5))
                 sw = float(it.attrib["stroke-width"])
                 color = it.attrib["stroke"]
+
+                # L/l has a second argument, check if it is 0, otherwise
+                # this is not a horizontal line
+                # ToDo Also implement handling of arbitrary lines
+                if h in ["L", "l"]:
+                    if float(match_obj.group(6)) != 0.0:
+                        continue
+                    else:
+                        h = "H" if h == "L" else "h"
 
                 # Draw path, colorize it and remove all other attributes
                 it.attrib["d"] = f"{m} {x1},{y1 - 0.5 * sw} {h} {dh} v {sw} H {x1} Z"
