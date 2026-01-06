@@ -400,10 +400,10 @@ class TexTextRequirementsChecker(object):
             try:
                 found_version, major, minor, release = m.groups()
                 if not release:
-                    release = "9999999"
+                    release = "0"
             except ValueError as _:
                 found_version, major, minor = m.groups()
-                release = "9999999"
+                release = "0"
 
             if int(major) >= req_maj and int(minor) >= req_min and int(release) >= req_rel:
                 self.logger.log(SUCCESS, f"   ...Inkscape = {found_version} is found at {executable}")

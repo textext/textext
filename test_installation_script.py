@@ -75,12 +75,12 @@ REQUIREMENT_CHECK_ERROR = 65
 good_configurations = []
 
 # Definition of working combinations of Inkscape (without release number) and LaTeX
-for latex in [("pdflatex",), ("lualatex",), ("xelatex",), ("typst",)]:
-    good_configurations.append([("inkscape", "Inkscape 1.4 (1:1.4+202410161351+e7c3feb100)"), latex])
+# for latex in [("pdflatex",), ("lualatex",), ("xelatex",), ("typst",)]:
+#     good_configurations.append([("inkscape", "Inkscape 1.4 (1:1.4+202410161351+e7c3feb100)"), latex])
 
 # Definition of working combinations of Inkscape (with release number) and LaTeX
 for latex in [("pdflatex",), ("lualatex",), ("xelatex",), ("typst",)]:
-    good_configurations.append([("inkscape", "Inkscape 1.4.2 (1:1.4.2+202505120737+ebf0e940d0)"), latex])
+    good_configurations.append([("inkscape", "Inkscape 1.4.3 (1:1.4.3+202512261035+0d15f75042)"), latex])
 
 # Test: Installation of working combinations must succeed
 for good_configuration in good_configurations:
@@ -108,6 +108,18 @@ test_configuration([
 # Test wrong Inkscape version and pdflatex installed
 test_configuration([
     ("inkscape", "Inkscape 0.92.3 (2405546, 2018-03-11)"),
+    ("pdflatex",)
+], REQUIREMENT_CHECK_ERROR)
+
+# Test wrong Inkscape version and pdflatex installed
+test_configuration([
+    ("inkscape", "Inkscape 1.4.2 (1:1.4.2+202505120737+ebf0e940d0)"),
+    ("pdflatex",)
+], REQUIREMENT_CHECK_ERROR)
+
+# Test wrong Inkscape version and pdflatex installed
+test_configuration([
+    ("inkscape", "Inkscape 1.4 (1:1.4+202410161351+e7c3feb100)"),
     ("pdflatex",)
 ], REQUIREMENT_CHECK_ERROR)
 
