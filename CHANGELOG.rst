@@ -1,3 +1,10 @@
+Version 1.13.0 (2026-01-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Fixed (Windows): TexText does not work on Inkscape 1.4.3 (:issue:`483`)
+- Fixed (typst): Color loss in svg output (:issue:`480`)
+- Fixed (typst): Horizontal lines (like in fractions or sqrts) are not colored
+  if a fill color is applied in Inkscape (:issue:`486`)
+
 Version 1.12.0 (2025-07-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - New: setup command line option `--use-tk` to force the usage of tkinter
@@ -9,7 +16,7 @@ Version 1.12.0 (2025-07-17)
 - New: If a subgroup of a TexText object has been selected a warning message
   will be displayed (previously an empty dialog opened prompting for
   new input).
-- New: Command line option `--recompile-all`: All TexText obejcts will
+- New: Command line option `--recompile-all`: All TexText objects will
   be re-compiled (useful if preamble has been changed).
 - New: Added a section for command line usage of TexText to the documentation.
   Useful for debugging and CI tests.
