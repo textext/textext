@@ -172,8 +172,13 @@ class TexText(inkex.EffectExtension):
             default=self.DEFAULT_ALIGNMENT
         )
 
-        self.arg_parser.add_argument(
+        command_group = self.arg_parser.add_mutually_exclusive_group()
+        command_group.add_argument(
             "--recompile-all",
+            action="store_true"
+        )
+        command_group.add_argument(
+            "--export-pdf-latex",
             action="store_true"
         )
 
@@ -207,6 +212,10 @@ class TexText(inkex.EffectExtension):
 
             if self.options.recompile_all:
                 self._recompile_all()
+                return
+
+            if self.options.export_pdf_latex:
+                self.export_with_font_matching()
                 return
 
             # Find root element
@@ -334,7 +343,7 @@ class TexText(inkex.EffectExtension):
                                                 )
 
                 with logger.debug("Run TexText GUI"):
-                    gui_config = asker.ask(save_callback, preview_callback)
+                    gui_config = asker.ask(save_callback, preview_callback, self.export_with_font_matching)
 
                 with logger.debug("Saving global GUI settings"):
                     self.config["gui"] = gui_config
@@ -357,6 +366,39 @@ class TexText(inkex.EffectExtension):
                                 self.options.tex_command,
                                 original_scale=current_scale
                                 )
+
+    @staticmethod
+    def _convert_node_to_text(node: "TexTextElement") -> inkex.elements.TextElement:
+        text_element = inkex.elements.TextElement()
+        text_element.text = node.get_meta_text()
+        text_element.set('font-size', 0)
+        text_element.set('line-height', 1.2)
+        # actually this should be set depends on the user's configuration in preamble but that's too hard
+        # the default is f@size=10 and baselineskip=12pt
+        bb = node.bounding_box()
+        alignment = node.get_meta_alignment()
+        v_alignment, h_alignment = alignment.split(" ")
+        # v_alignment not supported, see https://github.com/textext/textext/issues/448
+        # not sure what unit the "2" is in actually, and also it is not really accurate
+        # because it depends on the height of the box
+        # (to be completely accurate, the y should be at the baseline of the first line,
+        # but that information is lost)
+        y = bb.top + float(node.get_meta("top_to_baseline"))
+        text_element.set('dominant-baseline', 'hanging')
+        tex_box_left = bb.left - float(node.get_meta("left_to_tex_box_left"))
+        tex_box_right = bb.right + float(node.get_meta("right_to_tex_box_right"))
+        if h_alignment == "left":
+            x = tex_box_left
+            text_element.set('text-anchor', 'start')
+        elif h_alignment == "right":
+            x = tex_box_right
+            text_element.set('text-anchor', 'end')
+        else:
+            x = (tex_box_left + tex_box_right) / 2
+            text_element.set('text-anchor', 'middle')
+        text_element.set('x', x)
+        text_element.set('y', y)
+        return text_element
 
     @staticmethod
     def find_all_textext_nodes(svg):
@@ -400,6 +442,100 @@ class TexText(inkex.EffectExtension):
                         converter.tex_to_pdf(tex_executable, text, preamble_file)
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
+
+    def export_with_font_matching(self):
+        """
+        This can be used from the GTK GUI or the command-line::
+
+            python3 /path/to/textext/__main__.py --export-pdf-latex < file.svg
+
+        For now, writes to ``/tmp/a.pdf`` and ``/tmp/a.pdf_tex``.
+        """
+        import copy
+        tree_clone = copy.deepcopy(self.document)
+        temp_svg = "/tmp/a.svg"
+
+        # generate reference pdf
+        reference_pdf_path = "/tmp/a_reference.pdf"
+        self.document.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        inkex.command.inkscape(temp_svg,
+                    '--export-area-page',
+                    '--export-dpi', '300',
+                    '--export-type=pdf',
+                    '--export-filename', reference_pdf_path)
+
+        # modify tree_clone
+        svg_clone = tree_clone.getroot()
+        preamble_paths = set()
+        for node in self.find_all_textext_nodes(svg_clone):
+            assert node.tag_name == 'g'
+            node.__class__ = TexTextElement
+            if "% do not bring to front" in node.get_meta('text'):
+                continue
+            preamble_paths.add(node.get_meta('preamble'))
+            text_element = self._convert_node_to_text(node)
+            parent = node.getparent()
+            index = parent.index(node)
+            parent[index] = text_element
+        tree_clone.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+        # generate a.pdf and a.pdf_tex
+        pdf_path = "/tmp/a.pdf"  # just a helper pdf that is \includegraphics{} in /tmp/a.pdf_tex
+        from pathlib import Path
+        Path(pdf_path).unlink(missing_ok=True)
+        inkex.command.inkscape(temp_svg,
+                    '--export-area-page',
+                    '--export-dpi', '300',
+                    '--export-type=pdf',
+                    '--export-latex',
+                    '--export-filename', pdf_path)
+        assert Path(pdf_path).is_file()
+        # the command above assumes inkscape_version_number >= 1.0.0
+        # output to pdf_path and f"{pdf_path}_tex"
+        # cf. https://github.com/gillescastel/inkscape-figures : maybe_recompile_figure
+
+        if len(preamble_paths) > 1:
+            preamble, preamble_path = max(
+                    [(Path(p).read_text(encoding='utf-8', errors='replace'), p) for p in preamble_paths],
+                    key=len
+                    )
+            logger.warning(f"multiple preamble files found: {preamble_paths}, pick {preamble_path}")
+        elif len(preamble_paths) == 1:
+            preamble_path = next(iter(preamble_paths))
+            preamble = Path(preamble_path).read_text(encoding='utf-8', errors='replace')
+        else:
+            preamble_path = None
+            preamble = ""
+
+        # generate preview pdf
+        preview_tex_path = "/tmp/a_preview.tex"
+        with open(preview_tex_path, "w") as f:
+            from textwrap import dedent
+            f.write(TexToPdfConverter._add_default_document_class_if_necessary(preamble) +
+                    dedent(r"""
+                    \usepackage{graphicx}
+                    \usepackage{xcolor}
+                    \usepackage[active, tightpage]{preview}
+                    \setlength{\PreviewBorder}{0pt}
+                    \begin{document}
+                        \begin{preview}
+                            \input{a.pdf_tex}
+                        \end{preview}
+                    \end{document}
+                    """))
+        import subprocess
+        from pathlib import Path
+        proc = subprocess.run(
+                ['latexmk', '-pdf', '-g', preview_tex_path],  # -g is workaround to debug issues with the code generation
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=Path(preview_tex_path).parent)
+        if proc.returncode != 0:
+            sys.stderr.buffer.write(proc.stdout)
+            raise RuntimeError(f"compilation error")
+        # TODO check does not really give the error immediately
+
+        # diff-pdf --view /tmp/a_reference.pdf /tmp/a_preview.pdf --dpi=1000
 
     def _do_convert_one(self, text: str, preamble_file, user_scale_factor, alignment, tex_command):
         """
@@ -594,11 +730,29 @@ class TexToPdfConverter:
     DEFAULT_DOCUMENT_CLASS=r"\documentclass{article}"
     DOCUMENT_TEMPLATE = r"""
     %s
-    \pagestyle{empty}
+    \usepackage[active, tightpage]{preview}
+    \usepackage{varwidth}
+    \setlength{\PreviewBorder}{0pt}
     \begin{document}
-    %s
+    \begin{preview}
+    {
+        \setbox0=\hbox{%%
+            \begin{varwidth}[t]{\hsize}
+                %s
+            \end{varwidth}%%
+        }
+        \dimen0=\ht0
+        \ifdim\dp0>\dimen0
+            \dimen0=\dp0
+        \fi
+        \vrule height \dimen0 depth \dimen0 width 0pt\relax
+        \box0
+    }
+    \end{preview}
     \end{document}
     """
+    # the logic ensures that the baseline of the first text line is
+    # in the middle of the document
 
     LATEX_OPTIONS = ['-interaction=nonstopmode',
                      '-halt-on-error']
@@ -625,6 +779,12 @@ class TexToPdfConverter:
         and residing in the temporary directory.
         """
         return self.tmp_base + '.' + suffix
+
+    @staticmethod
+    def _add_default_document_class_if_necessary(preamble):
+        if not _contains_document_class(preamble):
+            return TexToPdfConverter.DEFAULT_DOCUMENT_CLASS + preamble
+        return preamble
 
     def tex_to_pdf(self, tex_command, latex_text, preamble_file):
         """
@@ -709,7 +869,7 @@ class TexToPdfConverter:
         kwargs["pages"] = 1
         kwargs["export_type"] = "svg"
         kwargs["export_text_to_path"] = True
-        kwargs["export_area_drawing"] = True
+        kwargs["export_area_drawing"] = False  # to compute top_to_baseline
 
         ixc.inkscape(self.tmp('pdf'), **kwargs)
 
@@ -815,6 +975,16 @@ class TexTextElement(inkex.Group):
         # We scale it here such that its size is correct in the document units
         # (Usually pt returned from poppler to mm in the main document)
         self.transform.add_scale(root.uutounit("1{}".format(root.unit), document_unit))
+
+        # Useful for _convert_node_to_text later
+        # this "document" refer to the document produced by compiling this single node,
+        # not the svg file the user is editing (which this node will be added to)
+        document_height = self.uutounit(root.get("height"), document_unit)
+        document_width = self.uutounit(root.get("width"), document_unit)
+        bb = self.bounding_box()
+        self.set_meta("top_to_baseline", str(document_height / 2 - bb.top))
+        self.set_meta("left_to_tex_box_left", str(bb.left))
+        self.set_meta("right_to_tex_box_right", str(document_width - bb.right))
 
     @staticmethod
     def _expand_defs(root):
