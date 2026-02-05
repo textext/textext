@@ -371,6 +371,10 @@ class TexText(inkex.EffectExtension):
     def _convert_node_to_text(node: "TexTextElement") -> inkex.elements.TextElement:
         text_element = inkex.elements.TextElement()
         text_element.text = node.get_meta_text()
+        scale = node.get_meta("scale")
+        # scalebox requires \usepackage{graphicx}
+        # varwidth requires \usepackage{varwidth}
+        text_element.text = ("\\scalebox{%s}{\\begin{varwidth}[t]{\\hsize}" % scale ) + text_element.text + "\\end{varwidth}}"
         text_element.set('font-size', 0)
         text_element.set('line-height', 1.2)
         # actually this should be set depends on the user's configuration in preamble but that's too hard
@@ -383,10 +387,10 @@ class TexText(inkex.EffectExtension):
         # because it depends on the height of the box
         # (to be completely accurate, the y should be at the baseline of the first line,
         # but that information is lost)
-        y = bb.top + float(node.get_meta("top_to_baseline"))
+        y = bb.top + float(scale) * float(node.get_meta("top_to_baseline"))
         text_element.set('dominant-baseline', 'hanging')
-        tex_box_left = bb.left - float(node.get_meta("left_to_tex_box_left"))
-        tex_box_right = bb.right + float(node.get_meta("right_to_tex_box_right"))
+        tex_box_left = bb.left - float(scale) * float(node.get_meta("left_to_tex_box_left"))
+        tex_box_right = bb.right + float(scale) * float(node.get_meta("right_to_tex_box_right"))
         if h_alignment == "left":
             x = tex_box_left
             text_element.set('text-anchor', 'start')
@@ -727,12 +731,14 @@ class TexToPdfConverter:
     """
     Base class for Latex -> SVG converters
     """
+    # add border intentionally with fixed offset to be able to remove it for alignment, varwidth seems to take care of width but not height
+    BORDER_OFFSET = 100
     DEFAULT_DOCUMENT_CLASS=r"\documentclass{article}"
     DOCUMENT_TEMPLATE = r"""
     %s
     \usepackage[active, tightpage]{preview}
     \usepackage{varwidth}
-    \setlength{\PreviewBorder}{.5pt}
+    \renewcommand \PreviewBbAdjust {0pt -""" + str(BORDER_OFFSET) + r"""pt 0pt """ + str(BORDER_OFFSET) + r"""pt}
     \begin{document}
     \begin{preview}
     {
@@ -982,10 +988,9 @@ class TexTextElement(inkex.Group):
         document_height = self.uutounit(root.get("height"), document_unit)
         document_width = self.uutounit(root.get("width"), document_unit)
         bb = self.bounding_box()
-        border_offset = self.uutounit(.5, document_unit)
         self.set_meta("top_to_baseline", str(document_height / 2 - bb.top))
-        self.set_meta("left_to_tex_box_left", str(bb.left-border_offset))
-        self.set_meta("right_to_tex_box_right", str(document_width - bb.right - border_offset))
+        self.set_meta("left_to_tex_box_left", str(bb.left))
+        self.set_meta("right_to_tex_box_right", str(document_width - bb.right))
 
     @staticmethod
     def _expand_defs(root):
