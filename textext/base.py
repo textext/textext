@@ -526,7 +526,7 @@ class TexText(inkex.EffectExtension):
         import subprocess
         from pathlib import Path
         proc = subprocess.run(
-                ['latexmk', '-pdf', '-g', preview_tex_path],  # -g is workaround to debug issues with the code generation
+                ['pdflatex', preview_tex_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 cwd=Path(preview_tex_path).parent)
@@ -732,7 +732,7 @@ class TexToPdfConverter:
     %s
     \usepackage[active, tightpage]{preview}
     \usepackage{varwidth}
-    \setlength{\PreviewBorder}{0pt}
+    \setlength{\PreviewBorder}{.5pt}
     \begin{document}
     \begin{preview}
     {
@@ -982,9 +982,10 @@ class TexTextElement(inkex.Group):
         document_height = self.uutounit(root.get("height"), document_unit)
         document_width = self.uutounit(root.get("width"), document_unit)
         bb = self.bounding_box()
+        border_offset = self.uutounit(.5, document_unit)
         self.set_meta("top_to_baseline", str(document_height / 2 - bb.top))
-        self.set_meta("left_to_tex_box_left", str(bb.left))
-        self.set_meta("right_to_tex_box_right", str(document_width - bb.right))
+        self.set_meta("left_to_tex_box_left", str(bb.left-border_offset))
+        self.set_meta("right_to_tex_box_right", str(document_width - bb.right - border_offset))
 
     @staticmethod
     def _expand_defs(root):
