@@ -202,9 +202,13 @@ class TexText(inkex.EffectExtension):
         for node in self.find_all_textext_nodes(self.svg):
             node.__class__ = TexTextElement
             text, preamble_file, scale = node.get_all_info()
+            # enforce preamble file given by arguments to allow updating them in batch
+            if self.options.preamble_file != preamble_file:
+                preamble_file = self.options.preamble_file
             alignment = node.get_meta_alignment()
             new_node = self._do_convert_one(text, preamble_file, scale, alignment, self.options.tex_command)
             self._replace_node(node, new_node, scale, alignment, scale)
+        self.make_ids_unique()
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
