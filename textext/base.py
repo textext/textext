@@ -188,6 +188,11 @@ class TexText(inkex.EffectExtension):
             default=self.DEFAULT_TEXCMD
         )
 
+        self.arg_parser.add_argument(
+            "--verbose",
+            action="store_true"
+        )
+
     def _recompile_all(self):
         """
         Mutate ``self.svg`` to recompile all textext entries.
@@ -212,6 +217,9 @@ class TexText(inkex.EffectExtension):
 
     def effect(self):
         """Perform the effect: create/modify TexText objects"""
+        if self.options.verbose:
+            logging.disable(logging.NOTSET)
+
         with logger.debug("TexText.effect"):
 
             if self.options.recompile_all:
