@@ -227,7 +227,7 @@ class TexText(inkex.EffectExtension):
                 return
 
             if self.options.export_pdf_latex:
-                self.export_with_font_matching()
+                self.export_with_font_matching(True)
                 return
 
             # Find root element
@@ -459,7 +459,7 @@ class TexText(inkex.EffectExtension):
                     converter.pdf_to_png(white_bg=white_bg)
                     image_setter(converter.tmp('png'))
 
-    def export_with_font_matching(self):
+    def export_with_font_matching(self, standalone = False):
         """
         This can be used from the GTK GUI or the command-line::
 
@@ -469,21 +469,30 @@ class TexText(inkex.EffectExtension):
         """
         import copy
         tree_clone = copy.deepcopy(self.document)
-        temp_svg = "/tmp/a.svg"
+        # TODO generate correct tmp file using inkscape functions for the whole method here
+        temp_svg = "tmp.svg"
 
-        # generate reference pdf
-        reference_pdf_path = "/tmp/a_reference.pdf"
-        self.document.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-        inkex.command.inkscape(temp_svg,
-                    '--export-area-page',
-                    '--export-dpi', '300',
-                    '--export-type=pdf',
-                    '--export-filename', reference_pdf_path)
+        if self.options.verbose:
+            # generate reference pdf
+            reference_pdf_path = "tmp_reference.pdf"
+            self.document.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+            inkex.command.inkscape(temp_svg,
+                        '--export-area-page',
+                        '--export-dpi', '300',
+                        '--export-type=pdf',
+                        '--export-filename', reference_pdf_path)
 
-        # modify tree_clone
+        # modify tree_clone - convert textext node to LaTeX
         svg_clone = tree_clone.getroot()
         preamble_paths = set()
-        for node in self.find_all_textext_nodes(svg_clone):
+
+        # TODO properly implement standalone code if used in combination with inkscape actions - thus replacing svg code
+        #if standalone:
+        #    in_node = self.svg
+        #else:
+        in_node = svg_clone
+
+        for node in self.find_all_textext_nodes(in_node):
             assert node.tag_name == 'g'
             node.__class__ = TexTextElement
             if "% do not bring to front" in node.get_meta('text'):
@@ -493,65 +502,59 @@ class TexText(inkex.EffectExtension):
             parent = node.getparent()
             index = parent.index(node)
             parent[index] = text_element
-        tree_clone.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-        # generate a.pdf and a.pdf_tex
-        pdf_path = "/tmp/a.pdf"  # just a helper pdf that is \includegraphics{} in /tmp/a.pdf_tex
-        from pathlib import Path
-        Path(pdf_path).unlink(missing_ok=True)
-        inkex.command.inkscape(temp_svg,
-                    '--export-area-page',
-                    '--export-dpi', '300',
-                    '--export-type=pdf',
-                    '--export-latex',
-                    '--export-filename', pdf_path)
-        assert Path(pdf_path).is_file()
-        # the command above assumes inkscape_version_number >= 1.0.0
-        # output to pdf_path and f"{pdf_path}_tex"
-        # cf. https://github.com/gillescastel/inkscape-figures : maybe_recompile_figure
+        # TODO properly implement standalone code if used in combination with inkscape actions
+        if True: # not standalone:
+            # temporary save modified svg
+            tree_clone.write(temp_svg, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-        if len(preamble_paths) > 1:
-            preamble, preamble_path = max(
-                    [(Path(p).read_text(encoding='utf-8', errors='replace'), p) for p in preamble_paths],
-                    key=len
-                    )
-            logger.warning(f"multiple preamble files found: {preamble_paths}, pick {preamble_path}")
-        elif len(preamble_paths) == 1:
-            preamble_path = next(iter(preamble_paths))
-            preamble = Path(preamble_path).read_text(encoding='utf-8', errors='replace')
-        else:
-            preamble_path = None
-            preamble = ""
+            # generate a.pdf and a.pdf_tex
+            pdf_path = self.document_path()  # just a helper pdf that is \includegraphics{} in /tmp/a.pdf_tex
+            from pathlib import Path
+            p = Path(pdf_path).with_suffix('.pdf')
+            p.unlink(missing_ok=True)
+            ixc.inkscape(temp_svg,
+                        '--export-area-page',
+                        '--export-dpi', '300',
+                        '--export-type=pdf',
+                        '--export-latex',
+                        '--export-filename', str(p))
+            assert p.is_file()
+            # the command above assumes inkscape_version_number >= 1.0.0
+            # output to pdf_path and f"{pdf_path}_tex"
+            # cf. https://github.com/gillescastel/inkscape-figures : maybe_recompile_figure
 
-        # generate preview pdf
-        preview_tex_path = "/tmp/a_preview.tex"
-        with open(preview_tex_path, "w") as f:
-            from textwrap import dedent
-            f.write(TexToPdfConverter._add_default_document_class_if_necessary(preamble) +
-                    dedent(r"""
-                    \usepackage{graphicx}
-                    \usepackage{xcolor}
-                    \usepackage[active, tightpage]{preview}
-                    \setlength{\PreviewBorder}{0pt}
-                    \begin{document}
-                        \begin{preview}
-                            \input{a.pdf_tex}
-                        \end{preview}
-                    \end{document}
-                    """))
-        import subprocess
-        from pathlib import Path
-        proc = subprocess.run(
-                ['pdflatex', preview_tex_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                cwd=Path(preview_tex_path).parent)
-        if proc.returncode != 0:
-            sys.stderr.buffer.write(proc.stdout)
-            raise RuntimeError(f"compilation error")
-        # TODO check does not really give the error immediately
+        if self.options.verbose:
+            if len(preamble_paths) > 1:
+                preamble, preamble_path = max(
+                        [(Path(p).read_text(encoding='utf-8', errors='replace'), p) for p in preamble_paths],
+                        key=len
+                        )
+                logger.warning(f"multiple preamble files found: {preamble_paths}, pick {preamble_path}")
+            elif len(preamble_paths) == 1:
+                preamble_path = next(iter(preamble_paths))
+                preamble = Path(preamble_path).read_text(encoding='utf-8', errors='replace')
+            else:
+                preamble_path = None
+                preamble = ""
 
-        # diff-pdf --view /tmp/a_reference.pdf /tmp/a_preview.pdf --dpi=1000
+            # generate preview pdf
+            text = r"""
+                        \usepackage[active, tightpage]{preview}
+                        \setlength{\PreviewBorder}{0pt}
+                        \begin{document}
+                            \begin{preview}
+                                \input{tmp_in.pdf_tex}
+                            \end{preview}
+                        \end{document}
+                        """
+            tex_executable = self.requirements_checker.available_tex_to_pdf_converters[self.options.tex_command]
+            converter = TexToPdfConverter(self.requirements_checker)
+            converter.DOCUMENT_TEMPLATE = r"""%s %s"""
+            converter.DEFAULT_DOCUMENT_CLASS = ""
+            converter.tex_to_pdf(tex_executable, text, preamble_path)
+            # TODO fix verbose mode
+            #exec_command(["diff-pdf", "tmp_reference.pdf", "tmp.pdf", "--output-diff=diff.pdf", "--dpi=1000"])
 
     def _do_convert_one(self, text: str, preamble_file, user_scale_factor, alignment, tex_command):
         """
