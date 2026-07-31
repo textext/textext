@@ -463,6 +463,21 @@ def load_asktext_gtk(use_gtk_source=None):
     import gi
     gi.require_version("Gtk", "3.0")
 
+    # Inkscape shows a spurious "Inkscape has received additional data from the
+    # script executed" dialog whenever an extension writes ANYTHING to stderr -
+    # even a harmless warning on a clean exit. On newer PyGObject (Python 3.12+,
+    # e.g. Ubuntu 26.04) the gi.repository imports below emit a
+    # PyGIDeprecationWarning to stderr at override-load time, e.g. "GLib.
+    # unix_signal_add_full is deprecated; use GLibUnix.signal_add_full instead".
+    # Ignoring the whole category here - before those imports, which is where it
+    # fires - keeps every current and future gi deprecation warning out of the
+    # stderr Inkscape inspects (this also covers the Gtk.Dialog case patched
+    # piecemeal in #475). See #496.
+    warnings.filterwarnings(
+        "ignore",
+        category=getattr(gi, "PyGIDeprecationWarning", DeprecationWarning),
+    )
+
     # The import statement
     # from gi.repository import Gtk
     # writes a warning into stderr under Python 3.10 which always pops up after the
