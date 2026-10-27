@@ -1075,7 +1075,7 @@ class TexTextElement(inkex.Group):
                 it.attrib["d"] = f"{m} {x1},{y1 - 0.5 * sw} {h} {dh} v {sw} H {x1} Z"
                 it.attrib["fill"] = color
                 for key in it.attrib.keys():
-                    if key not in ["id", "d", "fill"]:
+                    if key not in ["id", "d", "fill", "transform"]:
                         del it.attrib[key]
 
     def set_none_strokes_to_0pt(self):
