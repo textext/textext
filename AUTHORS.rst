@@ -32,3 +32,4 @@ went into the development of the project.
 - veltsov@github
 - Vladislav Gavryusev
 - xuestrange@github
+- Vasil Yordanov (Landflier@github)
